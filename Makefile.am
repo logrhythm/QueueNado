@@ -24,8 +24,8 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libstats/ \
           -Wl,-R${abs_top_srcdir}/source/libconf/ \
           -Wl,-R${abs_top_srcdir}/source/libcapture/ \
-          -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R/usr/local/probe/lib/ \
+          -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
           -L${abs_top_srcdir}/source/libZMQ/ \
           -L${abs_top_srcdir}/source/liblrdpi/ \
@@ -33,8 +33,8 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libconf/ \
           -L${abs_top_srcdir}/source/libcapture/ \
           -L${abs_top_srcdir}/source/ \
-          -L/usr/local/probe/lib64/ \
           -L/usr/local/probe/lib/ \
+          -L/usr/local/probe/lib64/ \
           -L${prefix}/lib
 
 INCLUDES=-I${abs_top_srcdir}/source/ \
