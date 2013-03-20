@@ -245,6 +245,7 @@ bool Vampire::GetStakes(std::vector<std::pair<void*, unsigned int> >& stakes,
 void Vampire::Destroy() {
    if (mContext != NULL) {
       //LOG(DEBUG) << "Vampire: destroying context";
+      zsocket_destroy(mContext, mBody);
       zctx_destroy(&mContext);
       //zclock_sleep(mLinger * 2);
       mContext = NULL;

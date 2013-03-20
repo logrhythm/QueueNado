@@ -38,7 +38,8 @@ void CZMQToolkit::PrintCurrentHighWater(void* socket, const std::string& name) {
    int rcvhwm = zsocket_rcvhwm(socket);
    int sndbuf = zsocket_sndbuf(socket);
    int sndhwm = zsocket_sndhwm(socket);
-   LOGF(DEBUG, "%s: rcvbuf:%d rcvhwm:%d sndbuf:%d sndhwm:%d", name.c_str(), rcvbuf, rcvhwm, sndbuf, sndhwm);
+   std::string tmpName = name;
+   LOGF(DEBUG, "%s: rcvbuf:%d rcvhwm:%d sndbuf:%d sndhwm:%d", tmpName.c_str(), rcvbuf, rcvhwm, sndbuf, sndhwm);
 }
 
 /**
