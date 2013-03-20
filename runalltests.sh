@@ -1,0 +1,24 @@
+#!/bin/sh
+chmod 777 .libs
+chmod 777 .libs/* 
+chmod 777 .
+chmod 777 ..
+chmod 777 ../source/.libs
+chmod 777 ../source/.libs/*
+touch ../ZMQTest.junit.xml ../PacketCaptureTest.junit.xml ../DpiMsgLRTest.junit.xml ../QosmosCodeGeneratorTest.junit.xml ../QosmosDpiTest.junit.xml ../SysLoggerTest.junit.xml ../SyslogConfigTest.junit.xml ../ConfProcessorTest.junit.xml ../SendStatsTest.junit.xml ../StatsAccumulatorTest.junit.xml ../ShotgunAlienTests.junit.xml ../RifleVampireTests.junit.xml ../TestTCPIPDirectionlessHash.junit.xml ../RuleEngineTest.xml
+chmod 777 ../*.xml
+./ZMQTest --gtest_output=xml:../ZMQTest.junit.xml
+./PacketCaptureTest --gtest_output=xml:../PacketCaptureTest.junit.xml
+./DpiMsgLRTest --gtest_output=xml:../DpiMsgLRTest.junit.xml
+./QosmosCodeGeneratorTest --gtest_output=xml:../QosmosCodeGeneratorTest.junit.xml
+./QosmosDpiTest --gtest_output=xml:../QosmosDpiTest.junit.xml
+./SysLoggerTest --gtest_output=xml:../SysLoggerTest.junit.xml
+./SyslogConfigTest --gtest_output=xml:../SyslogConfigTest.junit.xml
+./ConfProcessorTests --gtest_output=xml:../ConfProcessorTest.junit.xml
+./SendStatsTest --gtest_output=xml:../SendStatsTest.junit.xml
+./StatsAccumulatorTest --gtest_output=xml:../StatsAccumulatorTest.junit.xml
+./ShotgunAlienTests --gtest_output=xml:../ShotgunAlienTests.junit.xml
+./RifleVampireTests --gtest_output=xml:../RifleVampireTests.junit.xml
+./RuleEngineTest --gtest_output=xml:../RuleEngineTests.junit.xml
+./TestTCPIPDirectionlessHash --gtest_output=xml:../TestTCPIPDirectionlessHash.junit.xml
+

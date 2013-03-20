@@ -1,0 +1,10 @@
+debugSiemLogging: true
+reportEverything: true
+siemLogging: true
+syslogEnabled: true
+syslogLogAgentIP: 10.1.1.67
+syslogLogAgentPort: 514
+syslogLogConfName: /etc/rsyslog.conf
+syslogLogFacility: local4
+syslogLogName: /var/log/nm.log
+syslogMaxLineLength: 2047
