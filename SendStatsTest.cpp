@@ -81,7 +81,7 @@ void SendStatsTest::VampireThread(int numberOfMessages,
    vampire.SetIOThreads(ioThreads);
    vampire.SetOwnSocket( true );
    ASSERT_TRUE(vampire.PrepareToBeShot());
-   for (int i; i < numberOfMessages; i++) {
+   for (int i=0; i < numberOfMessages; i++) {
       std::string bullet;
       if (vampire.GetShot(bullet, 2000)) {
          EXPECT_EQ(bullet, expectedData);

@@ -165,22 +165,26 @@ nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FO
 
 
 nmTest_SOURCES=main.cpp \
-	QosmosConfTest.cpp \
-	SyslogConfigTest.cpp \
-	SysLoggerTest.cpp \
 	DpiMsgLRTest.cpp \
+	CrowbarHeadcrabTests.cpp \
+	CZMQToolkitTests.cpp \
+        MsgUuidTest.cpp \
 	PacketCaptureTest.cpp \
-        ZeroMQTests.cpp \
+        ProcStatsTest.cpp \
 	QosmosDpiTest.cpp \
 	QosmosCodeGeneratorTests.cpp \
 	QosmosPacketAllocatorTests.cpp \
 	QosmosProtocolCaptureTest.cpp \
-	TestSendReceiveDpiMsgLRZMQ.cpp \
-	CZMQToolkitTests.cpp \
-	CrowbarHeadcrabTests.cpp \
-	SendStatsTest.cpp \
+	QosmosConfTest.cpp \
         RifleVampireTests.cpp \
+        RuleEngineTest.cpp \
+	SendStatsTest.cpp \
         ShotgunAlienTests.cpp \
+        StatsAccumulatorTest.cpp \
+	SyslogConfigTest.cpp \
         TestTCPIPDirectionlessHash.cpp \
-	TestSendReceivePacketZMQ.cpp 
+	TestSendReceiveDpiMsgLRZMQ.cpp \
+	TestSendReceivePacketZMQ.cpp \
+        ZeroMQTests.cpp
 
+#	SysLoggerTest.cpp \  conflicts with Rule Engine

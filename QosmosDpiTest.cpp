@@ -428,7 +428,7 @@ TEST_F(QosmosDpiTest, ProcessPacket) {
       ASSERT_FALSE(interfaces.empty());
       t_interface = interfaces[0];
       ASSERT_FALSE(t_interface.empty());
-      std::string data("abc");
+      std::string data("abc12345678787777777777777777777777777777777777777777777777777770000000000000000000000000000000000000000000");
       struct pcap_pkthdr hdr;
       hdr.len = data.size();
       ctb_ppacket packet = NULL;
@@ -500,7 +500,7 @@ TEST_F(QosmosDpiTest, EnableAndDisableCapture) {
 }
 
 TEST_F(QosmosDpiTest, FreeAndSendCalls) {
-   std::string data("abc");
+   std::string data("abc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
    struct pcap_pkthdr hdr;
    hdr.len = data.size();
    ctb_ppacket packet = NULL;
