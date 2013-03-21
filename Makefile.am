@@ -1,4 +1,5 @@
 check_PROGRAMS=nmTest \
+CommandProcessorTests \
 MsgUuidTest \
 SyslogConfigTest \
 SysLoggerTest \
@@ -24,6 +25,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libstats/ \
           -Wl,-R${abs_top_srcdir}/source/libconf/ \
           -Wl,-R${abs_top_srcdir}/source/libcapture/ \
+          -Wl,-R${abs_top_srcdir}/source/libcommand/ \
           -Wl,-R/usr/local/probe/lib/ \
           -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
@@ -32,6 +34,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libstats/ \
           -L${abs_top_srcdir}/source/libconf/ \
           -L${abs_top_srcdir}/source/libcapture/ \
+          -L${abs_top_srcdir}/source/libcommand/ \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
@@ -43,6 +46,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libstats \
          -I${abs_top_srcdir}/source/libconf \
          -I${abs_top_srcdir}/source/libcapture \
+         -I${abs_top_srcdir}/source/libcommand \
          -I/usr/local/probe/include
 
 ZMQTest_LDADD=-lnm -lZMQ -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
@@ -107,6 +111,11 @@ ConfProcessorTests_SOURCES=main.cpp \
 	QosmosConfTest.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
 
+CommandProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lprotobuf -lstats -lconf -llrdpi -llib_g2log -lcommand
+CommandProcessorTests_LDFLAGS=${BASE_LIBS}
+CommandProcessorTests_SOURCES=main.cpp \
+        CommandProcessorTests.cpp
+CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\" ${INCLUDES}
 
 SysLoggerTest_LDADD=-lnm -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata \
 	            -lqmsecurity -lZMQ -lstats -lyaml-cpp -lboost_thread -lboost_system -llrdpi -llib_g2log
@@ -165,6 +174,7 @@ nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FO
 
 
 nmTest_SOURCES=main.cpp \
+        CommandProcessorTest.cpp \
 	DpiMsgLRTest.cpp \
 	CrowbarHeadcrabTests.cpp \
 	CZMQToolkitTests.cpp \

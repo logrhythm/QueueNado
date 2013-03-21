@@ -5,7 +5,7 @@ chmod 777 .
 chmod 777 ..
 chmod 777 ../source/.libs
 chmod 777 ../source/.libs/*
-touch ../ZMQTest.junit.xml ../PacketCaptureTest.junit.xml ../DpiMsgLRTest.junit.xml ../QosmosCodeGeneratorTest.junit.xml ../QosmosDpiTest.junit.xml ../SysLoggerTest.junit.xml ../SyslogConfigTest.junit.xml ../ConfProcessorTest.junit.xml ../SendStatsTest.junit.xml ../StatsAccumulatorTest.junit.xml ../ShotgunAlienTests.junit.xml ../RifleVampireTests.junit.xml ../TestTCPIPDirectionlessHash.junit.xml ../RuleEngineTest.xml
+touch ../ZMQTest.junit.xml ../PacketCaptureTest.junit.xml ../DpiMsgLRTest.junit.xml ../QosmosCodeGeneratorTest.junit.xml ../QosmosDpiTest.junit.xml ../SysLoggerTest.junit.xml ../SyslogConfigTest.junit.xml ../ConfProcessorTest.junit.xml ../SendStatsTest.junit.xml ../StatsAccumulatorTest.junit.xml ../ShotgunAlienTests.junit.xml ../RifleVampireTests.junit.xml ../TestTCPIPDirectionlessHash.junit.xml ../RuleEngineTest.junit.xml ../CommandProcessorTests.junit.xml
 chmod 777 ../*.xml
 ./ZMQTest --gtest_output=xml:../ZMQTest.junit.xml
 ./PacketCaptureTest --gtest_output=xml:../PacketCaptureTest.junit.xml
@@ -21,4 +21,5 @@ chmod 777 ../*.xml
 ./RifleVampireTests --gtest_output=xml:../RifleVampireTests.junit.xml
 ./RuleEngineTest --gtest_output=xml:../RuleEngineTests.junit.xml
 ./TestTCPIPDirectionlessHash --gtest_output=xml:../TestTCPIPDirectionlessHash.junit.xml
+./CommandProcessorTests --gtest_output=xml:../CommandProcessorTests.junit.xml
 
