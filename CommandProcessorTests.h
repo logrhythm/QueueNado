@@ -7,6 +7,7 @@ class CommandProcessorTests : public ::testing::Test {
 public:
 
     CommandProcessorTests() {
+       srand(std::time(NULL));
     };
 protected:
     

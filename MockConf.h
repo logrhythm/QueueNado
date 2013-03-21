@@ -176,6 +176,12 @@ public:
       mQosmosProtoLongNames[name] = name;
       mQosmosProtoFamiles[name] = name;
    }
+   std::string getCommandQueue() const {
+      if (mCommandQueue.empty()) {
+         return Conf::getCommandQueue();
+      }
+      return mCommandQueue;
+   }
    bool mQosmosDebug;
    unsigned int mDpiHalfSessions;
    unsigned int mQosmos64;
@@ -186,4 +192,5 @@ public:
       return mSiemDebug;
    }
    bool mSiemDebug;
+   std::string mCommandQueue;
 };

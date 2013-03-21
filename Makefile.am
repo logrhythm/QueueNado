@@ -111,7 +111,7 @@ ConfProcessorTests_SOURCES=main.cpp \
 	QosmosConfTest.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
 
-CommandProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lprotobuf -lstats -lconf -llrdpi -llib_g2log -lcommand
+CommandProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lprotobuf -lstats -lconf -llrdpi -llib_g2log -lcommand -lboost_system
 CommandProcessorTests_LDFLAGS=${BASE_LIBS}
 CommandProcessorTests_SOURCES=main.cpp \
         CommandProcessorTests.cpp
@@ -165,16 +165,16 @@ TestTCPIPDirectionlessHash_SOURCES=main.cpp \
 TestTCPIPDirectionlessHash_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
 
 
-nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq \
+nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
-             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log 
+             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log  
 
 nmTest_LDFLAGS=${BASE_LIBS}
 nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
 
 
 nmTest_SOURCES=main.cpp \
-        CommandProcessorTest.cpp \
+        CommandProcessorTests.cpp \
 	DpiMsgLRTest.cpp \
 	CrowbarHeadcrabTests.cpp \
 	CZMQToolkitTests.cpp \
