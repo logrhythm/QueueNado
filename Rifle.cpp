@@ -252,6 +252,7 @@ bool Rifle::FireStakes(const std::vector<std::pair<void*, unsigned int> >
 void Rifle::Destroy() {
    if (mContext != NULL) {
       //LOG(DEBUG) << "Rifle: destroying context";
+      zsocket_destroy(mContext, mChamber);
       zctx_destroy(&mContext);
       //zclock_sleep(mLinger * 2);
       mChamber = NULL;

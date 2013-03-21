@@ -95,7 +95,7 @@ bool Vampire::PrepareToBeShot() {
          if (result < 0) {
             zsocket_destroy(mContext, mBody);
             mBody = NULL;
-            printf("Can't connect : %d\n", result);
+            LOGF(WARNING,"Can't connect : %d\n", result); 
             return false;
          }
       } else {
@@ -103,7 +103,7 @@ bool Vampire::PrepareToBeShot() {
          if (result < 0) {
             zsocket_destroy(mContext, mBody);
             mBody = NULL;
-            printf("Can't connect : %d\n", result);
+            LOGF(WARNING,"Can't connect : %d\n", result);
             return false;
          }
       }
