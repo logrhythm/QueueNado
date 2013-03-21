@@ -200,7 +200,9 @@ TEST_F(QosmosDpiTest, DisableEnableProtoTest) {
       EXPECT_FALSE( mDpiEngine->FamilyEnable( invalidFamilyName ) );
       EXPECT_FALSE( mDpiEngine->FamilyDisable( invalidFamilyName ) );
        */
+#ifdef LR_DEBUG
       mDpiEngine->ReleaseDevice();
+#endif
    }
 }
 
