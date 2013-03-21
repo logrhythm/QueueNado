@@ -47,6 +47,7 @@ int MockPacketCapturePCap::GetPacketFromPCap(ctb_ppacket& packet, unsigned int& 
          memcpy(rawPacket, mBogusPacket, 100);
 
          hash = mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
+         delete []rawPacket;
          return 1;
       } else {
          return mFakePCapRetVal;
@@ -412,6 +413,7 @@ TEST_F(PacketCaptureTest, PacketCapturePCapClientThread_GetPackets) {
    rawData.insert(0, reinterpret_cast<char*> (packet->data), packet->len);
    ASSERT_EQ(capturer.mBogusHeader.len, rawData.size());
    ASSERT_EQ(0, memcmp(capturer.mBogusPacket, rawData.c_str(), rawData.size()));
+   
    capturer.mFakePCapRetVal = 0;
    ASSERT_EQ(0, clientThread.GetPacket(packet, hash));
 #endif
@@ -448,4 +450,5 @@ TEST_F(PacketCaptureTest, FailPackets) {
    packets.push_back(make_pair(packet,hash));
    clientThread.FailPackets(packets);
    EXPECT_TRUE(packets.empty());
+   delete []rawPacket;
 }

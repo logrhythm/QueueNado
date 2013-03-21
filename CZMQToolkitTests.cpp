@@ -218,6 +218,7 @@ TEST_F(CZMQToolkitTests, SendExistingMessage) {
    std::string aString(reinterpret_cast<char*> (zframe_data(frame)), 3);
    ASSERT_EQ("abc", aString);
    zframe_destroy(&frame);
+   zmsg_destroy(&message);
 }
 
 TEST_F(CZMQToolkitTests, PassMessageAlongFailures) {
@@ -285,7 +286,7 @@ TEST_F(CZMQToolkitTests, SendStringContentsToSocket) {
    std::string* aReply = CZMQToolkit::GetStringFromMessage(reply);
    ASSERT_FALSE(aReply == NULL);
    ASSERT_EQ(expectedString, *aReply);
-
+   zmsg_destroy(&reply);
    delete aReply;
    delete aString;
 }

@@ -65,6 +65,7 @@ bool TestSendReceivePacketZMQ::RunBenchmark(size_t packets, const string& bindin
       cout << "Could not init queue" << endl;
       ready = false;
       mReaderThread.join();
+      delete readerThreadConfig.serverThread;
       return false;
    }
 
