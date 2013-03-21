@@ -7,6 +7,7 @@ class CommandProcessorTests : public ::testing::Test {
 public:
 
     CommandProcessorTests() {
+       zctx_interrupted = false;
        srand(std::time(NULL));
     };
 protected:
