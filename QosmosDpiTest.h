@@ -99,6 +99,9 @@ public:
 		   mDpiEngine = new ExposedQosmosDPI(mConfMaster);
 	   }
    }
+   ~QosmosDpiTest() {
+       //delete mDpiEngine;
+   }
 
 protected:
    virtual void SetUp() {
