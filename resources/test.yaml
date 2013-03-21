@@ -1,4 +1,5 @@
 broadcastQueue: ipc:///tmp/broadcast.ipc
+commandQueue: ipc:///tmp/commandQueue.ipc
 confChangeQueue: ipc:///tmp/confChangeQ.ipc
 dbClusterName: TestCluster
 dbUrl: localhost:9160

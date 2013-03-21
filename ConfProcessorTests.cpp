@@ -280,6 +280,7 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
+   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
    EXPECT_TRUE(99 == conf.getDpiThreads());
    EXPECT_EQ(123, conf.getPCAPETimeOut());
@@ -322,6 +323,7 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
+   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
    EXPECT_TRUE(99 == conf.getDpiThreads());
    EXPECT_EQ(123, conf.getPCAPETimeOut());
@@ -349,6 +351,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    EXPECT_EQ("ipc:///tmp/statsaccumulator.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/statsmsg.ipc", conf.getSendStatsQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
+   EXPECT_EQ("tcp://127.0.0.1:5556", conf.getCommandQueue());
    std::string expectedDir = INSTALL_PREFIX;
    expectedDir += "/logs";
    EXPECT_EQ(expectedDir, conf.getLogDir());
@@ -497,6 +500,19 @@ TEST_F(ConfProcessorTests, testSiemLogging) {
    msg.set_siemlogging("true");
    conf.updateFields(msg);
    EXPECT_TRUE(conf.SiemLogging());
+
+}
+
+TEST_F(ConfProcessorTests, testCommandQueue) {
+   protoMsg::BaseConf msg;
+   msg.set_commandqueue("false");
+   Conf conf(mTestConf);
+   conf.setPath(mWriteLocation);
+   conf.updateFields(msg);
+   EXPECT_EQ("false",conf.getCommandQueue());
+   msg.set_commandqueue("true");
+   conf.updateFields(msg);
+   EXPECT_EQ("true",conf.getCommandQueue());
 
 }
 TEST_F(ConfProcessorTests, testSiemDebugLogging) {
@@ -776,6 +792,7 @@ TEST_F(ConfProcessorTests, testPolledConsumerRcvAfterReg) {
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
+   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_TRUE(99 == conf.getDpiThreads());
    EXPECT_EQ(1, conf.getStatsIntervalSeconds());
    EXPECT_TRUE(conf.getSyslogEnabled());
@@ -851,6 +868,7 @@ TEST_F(ConfProcessorTests, testConfSlaveBasic) {
    EXPECT_EQ("/etc/rsyslog.conf", conf.getSyslogConfName());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
+   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
    EXPECT_TRUE(99 == conf.getDpiThreads());
    EXPECT_EQ(123, conf.getPCAPETimeOut());
@@ -914,6 +932,7 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    EXPECT_EQ(normalConf.getSyslogConfName(), slaveConf.getSyslogConfName());
    EXPECT_EQ(normalConf.getDpiRcvrQueue(), slaveConf.getDpiRcvrQueue());
    EXPECT_EQ(normalConf.getConfChangeQueue(), slaveConf.getConfChangeQueue());
+   EXPECT_EQ(normalConf.getCommandQueue(), slaveConf.getCommandQueue());
    EXPECT_EQ(normalConf.getDpiThreads(), slaveConf.getDpiThreads());
    EXPECT_EQ(normalConf.getPCAPETimeOut(), slaveConf.getPCAPETimeOut());
    EXPECT_EQ(normalConf.getPCAPBuffsize(), slaveConf.getPCAPBuffsize());
