@@ -154,7 +154,7 @@ bool Headcrab::GetHitWait(std::vector<std::string>& theHits,const int timeout) {
    }
    return false;
 }
-bool Headcrab::SendSplatter(std::string& feedback) {
+bool Headcrab::SendSplatter(const std::string& feedback) {
    std::vector<std::string> allReplies;
    allReplies.push_back(feedback);
    return SendSplatter(allReplies);

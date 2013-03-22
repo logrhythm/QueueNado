@@ -28,7 +28,7 @@ public:
    bool SendSplatter(std::vector<std::string>& feedback);
    bool GetHitBlock(std::string& theHit);
    bool GetHitWait(std::string& theHit,const int timeout);
-   bool SendSplatter(std::string& feedback);
+   bool SendSplatter(const std::string& feedback);
    static int GetHighWater();
 private:
 
