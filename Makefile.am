@@ -114,7 +114,8 @@ ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\
 CommandProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lprotobuf -lstats -lconf -llrdpi -llib_g2log -lcommand -lboost_system
 CommandProcessorTests_LDFLAGS=${BASE_LIBS}
 CommandProcessorTests_SOURCES=main.cpp \
-        CommandProcessorTests.cpp
+        CommandProcessorTests.cpp \
+        CommandFactoryTests.cpp
 CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\" ${INCLUDES}
 
 SysLoggerTest_LDADD=-lnm -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata \
@@ -174,6 +175,7 @@ nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FO
 
 
 nmTest_SOURCES=main.cpp \
+        CommandFactoryTests.cpp \
         CommandProcessorTests.cpp \
 	DpiMsgLRTest.cpp \
 	CrowbarHeadcrabTests.cpp \
