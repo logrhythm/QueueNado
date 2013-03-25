@@ -19,7 +19,7 @@ chmod 777 ../*.xml
 ./StatsAccumulatorTest --gtest_output=xml:../StatsAccumulatorTest.junit.xml
 ./ShotgunAlienTests --gtest_output=xml:../ShotgunAlienTests.junit.xml
 ./RifleVampireTests --gtest_output=xml:../RifleVampireTests.junit.xml
-./RuleEngineTest --gtest_output=xml:../RuleEngineTests.junit.xml
+./RuleEngineTest --gtest_output=xml:../RuleEngineTest.junit.xml
 ./TestTCPIPDirectionlessHash --gtest_output=xml:../TestTCPIPDirectionlessHash.junit.xml
 ./CommandProcessorTests --gtest_output=xml:../CommandProcessorTests.junit.xml
 
