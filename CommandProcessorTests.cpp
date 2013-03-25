@@ -8,25 +8,31 @@
 #include "CommandReply.pb.h"
 #include "CommandRequest.pb.h"
 
-
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
+#ifdef LR_DEBUG
    MockConf conf;
    conf.mCommandQueue = "invalid";
    CommandProcessor testProcessor(conf);
    EXPECT_FALSE(testProcessor.Initialize());
+#endif
 }
+
 TEST_F(CommandProcessorTests, ConstructAndInitialize) {
+#ifdef LR_DEBUG
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand()%1000 + 20000);
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
    CommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    raise(SIGTERM);
+#endif
 }
+
 TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
+#ifdef LR_DEBUG
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand()%1000 + 20000);
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
    CommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -41,11 +47,14 @@ TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
    replyMsg.ParseFromString(reply);
    EXPECT_FALSE(replyMsg.success());
    raise(SIGTERM);
+#endif
 }
+
 TEST_F(CommandProcessorTests, CommandSendReceive) {
+#ifdef LR_DEBUG
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand()%1000 + 20000);
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
    CommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -61,4 +70,5 @@ TEST_F(CommandProcessorTests, CommandSendReceive) {
    replyMsg.ParseFromString(reply);
    EXPECT_TRUE(replyMsg.success());
    raise(SIGTERM);
+#endif
 }
