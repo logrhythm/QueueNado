@@ -182,6 +182,13 @@ public:
       }
       return mCommandQueue;
    }
+   std::string getProccessManagementQueue() const {
+      if (mProcessManagmentQueue.empty()) {
+         return Conf::getProccessManagementQueue();
+      }
+      return mProcessManagmentQueue;
+   }
+   
    bool mQosmosDebug;
    unsigned int mDpiHalfSessions;
    unsigned int mQosmos64;
@@ -193,4 +200,5 @@ public:
    }
    bool mSiemDebug;
    std::string mCommandQueue;
+   std::string mProcessManagmentQueue;
 };

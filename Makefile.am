@@ -9,6 +9,7 @@ DpiMsgLRTest \
 QosmosCodeGeneratorTest \
 QosmosDpiTest \
 ConfProcessorTests \
+ProcessManagerTest \
 RuleEngineTest \
 StatsAccumulatorTest \
 SendStatsTest \
@@ -26,6 +27,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libconf/ \
           -Wl,-R${abs_top_srcdir}/source/libcapture/ \
           -Wl,-R${abs_top_srcdir}/source/libcommand/ \
+          -Wl,-R${abs_top_srcdir}/source/libprocess/ \
           -Wl,-R/usr/local/probe/lib/ \
           -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
@@ -35,6 +37,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libconf/ \
           -L${abs_top_srcdir}/source/libcapture/ \
           -L${abs_top_srcdir}/source/libcommand/ \
+          -L${abs_top_srcdir}/source/libprocess/ \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
@@ -47,6 +50,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libconf \
          -I${abs_top_srcdir}/source/libcapture \
          -I${abs_top_srcdir}/source/libcommand \
+         -I${abs_top_srcdir}/source/libprocess \
          -I/usr/local/probe/include
 
 ZMQTest_LDADD=-lnm -lZMQ -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
@@ -152,6 +156,11 @@ ProcStatsTest_LDFLAGS=${BASE_LIBS}
 ProcStatsTest_SOURCES=main.cpp ProcStatsTest.cpp
 ProcStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
 
+ProcessManagerTest_LDADD=-lnm -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lboost_system -lprotobuf -llib_g2log -lzmq -lczmq -lprocess
+ProcessManagerTest_LDFLAGS=${BASE_LIBS}
+ProcessManagerTest_SOURCES=main.cpp ProcessManagerTest.cpp
+ProcessManagerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+
 
 DpiMsgLRTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log 
 DpiMsgLRTest_LDFLAGS=${BASE_LIBS}
@@ -166,7 +175,7 @@ TestTCPIPDirectionlessHash_SOURCES=main.cpp \
 TestTCPIPDirectionlessHash_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
 
 
-nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
+nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log  
 
@@ -182,6 +191,7 @@ nmTest_SOURCES=main.cpp \
 	CZMQToolkitTests.cpp \
         MsgUuidTest.cpp \
 	PacketCaptureTest.cpp \
+        ProcessManagerTest.cpp \
         ProcStatsTest.cpp \
 	QosmosDpiTest.cpp \
 	QosmosCodeGeneratorTests.cpp \
