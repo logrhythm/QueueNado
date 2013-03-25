@@ -37,7 +37,7 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    shots.push_back(baseConfig.SerializeAsString());
 
    ASSERT_TRUE(conf.EnableIPDefragmentation());
-   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
    ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
@@ -45,7 +45,7 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(conf.EnableIPDefragmentation());
-   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
    ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
@@ -53,7 +53,7 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(conf.EnableIPDefragmentation());
-   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
    ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
@@ -61,7 +61,7 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(conf.EnableIPDefragmentation());
-   ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage,shots,conf));
+   ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
    ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
@@ -69,9 +69,10 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(conf.EnableIPDefragmentation());
-   ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage,shots,conf));
+   ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
    ASSERT_FALSE(conf.EnableIPDefragmentation());
 }
+
 TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
@@ -84,19 +85,19 @@ TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
 
-   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots, conf));
 
    shots.clear();
    configTypeMessage.set_qosmosconf(false);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots, conf));
 
    shots.clear();
    configTypeMessage.set_qosmosconf(true);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots, conf));
 
    shots.clear();
    protoMsg::QosmosConf::Protocol* testProto = baseConfig.add_qosmosprotocol();
@@ -104,17 +105,18 @@ TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
    testProto->set_protocolname("test");
    testProto->set_protocolfamily("Test");
    testProto->set_protocollongname("This is for Testing");
-   ASSERT_EQ("test",baseConfig.qosmosprotocol(0).protocolname());
+   ASSERT_EQ("test", baseConfig.qosmosprotocol(0).protocolname());
    ASSERT_TRUE(baseConfig.qosmosprotocol(0).protocolenabled());
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessQosmosMsg(configTypeMessage,shots,conf));
+   ASSERT_TRUE(testSlave.ProcessQosmosMsg(configTypeMessage, shots, conf));
    protoMsg::QosmosConf gotConf = conf.getQosmosConfigInfo();
-   ASSERT_EQ(1,gotConf.qosmosprotocol_size());
-   ASSERT_EQ("test",gotConf.qosmosprotocol(0).protocolname());
+   ASSERT_EQ(1, gotConf.qosmosprotocol_size());
+   ASSERT_EQ("test", gotConf.qosmosprotocol(0).protocolname());
    ASSERT_TRUE(gotConf.qosmosprotocol(0).protocolenabled());
 
 }
+
 TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
@@ -127,7 +129,7 @@ TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    shots.push_back(baseConfig.SerializeAsString());
 
    ASSERT_FALSE(conf.SiemLogging());
-   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots, conf));
    ASSERT_FALSE(conf.SiemLogging());
 
    shots.clear();
@@ -135,7 +137,7 @@ TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(conf.SiemLogging());
-   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots, conf));
    ASSERT_FALSE(conf.SiemLogging());
 
    shots.clear();
@@ -143,7 +145,7 @@ TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(conf.SiemLogging());
-   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots, conf));
    ASSERT_FALSE(conf.SiemLogging());
 
    shots.clear();
@@ -151,7 +153,7 @@ TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(conf.SiemLogging());
-   ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage,shots,conf));
+   ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage, shots, conf));
    ASSERT_TRUE(conf.SiemLogging());
 
    shots.clear();
@@ -159,9 +161,10 @@ TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(conf.SiemLogging());
-   ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage,shots,conf));
+   ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage, shots, conf));
    ASSERT_FALSE(conf.SiemLogging());
 }
+
 TEST_F(ConfProcessorTests, ProcessRestartMsg) {
 #if defined(LR_DEBUG)
    MockConfSlave testSlave;
@@ -175,7 +178,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
    shots.push_back(baseConfig.SerializeAsString());
 
    ASSERT_FALSE(testSlave.mAppClosed);
-   ASSERT_FALSE(testSlave.ProcessRestartMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessRestartMsg(configTypeMessage, shots, conf));
    ASSERT_FALSE(testSlave.mAppClosed);
 
    shots.clear();
@@ -183,7 +186,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(testSlave.mAppClosed);
-   ASSERT_FALSE(testSlave.ProcessRestartMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessRestartMsg(configTypeMessage, shots, conf));
    ASSERT_FALSE(testSlave.mAppClosed);
 
    shots.clear();
@@ -191,7 +194,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(testSlave.mAppClosed);
-   ASSERT_FALSE(testSlave.ProcessRestartMsg(configTypeMessage,shots,conf));
+   ASSERT_FALSE(testSlave.ProcessRestartMsg(configTypeMessage, shots, conf));
    ASSERT_FALSE(testSlave.mAppClosed);
 
    shots.clear();
@@ -199,7 +202,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(testSlave.mAppClosed);
-   ASSERT_TRUE(testSlave.ProcessRestartMsg(configTypeMessage,shots,conf));
+   ASSERT_TRUE(testSlave.ProcessRestartMsg(configTypeMessage, shots, conf));
    ASSERT_FALSE(testSlave.mAppClosed);
 
    shots.clear();
@@ -207,10 +210,11 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(testSlave.mAppClosed);
-   ASSERT_TRUE(testSlave.ProcessRestartMsg(configTypeMessage,shots,conf));
+   ASSERT_TRUE(testSlave.ProcessRestartMsg(configTypeMessage, shots, conf));
    ASSERT_TRUE(testSlave.mAppClosed);
 #endif
 }
+
 TEST_F(ConfProcessorTests, testSingletonInstantiation) {
    ConfMaster& confThread = ConfMaster::Instance();
 }
@@ -219,7 +223,7 @@ TEST_F(ConfProcessorTests, testNewConfConstructionStream) {
    std::stringstream stream;
    std::stringstream qStream;
    std::stringstream sStream;
-   Conf * conf = new Conf(stream, qStream,sStream);
+   Conf * conf = new Conf(stream, qStream, sStream);
    delete conf;
 }
 
@@ -274,8 +278,6 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
    EXPECT_EQ("local4", conf.getSyslogFacility());
-   EXPECT_EQ("/var/log/nm.log", conf.getSyslogLogName());
-   EXPECT_EQ("/etc/rsyslog.conf", conf.getSyslogConfName());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
@@ -316,9 +318,6 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    Conf conf = confThread.GetConf(mTestConf);
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("local4", conf.getSyslogFacility());
-   EXPECT_EQ("/var/log/nm.log", conf.getSyslogLogName());
-   EXPECT_EQ("/etc/rsyslog.conf", conf.getSyslogConfName());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
@@ -343,9 +342,6 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    Conf conf = confThread.GetConf();
    EXPECT_EQ("", conf.getSyslogAgentIP());
    EXPECT_EQ("", conf.getSyslogAgentPort());
-   EXPECT_EQ("", conf.getSyslogFacility());
-   EXPECT_EQ("", conf.getSyslogLogName());
-   EXPECT_EQ("", conf.getSyslogConfName());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/broadcast.ipc", conf.getBroadcastQueue());
    EXPECT_EQ("ipc:///tmp/statsaccumulator.ipc", conf.getStatsAccumulatorQueue());
@@ -509,12 +505,13 @@ TEST_F(ConfProcessorTests, testCommandQueue) {
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ("false",conf.getCommandQueue());
+   EXPECT_EQ("false", conf.getCommandQueue());
    msg.set_commandqueue("true");
    conf.updateFields(msg);
-   EXPECT_EQ("true",conf.getCommandQueue());
+   EXPECT_EQ("true", conf.getCommandQueue());
 
 }
+
 TEST_F(ConfProcessorTests, testSiemDebugLogging) {
    protoMsg::SyslogConf msg;
    msg.set_debugsiemlogging("false");
@@ -527,6 +524,7 @@ TEST_F(ConfProcessorTests, testSiemDebugLogging) {
    EXPECT_TRUE(conf.SiemDebugLogging());
 
 }
+
 TEST_F(ConfProcessorTests, testProtoMessage) {
    protoMsg::BaseConf msg;
    protoMsg::SyslogConf sysMsg;
@@ -541,9 +539,6 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    std::string syslogMaxLineLength = "1234";
    sysMsg.set_sysloglogagentip(expAgentIP);
    sysMsg.set_sysloglogagentport(expAgentPort);
-   sysMsg.set_sysloglogfacility(expLogFacility);
-   sysMsg.set_sysloglogname(expLogName);
-   sysMsg.set_sysloglogconfname(expLogConfName);
    sysMsg.set_debugsiemlogging("true");
    msg.set_dpithreads(dpiThreads);
    msg.set_pcapetimeout(dpiThreads);
@@ -556,7 +551,6 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
    EXPECT_EQ(expAgentPort, conf.getSyslogAgentPort());
    EXPECT_EQ(expLogFacility, conf.getSyslogFacility());
-   EXPECT_EQ(expLogName, conf.getSyslogLogName());
    EXPECT_EQ(expLogConfName, conf.getSyslogConfName());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(dpiThreads), conf.getDpiThreads());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(dpiThreads), conf.getPCAPETimeOut());
@@ -575,9 +569,6 @@ TEST_F(ConfProcessorTests, testIpOnlyProtoMessage) {
    Conf conf(msg, qmsg, sysMsg);
    EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
    EXPECT_EQ("", conf.getSyslogAgentPort());
-   EXPECT_EQ("", conf.getSyslogFacility());
-   EXPECT_EQ("", conf.getSyslogLogName());
-   EXPECT_EQ("", conf.getSyslogConfName());
 }
 
 TEST_F(ConfProcessorTests, testWriteToFile) {
@@ -605,25 +596,18 @@ TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
    Conf conf(mTestConf);
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("local4", conf.getSyslogFacility());
-   EXPECT_EQ("/var/log/nm.log", conf.getSyslogLogName());
-   EXPECT_EQ("/etc/rsyslog.conf", conf.getSyslogConfName());
 
    conf.setPath(mWriteLocation);
    ASSERT_EQ(mWriteLocation, conf.getPath());
    protoMsg::BaseConf msg;
    protoMsg::SyslogConf sysMsg;
    std::string expAgentIP = "24.24.24.24";
-   std::string expSyslogFacility = "local1";
+
    sysMsg.set_sysloglogagentip(expAgentIP);
-   sysMsg.set_sysloglogfacility(expSyslogFacility);
    conf.updateFields(sysMsg);
 
    EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ(expSyslogFacility, conf.getSyslogFacility());
-   EXPECT_EQ("/var/log/nm.log", conf.getSyslogLogName());
-   EXPECT_EQ("/etc/rsyslog.conf", conf.getSyslogConfName());
 
    conf.writeToFile();
 
@@ -631,10 +615,7 @@ TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
 
    EXPECT_EQ(expAgentIP, newConf.getSyslogAgentIP());
    EXPECT_EQ("514", newConf.getSyslogAgentPort());
-   EXPECT_EQ(expSyslogFacility, newConf.getSyslogFacility());
-   EXPECT_EQ("/var/log/nm.log", newConf.getSyslogLogName());
-   EXPECT_EQ("/etc/rsyslog.conf", newConf.getSyslogConfName());
-
+   
 }
 
 TEST_F(ConfProcessorTests, testPathWithDynamicConf) {
@@ -685,6 +666,7 @@ TEST_F(ConfProcessorTests, testGetBaseConfMsg) {
 
    confThread.Stop();
 }
+
 TEST_F(ConfProcessorTests, testGetSyslogConfMsg) {
 
    ConfMaster& confThread = ConfMaster::Instance();
@@ -724,9 +706,6 @@ TEST_F(ConfProcessorTests, testGetSyslogConfMsg) {
    conf.updateFields(confUpdateMsg);
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("local4", conf.getSyslogFacility());
-   EXPECT_EQ("/var/log/nm.log", conf.getSyslogLogName());
-   EXPECT_EQ("/etc/rsyslog.conf", conf.getSyslogConfName());
 
    confThread.Stop();
 }
@@ -749,7 +728,7 @@ TEST_F(ConfProcessorTests, testSendGarbageZmqMsgs) {
    // Empty response to garbage
    EXPECT_TRUE(confChangeQ.WaitForKill(data, 10000));
    confThread.Stop();
-   ASSERT_EQ(2,data.size());
+   ASSERT_EQ(2, data.size());
    EXPECT_TRUE(data[1].empty());
    LOG(DEBUG) << "testSendGarbageZmqMsgs end";
 }
@@ -785,9 +764,6 @@ TEST_F(ConfProcessorTests, testPolledConsumerRcvAfterReg) {
 
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("local4", conf.getSyslogFacility());
-   EXPECT_EQ("/var/log/nm.log", conf.getSyslogLogName());
-   EXPECT_EQ("/etc/rsyslog.conf", conf.getSyslogConfName());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
@@ -834,12 +810,8 @@ TEST_F(ConfProcessorTests, testPolledConsumerRcvAfterNotify) {
    messages.push_back(ctms);
 
    protoMsg::SyslogConf bcm;
-   std::string expLogFacility("local1");
-   std::string expLogLogConfName("/new/conf/name");
-   std::string expLogAgentIP("24.24.24.24");
 
-   bcm.set_sysloglogfacility(expLogFacility);
-   bcm.set_sysloglogconfname(expLogLogConfName);
+   std::string expLogAgentIP("24.24.24.24");
    bcm.set_sysloglogagentip(expLogAgentIP);
 
    std::string bcms = bcm.SerializeAsString();
@@ -863,9 +835,6 @@ TEST_F(ConfProcessorTests, testConfSlaveBasic) {
    Conf conf = slave.GetConf();
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("local4", conf.getSyslogFacility());
-   EXPECT_EQ("/var/log/nm.log", conf.getSyslogLogName());
-   EXPECT_EQ("/etc/rsyslog.conf", conf.getSyslogConfName());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
    EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
@@ -927,9 +896,6 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    //test results equal normal conf
    EXPECT_EQ(normalConf.getSyslogAgentIP(), slaveConf.getSyslogAgentIP());
    EXPECT_EQ(normalConf.getSyslogAgentPort(), slaveConf.getSyslogAgentPort());
-   EXPECT_EQ(normalConf.getSyslogFacility(), slaveConf.getSyslogFacility());
-   EXPECT_EQ(normalConf.getSyslogLogName(), slaveConf.getSyslogLogName());
-   EXPECT_EQ(normalConf.getSyslogConfName(), slaveConf.getSyslogConfName());
    EXPECT_EQ(normalConf.getDpiRcvrQueue(), slaveConf.getDpiRcvrQueue());
    EXPECT_EQ(normalConf.getConfChangeQueue(), slaveConf.getConfChangeQueue());
    EXPECT_EQ(normalConf.getCommandQueue(), slaveConf.getCommandQueue());
@@ -1052,6 +1018,7 @@ TEST_F(ConfProcessorTests, testConfSlaveRestart) {
    EXPECT_TRUE(slave.mAppClosed);
 #endif
 }
+
 TEST_F(ConfProcessorTests, testConfSlaveNoRestart) {
 #ifdef LR_DEBUG
    MockConfSlave slave;
@@ -1070,6 +1037,7 @@ TEST_F(ConfProcessorTests, testConfSlaveNoRestart) {
    EXPECT_FALSE(slave.mAppClosed);
 #endif
 }
+
 TEST_F(ConfProcessorTests, testConfSlaveBaseConf) {
 #ifdef LR_DEBUG
    MockConfSlave slave;
