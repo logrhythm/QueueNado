@@ -7,6 +7,7 @@ TEST_F(ProcessManagerTest, ConstructAndInitializeFail) {
    conf.mProcessManagmentQueue = "invalid";
    ProcessManager testManager(conf);
    EXPECT_FALSE(testManager.Initialize());
+   testManager.DeInit();
 #endif
 }
 
@@ -16,6 +17,7 @@ TEST_F(ProcessManagerTest, ConstructAndInitialize) {
    ProcessManager testManager(conf);
    EXPECT_TRUE(testManager.Initialize());
    raise(SIGTERM);
+   testManager.DeInit();
 #endif
 }
 
@@ -31,6 +33,7 @@ TEST_F(ProcessManagerTest, RunProcess) {
    EXPECT_NE(std::string::npos, result.find("-rwxr-xr-x. 1 root root"));
    EXPECT_NE(std::string::npos, result.find("/bin/ls"));
    raise(SIGTERM);
+   testManager.DeInit();
 #endif
 }
 
@@ -45,5 +48,6 @@ TEST_F(ProcessManagerTest, RunNonExistantProcess) {
    std::string result = (testManager.RunProcess(processName, processArgs));
    EXPECT_TRUE(result.empty());
    raise(SIGTERM);
+   testManager.DeInit();
 #endif
 }
