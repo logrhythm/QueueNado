@@ -277,7 +277,6 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    Conf conf = confThread.GetConf(mTestConf);
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("local4", conf.getSyslogFacility());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
@@ -531,8 +530,6 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    std::string expAgentIP = "24.24.24.24";
    std::string expAgentPort = "514";
    std::string expLogFacility = "local4";
-   std::string expLogName = "/var/log/nm.log";
-   std::string expLogConfName = "/etc/rsyslog.conf";
    std::string dpiThreads = "13";
    std::string pcapBufferSize = "30";
    std::string pcapInterface = "foo";
@@ -550,8 +547,6 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
 
    EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
    EXPECT_EQ(expAgentPort, conf.getSyslogAgentPort());
-   EXPECT_EQ(expLogFacility, conf.getSyslogFacility());
-   EXPECT_EQ(expLogConfName, conf.getSyslogConfName());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(dpiThreads), conf.getDpiThreads());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(dpiThreads), conf.getPCAPETimeOut());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(pcapBufferSize), conf.getPCAPBuffsize());
