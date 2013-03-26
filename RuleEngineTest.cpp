@@ -14,6 +14,7 @@
 using namespace networkMonitor;
 
 TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
+#ifdef LR_DEBUG
     MockRuleEngine dm(conf, syslogName, syslogOption,
             syslogFacility, syslogPriority, true, 0);
     map<unsigned int, pair <string, string> > dataPairs;
@@ -105,7 +106,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
     expected += ",version=4.0";
     EXPECT_EQ(expected, messages[index++]);
-
+#endif
 }
 
 TEST_F(RuleEngineTest, testConstructor) {
