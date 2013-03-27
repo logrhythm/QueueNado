@@ -162,6 +162,42 @@ TEST_F(ProcessManagerTest, RegisterDaemon) {
    testManager.DeInit();
 #endif
 }
+TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   std::stringstream testQueue;
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   ProcessManager testManager(conf);
+   EXPECT_TRUE(testManager.Initialize());
+   ProcessManager sendManager(conf);
+   EXPECT_TRUE(sendManager.Initialize());
+   std::string processName("/bin/sleep");
+   std::string processArgs;
+   processArgs = "2";
+   EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs));
+   processName = "/bin/ps";
+   processArgs = "-ef | grep \"/bin/sleep\" | grep -v grep | grep ";
+   testQueue.str("");
+   testQueue << getpid();
+   processArgs += testQueue.str();
+   std::string result = (sendManager.RunProcess(processName, processArgs));
+   LOG(DEBUG) << result;
+   EXPECT_NE(std::string::npos, result.find(testQueue.str()));
+   EXPECT_NE(std::string::npos, result.find("/bin/sleep"));
+   raise(SIGTERM);
+   testManager.DeInit();
+   LOG(DEBUG) << "Trying to re-initialize";
+   zctx_interrupted = false;
+   EXPECT_TRUE(testManager.Initialize());
+   result = (sendManager.RunProcess(processName, processArgs));
+   LOG(DEBUG) << result;
+   EXPECT_EQ(std::string::npos, result.find(testQueue.str()));
+   EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));  
+   raise(SIGTERM);
+   testManager.DeInit();
+#endif
+}
 TEST_F(ProcessManagerTest, RegisterDaemonFails) {
 #ifdef LR_DEBUG
    MockConf conf;
