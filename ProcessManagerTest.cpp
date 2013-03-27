@@ -12,6 +12,7 @@ TEST_F(ProcessManagerTest, ConstructAndInitializeFail) {
    ProcessManager testManager(conf);
    EXPECT_FALSE(testManager.Initialize());
    testManager.DeInit();
+
 #endif
 }
 
@@ -26,6 +27,8 @@ TEST_F(ProcessManagerTest, ConstructAndInitialize) {
    EXPECT_TRUE(testManager.Initialize());
    raise(SIGTERM);
    testManager.DeInit();
+   ProcessManager* testManagerPoint = new ProcessManager(conf);
+   delete testManagerPoint;
 #endif
 }
 
@@ -65,7 +68,21 @@ TEST_F(ProcessManagerTest, RunNonExistantProcess) {
    testManager.DeInit();
 #endif
 }
-
+TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   std::stringstream testQueue;
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   ProcessManager testManager(conf);
+   EXPECT_TRUE(testManager.Initialize());
+   conf.mProcessManagmentQueue = "invalid";
+   ProcessManager sendManager(conf);
+   EXPECT_FALSE(sendManager.Initialize());
+   raise(SIGTERM);
+   testManager.DeInit();
+#endif
+}
 TEST_F(ProcessManagerTest, RunProcessFromAnotherObject) {
 #ifdef LR_DEBUG
    MockConf conf;
@@ -145,6 +162,34 @@ TEST_F(ProcessManagerTest, RegisterDaemon) {
    testManager.DeInit();
 #endif
 }
+TEST_F(ProcessManagerTest, RegisterDaemonFails) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   std::stringstream testQueue;
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   MockProcessManager testManager(conf);
+   testManager.mExecFails = true;
+   EXPECT_TRUE(testManager.Initialize());
+   ProcessManager sendManager(conf);
+   EXPECT_TRUE(sendManager.Initialize());
+   std::string processName("/bin/sleep");
+   std::string processArgs;
+   processArgs = "2";
+   EXPECT_FALSE(sendManager.RegisterProcess(processName, processArgs));
+   processName = "/bin/ps";
+   processArgs = "-ef | grep \"/bin/sleep\" | grep -v grep | grep ";
+   testQueue.str("");
+   testQueue << getpid();
+   processArgs += testQueue.str();
+   std::string result = (sendManager.RunProcess(processName, processArgs));
+   LOG(DEBUG) << result;
+   EXPECT_EQ(std::string::npos, result.find(testQueue.str()));
+   EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
+   raise(SIGTERM);
+   testManager.DeInit();
+#endif
+}
 TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
 #ifdef LR_DEBUG
    MockConf conf;
@@ -158,7 +203,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
    EXPECT_TRUE(sendManager.Initialize());
    std::string processName("/bin/sleep");
    std::string processArgs;
-   processArgs = "0";
+   processArgs = "1";
    EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs));
    std::this_thread::sleep_for(std::chrono::seconds(1));  
    EXPECT_FALSE(sendManager.UnRegisterProcess("/bin/sleep"));
