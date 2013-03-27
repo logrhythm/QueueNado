@@ -4,7 +4,35 @@
 #include <sstream>
 #include "g2logworker.hpp"
 #include "g2log.hpp"
-
+TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   std::stringstream testQueue;
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   ProcessManager testManager(conf);
+   EXPECT_TRUE(testManager.Initialize());
+   ProcessManager sendManager(conf);
+   EXPECT_TRUE(sendManager.Initialize());
+   std::string processName("/bin/sh");
+   std::string processArgs;
+   std::map<std::string, std::string> env;
+   env["a"] = "b";
+   processArgs = "resources/sleepIfA.sh";
+   EXPECT_TRUE(sendManager.RegisterProcessWithEnvironment(processName, processArgs, env));
+   processName = "/bin/ps";
+   processArgs = "-ef |grep -v grep | grep \"/bin/sh\" | grep ";
+   testQueue.str("");
+   testQueue << getpid();
+   processArgs += testQueue.str();
+   std::string result = (sendManager.RunProcess(processName, processArgs));   
+   LOG(DEBUG) << result;
+   EXPECT_NE(std::string::npos, result.find(testQueue.str()));
+   EXPECT_NE(std::string::npos, result.find("/bin/sh"));
+   raise(SIGTERM);
+   testManager.DeInit();
+#endif
+}
 TEST_F(ProcessManagerTest, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
    MockConf conf;
@@ -162,6 +190,7 @@ TEST_F(ProcessManagerTest, RegisterDaemon) {
    testManager.DeInit();
 #endif
 }
+
 TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
 #ifdef LR_DEBUG
    MockConf conf;
