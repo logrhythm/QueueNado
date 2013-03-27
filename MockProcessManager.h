@@ -18,11 +18,11 @@ public:
       return ProcessManager::KillPid(pid);
    }
 
-   int RunExecV(const char* command, char** arguments) {
+   int RunExecVE(const char* command, char** arguments, char** environment) {
       if (mExecFails) {
          return -1;
       }
-      return ProcessManager::RunExecV(command,arguments);
+      return ProcessManager::RunExecVE(command,arguments,environment);
    }
    bool mKillFails;
    bool mExecFails;
