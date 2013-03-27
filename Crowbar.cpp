@@ -81,7 +81,6 @@ void* Crowbar::GetTip() {
       zclock_sleep(100);
    }
    if (connectRetries <= 0) {
-      assert(false);
       return NULL;
    }
 
