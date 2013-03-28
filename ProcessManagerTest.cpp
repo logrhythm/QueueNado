@@ -7,7 +7,7 @@
 
 TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -33,25 +33,25 @@ TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
       EXPECT_NE(std::string::npos, result.find("/bin/sh"));
       raise(SIGTERM);
       testManager.DeInit();
-   }
+ 
 #endif
 }
 
 TEST_F(ProcessManagerTest, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+
       MockConf conf;
       conf.mProcessManagmentQueue = "invalid";
       ProcessManager testManager(conf);
       EXPECT_FALSE(testManager.Initialize());
       testManager.DeInit();
-   }
+
 #endif
 }
 
 TEST_F(ProcessManagerTest, ConstructAndInitialize) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -63,13 +63,13 @@ TEST_F(ProcessManagerTest, ConstructAndInitialize) {
       testManager.DeInit();
       ProcessManager* testManagerPoint = new ProcessManager(conf);
       delete testManagerPoint;
-   }
+
 #endif
 }
 
 TEST_F(ProcessManagerTest, RunProcess) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -84,13 +84,13 @@ TEST_F(ProcessManagerTest, RunProcess) {
       EXPECT_NE(std::string::npos, result.find("/bin/ls"));
       raise(SIGTERM);
       testManager.DeInit();
-   }
+
 #endif
 }
 
 TEST_F(ProcessManagerTest, RunNonExistantProcess) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -104,13 +104,13 @@ TEST_F(ProcessManagerTest, RunNonExistantProcess) {
       EXPECT_TRUE(result.empty());
       raise(SIGTERM);
       testManager.DeInit();
-   }
+
 #endif
 }
 
 TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -122,13 +122,13 @@ TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
       EXPECT_FALSE(sendManager.Initialize());
       raise(SIGTERM);
       testManager.DeInit();
-   }
+
 #endif
 }
 
 TEST_F(ProcessManagerTest, RunProcessFromAnotherObject) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -145,13 +145,13 @@ TEST_F(ProcessManagerTest, RunProcessFromAnotherObject) {
       EXPECT_NE(std::string::npos, result.find("/bin/ls"));
       raise(SIGTERM);
       testManager.DeInit();
-   }
+
 #endif
 }
 
 TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -167,13 +167,13 @@ TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
       EXPECT_TRUE(result.empty());
       raise(SIGTERM);
       testManager.DeInit();
-   }
+
 #endif
 }
 
 TEST_F(ProcessManagerTest, RegisterDaemon) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -208,13 +208,13 @@ TEST_F(ProcessManagerTest, RegisterDaemon) {
       EXPECT_EQ(std::string::npos, result2.find("/bin/sleep"));
       raise(SIGTERM);
       testManager.DeInit();
-   }
+
 #endif
 }
 
 TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+  
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -247,13 +247,13 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
       EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
       raise(SIGTERM);
       testManager.DeInit();
-   }
+
 #endif
 }
 
 TEST_F(ProcessManagerTest, RegisterDaemonFails) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+  
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -278,13 +278,13 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
       EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
       raise(SIGTERM);
       testManager.DeInit();
-   }
+
 #endif
 }
 
 TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
 #ifdef LR_DEBUG
-   if (geteuid() == 0) {
+
       MockConf conf;
       std::stringstream testQueue;
       testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
@@ -302,6 +302,6 @@ TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
       EXPECT_FALSE(sendManager.UnRegisterProcess("/bin/sleep"));
       raise(SIGTERM);
       testManager.DeInit();
-   }
+
 #endif
 }
