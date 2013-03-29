@@ -114,6 +114,7 @@ TEST_F(RuleEngineTest, testConstructor) {
     conf.Start();
     RuleEngine dpiSyslog(conf, syslogName, syslogOption,
             syslogFacility, syslogPriority, true, 0);
+    dpiSyslog.StartupMessage();
     EXPECT_EQ(syslogName, sysLogOpenIdent);
     EXPECT_EQ(syslogOption, sysLogOpenOption);
     EXPECT_EQ(syslogFacility, sysLogOpenFacility);
@@ -125,6 +126,7 @@ TEST_F(RuleEngineTest, testNewDelete) {
     conf.Start();
     RuleEngine * pDpiSyslog = new RuleEngine(conf, syslogName, syslogOption,
             syslogFacility, syslogPriority, true, 0);
+    pDpiSyslog->StartupMessage();
     EXPECT_EQ(syslogName, sysLogOpenIdent);
     EXPECT_EQ(syslogOption, sysLogOpenOption);
     EXPECT_EQ(syslogFacility, sysLogOpenFacility);
@@ -225,23 +227,23 @@ TEST_F(RuleEngineTest, testMsgReceive) {
         //      for ( int i = 0 ; i < sysLogOutput.size() ; i++) {
         //          std::cout << sysLogOutput[i] << std::endl;
         //      }
-        ASSERT_EQ(2, sysLogOutput.size());
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:003 "));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuid));
+        ASSERT_EQ(1, sysLogOutput.size());
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:003 "));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
 
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testEthSrc));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(testEthSrc));
 
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testEthDst));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(testEthDst));
 
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testIpSrc));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(testIpSrc));
 
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testIpDst));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(testIpDst));
 
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find(path));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(path));
 
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testIpSourcePort));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(testIpSourcePort));
 
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testIpDestPort));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(testIpDestPort));
 
 
         dpiSyslog.join();
@@ -354,23 +356,23 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
 
         //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
         // Did the data show up in the syslog output
-        ASSERT_EQ(2, sysLogOutput.size());
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:001 "));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuid));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,12345,99,123,456"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("login=aLogin"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("domain=aDomain"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("url=this/url.htm"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("dname=thisname"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("command=TEST|COMMAND"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("sender=test1"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("recipient=test2"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("subject=test3"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("version=4.0"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("objectname=aFilename"));
-        EXPECT_EQ(std::string::npos, sysLogOutput[1].find("notit"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("object=aPath"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("session=2345"));
+        ASSERT_EQ(1, sysLogOutput.size());
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,12345,99,123,456"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("login=aLogin"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("domain=aDomain"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("url=this/url.htm"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("dname=thisname"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("command=TEST|COMMAND"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("sender=test1"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("recipient=test2"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("subject=test3"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("version=4.0"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("objectname=aFilename"));
+        EXPECT_EQ(std::string::npos, sysLogOutput[0].find("notit"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("object=aPath"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("session=2345"));
 
         dpiSyslog.join();
     }
@@ -487,49 +489,49 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         //      for ( int i = 0 ; i < sysLogOutput.size() ; i++) {
         //          std::cout << sysLogOutput[i] << std::endl;
         //      }
-        ASSERT_EQ(3, sysLogOutput.size());
+        ASSERT_EQ(2, sysLogOutput.size());
         std::string testUuidWithNumber = testUuid;
         testUuidWithNumber += ":00";
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:001 "));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuidWithNumber));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,12345,99,123,456"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("login=aLogin"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("domain=aDomain"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("url=this/url.htm"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("dname=thisname"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("command=TEST|COMMAND"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("sender=test1"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("recipient=test2"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("subject=test3"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("version=4.0"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("objectname=aFilename"));
-        EXPECT_EQ(std::string::npos, sysLogOutput[1].find("notit"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("object=aPath"));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("session=2345"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuidWithNumber));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,12345,99,123,456"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("login=aLogin"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("domain=aDomain"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("url=this/url.htm"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("dname=thisname"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("command=TEST|COMMAND"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("sender=test1"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("recipient=test2"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("subject=test3"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("version=4.0"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("objectname=aFilename"));
+        EXPECT_EQ(std::string::npos, sysLogOutput[0].find("notit"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("object=aPath"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("session=2345"));
 
         testUuidWithNumber = testUuid;
         testUuidWithNumber += ":01";
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("EVT:002 "));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find(testUuidWithNumber));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,12345,99,123,456"));
-        EXPECT_EQ(std::string::npos, sysLogOutput[2].find("EndTime=456"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("applicationEnd=wrong|dummy"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("applicationIdEnd=13"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("login=aLogin"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("filenameEncoding=notitFile"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("method=TEST|COMMAND"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("filename=aFilename"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("server=thisname"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("refererServer=notitServer"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("uri=notitUrl"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("uriFull=this/url.htm"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("version=4.0"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("directory=aPath"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("domain=aDomain"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("sender=test1"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("receiver=test2"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("subject=test3"));
-        EXPECT_NE(std::string::npos, sysLogOutput[2].find("sessionid=2345"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:002 "));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuidWithNumber));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,12345,99,123,456"));
+        EXPECT_EQ(std::string::npos, sysLogOutput[1].find("EndTime=456"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("applicationEnd=wrong|dummy"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("applicationIdEnd=13"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("login=aLogin"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("filenameEncoding=notitFile"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("method=TEST|COMMAND"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("filename=aFilename"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("server=thisname"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("refererServer=notitServer"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("uri=notitUrl"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("uriFull=this/url.htm"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("version=4.0"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("directory=aPath"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("domain=aDomain"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("sender=test1"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("receiver=test2"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("subject=test3"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("sessionid=2345"));
 
         dpiSyslog.join();
     }
