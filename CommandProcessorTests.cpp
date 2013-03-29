@@ -1,11 +1,13 @@
 #include "CommandProcessorTests.h"
 #include "Conf.h"
+#include "MockUpgradeCommand.h"
 #include "MockConf.h"
 #include "Headcrab.h"
 #include "Crowbar.h"
 #include "libconf/Conf.h"
 #include "boost/lexical_cast.hpp"
 #include "CommandReply.pb.h"
+#include "MockCommandProcessor.h"
 #include "CommandRequest.pb.h"
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
@@ -55,8 +57,9 @@ TEST_F(CommandProcessorTests, CommandSendReceive) {
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
    conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   CommandProcessor testProcessor(conf);
+   MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_UPGRADE, MockUpgradeCommand::Construct);
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
    Crowbar sender(conf.getCommandQueue());
    ASSERT_TRUE(sender.Wield());
