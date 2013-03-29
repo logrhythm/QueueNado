@@ -1,5 +1,6 @@
 debugSiemLogging: true
 reportEverything: true
+scrubPasswords: true
 siemLogging: true
 syslogEnabled: true
 syslogLogAgentIP: 10.1.1.67

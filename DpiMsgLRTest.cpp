@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include "DpiMsgLR.h"
 #include "DpiMsgLRTest.h"
+#include "g2logworker.hpp"
+#include "g2log.hpp"
+
 using namespace networkMonitor;
 using namespace std;
 
@@ -20,6 +23,32 @@ TEST_F(DpiMsgLRTests, setUuidSuccess) {
 TEST_F(DpiMsgLRTests, ConstructDeconstruct) {
 
    DpiMsgLR* dm = new DpiMsgLR;
+   delete dm;
+}
+
+/**
+ * Test basic password scrubbing enabled.
+ */
+TEST_F(DpiMsgLRTests, enablePasswordScrubbing) {
+   DpiMsgLR* dm = new DpiMsgLR;
+   dm->EnablePasswordScrubbing(true);
+   dm->set_uuid("01234567-89ab-cdef-0123456789abcdef");
+   dm->set_passwordq_proto_ftp("wooo");
+   IndexedFieldPairs pairs = dm->GetAllFieldsAsStrings();
+   ASSERT_EQ(2, pairs.size());
+   IndexedFieldPairs::const_iterator it;
+   for (it = pairs.begin(); it != pairs.end(); ++it) {
+      const std::string key((*it).second.first);
+      const std::string value((*it).second.second);
+      LOG(DEBUG) << "Key: " << key;
+      LOG(DEBUG) << "Value: " << value;
+      if(key.find("uuid") != std::string::npos) {
+         ASSERT_EQ("01234567-89ab-cdef-0123456789abcdef",value);
+      } else if(key.find("password") != std::string::npos) {
+         ASSERT_EQ("********",value);
+      } 
+   }
+
    delete dm;
 }
 
@@ -300,7 +329,7 @@ TEST_F(DpiMsgLRTests, GetUuidPair) {
    tDpiMessage.set_uuid("01234567-89ab-cdef-0123456789abcdef");
    EXPECT_EQ("UUID", tDpiMessage.GetUuidPair().first);
    EXPECT_EQ("01234567-89ab-cdef-0123456789abcdef",
-           tDpiMessage.GetUuidPair().second);
+      tDpiMessage.GetUuidPair().second);
 }
 
 TEST_F(DpiMsgLRTests, GetEthSrcPair) {
@@ -385,7 +414,6 @@ TEST_F(DpiMsgLRTests, GetStaticFieldPairs) {
    EXPECT_EQ("FlowCompleted", results[10].first);
 }
 
-
 TEST_F(DpiMsgLRTests, GetDynamicFieldPairs) {
    std::map<unsigned int, std::pair<std::string, std::string> > results;
    std::map<string, string> expecteds;
@@ -409,9 +437,9 @@ TEST_F(DpiMsgLRTests, GetDynamicFieldPairs) {
 
    ASSERT_EQ(3, results.size());
    for (map<unsigned int, pair<string, string> >::iterator i = results.begin(); i != results.end(); ++i) {
-       string fieldName = i->second.first;
-       string fieldValue = i->second.second;
-       EXPECT_EQ(expecteds[fieldName], fieldValue);
+      string fieldName = i->second.first;
+      string fieldValue = i->second.second;
+      EXPECT_EQ(expecteds[fieldName], fieldValue);
    }
 }
 
@@ -447,7 +475,7 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    int sport = 1234;
    dm.set_sourceport(sport);
    expecteds["SourcePort"] = std::to_string(sport);
-   
+
    int dport = 5678;
    dm.set_destport(dport);
    expecteds["DestPort"] = std::to_string(dport);
@@ -470,9 +498,9 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    ASSERT_EQ(11, results.size());
 
    for (map<unsigned int, pair<string, string> >::iterator i = results.begin(); i != results.end(); ++i) {
-       string fieldName = i->second.first;
-       string fieldValue = i->second.second;
-       EXPECT_EQ(expecteds[fieldName], fieldValue);
+      string fieldName = i->second.first;
+      string fieldValue = i->second.second;
+      EXPECT_EQ(expecteds[fieldName], fieldValue);
    }
 }
 
