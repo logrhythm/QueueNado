@@ -73,6 +73,8 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    ASSERT_FALSE(conf.EnableIPDefragmentation());
 }
 
+
+
 TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
@@ -235,11 +237,20 @@ TEST_F(ConfProcessorTests, testNewConfConstructionUpdateMsg) {
    delete conf;
 }
 
+TEST_F(ConfProcessorTests, getScrubPasswordEnabled) {
+   ConfMaster& confThread = ConfMaster::Instance();
+   confThread.SetPath(mTestConf);
+   //get empty conf
+   Conf conf = confThread.GetConf();
+   EXPECT_TRUE(conf.getScrubPasswordsEnabled());
+
+}
+
 TEST_F(ConfProcessorTests, testConfIntDefaults) {
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.Start();
    //get empty conf
-   confThread.SetPath(mWriteLocation);
+   confThread.SetPath(mTestConf);
    Conf conf = confThread.GetConf();
    int packetRecv = conf.GetPacketRecvQueueSize();
    int packetSend = conf.GetPacketSendQueueSize();
