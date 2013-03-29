@@ -6,11 +6,14 @@
 #pragma once
 #include "ConfSlave.h"
 #include "MockConf.h"
+#include "g2logworker.hpp"
+#include "g2log.hpp"
 
 namespace networkMonitor {
 class MockConfSlave : public ConfSlave {
 public:
-   MockConfSlave() : mAppClosed(false), mBroadcastQueueName("ipc:///tmp/testconfbroacast.ipc") {
+   MockConfSlave() : mAppClosed(false), mNewConfSeen(false), mNewQosmosSeen(false), mNewSyslogSeen(false),
+                     mBroadcastQueueName("ipc:///tmp/testconfbroacast.ipc") {
       
    }
    Conf GetConf(void) {
@@ -29,17 +32,22 @@ public:
    bool ProcessConfMsg(const protoMsg::ConfType& configTypeMessage,
               const std::vector<std::string>& shots,
               Conf& conf) {
-      return ConfSlave::ProcessConfMsg(configTypeMessage,shots,conf);
+      return mNewConfSeen=ConfSlave::ProcessConfMsg(configTypeMessage,shots,conf);
    }
    bool ProcessQosmosMsg(const protoMsg::ConfType& configTypeMessage,
               const std::vector<std::string>& shots,
               Conf& conf) {
+      LOG(DEBUG) << "MockProcessQosmosMsg";
+      if (configTypeMessage.has_qosmosconf() && configTypeMessage.qosmosconf() 
+              && shots.size() > 1 && !shots[1].empty()) {
+         mNewQosmosSeen=true;
+      }
       return ConfSlave::ProcessQosmosMsg(configTypeMessage,shots,conf);
    }
    bool ProcessSyslogMsg(const protoMsg::ConfType& configTypeMessage,
               const std::vector<std::string>& shots,
               Conf& conf) {
-      return ConfSlave::ProcessSyslogMsg(configTypeMessage,shots,conf);
+      return mNewSyslogSeen=ConfSlave::ProcessSyslogMsg(configTypeMessage,shots,conf);
    }
    bool ProcessRestartMsg(const protoMsg::ConfType& configTypeMessage,
               const std::vector<std::string>& shots,
@@ -47,6 +55,9 @@ public:
       return ConfSlave::ProcessRestartMsg(configTypeMessage,shots,conf);
    }
    bool mAppClosed;
+   bool mNewConfSeen;
+   bool mNewQosmosSeen;
+   bool mNewSyslogSeen;
    std::string mBroadcastQueueName;
    MockConf mConf;
 };

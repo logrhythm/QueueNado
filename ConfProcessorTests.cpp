@@ -21,7 +21,7 @@
 #include "Shotgun.h"
 #include "g2logworker.hpp"
 #include "g2log.hpp"
-
+#include "QosmosProtocolCapture.h"
 using namespace std;
 using namespace networkMonitor;
 
@@ -29,13 +29,147 @@ TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mTestConf);
    confThread.Start();
+   Conf conf(confThread.GetConf());
    MockConfSlave testSlave;
+   testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
    testSlave.Start();
    sleep(1);
-   
+
+
+   ASSERT_FALSE(testSlave.mAppClosed);
+   protoMsg::ConfType updateType;
+   updateType.set_restart(true);
+   protoMsg::RestartMsg restartMsg;
+   restartMsg.set_restartall(true);
+   std::vector<std::string> encodedMessage;
+   encodedMessage.push_back(updateType.SerializeAsString());
+   encodedMessage.push_back(restartMsg.SerializeAsString());
+   Crowbar confSender(conf.getConfChangeQueue());
+   ASSERT_TRUE(confSender.Wield());
+   ASSERT_TRUE(confSender.Flurry(encodedMessage));
+   ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
+   sleep(3);
+   EXPECT_TRUE(testSlave.mAppClosed);
    testSlave.Stop();
    confThread.Stop();
 }
+
+TEST_F(ConfProcessorTests, ConfMessagePassedBetweenMasterAndSlave) {
+   ConfMaster& confThread = ConfMaster::Instance();
+   confThread.SetPath(mWriteLocation);
+   confThread.Start();
+   Conf conf(confThread.GetConf());
+   MockConfSlave testSlave;
+   testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   testSlave.Start();
+   sleep(1);
+
+   ASSERT_FALSE(testSlave.mNewConfSeen);
+   protoMsg::ConfType updateType;
+   updateType.set_conf(true);
+   protoMsg::BaseConf confMsg;
+   std::vector<std::string> encodedMessage;
+
+   encodedMessage.push_back(updateType.SerializeAsString());
+   encodedMessage.push_back(confMsg.SerializeAsString());
+   Crowbar confSender(conf.getConfChangeQueue());
+   ASSERT_TRUE(confSender.Wield());
+   ASSERT_TRUE(confSender.Flurry(encodedMessage));
+   ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
+   ASSERT_EQ(2, encodedMessage.size());
+   ASSERT_FALSE(testSlave.mNewConfSeen);
+   confMsg.ParseFromString(encodedMessage[1]);
+   confMsg.set_pcapbuffersize("123");
+   encodedMessage[1] = confMsg.SerializeAsString();
+   ASSERT_TRUE(confSender.Flurry(encodedMessage));
+   ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
+   sleep(3);
+   EXPECT_TRUE(testSlave.mNewConfSeen);
+   testSlave.Stop();
+   confThread.Stop();
+}
+
+TEST_F(ConfProcessorTests, SyslogMessagePassedBetweenMasterAndSlave) {
+   ConfMaster& confThread = ConfMaster::Instance();
+   confThread.SetPath(mWriteLocation);
+   confThread.Start();
+   Conf conf(confThread.GetConf());
+   MockConfSlave testSlave;
+   testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   testSlave.Start();
+   sleep(1);
+
+   ASSERT_FALSE(testSlave.mNewSyslogSeen);
+   protoMsg::ConfType updateType;
+   updateType.set_syslogconf(true);
+   protoMsg::SyslogConf confMsg;
+   std::vector<std::string> encodedMessage;
+
+   encodedMessage.push_back(updateType.SerializeAsString());
+   encodedMessage.push_back(confMsg.SerializeAsString());
+   Crowbar confSender(conf.getConfChangeQueue());
+   ASSERT_TRUE(confSender.Wield());
+   ASSERT_TRUE(confSender.Flurry(encodedMessage));
+   ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
+   ASSERT_EQ(2, encodedMessage.size());
+   ASSERT_FALSE(testSlave.mNewSyslogSeen);
+   confMsg.ParseFromString(encodedMessage[1]);
+   confMsg.set_syslogmaxlinelength("123");
+   encodedMessage[1] = confMsg.SerializeAsString();
+   ASSERT_TRUE(confSender.Flurry(encodedMessage));
+   ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
+   sleep(3);
+   EXPECT_TRUE(testSlave.mNewSyslogSeen);
+   testSlave.Stop();
+   confThread.Stop();
+}
+/**
+ 
+ This should pass but doesn't
+
+TEST_F(ConfProcessorTests, QosmosMessagePassedBetweenMasterAndSlave) {
+   ConfMaster& confThread = ConfMaster::Instance();
+   confThread.SetPath(mWriteLocation);
+   confThread.Start();
+   Conf conf(confThread.GetConf());
+   MockConfSlave testSlave;
+   testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   testSlave.Start();
+   sleep(1);
+
+   ASSERT_FALSE(testSlave.mNewQosmosSeen);
+   protoMsg::ConfType updateType;
+   updateType.set_qosmosconf(true);
+   protoMsg::QosmosConf confMsg;
+   std::vector<std::string> encodedMessage;
+
+   encodedMessage.push_back(updateType.SerializeAsString());
+   encodedMessage.push_back(confMsg.SerializeAsString());
+   Crowbar confSender(conf.getConfChangeQueue());
+   ASSERT_TRUE(confSender.Wield());
+   ASSERT_TRUE(confSender.Flurry(encodedMessage));
+   ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
+   ASSERT_EQ(2, encodedMessage.size());
+   ASSERT_FALSE(testSlave.mNewQosmosSeen);
+   confMsg.ParseFromString(encodedMessage[1]);
+
+   protoMsg::QosmosConf_Protocol * protocolToChange(confMsg.add_qosmosprotocol());
+   protocolToChange->set_protocolenabled(false);
+   protocolToChange->set_protocolfamily("foo");
+   protocolToChange->set_protocollongname("bar");
+   protocolToChange->set_protocolname("fubar");
+   encodedMessage[1] = confMsg.SerializeAsString();
+   ASSERT_FALSE(encodedMessage[1].empty());
+   LOG(DEBUG) << "Sending Qosmos conf";
+   ASSERT_TRUE(confSender.Flurry(encodedMessage));
+   ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
+   sleep(3);
+   LOG(DEBUG) << "Sent Qosmos conf";
+   EXPECT_TRUE(testSlave.mNewQosmosSeen);
+   testSlave.Stop();
+   confThread.Stop();
+}
+ */
 TEST_F(ConfProcessorTests, ProcessConfMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
@@ -83,8 +217,6 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
    ASSERT_FALSE(conf.EnableIPDefragmentation());
 }
-
-
 
 TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
    MockConfSlave testSlave;
@@ -632,7 +764,7 @@ TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
 
    EXPECT_EQ(expAgentIP, newConf.getSyslogAgentIP());
    EXPECT_EQ("514", newConf.getSyslogAgentPort());
-   
+
 }
 
 TEST_F(ConfProcessorTests, testPathWithDynamicConf) {
