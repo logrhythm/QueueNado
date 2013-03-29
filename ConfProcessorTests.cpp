@@ -250,7 +250,7 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.Start();
    //get empty conf
-   confThread.SetPath(mTestConf);
+   confThread.SetPath(mWriteLocation);
    Conf conf = confThread.GetConf();
    int packetRecv = conf.GetPacketRecvQueueSize();
    int packetSend = conf.GetPacketSendQueueSize();
@@ -615,7 +615,7 @@ TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
    EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
 
-   conf.writeToFile();
+   conf.writeSyslogToFile();
 
    Conf newConf(mWriteLocation);
 
@@ -881,7 +881,7 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    EXPECT_FALSE(master.ReceiveConf((void *) &masterConf, masterConf));
    EXPECT_FALSE(slave.ReceiveConf((void *) &slaveConf, slaveConf));
 
-   ASSERT_TRUE(normalConf.writeToConfigProcessor());
+   ASSERT_TRUE(normalConf.sendConfigUpdate());
    //expect all confs to be updated
    sleep(1);
    ASSERT_TRUE(master.ReceiveConf((void *) &masterConf, masterConf));

@@ -262,7 +262,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
         sysMsg.set_siemlogging("true");
         Conf myConf = conf.GetConf();
         myConf.updateFields(sysMsg);
-        myConf.writeToConfigProcessor();
+        myConf.sendConfigUpdate();
         boost::this_thread::sleep(boost::posix_time::seconds(1));
         MockRuleEngine dpiSyslog(myConfSlave, syslogName, syslogOption,
                 syslogFacility, syslogPriority, true, 0);
@@ -391,7 +391,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         sysMsg.set_siemlogging("true");
         Conf myConf = conf.GetConf();
         myConf.updateFields(sysMsg);
-        myConf.writeToConfigProcessor();
+        myConf.sendConfigUpdate();
         boost::this_thread::sleep(boost::posix_time::seconds(1));
         MockRuleEngine dpiSyslog(myConfSlave, syslogName, syslogOption,
                 syslogFacility, syslogPriority, true, 0);
