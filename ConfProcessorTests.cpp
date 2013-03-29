@@ -73,6 +73,8 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    ASSERT_FALSE(conf.EnableIPDefragmentation());
 }
 
+
+
 TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
@@ -233,6 +235,15 @@ TEST_F(ConfProcessorTests, testNewConfConstructionUpdateMsg) {
    protoMsg::SyslogConf sysMsg;
    Conf * conf = new Conf(msg, qmsg, sysMsg);
    delete conf;
+}
+
+TEST_F(ConfProcessorTests, getScrubPasswordEnabled) {
+   ConfMaster& confThread = ConfMaster::Instance();
+   confThread.SetPath(mTestConf);
+   //get empty conf
+   Conf conf = confThread.GetConf();
+   EXPECT_TRUE(conf.getScrubPasswordsEnabled());
+
 }
 
 TEST_F(ConfProcessorTests, testConfIntDefaults) {
@@ -604,7 +615,7 @@ TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
    EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
 
-   conf.writeToFile();
+   conf.writeSyslogToFile();
 
    Conf newConf(mWriteLocation);
 
@@ -870,7 +881,7 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    EXPECT_FALSE(master.ReceiveConf((void *) &masterConf, masterConf));
    EXPECT_FALSE(slave.ReceiveConf((void *) &slaveConf, slaveConf));
 
-   ASSERT_TRUE(normalConf.writeToConfigProcessor());
+   ASSERT_TRUE(normalConf.sendConfigUpdate());
    //expect all confs to be updated
    sleep(1);
    ASSERT_TRUE(master.ReceiveConf((void *) &masterConf, masterConf));
