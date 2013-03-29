@@ -25,6 +25,17 @@
 using namespace std;
 using namespace networkMonitor;
 
+TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
+   ConfMaster& confThread = ConfMaster::Instance();
+   confThread.SetPath(mTestConf);
+   confThread.Start();
+   MockConfSlave testSlave;
+   testSlave.Start();
+   sleep(1);
+   
+   testSlave.Stop();
+   confThread.Stop();
+}
 TEST_F(ConfProcessorTests, ProcessConfMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
