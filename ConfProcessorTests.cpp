@@ -48,7 +48,7 @@ TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
    ASSERT_TRUE(confSender.Wield());
    ASSERT_TRUE(confSender.Flurry(encodedMessage));
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
-   sleep(3);
+   sleep(10);
    EXPECT_TRUE(testSlave.mAppClosed);
    testSlave.Stop();
    confThread.Stop();
