@@ -26,6 +26,7 @@ using namespace std;
 using namespace networkMonitor;
 
 TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
+#if defined(LR_DEBUG)
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mTestConf);
    confThread.Start();
@@ -56,9 +57,11 @@ TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
    EXPECT_TRUE(testSlave.mAppClosed);
    testSlave.Stop();
    confThread.Stop();
+#endif
 }
 
 TEST_F(ConfProcessorTests, ConfMessagePassedBetweenMasterAndSlave) {
+#if defined(LR_DEBUG)
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mWriteLocation);
    confThread.Start();
@@ -95,9 +98,11 @@ TEST_F(ConfProcessorTests, ConfMessagePassedBetweenMasterAndSlave) {
    EXPECT_TRUE(testSlave.mNewConfSeen);
    testSlave.Stop();
    confThread.Stop();
+#endif
 }
 
 TEST_F(ConfProcessorTests, SyslogMessagePassedBetweenMasterAndSlave) {
+#if defined(LR_DEBUG)
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mWriteLocation);
    confThread.Start();
@@ -135,12 +140,11 @@ TEST_F(ConfProcessorTests, SyslogMessagePassedBetweenMasterAndSlave) {
    EXPECT_TRUE(testSlave.mNewSyslogSeen);
    testSlave.Stop();
    confThread.Stop();
+#endif
 }
-/**
- 
- This should pass but doesn't
 
 TEST_F(ConfProcessorTests, QosmosMessagePassedBetweenMasterAndSlave) {
+#if defined(LR_DEBUG)
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mWriteLocation);
    confThread.Start();
@@ -181,8 +185,9 @@ TEST_F(ConfProcessorTests, QosmosMessagePassedBetweenMasterAndSlave) {
    EXPECT_TRUE(testSlave.mNewQosmosSeen);
    testSlave.Stop();
    confThread.Stop();
+#endif
 }
- */
+
 TEST_F(ConfProcessorTests, ProcessConfMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
