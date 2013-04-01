@@ -728,11 +728,11 @@ TEST_F(ConfProcessorTests, testWriteToFile) {
    QosmosConf qmsg;
    Conf conf(msg, qmsg, sysMsg);
    std::stringstream stream;
-   conf.writeToFile(stream);
+   conf.writeToStream(stream);
    std::stringstream qStream;
-   conf.writeQosmosToFile(qStream);
+   conf.writeQosmosToStream(qStream);
    std::stringstream sStream;
-   conf.writeSyslogToFile(sStream);
+   conf.writeSyslogToStream(sStream);
 
    Conf newConf(stream, qStream, sStream);
 
@@ -1132,7 +1132,7 @@ TEST_F(ConfProcessorTests, testWriteQosmosToFile) {
    conf.updateQosmos(qConf);
 
    std::stringstream stream;
-   conf.writeQosmosToFile(stream);
+   conf.writeQosmosToStream(stream);
    Conf newconf;
    newconf.ReadQosmosFromStringStream(stream);
    QosmosConf pConf = conf.getQosmosConfigInfo();
