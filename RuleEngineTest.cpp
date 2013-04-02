@@ -111,7 +111,6 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
 
 TEST_F(RuleEngineTest, testConstructor) {
     conf.SetPath("resources/test.yaml");
-    conf.Start();
     RuleEngine dpiSyslog(conf, syslogName, syslogOption,
             syslogFacility, syslogPriority, true, 0);
     dpiSyslog.StartupMessage();
@@ -123,7 +122,6 @@ TEST_F(RuleEngineTest, testConstructor) {
 
 TEST_F(RuleEngineTest, testNewDelete) {
     conf.SetPath("resources/test.yaml");
-    conf.Start();
     RuleEngine * pDpiSyslog = new RuleEngine(conf, syslogName, syslogOption,
             syslogFacility, syslogPriority, true, 0);
     pDpiSyslog->StartupMessage();
@@ -136,7 +134,6 @@ TEST_F(RuleEngineTest, testNewDelete) {
 
 TEST_F(RuleEngineTest, testStartStop) {
     conf.SetPath("resources/test.yaml");
-    conf.Start();
     RuleEngine dpiSyslog(conf, syslogName, syslogOption,
             syslogFacility, syslogPriority, true, 0);
 
@@ -151,7 +148,6 @@ TEST_F(RuleEngineTest, testMsgReceive) {
     if (geteuid() != 0) {
         //   conf.SetPath("resources/test.yaml");
         //
-        //   conf.Start();
         protoMsg::BaseConf confMsg;
         protoMsg::SyslogConf sysMsg;
 
