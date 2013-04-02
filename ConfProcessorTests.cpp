@@ -26,6 +26,7 @@ using namespace std;
 using namespace networkMonitor;
 
 TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
+#if defined(LR_DEBUG)
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mTestConf);
    confThread.Start();
@@ -49,13 +50,19 @@ TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
    ASSERT_TRUE(confSender.Wield());
    ASSERT_TRUE(confSender.Flurry(encodedMessage));
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
-   sleep(3);
+   int sleepCount = 1;
+   while ( !testSlave.mAppClosed && sleepCount <= 20 ) {
+      sleep(1);
+      sleepCount++;
+   }
    EXPECT_TRUE(testSlave.mAppClosed);
    testSlave.Stop();
    confThread.Stop();
+#endif
 }
 
 TEST_F(ConfProcessorTests, ConfMessagePassedBetweenMasterAndSlave) {
+#if defined(LR_DEBUG)
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mWriteLocation);
    confThread.Start();
@@ -85,13 +92,19 @@ TEST_F(ConfProcessorTests, ConfMessagePassedBetweenMasterAndSlave) {
    encodedMessage[1] = confMsg.SerializeAsString();
    ASSERT_TRUE(confSender.Flurry(encodedMessage));
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
-   sleep(3);
+   int sleepCount = 1;
+   while ( !testSlave.mNewConfSeen && sleepCount <= 20 ) {
+      sleep(1);
+      sleepCount++;
+   }
    EXPECT_TRUE(testSlave.mNewConfSeen);
    testSlave.Stop();
    confThread.Stop();
+#endif
 }
 
 TEST_F(ConfProcessorTests, SyslogMessagePassedBetweenMasterAndSlave) {
+#if defined(LR_DEBUG)
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mWriteLocation);
    confThread.Start();
@@ -122,13 +135,19 @@ TEST_F(ConfProcessorTests, SyslogMessagePassedBetweenMasterAndSlave) {
    ASSERT_TRUE(confSender.Flurry(encodedMessage));
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
    sleep(3);
+   int sleepCount = 1;
+   while ( !testSlave.mNewSyslogSeen && sleepCount <= 20 ) {
+      sleep(1);
+      sleepCount++;
+   }
    EXPECT_TRUE(testSlave.mNewSyslogSeen);
    testSlave.Stop();
    confThread.Stop();
+#endif
 }
+
 /**
- 
- This should pass but doesn't
+ *   This should pass but doesn't
 
 TEST_F(ConfProcessorTests, QosmosMessagePassedBetweenMasterAndSlave) {
    ConfMaster& confThread = ConfMaster::Instance();
@@ -173,6 +192,7 @@ TEST_F(ConfProcessorTests, QosmosMessagePassedBetweenMasterAndSlave) {
    confThread.Stop();
 }
  */
+
 TEST_F(ConfProcessorTests, ProcessConfMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
