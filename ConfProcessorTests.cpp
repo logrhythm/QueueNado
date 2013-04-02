@@ -51,7 +51,7 @@ TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
    ASSERT_TRUE(confSender.Flurry(encodedMessage));
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
    int sleepCount = 1;
-   while ( !testSlave.mAppClosed && sleepCount <= 20 ) {
+   while (!testSlave.mAppClosed && sleepCount <= 20) {
       sleep(1);
       sleepCount++;
    }
@@ -93,7 +93,7 @@ TEST_F(ConfProcessorTests, ConfMessagePassedBetweenMasterAndSlave) {
    ASSERT_TRUE(confSender.Flurry(encodedMessage));
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
    int sleepCount = 1;
-   while ( !testSlave.mNewConfSeen && sleepCount <= 20 ) {
+   while (!testSlave.mNewConfSeen && sleepCount <= 20) {
       sleep(1);
       sleepCount++;
    }
@@ -136,7 +136,7 @@ TEST_F(ConfProcessorTests, SyslogMessagePassedBetweenMasterAndSlave) {
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
    sleep(3);
    int sleepCount = 1;
-   while ( !testSlave.mNewSyslogSeen && sleepCount <= 20 ) {
+   while (!testSlave.mNewSyslogSeen && sleepCount <= 20) {
       sleep(1);
       sleepCount++;
    }
@@ -146,10 +146,8 @@ TEST_F(ConfProcessorTests, SyslogMessagePassedBetweenMasterAndSlave) {
 #endif
 }
 
-/**
- *   This should pass but doesn't
-
 TEST_F(ConfProcessorTests, QosmosMessagePassedBetweenMasterAndSlave) {
+#if defined(LR_DEBUG)
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mWriteLocation);
    confThread.Start();
@@ -161,7 +159,8 @@ TEST_F(ConfProcessorTests, QosmosMessagePassedBetweenMasterAndSlave) {
 
    ASSERT_FALSE(testSlave.mNewQosmosSeen);
    protoMsg::ConfType updateType;
-   updateType.set_qosmosconf(true);
+   updateType.set_type(protoMsg::ConfType_Type_QOSMOS);
+   updateType.set_direction(protoMsg::ConfType_Direction_SENDING);
    protoMsg::QosmosConf confMsg;
    std::vector<std::string> encodedMessage;
 
@@ -185,13 +184,16 @@ TEST_F(ConfProcessorTests, QosmosMessagePassedBetweenMasterAndSlave) {
    LOG(DEBUG) << "Sending Qosmos conf";
    ASSERT_TRUE(confSender.Flurry(encodedMessage));
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
-   sleep(3);
+   while (!testSlave.mNewQosmosSeen && sleepCount <= 20) {
+      sleep(1);
+      sleepCount++;
+   }
    LOG(DEBUG) << "Sent Qosmos conf";
    EXPECT_TRUE(testSlave.mNewQosmosSeen);
    testSlave.Stop();
    confThread.Stop();
+#endif
 }
- */
 
 TEST_F(ConfProcessorTests, ProcessConfMsg) {
    MockConfSlave testSlave;
@@ -865,7 +867,7 @@ TEST_F(ConfProcessorTests, testGetSyslogConfMsg) {
 
    Conf conf;
    protoMsg::SyslogConf confUpdateMsg;
-   confUpdateMsg.ParseFromString(data[1]);
+   EXPECT_TRUE(confUpdateMsg.ParseFromString(data[1]));
    conf.updateFields(confUpdateMsg);
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
@@ -1170,6 +1172,7 @@ TEST_F(ConfProcessorTests, testConfSlaveRestart) {
    std::vector<std::string> message;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
 
    message.push_back(configTypeMessage.SerializeAsString());
    protoMsg::RestartMsg restartMessage;
@@ -1189,6 +1192,7 @@ TEST_F(ConfProcessorTests, testConfSlaveNoRestart) {
    std::vector<std::string> message;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
 
    message.push_back(configTypeMessage.SerializeAsString());
    protoMsg::RestartMsg restartMessage;

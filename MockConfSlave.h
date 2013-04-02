@@ -39,7 +39,7 @@ public:
               Conf& conf) {
       LOG(DEBUG) << "MockProcessQosmosMsg";
       if (configTypeMessage.type() == protoMsg::ConfType_Type_QOSMOS  
-              && shots.size() > 1 && !shots[1].empty()) {
+              && shots.size() > 1 ) {
          mNewQosmosSeen=true;
       }
       return ConfSlave::ProcessQosmosMsg(configTypeMessage,shots,conf);
