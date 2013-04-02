@@ -38,7 +38,7 @@ public:
               const std::vector<std::string>& shots,
               Conf& conf) {
       LOG(DEBUG) << "MockProcessQosmosMsg";
-      if (configTypeMessage.has_qosmosconf() && configTypeMessage.qosmosconf() 
+      if (configTypeMessage.type() == protoMsg::ConfType_Type_QOSMOS  
               && shots.size() > 1 && !shots[1].empty()) {
          mNewQosmosSeen=true;
       }

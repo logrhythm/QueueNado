@@ -38,7 +38,8 @@ TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
 
    ASSERT_FALSE(testSlave.mAppClosed);
    protoMsg::ConfType updateType;
-   updateType.set_restart(true);
+   updateType.set_type(protoMsg::ConfType_Type_RESTART);
+   updateType.set_direction(protoMsg::ConfType_Direction_SENDING);
    protoMsg::RestartMsg restartMsg;
    restartMsg.set_restartall(true);
    std::vector<std::string> encodedMessage;
@@ -66,7 +67,8 @@ TEST_F(ConfProcessorTests, ConfMessagePassedBetweenMasterAndSlave) {
 
    ASSERT_FALSE(testSlave.mNewConfSeen);
    protoMsg::ConfType updateType;
-   updateType.set_conf(true);
+   updateType.set_type(protoMsg::ConfType_Type_BASE);
+   updateType.set_direction(protoMsg::ConfType_Direction_SENDING);
    protoMsg::BaseConf confMsg;
    std::vector<std::string> encodedMessage;
 
@@ -101,7 +103,8 @@ TEST_F(ConfProcessorTests, SyslogMessagePassedBetweenMasterAndSlave) {
 
    ASSERT_FALSE(testSlave.mNewSyslogSeen);
    protoMsg::ConfType updateType;
-   updateType.set_syslogconf(true);
+   updateType.set_type(protoMsg::ConfType_Type_SYSLOG);
+   updateType.set_direction(protoMsg::ConfType_Direction_SENDING);
    protoMsg::SyslogConf confMsg;
    std::vector<std::string> encodedMessage;
 
@@ -173,7 +176,7 @@ TEST_F(ConfProcessorTests, QosmosMessagePassedBetweenMasterAndSlave) {
 TEST_F(ConfProcessorTests, ProcessConfMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
-   configTypeMessage.set_sending(true);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
 
    protoMsg::BaseConf baseConfig;
    std::vector<std::string> shots;
@@ -186,7 +189,7 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
-   configTypeMessage.set_conf(false);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(conf.EnableIPDefragmentation());
@@ -194,7 +197,7 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
-   configTypeMessage.set_conf(true);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(conf.EnableIPDefragmentation());
@@ -221,7 +224,7 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
 TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
-   configTypeMessage.set_sending(true);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
 
    protoMsg::QosmosConf baseConfig;
    std::vector<std::string> shots;
@@ -233,13 +236,13 @@ TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
    ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots, conf));
 
    shots.clear();
-   configTypeMessage.set_qosmosconf(false);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots, conf));
 
    shots.clear();
-   configTypeMessage.set_qosmosconf(true);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_QOSMOS);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots, conf));
@@ -265,7 +268,7 @@ TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
 TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
-   configTypeMessage.set_sending(true);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
 
    protoMsg::SyslogConf baseConfig;
    std::vector<std::string> shots;
@@ -278,7 +281,7 @@ TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    ASSERT_FALSE(conf.SiemLogging());
 
    shots.clear();
-   configTypeMessage.set_syslogconf(false);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(conf.SiemLogging());
@@ -286,7 +289,7 @@ TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    ASSERT_FALSE(conf.SiemLogging());
 
    shots.clear();
-   configTypeMessage.set_syslogconf(true);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(conf.SiemLogging());
@@ -314,7 +317,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
 #if defined(LR_DEBUG)
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
-   configTypeMessage.set_sending(true);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
 
    protoMsg::RestartMsg baseConfig;
    std::vector<std::string> shots;
@@ -327,7 +330,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
    ASSERT_FALSE(testSlave.mAppClosed);
 
    shots.clear();
-   configTypeMessage.set_restart(false);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(testSlave.mAppClosed);
@@ -335,7 +338,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
    ASSERT_FALSE(testSlave.mAppClosed);
 
    shots.clear();
-   configTypeMessage.set_restart(true);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(testSlave.mAppClosed);
@@ -785,8 +788,8 @@ TEST_F(ConfProcessorTests, testGetBaseConfMsg) {
    ASSERT_TRUE(confChangeQ.Wield());
 
    protoMsg::ConfType ctm;
-   ctm.set_receiving(true); // Receiving conf from ConfMaster
-   ctm.set_conf(true); // Request Base Conf Message
+   ctm.set_direction(protoMsg::ConfType_Direction_RECEIVING); // Receiving conf from ConfMaster
+   ctm.set_type(protoMsg::ConfType_Type_BASE); // Request Base Conf Message
    std::string ctms = ctm.SerializeAsString();
    std::string msg(""); // Empty Conf Message
    std::vector<std::string> messages;
@@ -800,12 +803,8 @@ TEST_F(ConfProcessorTests, testGetBaseConfMsg) {
 
    protoMsg::ConfType ctmRsp;
    ctmRsp.ParseFromString(data[0]);
-   ASSERT_TRUE(ctmRsp.has_sending());
-   ASSERT_TRUE(ctmRsp.sending());
-   ASSERT_TRUE(ctmRsp.has_conf());
-   ASSERT_TRUE(ctmRsp.conf());
-   ASSERT_FALSE(ctmRsp.has_receiving());
-   ASSERT_FALSE(ctmRsp.has_qosmosconf());
+   ASSERT_TRUE(ctmRsp.direction() == protoMsg::ConfType_Direction_SENDING);
+   ASSERT_TRUE(ctmRsp.type() == protoMsg::ConfType_Type_BASE);
 
    Conf conf;
    protoMsg::BaseConf confUpdateMsg;
@@ -826,8 +825,8 @@ TEST_F(ConfProcessorTests, testGetSyslogConfMsg) {
    ASSERT_TRUE(confChangeQ.Wield());
 
    protoMsg::ConfType ctm;
-   ctm.set_receiving(true); // Receiving conf from ConfMaster
-   ctm.set_syslogconf(true); // Request Base Conf Message
+   ctm.set_direction(protoMsg::ConfType_Direction_RECEIVING); // Receiving conf from ConfMaster
+   ctm.set_type(protoMsg::ConfType_Type_SYSLOG); // Request Base Conf Message
    std::string ctms = ctm.SerializeAsString();
    std::string msg(""); // Empty Conf Message
    std::vector<std::string> messages;
@@ -841,13 +840,8 @@ TEST_F(ConfProcessorTests, testGetSyslogConfMsg) {
 
    protoMsg::ConfType ctmRsp;
    ctmRsp.ParseFromString(data[0]);
-   ASSERT_TRUE(ctmRsp.has_sending());
-   ASSERT_TRUE(ctmRsp.sending());
-   ASSERT_TRUE(ctmRsp.has_syslogconf());
-   ASSERT_TRUE(ctmRsp.syslogconf());
-   ASSERT_FALSE(ctmRsp.has_receiving());
-   ASSERT_FALSE(ctmRsp.has_conf());
-   ASSERT_FALSE(ctmRsp.has_qosmosconf());
+   ASSERT_TRUE(ctmRsp.direction() == protoMsg::ConfType_Direction_SENDING);
+   ASSERT_TRUE(ctmRsp.type() == protoMsg::ConfType_Type_SYSLOG);
 
    Conf conf;
    protoMsg::SyslogConf confUpdateMsg;
@@ -952,8 +946,8 @@ TEST_F(ConfProcessorTests, testPolledConsumerRcvAfterNotify) {
    ASSERT_TRUE(confChangeQ.Wield());
 
    protoMsg::ConfType ctm;
-   ctm.set_sending(true); // Sending conf to ConfMaster
-   ctm.set_syslogconf(true); // Base Conf Message
+   ctm.set_direction(protoMsg::ConfType_Direction_SENDING); // Sending conf to ConfMaster
+   ctm.set_type(protoMsg::ConfType_Type_SYSLOG); // Base Conf Message
    std::string ctms = ctm.SerializeAsString();
    std::vector<std::string> messages;
    messages.push_back(ctms);
@@ -1155,7 +1149,7 @@ TEST_F(ConfProcessorTests, testConfSlaveRestart) {
 
    std::vector<std::string> message;
    protoMsg::ConfType configTypeMessage;
-   configTypeMessage.set_restart(true);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
 
    message.push_back(configTypeMessage.SerializeAsString());
    protoMsg::RestartMsg restartMessage;
@@ -1174,7 +1168,7 @@ TEST_F(ConfProcessorTests, testConfSlaveNoRestart) {
 
    std::vector<std::string> message;
    protoMsg::ConfType configTypeMessage;
-   configTypeMessage.set_restart(true);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
 
    message.push_back(configTypeMessage.SerializeAsString());
    protoMsg::RestartMsg restartMessage;
@@ -1193,8 +1187,8 @@ TEST_F(ConfProcessorTests, testConfSlaveBaseConf) {
 
    std::vector<std::string> message;
    protoMsg::ConfType configTypeMessage;
-   configTypeMessage.set_conf(true);
-   configTypeMessage.set_sending(true);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
 
    message.push_back(configTypeMessage.SerializeAsString());
    protoMsg::BaseConf baseMessage;
