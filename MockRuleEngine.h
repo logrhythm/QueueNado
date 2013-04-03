@@ -125,6 +125,9 @@ namespace networkMonitor {
       unsigned int GetFilenameField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, IndexedFieldPairs& formattedFieldData) {
          return RuleEngine::GetFilenameField(nextField, dpiMsg, formattedFieldData);
       }
+      void RestartSyslogDaemon() {
+         
+      }
       bool mSiemMode;
       bool mSyslogEnabled;
       unsigned int mMaxLineLength;

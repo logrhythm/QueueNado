@@ -7,7 +7,7 @@
 #include <iostream>
 #include "SendDpiMsgLRZMQ.h"
 #include "RuleEngineTest.h"
-#include "RuleEngine.h"
+#include "MockRuleEngine.h"
 #include "MockConfSlave.h"
 #include "DpiMsgLR.h"
 
@@ -111,7 +111,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
 
 TEST_F(RuleEngineTest, testConstructor) {
     conf.SetPath("resources/test.yaml");
-    RuleEngine dpiSyslog(conf, syslogName, syslogOption,
+    MockRuleEngine dpiSyslog(conf, syslogName, syslogOption,
             syslogFacility, syslogPriority, true, 0);
     dpiSyslog.StartupMessage();
     EXPECT_EQ(syslogName, sysLogOpenIdent);
@@ -122,7 +122,7 @@ TEST_F(RuleEngineTest, testConstructor) {
 
 TEST_F(RuleEngineTest, testNewDelete) {
     conf.SetPath("resources/test.yaml");
-    RuleEngine * pDpiSyslog = new RuleEngine(conf, syslogName, syslogOption,
+    MockRuleEngine * pDpiSyslog = new MockRuleEngine(conf, syslogName, syslogOption,
             syslogFacility, syslogPriority, true, 0);
     pDpiSyslog->StartupMessage();
     EXPECT_EQ(syslogName, sysLogOpenIdent);
@@ -134,7 +134,7 @@ TEST_F(RuleEngineTest, testNewDelete) {
 
 TEST_F(RuleEngineTest, testStartStop) {
     conf.SetPath("resources/test.yaml");
-    RuleEngine dpiSyslog(conf, syslogName, syslogOption,
+    MockRuleEngine dpiSyslog(conf, syslogName, syslogOption,
             syslogFacility, syslogPriority, true, 0);
 
     EXPECT_FALSE(dpiSyslog.isRunning());

@@ -184,6 +184,7 @@ TEST_F(ConfProcessorTests, QosmosMessagePassedBetweenMasterAndSlave) {
    LOG(DEBUG) << "Sending Qosmos conf";
    ASSERT_TRUE(confSender.Flurry(encodedMessage));
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
+   int sleepCount(0);
    while (!testSlave.mNewQosmosSeen && sleepCount <= 20) {
       sleep(1);
       sleepCount++;
