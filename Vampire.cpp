@@ -1,6 +1,8 @@
 #include "Vampire.h"
 #include "g2logworker.hpp"
 #include "g2log.hpp"
+#define _OPEN_SYS
+#include <sys/stat.h>
 
 /**
  * Construct our Vampire which is a pull in our ZMQ push pull.
@@ -97,6 +99,8 @@ bool Vampire::PrepareToBeShot() {
             mBody = NULL;
             LOGF(WARNING,"Can't connect : %d\n", result); 
             return false;
+         } else {
+            setIpcFilePermissions();
          }
       } else {
          int result = zsocket_connect(mBody, mLocation.c_str());
@@ -111,6 +115,25 @@ bool Vampire::PrepareToBeShot() {
    }
    return ((mContext != NULL) && (mBody != NULL));
 
+}
+
+/**
+ * Set the file permisions on an IPC socket to 0777
+ */
+void Vampire::setIpcFilePermissions() {
+
+   mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP 
+                         | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
+
+   size_t ipcFound = mLocation.find("ipc");
+   if ( ipcFound != std::string::npos ) {
+      size_t tmpFound = mLocation.find("/tmp");
+      if ( tmpFound != std::string::npos ) {
+         std::string ipcFile = mLocation.substr(tmpFound);
+         LOG(INFO) << "Vampire set ipc permissions: " << ipcFile;
+         chmod(ipcFile.c_str(), mode);
+      }
+   }
 }
 
 /**

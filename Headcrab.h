@@ -32,6 +32,7 @@ public:
    static int GetHighWater();
 private:
 
+   void setIpcFilePermissions();
    Headcrab(const Headcrab& that) : mContext(NULL), mFace(NULL) {
    }
 

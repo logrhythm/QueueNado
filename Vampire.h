@@ -22,6 +22,7 @@ public:
 protected:
    void Destroy();
 private:
+   void setIpcFilePermissions();
    std::string mLocation;
    int mHwm;
    void* mBody;

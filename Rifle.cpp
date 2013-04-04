@@ -1,6 +1,8 @@
 #include "Rifle.h"
 #include "g2logworker.hpp"
 #include "g2log.hpp"
+#define _OPEN_SYS
+#include <sys/stat.h>
 
 /**
  * Construct our Rifle which is a push in our ZMQ push pull.
@@ -98,6 +100,7 @@ bool Rifle::Aim() {
             mChamber = NULL;
             return false;
          }
+         setIpcFilePermissions();
       } else {
          int result = zsocket_connect(mChamber, mLocation.c_str());
          if (result < 0) {
@@ -111,6 +114,25 @@ bool Rifle::Aim() {
    }
    return ((mContext != NULL) && (mChamber != NULL));
 
+}
+
+/**
+ * Set the file permisions on an IPC socket to 0777
+ */
+void Rifle::setIpcFilePermissions() {
+
+   mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP 
+                         | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
+
+   size_t ipcFound = mLocation.find("ipc");
+   if ( ipcFound != std::string::npos ) {
+      size_t tmpFound = mLocation.find("/tmp");
+      if ( tmpFound != std::string::npos ) {
+         std::string ipcFile = mLocation.substr(tmpFound);
+         LOG(INFO) << "Rifle set ipc permissions: " << ipcFile;
+         chmod(ipcFile.c_str(), mode);
+      }
+   }
 }
 
 /**

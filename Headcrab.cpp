@@ -1,6 +1,8 @@
 #include "Headcrab.h"
 #include "g2logworker.hpp"
 #include "g2log.hpp"
+#define _OPEN_SYS
+#include <sys/stat.h>
 
 /**
  * Construct a headcrab at the given ZMQ binding
@@ -60,9 +62,30 @@ void* Headcrab::GetFace(zctx_t* context) {
       if (connectRetries <= 0) {
          return NULL;
       }
+      setIpcFilePermissions();
       mFace = face;
    }
    return mFace;
+}
+
+/**
+ * Set the file permisions on an IPC socket to 0777
+ */
+void Headcrab::setIpcFilePermissions() {
+
+   mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP 
+                         | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
+
+   std::string binding(GetBinding());
+   size_t ipcFound = binding.find("ipc");
+   if ( ipcFound != std::string::npos ) {
+      size_t tmpFound = binding.find("/tmp");
+      if ( tmpFound != std::string::npos ) {
+         std::string ipcFile = binding.substr(tmpFound);
+         LOG(INFO) << "Headcrab set ipc permissions: " << ipcFile;
+         chmod(ipcFile.c_str(), mode);
+      }
+   }
 }
 
 /**

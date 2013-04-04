@@ -13,6 +13,7 @@ public:
    void Fire(const std::vector<std::string>& bullets);
    virtual ~Shotgun();
 private:
+   void setIpcFilePermissions(const std::string& location);
    void *mGun;
    zctx_t *mCtx;
 };

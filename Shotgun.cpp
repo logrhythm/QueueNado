@@ -1,6 +1,8 @@
 #include "Shotgun.h"
 #include "g2logworker.hpp"
 #include "g2log.hpp"
+#define _OPEN_SYS
+#include <sys/stat.h>
 
 /**
  * Shotgun class is a ZeroMQ Publisher.
@@ -22,6 +24,26 @@ void Shotgun::Aim(const std::string& location) {
       
       LOGF(WARNING, "bound socket rc:%d : location: %s\n %s", rc, location.c_str(),zmq_strerror(zmq_errno()));
       throw std::string("Failed to connect to bind socket");
+   }
+   setIpcFilePermissions(location);
+}
+
+/**
+ * Set the file permisions on an IPC socket to 0777
+ */
+void Shotgun::setIpcFilePermissions(const std::string& location) {
+
+   mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP 
+                         | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
+
+   size_t ipcFound = location.find("ipc");
+   if ( ipcFound != std::string::npos ) {
+      size_t tmpFound = location.find("/tmp");
+      if ( tmpFound != std::string::npos ) {
+         std::string ipcFile = location.substr(tmpFound);
+         LOG(INFO) << "Shotgun set ipc permissions: " << ipcFile;
+         chmod(ipcFile.c_str(), mode);
+      }
    }
 }
 
