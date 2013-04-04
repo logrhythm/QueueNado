@@ -1,6 +1,7 @@
 #include "CommandProcessorTests.h"
 #include "Conf.h"
 #include "MockUpgradeCommand.h"
+#include "UpgradeCommandTest.h"
 #include "MockConf.h"
 #include "Headcrab.h"
 #include "Crowbar.h"
@@ -75,3 +76,13 @@ TEST_F(CommandProcessorTests, CommandSendReceive) {
    raise(SIGTERM);
 #endif
 }
+
+TEST_F(CommandProcessorTests, UpgradeCommandInit) {
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
+   cmd.set_stringargone("filename");
+   Command * upg = UpgradeCommandTest::Construct(cmd);
+
+}
+
+
