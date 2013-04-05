@@ -6,14 +6,14 @@ class MockProcessManagerCommand : public ProcessManager {
 public:
 
    MockProcessManagerCommand(const Conf& conf) : ProcessManager(conf) {
-      mSuccess=false;
-      mReturnCode=-1;
-      mResult="Fail";
+      mSuccess=true;
+      mReturnCode=0;
+      mResult="Success";
       mInit=true;
    }
    
    bool Initialize() {
-      return true;
+      return mInit;
    }
    
    virtual void setInit(bool init) {
