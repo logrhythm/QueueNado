@@ -1,6 +1,5 @@
 #include "CommandProcessorTests.h"
 #include "Conf.h"
-#include "MockUpgradeCommand.h"
 #include "UpgradeCommandTest.h"
 #include "MockConf.h"
 #include "Headcrab.h"
@@ -9,7 +8,9 @@
 #include "boost/lexical_cast.hpp"
 #include "CommandReply.pb.h"
 #include "MockCommandProcessor.h"
+#include "MockUpgradeCommand.h"
 #include "CommandRequest.pb.h"
+#include "MockProcessManagerCommand.h"
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
@@ -78,10 +79,12 @@ TEST_F(CommandProcessorTests, CommandSendReceive) {
 }
 
 TEST_F(CommandProcessorTests, UpgradeCommandInit) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   Command * upg = UpgradeCommandTest::Construct(cmd);
+   UpgradeCommand upg = UpgradeCommandTest(cmd, processManager);
 
 }
 

@@ -120,7 +120,8 @@ CommandProcessorTests_LDFLAGS=${BASE_LIBS}
 CommandProcessorTests_SOURCES=main.cpp \
         CommandProcessorTests.cpp \
         CommandFactoryTests.cpp \
-        UpgradeCommandTest.h  
+        UpgradeCommandTest.h  \
+	MockProcessManagerCommand.h
 CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\" ${INCLUDES}
 
 SysLoggerTest_LDADD=-lnm -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata \
