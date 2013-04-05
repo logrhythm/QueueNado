@@ -298,3 +298,26 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRunUpgradeScript) {
    }
    ASSERT_TRUE(exception);
 }
+
+
+TEST_F(CommandProcessorTests, UpgradeCommandFailInitProcessManager) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->setInit(false);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
+   cmd.set_stringargone("filename");
+   UpgradeCommandTest upg = UpgradeCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply  reply = upg.Execute(conf);
+      ASSERT_FALSE(reply.success());     
+      
+   } catch(CommandFailedException e) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+}

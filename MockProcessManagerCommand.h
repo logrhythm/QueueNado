@@ -9,10 +9,15 @@ public:
       mSuccess=false;
       mReturnCode=-1;
       mResult="Fail";
+      mInit=true;
    }
    
    bool Initialize() {
       return true;
+   }
+   
+   virtual void setInit(bool init) {
+      mInit = init;
    }
 
    virtual void SetReturnCode(const int returnCode) {
@@ -42,6 +47,7 @@ public:
    
    private:
       int mReturnCode;
+      bool mInit;
       bool mSuccess;
       std::string mResult;
 };
