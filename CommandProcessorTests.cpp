@@ -119,7 +119,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
    ASSERT_FALSE(exception);
 }
 
-TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
+TEST_F(CommandProcessorTests, DynaicUpgradeCommandExecSuccess) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
@@ -128,42 +128,25 @@ TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg = UpgradeCommandTest(cmd, processManager);
+   UpgradeCommandTest* upg = new UpgradeCommandTest(cmd, processManager);
    bool exception = false;
    try {
-      protoMsg::CommandReply reply = upg.Execute(conf);
+      protoMsg::CommandReply reply = upg->Execute(conf);
       LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
       ASSERT_TRUE(reply.success());
    } catch (...) {
       exception = true;
    }
+   delete upg;
    ASSERT_FALSE(exception);
 }
 
-TEST_F(CommandProcessorTests, DynamicUpgradeCommandFailReturnCodeCreatePassPhrase) {
+
+TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeCreatePassPhrase) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
-   processManager->SetResult("Failed!");
-   protoMsg::CommandRequest cmd;
-   cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
-   cmd.set_stringargone("filename");
-   UpgradeCommandTest* upg = new UpgradeCommandTest(cmd, processManager);
-   bool exception = false;
-   try {
-      upg->CreatePassPhraseFile();
-   } catch(CommandFailedException e) {
-      exception = true;
-   }
-   ASSERT_TRUE(exception);
-}
-
-TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCreatePassPhrase) {
-   const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
-   processManager->SetSuccess(false);
-   processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
@@ -197,7 +180,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCreatePassPhrase) {
    ASSERT_TRUE(exception);
 }
 
-TEST_F(CommandProcessorTests, DynamicUpgradeCommandFailReturnCodeDecryptFile) {
+TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeDecryptFile) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
@@ -206,7 +189,7 @@ TEST_F(CommandProcessorTests, DynamicUpgradeCommandFailReturnCodeDecryptFile) {
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest* upg = new UpgradeCommandTest(cmd, processManager);
+   UpgradeCommandTest upg = UpgradeCommandTest(cmd, processManager);
    bool exception = false;
    try {
       upg.DecryptFile();
