@@ -17,6 +17,7 @@ public:
    using UpgradeCommand::RenameDecryptedFile;
    using UpgradeCommand::UntarFile;
    using UpgradeCommand::RunUpgradeScript;
+   using UpgradeCommand::CleanUploadDir;
 
    UpgradeCommandTest(const protoMsg::CommandRequest& request, ProcessManager* processManager) : UpgradeCommand(request, processManager) {
    }

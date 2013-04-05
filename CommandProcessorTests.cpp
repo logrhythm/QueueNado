@@ -299,6 +299,44 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRunUpgradeScript) {
    ASSERT_TRUE(exception);
 }
 
+TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCleanUploadDir) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
+   cmd.set_stringargone("filename");
+   UpgradeCommandTest upg = UpgradeCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      upg.CleanUploadDir();
+   } catch(CommandFailedException e) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCleanUploadDir) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
+   cmd.set_stringargone("filename");
+   UpgradeCommandTest upg = UpgradeCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      upg.CleanUploadDir();
+   } catch(CommandFailedException e) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
 
 TEST_F(CommandProcessorTests, UpgradeCommandFailInitProcessManager) {
    const MockConf conf;
