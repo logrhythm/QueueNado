@@ -39,7 +39,7 @@ public:
       reply.set_success(mSuccess);
       reply.set_returncode(mReturnCode);
       reply.set_result(mResult);
-
+      return reply;
    }
 
    virtual ~MockProcessManagerCommand() {
