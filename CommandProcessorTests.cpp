@@ -13,6 +13,11 @@
 #include "MockProcessManagerCommand.h"
 #include "CommandFailedException.h"
 #include "QosmosDpiTest.h"
+#include "RebootCommand.h"
+#include "RebootCommandTest.h"
+#include <g2loglevels.hpp>
+#include "g2logworker.hpp"
+#include "g2log.hpp"
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
@@ -80,6 +85,8 @@ TEST_F(CommandProcessorTests, CommandSendReceive) {
 #endif
 }
 
+//Upgrade commands
+
 TEST_F(CommandProcessorTests, UpgradeCommandInit) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
@@ -102,7 +109,9 @@ TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
    UpgradeCommandTest upg = UpgradeCommandTest(cmd, processManager);
    bool exception = false;
    try {
-      upg.Execute(conf);
+      protoMsg::CommandReply reply = upg.Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_TRUE(reply.success());
    } catch (...) {
       exception = true;
    }
@@ -114,7 +123,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeCreatePassPhrase) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -133,7 +142,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCreatePassPhrase) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -152,7 +161,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeDecryptFile) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -171,7 +180,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessDecryptFile) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -190,7 +199,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeRenameDecryptedFile) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -209,7 +218,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRenameDecryptedFile) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -228,7 +237,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeUntarFile) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -247,7 +256,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessUntarFile) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -266,7 +275,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnRunUpgradeScript) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -285,7 +294,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRunUpgradeScript) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -304,7 +313,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCleanUploadDir) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -323,7 +332,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCleanUploadDir) {
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -344,7 +353,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailInitProcessManager) {
    processManager->setInit(false);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
-   processManager->SetResult("Success!");
+   processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -358,4 +367,62 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailInitProcessManager) {
       exception = true;
    }
    ASSERT_FALSE(exception);
+}
+
+//REBOOT COMMANDS
+
+TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
+   RebootCommandTest reboot = RebootCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply reply = reboot.Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_TRUE(reply.success());
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+}
+
+TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
+   RebootCommandTest reboot = RebootCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      reboot.DoTheReboot();
+   } catch(CommandFailedException e) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, RebootCommandFailSuccessDoTheUpgrade) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
+   RebootCommandTest reboot = RebootCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      reboot.DoTheReboot();
+   } catch(CommandFailedException e) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
 }

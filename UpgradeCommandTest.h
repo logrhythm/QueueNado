@@ -21,6 +21,7 @@ public:
 
    UpgradeCommandTest(const protoMsg::CommandRequest& request, ProcessManager* processManager) : UpgradeCommand(request, processManager) {
    }
+   
 
    virtual ~UpgradeCommandTest() {
    }
