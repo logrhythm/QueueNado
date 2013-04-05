@@ -24,6 +24,316 @@
 #include "QosmosProtocolCapture.h"
 using namespace std;
 using namespace networkMonitor;
+TEST_F(ConfProcessorTests, ReadPerformanceBenchmark_BASE) {
+   ConfMaster& master = ConfMaster::Instance();
+   master.Start();
+   Conf conf(master.GetConf());
+   Crowbar sender(conf.getConfChangeQueue());
+   ASSERT_TRUE(sender.Wield());
+   protoMsg::ConfType typeMsg;
+
+   typeMsg.set_direction(protoMsg::ConfType_Direction_RECEIVING);
+   typeMsg.set_type(protoMsg::ConfType_Type_BASE);
+   std::vector<std::string> messages;
+   messages.push_back(typeMsg.SerializeAsString());
+   messages.push_back("");
+
+   ASSERT_TRUE(sender.Flurry(messages));
+   ASSERT_TRUE(sender.BlockForKill(messages));
+   protoMsg::BaseConf baseMsg;
+   ASSERT_TRUE(baseMsg.ParseFromString(messages[1]));
+   unsigned int iterations(10000);
+   StartTimedSection(.0005, iterations);
+   for (unsigned int i = 0; i < iterations; i++) {
+      typeMsg.set_direction(protoMsg::ConfType_Direction_RECEIVING);
+      messages[0] = typeMsg.SerializeAsString();
+      ASSERT_TRUE(sender.Flurry(messages));
+      ASSERT_TRUE(sender.BlockForKill(messages));
+   }
+   EndTimedSection();
+   EXPECT_TRUE(TimedSectionPassed());
+   master.Stop();
+}
+
+TEST_F(ConfProcessorTests, WritePerformanceBenchmark_BASE) {
+   ConfMaster& master = ConfMaster::Instance();
+   master.Start();
+   Conf conf(master.GetConf());
+   Crowbar sender(conf.getConfChangeQueue());
+   ASSERT_TRUE(sender.Wield());
+   protoMsg::ConfType typeMsg;
+
+   typeMsg.set_direction(protoMsg::ConfType_Direction_RECEIVING);
+   typeMsg.set_type(protoMsg::ConfType_Type_BASE);
+   std::vector<std::string> messages;
+   messages.push_back(typeMsg.SerializeAsString());
+   messages.push_back("");
+
+   ASSERT_TRUE(sender.Flurry(messages));
+   ASSERT_TRUE(sender.BlockForKill(messages));
+   protoMsg::BaseConf baseMsg;
+   ASSERT_TRUE(baseMsg.ParseFromString(messages[1]));
+   unsigned int iterations(1000);
+   StartTimedSection(.01, iterations);
+   for (unsigned int i = 0; i < iterations; i++) {
+      typeMsg.set_direction(protoMsg::ConfType_Direction_SENDING);
+      messages[0] = typeMsg.SerializeAsString();
+      ASSERT_TRUE(sender.Flurry(messages));
+      ASSERT_TRUE(sender.BlockForKill(messages));
+   }
+   EndTimedSection();
+   EXPECT_TRUE(TimedSectionPassed());
+   master.Stop();
+}
+
+TEST_F(ConfProcessorTests, TestProcessBaseConfigRequest) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   master.SetConfLocation("/tmp/dummyWriteLocationCommandProcessorTests");
+   Conf conf(master.GetConf());
+   master.UpdateCachedMessages(conf);
+   protoMsg::ConfType configTypeMessage;
+   std::string serializedConf;
+
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
+
+   protoMsg::BaseConf baseConf;
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_TRUE(serializedConf.empty());
+
+   baseConf.set_multithreadqosmos("true");
+   EXPECT_TRUE(master.ProcessBaseConfigRequest(conf, baseConf.SerializeAsString()));
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_FALSE(serializedConf.empty());
+   EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
+   EXPECT_EQ("true", baseConf.multithreadqosmos());
+
+   unlink(master.mConfLocation.c_str());
+#endif
+}
+
+TEST_F(ConfProcessorTests, TestProcessQosmosConfigRequest) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   master.SetConfLocation("/tmp/dummyWriteLocationCommandProcessorTests");
+   Conf conf(master.GetConf());
+   master.UpdateCachedMessages(conf);
+   protoMsg::ConfType configTypeMessage;
+   std::string serializedConf;
+
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_QOSMOS);
+
+   protoMsg::QosmosConf qConf;
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_TRUE(serializedConf.empty());
+
+   protoMsg::QosmosConf_Protocol* dummyProto = qConf.add_qosmosprotocol();
+   dummyProto->set_protocolenabled(false);
+   dummyProto->set_protocolfamily("something");
+   dummyProto->set_protocollongname("long something");
+   dummyProto->set_protocolname("s");
+
+   EXPECT_TRUE(master.ProcessQosmosConfigRequest(conf, qConf.SerializeAsString()));
+   //Due to external deps, that is all we can hope for
+   std::string qName = master.mConfLocation;
+   qName += ".Qosmos";
+   unlink(qName.c_str());
+#endif  
+}
+
+TEST_F(ConfProcessorTests, TestProcessSyslogConfigRequest) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   master.SetConfLocation("/tmp/dummyWriteLocationCommandProcessorTests");
+   Conf conf(master.GetConf());
+   master.UpdateCachedMessages(conf);
+   protoMsg::ConfType configTypeMessage;
+   std::string serializedConf;
+
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
+
+   protoMsg::SyslogConf sConf;
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_TRUE(serializedConf.empty());
+
+   sConf.set_siemlogging("false");
+   EXPECT_TRUE(master.ProcessSyslogConfigRequest(conf, sConf.SerializeAsString()));
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_FALSE(serializedConf.empty());
+   EXPECT_TRUE(sConf.ParseFromString(serializedConf));
+   EXPECT_EQ("false", sConf.siemlogging());
+
+   std::string sName = master.mConfLocation;
+   sName += ".Syslog";
+   unlink(sName.c_str());
+#endif
+}
+
+TEST_F(ConfProcessorTests, TestIsRestartRequest) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
+   EXPECT_TRUE(master.IsRestartRequest(configTypeMessage));
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_RECEIVING);
+   EXPECT_TRUE(master.IsRestartRequest(configTypeMessage));
+   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
+   EXPECT_FALSE(master.IsRestartRequest(configTypeMessage));
+   configTypeMessage.set_type(protoMsg::ConfType_Type_QOSMOS);
+   EXPECT_FALSE(master.IsRestartRequest(configTypeMessage));
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
+   EXPECT_FALSE(master.IsRestartRequest(configTypeMessage));
+   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
+   EXPECT_FALSE(master.IsRestartRequest(configTypeMessage));
+#endif
+}
+
+TEST_F(ConfProcessorTests, TestUpdateBaseCachedMessages) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   Conf conf(master.GetConf());
+   master.UpdateCachedMessages(conf);
+   protoMsg::ConfType configTypeMessage;
+   std::string serializedConf;
+
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
+
+   protoMsg::BaseConf baseConf;
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_FALSE(serializedConf.empty());
+   EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
+   EXPECT_EQ("false", baseConf.multithreadqosmos());
+
+   baseConf.set_multithreadqosmos("true");
+   conf.updateFields(baseConf);
+   master.UpdateCachedMessages(conf);
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_FALSE(serializedConf.empty());
+   EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
+   EXPECT_EQ("true", baseConf.multithreadqosmos());
+#endif
+}
+
+TEST_F(ConfProcessorTests, TestUpdateQosmosCachedMessages) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   Conf conf(master.GetConf());
+   master.UpdateCachedMessages(conf);
+   protoMsg::ConfType configTypeMessage;
+   std::string serializedConf;
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_QOSMOS);
+   EXPECT_FALSE(serializedConf.empty());
+   QosmosConf qConf;
+   conf.updateQosmos(qConf);
+   master.UpdateCachedMessages(conf);
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_TRUE(serializedConf.empty());
+
+#endif
+}
+
+TEST_F(ConfProcessorTests, TestUpdateSyslogCachedMessages) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   Conf conf(master.GetConf());
+   master.UpdateCachedMessages(conf);
+   protoMsg::ConfType configTypeMessage;
+   std::string serializedConf;
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
+   EXPECT_FALSE(serializedConf.empty());
+   protoMsg::SyslogConf sConf;
+   EXPECT_TRUE(sConf.ParseFromString(serializedConf));
+   EXPECT_EQ("", sConf.siemlogging());
+   sConf.set_siemlogging("false");
+   conf.updateFields(sConf);
+   master.UpdateCachedMessages(conf);
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_EQ("false", sConf.siemlogging());
+#endif
+}
+
+TEST_F(ConfProcessorTests, TestSerializeCachedConfig) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   Conf conf(master.GetConf());
+   master.UpdateCachedMessages(conf);
+   protoMsg::ConfType configTypeMessage;
+   std::string serializedConf;
+
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_RECEIVING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_TRUE(serializedConf.empty());
+   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
+   serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_FALSE(serializedConf.empty());
+   protoMsg::BaseConf baseConf;
+   EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
+
+   configTypeMessage.set_type(protoMsg::ConfType_Type_QOSMOS);
+   EXPECT_FALSE(serializedConf.empty());
+   protoMsg::QosmosConf qConf;
+   EXPECT_TRUE(qConf.ParseFromString(serializedConf));
+
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
+   EXPECT_FALSE(serializedConf.empty());
+   protoMsg::SyslogConf sConf;
+   EXPECT_TRUE(sConf.ParseFromString(serializedConf));
+
+   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
+   EXPECT_FALSE(serializedConf.empty());
+   protoMsg::VersionMsg vConf;
+   EXPECT_TRUE(vConf.ParseFromString(serializedConf));
+
+#endif
+}
+
+TEST_F(ConfProcessorTests, TestReconcileNewConf) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   Conf conf(master.GetConf());
+   protoMsg::ConfType configTypeMessage;
+   master.UpdateCachedMessages(conf);
+   std::string serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_FALSE(serializedConf.empty());
+   std::string message = master.SerializeCachedConfig(configTypeMessage);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
+
+   EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf, message));
+   master.Start();
+
+   master.SetConfLocation("/tmp/dummyWriteLocationCommandProcessorTests");
+   Conf conf2(master.GetConf());
+   protoMsg::BaseConf baseConf;
+   EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
+   conf2.updateFields(baseConf);
+
+   EXPECT_TRUE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   master.Stop();
+   EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   master.Start();
+   EXPECT_TRUE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   configTypeMessage.set_type(::protoMsg::ConfType_Type_RESTART);
+   EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   configTypeMessage.set_type(::protoMsg::ConfType_Type_APP_VERSION);
+   EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   message = "abc123";
+   EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+
+   master.Stop();
+   unlink(master.mConfLocation.c_str());
+#endif
+}
 
 TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
 #if defined(LR_DEBUG)
