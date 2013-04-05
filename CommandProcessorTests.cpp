@@ -18,6 +18,7 @@
 #include <g2loglevels.hpp>
 #include "g2logworker.hpp"
 #include "g2log.hpp"
+#include "RestartSyslogCommandTest.h"
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
@@ -421,6 +422,64 @@ TEST_F(CommandProcessorTests, RebootCommandFailSuccessDoTheUpgrade) {
    bool exception = false;
    try {
       reboot.DoTheReboot();
+   } catch(CommandFailedException e) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+// Syslog Restart Commands
+
+TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
+   RestartSyslogCommandTest reboot = RestartSyslogCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply reply = reboot.Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_TRUE(reply.success());
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+}
+
+TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailRestart) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
+   RestartSyslogCommandTest reboot = RestartSyslogCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      reboot.Restart();
+   } catch(CommandFailedException e) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailSuccessRestart) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
+   RestartSyslogCommandTest reboot = RestartSyslogCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      reboot.Restart();
    } catch(CommandFailedException e) {
       exception = true;
    }
