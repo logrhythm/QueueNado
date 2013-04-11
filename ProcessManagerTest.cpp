@@ -22,7 +22,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
       std::map<std::string, std::string> env;
       env["a"] = "b";
       processArgs = "resources/sleepIfA.sh";
-      EXPECT_TRUE(sendManager.RegisterProcessWithEnvironment(processName, processArgs, env));
+      EXPECT_TRUE(sendManager.RegisterProcessWithEnvironment(processName, processArgs, env, ""));
       processName = "/bin/ps";
       processArgs = "-ef |grep -v grep | grep \"/bin/sh\" | grep ";
       testQueue.str("");
@@ -192,7 +192,7 @@ TEST_F(ProcessManagerTest, RegisterDaemon) {
       std::string processName("/bin/sleep");
       std::string processArgs;
       processArgs = "2";
-      EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs));
+      EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs, ""));
       processName = "/bin/ps";
       processArgs = "-ef | grep \"/bin/sleep\" | grep -v grep | grep ";
       testQueue.str("");
@@ -236,7 +236,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
       std::string processName("/bin/sleep");
       std::string processArgs;
       processArgs = "2";
-      EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs));
+      EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs, ""));
       processName = "/bin/ps";
       processArgs = "-ef | grep \"/bin/sleep\" | grep -v grep | grep ";
       testQueue.str("");
@@ -278,7 +278,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
       std::string processName("/bin/sleep");
       std::string processArgs;
       processArgs = "2";
-      EXPECT_FALSE(sendManager.RegisterProcess(processName, processArgs));
+      EXPECT_FALSE(sendManager.RegisterProcess(processName, processArgs, ""));
       processName = "/bin/ps";
       processArgs = "-ef | grep \"/bin/sleep\" | grep -v grep | grep ";
       testQueue.str("");
@@ -310,7 +310,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
       std::string processName("/bin/sleep");
       std::string processArgs;
       processArgs = "1";
-      EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs));
+      EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs, ""));
       std::this_thread::sleep_for(std::chrono::seconds(1));
       EXPECT_FALSE(sendManager.UnRegisterProcess("/bin/sleep"));
       raise(SIGTERM);
