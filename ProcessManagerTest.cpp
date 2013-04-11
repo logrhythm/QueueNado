@@ -275,9 +275,9 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
       EXPECT_TRUE(testManager.Initialize());
       ProcessManager sendManager(conf);
       EXPECT_TRUE(sendManager.Initialize());
-      std::string processName("/bin/sleep");
+      std::string processName("/bin/broken");
       std::string processArgs;
-      processArgs = "2";
+      processArgs = "0";
       EXPECT_FALSE(sendManager.RegisterProcess(processName, processArgs, ""));
       processName = "/bin/ps";
       processArgs = "-ef | grep \"/bin/sleep\" | grep -v grep | grep ";
