@@ -73,6 +73,9 @@ TEST_F(QsomosPacketAllocatorTests, FailedMalloc) {
 #endif
 }
 
+TEST_F(QsomosPacketAllocatorTests, TwoPacketConversions) {
+   
+}
 TEST_F(QsomosPacketAllocatorTests, PacketTranslation) {
    std::string* packetAsString;
    ctb_ppacket testPacket = NULL;
