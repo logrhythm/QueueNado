@@ -39,7 +39,9 @@ void CZMQToolkit::PrintCurrentHighWater(void* socket, const std::string& name) {
     int sndbuf = zsocket_sndbuf(socket);
     int sndhwm = zsocket_sndhwm(socket);
     std::string tmpName = name;
-    LOGF(DEBUG, "%s: rcvbuf:%d rcvhwm:%d sndbuf:%d sndhwm:%d", tmpName.c_str(), rcvbuf, rcvhwm, sndbuf, sndhwm);
+    LOG(DEBUG) << tmpName << ": rcvbuf:" << rcvbuf<< " rcvhwm:" 
+            << rcvhwm << " sndbuf:" <<sndbuf<<" sndhwm:" << sndhwm;
+           
 }
 
 /**
@@ -103,7 +105,8 @@ bool CZMQToolkit::GetSizeTFromSocket(void* socket, size_t& value) {
     zframe_t* frame = zmsg_last(numberReply);
     if (zframe_size(frame) != sizeof (size_t)) {
         zmsg_destroy(&numberReply);
-        LOGF(WARNING, "Invalid Message, expected size:%lu :: actual size:%lu", sizeof (size_t), zframe_size(frame));
+        LOG(WARNING) << "Invalid Message, expected size:" << sizeof (size_t) 
+                << " :: actual size:" << zframe_size(frame);
         return false;
     }
     value = *reinterpret_cast<size_t*> (zframe_data(frame));
@@ -130,7 +133,8 @@ bool CZMQToolkit::SendBlankMessage(void* socket) {
     zmsg_addmem(blankRequest, "", 0);
     if (zmsg_send(&blankRequest, socket) != 0) {
         int err = zmq_errno();
-        LOGF(WARNING, "Failed on send %s", zmq_strerror(err));
+        std::string error(zmq_strerror(err));
+        LOG(WARNING) << "Failed on send " << error;
         if (blankRequest) {
             zmsg_destroy(&blankRequest);
         }
@@ -157,13 +161,14 @@ bool CZMQToolkit::SocketFIFO(void* socket) {
         return false;
     }
     if (zmsg_size(bullet) != 1) {
-        LOGF(WARNING, "%d frames in overflow", zmsg_size(bullet));
+        LOG(WARNING) << zmsg_size(bullet) <<  " frames in overflow";
         zmsg_destroy(&bullet);
         return false;
     }
     if (zmsg_send(&bullet, socket) != 0) {
         int err = zmq_errno();
-        LOGF(WARNING, "Failed on send %s", zmq_strerror(err));
+        std::string error(zmq_strerror(err));
+        LOG(WARNING) << "Failed on send " << error;
         return false;
     }
     return true;
@@ -186,7 +191,8 @@ bool CZMQToolkit::SendExistingMessage(zmsg_t*& message, void* socket) {
     }
     if (zmsg_send(&message, socket) != 0) {
         int err = zmq_errno();
-        LOGF(WARNING, "Failed on send %s", zmq_strerror(err));
+        std::string error(zmq_strerror(err));
+        LOG(WARNING) << "Failed on send " << error;
 
         return false;
     }
@@ -234,7 +240,8 @@ bool CZMQToolkit::SendSizeTToSocket(void* socket, const size_t size) {
     zmsg_addmem(numberRequest, &size, sizeof (size));
     if (zmsg_send(&numberRequest, socket) != 0) {
         int err = zmq_errno();
-        LOGF(WARNING, "Failed on send %s", zmq_strerror(err));
+        std::string error(zmq_strerror(err));
+        LOG(WARNING) << "Failed on send " << error;
 
         return false;
     }
@@ -268,7 +275,8 @@ bool CZMQToolkit::PassMessageAlong(void* sourceSocket, void* destSocket) {
         return false;
     } else if (zmsg_send(&message, destSocket) != 0) {
         int err = zmq_errno();
-        LOGF(WARNING, "Failed on send %s", zmq_strerror(err));
+        std::string error(zmq_strerror(err));
+        LOG(WARNING) << "Failed on send " << error;
         if (message) {
             zmsg_destroy(&message);
         }
@@ -309,7 +317,8 @@ bool CZMQToolkit::SendStringContentsToSocket(void* sourceSocket, void* destSocke
     zmsg_add(shot, frame);
     if (zmsg_send(&shot, destSocket) != 0) {
         int err = zmq_errno();
-        LOGF(WARNING, "Failed on send %s", zmq_strerror(err));
+        std::string error(zmq_strerror(err));
+        LOG(WARNING) << "Failed on send " << error;
         return false;
     }
     return true;
@@ -344,12 +353,14 @@ bool CZMQToolkit::ForkPartsOfMessageTwoDirections(void* sourceSocket,
     zmsg_push(splatter, recoil);
     if (zmsg_send(&splatter, firstDestination) != 0) {
         int err = zmq_errno();
-        LOGF(WARNING, "Failed on send ", zmq_strerror(err));
+        std::string error(zmq_strerror(err));
+        LOG(WARNING) << "Failed on send " << error;
         return false;
     }
     if (zmsg_send(&shot, secondDestination) != 0) {
         int err = zmq_errno();
-        LOGF(WARNING, "Failed on send ", zmq_strerror(err));
+        std::string error(zmq_strerror(err));
+        LOG(WARNING) << "Failed on send " << error;
         return false;
     }
     return true;
@@ -400,7 +411,8 @@ bool CZMQToolkit::SendStringWithHash(void* socket, zmsg_t*& message, const std::
     zmsg_add(message, msgFrame);
     if (zmsg_send(&message, socket) != 0) {
         int err = zmq_errno();
-        LOGF(WARNING, "Failed on send %s", zmq_strerror(err));
+        std::string error(zmq_strerror(err));
+        LOG(WARNING) << "Failed on send " << error;
         if (message) {
             zmsg_destroy(&message);
         }

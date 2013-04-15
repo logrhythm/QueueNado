@@ -56,7 +56,9 @@ void* Headcrab::GetFace(zctx_t* context) {
          if (err == ETERM) {
             return NULL;
          }
-         LOGF(WARNING, "Could not bind to %s:%s", GetBinding().c_str(), zmq_strerror(err));
+         std::string error(zmq_strerror(err));
+         LOG(WARNING) <<  "Could not bind to " <<GetBinding()<<":" << error;
+                 
          zclock_sleep(100);
       }
       if (connectRetries <= 0) {

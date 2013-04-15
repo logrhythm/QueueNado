@@ -74,7 +74,7 @@ ZeroMQ<void*>::~ZeroMQ() {
 void ZeroMQ<void*>::CloseSocket() {
    if (mSocket != NULL) {
       if (zmq_close(mSocket) != 0) {
-         LOGF(WARNING, "failed to terminate socket %s", mBinding.c_str());
+         LOG(WARNING) << "failed to terminate socket " << mBinding;
          exit(1);
       }
       mSocket = NULL;
@@ -87,7 +87,7 @@ void ZeroMQ<void*>::CloseSocket() {
 void ZeroMQ<void*>::CloseContext() {
    if (mContext != NULL && mOwnsContext) {
       if (zmq_term(mContext) != 0) {
-         LOGF(WARNING, "failed to terminate context %s", mBinding.c_str());
+         LOG(WARNING) << "failed to terminate context " << mBinding;
          exit(1);
          //TODO do something here
       }

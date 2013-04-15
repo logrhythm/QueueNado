@@ -163,7 +163,7 @@ bool Rifle::Fire(const std::string& bullet,const int waitToFire) {
          zmsg_addmem(message, &(bullet[0]), bullet.size());
          return CZMQToolkit::SendExistingMessage(message, mChamber);
       } else {
-         LOGF(WARNING, "Error on Zmq socket send: %s", zmq_strerror(zmq_errno()));
+         LOG(WARNING) << "Error on Zmq socket send: " << zmq_strerror(zmq_errno());
          return false;
       }
    } else {
@@ -189,7 +189,7 @@ bool Rifle::FireZeroCopy( std::string* zero, const size_t size, void (*FreeFunct
          zmsg_add(message, frame);
          return CZMQToolkit::SendExistingMessage(message, mChamber);
       } else {
-         LOGF(WARNING, "Error on Zmq socket send: %s", zmq_strerror(zmq_errno()));
+         LOG(WARNING) << "Error on Zmq socket send: " << zmq_strerror(zmq_errno());
          return false;
       }
    } else {
@@ -221,7 +221,7 @@ bool Rifle::FireStake(const void* stake, const int waitToFire) {
          return CZMQToolkit::SendExistingMessage(message, mChamber);
       } else {
 
-         LOGF(WARNING, "Error in zmq_pollout in %s: %s", GetBinding().c_str(), zmq_strerror(zmq_errno()));
+         LOG(WARNING) <<  "Error in zmq_pollout in " <<GetBinding()<<": " << zmq_strerror(zmq_errno());
          return false;
       }
    } else {
@@ -259,11 +259,11 @@ bool Rifle::FireStakes(const std::vector<std::pair<void*, unsigned int> >
                  stakes.size() * (sizeof (std::pair<void*, unsigned int>)));
          return CZMQToolkit::SendExistingMessage(message, mChamber);
       } else {
-         LOGF(WARNING, "Error in zmq_pollout %s", GetBinding().c_str());
+         LOG(WARNING) <<  "Error in zmq_pollout in " <<GetBinding()<<": " << zmq_strerror(zmq_errno());
          return false;
       }
    } else {
-      LOGF(WARNING, "timeout in zmq_pollout %s", GetBinding().c_str());
+      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
