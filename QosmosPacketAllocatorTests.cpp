@@ -1,5 +1,3 @@
-#include <fstream>
-
 #include "QosmosPacketAllocatorTests.h"
 using namespace std;
 
@@ -129,13 +127,12 @@ TEST_F(QsomosPacketAllocatorTests, FailedMalloc) {
 //   inputFile.close();
 //   delete [] buffer;
 //}
-
 TEST_F(QsomosPacketAllocatorTests, PacketTranslation) {
    std::string* packetAsString;
    ctb_ppacket testPacket = NULL;
    t_allocator.PopulateStringFromPacket(testPacket, packetAsString);
    std::string testPacketString;
-   t_allocator.PopulatePacketFromString(testPacketString, testPacket);
+   t_allocator.PopulatePacketFromString(testPacketString,testPacket);
    EXPECT_TRUE(testPacket == NULL);
    testPacket = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt)));
    testPacket->timestamp.tv_sec = 12;
@@ -147,15 +144,13 @@ TEST_F(QsomosPacketAllocatorTests, PacketTranslation) {
    t_allocator.PopulateStringFromPacket(testPacket, packetAsString);
    EXPECT_TRUE(packetAsString != NULL);
    EXPECT_TRUE(testPacket == NULL);
-   EXPECT_EQ(100 + sizeof (timeval) + sizeof (unsigned int), packetAsString->size());
-   t_allocator.PopulatePacketFromString(*packetAsString, testPacket);
+   EXPECT_EQ(100+sizeof(timeval)+sizeof(unsigned int),packetAsString->size());
+   t_allocator.PopulatePacketFromString(*packetAsString,testPacket);
    delete packetAsString;
    EXPECT_TRUE(testPacket != NULL);
-   EXPECT_EQ(12, testPacket->timestamp.tv_sec);
-   EXPECT_EQ(45, testPacket->timestamp.tv_usec);
-   EXPECT_EQ(100, testPacket->len);
+   EXPECT_EQ(12,testPacket->timestamp.tv_sec);
+   EXPECT_EQ(45,testPacket->timestamp.tv_usec);
+   EXPECT_EQ(100,testPacket->len);
    free(testPacket->data);
    free(testPacket);
-
-
 }
