@@ -73,6 +73,60 @@ TEST_F(QsomosPacketAllocatorTests, FailedMalloc) {
 #endif
 }
 
+//TEST_F(QsomosPacketAllocatorTests, TwoPacketConversions) {
+//   std::fstream inputFile;
+//   std::fstream outputFile;
+//   inputFile.open("resources/1000packets.tcpdump", fstream::in | fstream::binary);
+//
+//   unsigned char* buffer = new unsigned char[65536];
+//   inputFile.read(reinterpret_cast<char*>(buffer), sizeof (pcap_file_header));
+//   if (!inputFile && inputFile.gcount() < sizeof (struct pcap_file_header)) {
+//      inputFile.close();
+//      delete [] buffer;
+//      ASSERT_TRUE(false);
+//   }
+//   struct pcap_file_header* fileHeader = reinterpret_cast<struct pcap_file_header*>(buffer);
+//   outputFile.open("resources/1000packets.tcpdump.copy",fstream::out | fstream::binary | fstream::trunc);
+//   outputFile.write(reinterpret_cast<char*>(buffer),sizeof(struct pcap_file_header));
+//   ctb_ppacket dataPointer(NULL);
+//   while (!inputFile.eof()) {
+//      struct pcap_pkthdr* header = static_cast<struct pcap_pkthdr*>(malloc(sizeof(struct pcap_pkthdr)));
+//      inputFile.read(reinterpret_cast<char*>(buffer), sizeof (struct pcap_pkthdr));
+//      if (!inputFile && inputFile.gcount() < sizeof (struct pcap_pkthdr)) {
+//         break;
+//      }
+//      memcpy(&header->ts.tv_sec,buffer+4,4);
+//      memcpy(&header->ts.tv_usec,buffer+8,4);
+//      header->caplen = buffer[sizeof(header->ts.tv_sec)+sizeof(header->ts.tv_sec)];
+//      header->len = header->caplen;//buffer[sizeof(header->ts.tv_sec)+sizeof(header->ts.tv_sec)+sizeof(header->caplen)];
+//      size_t length = header->caplen;
+//      ASSERT_TRUE(length<=65536);
+//      inputFile.read(reinterpret_cast<char*>(buffer), length);
+//      if (!inputFile && inputFile.gcount() < length) {
+//         break;
+//      }
+//      unsigned char* rawData = buffer;
+//      
+//      t_allocator.PopulatePacketData(rawData, header, dataPointer);
+//      struct pcap_pkthdr* header2(NULL);
+//      unsigned char* raw2(NULL);
+//      ASSERT_TRUE(t_allocator.PopulatrePCapData(dataPointer, header2, raw2));
+//      char* rawheader2(NULL);
+//      t_allocator.GetHeaderForDiskWriting(header2,rawheader2);
+//      ASSERT_TRUE(rawheader2!=NULL);
+//      outputFile.write(reinterpret_cast<char*>(header2),sizeof(struct pcap_file_header));
+//      delete [] rawheader2;
+//      outputFile.write(reinterpret_cast<char*>(raw2),header2->len);
+//      free(header2);
+//      free(raw2);
+//      free(dataPointer->data);
+//      free(dataPointer);
+//      free(header);
+//   }
+//   outputFile.close();
+//   inputFile.close();
+//   delete [] buffer;
+//}
 TEST_F(QsomosPacketAllocatorTests, PacketTranslation) {
    std::string* packetAsString;
    ctb_ppacket testPacket = NULL;
@@ -99,6 +153,4 @@ TEST_F(QsomosPacketAllocatorTests, PacketTranslation) {
    EXPECT_EQ(100,testPacket->len);
    free(testPacket->data);
    free(testPacket);
-   
-
 }
