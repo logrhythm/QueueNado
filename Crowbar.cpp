@@ -77,7 +77,8 @@ void* Crowbar::GetTip() {
       if (err == ETERM) {
          return NULL;
       }
-      LOGF(WARNING, "Could not connect to %s:%s", mBinding.c_str(), zmq_strerror(err));
+      std::string error(zmq_strerror(err));
+      LOG(WARNING) << "Could not connect to " << mBinding << ":" << error;
       zclock_sleep(100);
    }
    if (connectRetries <= 0) {

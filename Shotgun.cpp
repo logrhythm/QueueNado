@@ -22,7 +22,9 @@ void Shotgun::Aim(const std::string& location) {
    int rc = zsocket_bind(mGun, location.c_str());
    if (rc == -1) {
       
-      LOGF(WARNING, "bound socket rc:%d : location: %s\n %s", rc, location.c_str(),zmq_strerror(zmq_errno()));
+      LOG(WARNING) <<  "bound socket rc:" <<rc<< " : location: " <<location;
+      LOG(WARNING) << zmq_strerror(zmq_errno());
+              
       throw std::string("Failed to connect to bind socket");
    }
    setIpcFilePermissions(location);

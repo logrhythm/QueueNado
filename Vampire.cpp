@@ -80,6 +80,7 @@ int Vampire::GetIOThreads() {
  */
 bool Vampire::PrepareToBeShot() {
    if (mBody) {
+      LOG(WARNING) << "Socket uninitialized!";
       return true;
    }
    if (!mContext) {
@@ -97,7 +98,7 @@ bool Vampire::PrepareToBeShot() {
          if (result < 0) {
             zsocket_destroy(mContext, mBody);
             mBody = NULL;
-            LOGF(WARNING,"Can't connect : %d\n", result); 
+            LOG(WARNING) << "Can't connect : " << result;
             return false;
          } else {
             setIpcFilePermissions();
@@ -107,7 +108,7 @@ bool Vampire::PrepareToBeShot() {
          if (result < 0) {
             zsocket_destroy(mContext, mBody);
             mBody = NULL;
-            LOGF(WARNING,"Can't connect : %d\n", result);
+            LOG(WARNING) << "Can't connect : " << result;
             return false;
          }
       }
@@ -122,13 +123,13 @@ bool Vampire::PrepareToBeShot() {
  */
 void Vampire::setIpcFilePermissions() {
 
-   mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP 
-                         | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
+   mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP
+           | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
 
    size_t ipcFound = mLocation.find("ipc");
-   if ( ipcFound != std::string::npos ) {
+   if (ipcFound != std::string::npos) {
       size_t tmpFound = mLocation.find("/tmp");
-      if ( tmpFound != std::string::npos ) {
+      if (tmpFound != std::string::npos) {
          std::string ipcFile = mLocation.substr(tmpFound);
          LOG(INFO) << "Vampire set ipc permissions: " << ipcFile;
          chmod(ipcFile.c_str(), mode);
@@ -141,8 +142,9 @@ void Vampire::setIpcFilePermissions() {
  * @param bullet
  * @return 
  */
-bool Vampire::GetShot(std::string& wound,const int timeout) {
+bool Vampire::GetShot(std::string& wound, const int timeout) {
    if (!mBody) {
+      LOG(WARNING) << "Socket uninitialized!";
       return false;
    }
    zmq_pollitem_t items [] = {
@@ -163,17 +165,14 @@ bool Vampire::GetShot(std::string& wound,const int timeout) {
          zmsg_destroy(&message);
          return true;
       } else {
-         LOGF(WARNING, "Error in zmq_pollin %s", GetBinding().c_str());
+         LOG(WARNING) << "Error in zmq_pollin " << GetBinding();
       }
 
    } else if (pollResult < 0) {
-      LOGF(WARNING, "%d Error on Zmq socket receivein %s : %s %s", GetBinding().c_str(), items[0].revents, zmq_strerror(zmq_errno()));
-
+      LOG(WARNING) << "Error on zmq socket receiving " << GetBinding() << ": " << zmq_strerror(zmq_errno());
       return false;
    } else {
-      //LOGF(WARNING, "timeout in zmq_pollin %s", GetBinding().c_str());
-      //LOGF(DEBUG, "Nothing on Zmq socket receive, sleeping for %d", timeout);
-
+      //timeout on socket.
    }
 
    return false;
@@ -186,8 +185,9 @@ bool Vampire::GetShot(std::string& wound,const int timeout) {
  * @return 
  *   If something was found
  */
-bool Vampire::GetStake(void*& stake,const int timeout) {
+bool Vampire::GetStake(void*& stake, const int timeout) {
    if (!mBody) {
+      LOG(WARNING) << "Socket uninitialized!";
       return false;
    }
    if (zsocket_poll(mBody, timeout)) {
@@ -218,7 +218,7 @@ bool Vampire::GetStake(void*& stake,const int timeout) {
  *   If something was found
  */
 bool Vampire::GetStakeNoWait(void*& stake) {
-   return GetStake(stake,0);
+   return GetStake(stake, 0);
 }
 
 /**
@@ -230,9 +230,9 @@ bool Vampire::GetStakeNoWait(void*& stake) {
  *   If something was found
  */
 bool Vampire::GetStakes(std::vector<std::pair<void*, unsigned int> >& stakes,
-       const int timeout) {
+        const int timeout) {
    if (!mBody) {
-      //std::cout << "not initialized" << std::endl;
+      LOG(WARNING) << "Socket uninitialized!";
       return false;
    }
    if (zsocket_poll(mBody, timeout)) {

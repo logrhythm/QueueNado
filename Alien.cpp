@@ -25,8 +25,8 @@ void Alien::PrepareToBeShot(const std::string& location) {
     zsocket_set_rcvhwm(mBody, 32 * 1024);
     int rc = zsocket_connect(mBody, location.c_str());
     if (rc == -1) {
-        LOGF(WARNING, "location: %s\n", location.c_str());
-        LOGF(WARNING, "connect socket rc == %d\n", rc);
+        LOG(WARNING) << "location: " << location;
+        LOG(WARNING) << "connect socket rc == " << rc;
         throw std::string("Failed to connect to socket");
     }
 
