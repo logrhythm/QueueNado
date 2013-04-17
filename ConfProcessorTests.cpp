@@ -747,7 +747,6 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.getDpiHalfSessions());
    EXPECT_TRUE(conf.EnableIPDefragmentation());
    EXPECT_TRUE(conf.EnableTCPReassembly());
-   EXPECT_TRUE(conf.SingleAppMultiThreadQosmos());
    EXPECT_FALSE(conf.SiemLogging());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * 5, conf.getQosmos64BytePool());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * 2.5, conf.getQosmos128BytePool());
@@ -789,7 +788,6 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ(30000, conf.GetDPIMsgSendQueueSize());
    EXPECT_EQ(1, conf.getStatsIntervalSeconds());
    EXPECT_TRUE(conf.getQosmosDebugModeEnabled());
-   EXPECT_FALSE(conf.SingleAppMultiThreadQosmos());
    EXPECT_TRUE(conf.SiemLogging());
    EXPECT_TRUE(conf.SiemDebugLogging());
    EXPECT_EQ(64, conf.getQosmos64BytePool());
