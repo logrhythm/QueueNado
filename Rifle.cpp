@@ -168,7 +168,7 @@ bool Rifle::Fire(const std::string& bullet,const int waitToFire) {
          return false;
       }
    } else {
-      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
+//      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
@@ -196,7 +196,7 @@ bool Rifle::FireZeroCopy( std::string* zero, const size_t size, void (*FreeFunct
          return false;
       }
    } else {
-      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
+//      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
@@ -229,7 +229,7 @@ bool Rifle::FireStake(const void* stake, const int waitToFire) {
          return false;
       }
    } else {
-      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
+//      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
@@ -268,7 +268,7 @@ bool Rifle::FireStakes(const std::vector<std::pair<void*, unsigned int> >
          return false;
       }
    } else {
-      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
+//      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
