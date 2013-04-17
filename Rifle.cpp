@@ -147,6 +147,7 @@ void Rifle::setIpcFilePermissions() {
 bool Rifle::Fire(const std::string& bullet,const int waitToFire) {
    //LOG(DEBUG) << "RifleFire";
    if (!mChamber) {
+      LOG(WARNING) << "Socket uninitialized!";
       return false;
    }
    if (bullet.empty()) {
@@ -167,11 +168,13 @@ bool Rifle::Fire(const std::string& bullet,const int waitToFire) {
          return false;
       }
    } else {
+      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
 bool Rifle::FireZeroCopy( std::string* zero, const size_t size, void (*FreeFunction)(void*,void*), const int waitToFire ){
    if (!mChamber) {
+      LOG(WARNING) << "Socket uninitialized!";
       return false;
    }
    if (size == 0) {
@@ -193,6 +196,7 @@ bool Rifle::FireZeroCopy( std::string* zero, const size_t size, void (*FreeFunct
          return false;
       }
    } else {
+      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
@@ -202,8 +206,8 @@ bool Rifle::FireZeroCopy( std::string* zero, const size_t size, void (*FreeFunct
  * @return 
  */
 bool Rifle::FireStake(const void* stake, const int waitToFire) {
-   //LOG(DEBUG) << "RifleFireStake";
    if (!mChamber) {
+      LOG(WARNING) << "Socket uninitialized!";
       return false;
    }
    if (stake == NULL) {
@@ -225,7 +229,7 @@ bool Rifle::FireStake(const void* stake, const int waitToFire) {
          return false;
       }
    } else {
-      //LOGF(WARNING, "timeout in zmq_pollout in %s", GetBinding().c_str());
+      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
@@ -242,6 +246,7 @@ bool Rifle::FireStakes(const std::vector<std::pair<void*, unsigned int> >
         & stakes, const int waitToFire) {
    //LOG(DEBUG) << "RifleFireStakes";
    if (!mChamber) {
+      LOG(WARNING) << "Socket uninitialized!";
       return false;
    }
    if (stakes.empty()) {
