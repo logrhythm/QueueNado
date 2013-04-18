@@ -10,6 +10,9 @@ public:
 
    virtual ~MockProcessManager() {
    }
+   
+   using ProcessManager::StartDaemon;
+   using ProcessManager::StopProcess;
 
    bool KillPid(pid_t pid) {
       if (mKillFails) {
