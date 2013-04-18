@@ -32,7 +32,8 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
     tDpiMessage.set_protoid(129);
     tDpiMessage.set_application_endq_proto_base("test");
     tDpiMessage.set_application_id_endq_proto_base(1234);
-    tDpiMessage.set_sessionlen(567);
+    tDpiMessage.set_sessionlenserver(567);
+    tDpiMessage.set_sessionlenclient(899);
     tDpiMessage.set_packetcount(88);
     tDpiMessage.set_loginq_proto_aim("aLogin");
     tDpiMessage.set_domainq_proto_smb("aDomain");
@@ -321,7 +322,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
         msg.set_protoid(12);
         msg.set_application_id_endq_proto_base(13);
         msg.set_application_endq_proto_base("wrong|dummy");
-        msg.set_sessionlen(12345);
+        msg.set_sessionlenserver(12345);
+        msg.set_sessionlenclient(6789);
         msg.set_packetcount(99);
         msg.set_loginq_proto_aim("aLogin");
         msg.set_domainq_proto_smb("aDomain");
@@ -451,7 +453,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         msg.set_protoid(12);
         msg.set_application_id_endq_proto_base(13);
         msg.set_application_endq_proto_base("wrong|dummy");
-        msg.set_sessionlen(12345);
+        msg.set_sessionlenserver(12345);
+        msg.set_sessionlenclient(67890);
         msg.set_packetcount(99);
         msg.set_loginq_proto_aim("aLogin");
         msg.set_domainq_proto_smb("aDomain");
@@ -720,7 +723,8 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
     tDpiMessage.set_protoid(129);
     tDpiMessage.set_application_endq_proto_base("test");
     tDpiMessage.set_application_id_endq_proto_base(1234);
-    tDpiMessage.set_sessionlen(567);
+    tDpiMessage.set_sessionlenserver(567);
+    tDpiMessage.set_sessionlenclient(89);
     tDpiMessage.set_packetcount(88);
     tDpiMessage.set_loginq_proto_aim("aLogin");
     tDpiMessage.set_domainq_proto_smb("aDomain");
@@ -929,7 +933,8 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
     tDpiMessage.set_protoid(129);
     tDpiMessage.set_application_endq_proto_base("test");
     tDpiMessage.set_application_id_endq_proto_base(1234);
-    tDpiMessage.set_sessionlen(567);
+    tDpiMessage.set_sessionlenserver(567);
+    tDpiMessage.set_sessionlenclient(89);
     tDpiMessage.set_packetcount(88);
     tDpiMessage.set_loginq_proto_0zz0("dontSeeMee");
     tDpiMessage.set_starttime(1234);
@@ -1386,7 +1391,8 @@ TEST_F(RuleEngineTest, GetSessionField) {
     ASSERT_EQ(0, results.size());
     results.clear();
     tDpiMessage.Clear();
-    tDpiMessage.set_sessionlen(1234);
+    tDpiMessage.set_sessionlenclient(1234);
+    tDpiMessage.set_sessionlenserver(5678);
     ASSERT_EQ(1, dm.GetSessionField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
