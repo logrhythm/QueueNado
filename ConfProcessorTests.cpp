@@ -962,16 +962,6 @@ TEST_F(ConfProcessorTests, teststatsQueue) {
    EXPECT_EQ("12347", conf.getSendStatsQueue());
 }
 
-TEST_F(ConfProcessorTests, testSingleAppMultiThreadQosmos) {
-   protoMsg::BaseConf msg;
-   msg.set_multithreadqosmos("true");
-   Conf conf(mTestConf);
-   conf.setPath(mWriteLocation);
-   EXPECT_FALSE(conf.SingleAppMultiThreadQosmos());
-   conf.updateFields(msg);
-   EXPECT_TRUE(conf.SingleAppMultiThreadQosmos());
-
-}
 
 TEST_F(ConfProcessorTests, testSiemLogging) {
    protoMsg::SyslogConf msg;
