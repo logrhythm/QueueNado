@@ -55,8 +55,8 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
     //   }
     ASSERT_EQ(1, messages.size());
     std::string expectedEvent = "EVT:001 550e8400-e29b-41d4-a716-446655440000:";
-    std::string expectedHeader = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,567,88,123,456";
-    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,,,123,456";
+    std::string expectedHeader = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,899,567,88,123,456";
+    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,,,,123,456";
     std::string expected;
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeader, 0);
     expected += ",login=aLogin,domain=aDomain,dname=thisname,url=this/url.htm,command=TEST|COMMAND|LONGLONGLONGLONG,sender=test1,recipient=test2,subject=test3,version=4.0";
@@ -67,7 +67,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
 
 
     messages.clear();
-    dm.SetMaxSize(108 + 8 + 36 + 4 - 5);
+    dm.SetMaxSize(108 + 8 + 36 + 4 + 1 - 5);
     messages = dm.GetSiemSyslogMessage(tDpiMessage);
     //   for (int i = 0; i < messages.size(); i++) {
     //      std::cout << messages[i] << std::endl;
@@ -357,7 +357,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
         ASSERT_EQ(1, sysLogOutput.size());
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,12345,99,123,456"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,456"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("login=aLogin"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("domain=aDomain"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("url=this/url.htm"));
@@ -493,7 +493,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         testUuidWithNumber += ":00";
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuidWithNumber));
-        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,12345,99,123,456"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,67890,12345,99,123,456"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("login=aLogin"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("domain=aDomain"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("url=this/url.htm"));
@@ -512,7 +512,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         testUuidWithNumber += ":01";
         EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:002 "));
         EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuidWithNumber));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,12345,99,123,456"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,67890,12345,99,123,456"));
         EXPECT_EQ(std::string::npos, sysLogOutput[1].find("EndTime=456"));
         EXPECT_NE(std::string::npos, sysLogOutput[1].find("applicationEnd=wrong|dummy"));
         EXPECT_NE(std::string::npos, sysLogOutput[1].find("applicationIdEnd=13"));
@@ -746,15 +746,15 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
     //   }
     ASSERT_EQ(1, messages.size());
     std::string expectedHeader = "EVT:001 550e8400-e29b-41d4-a716-446655440000:";
-    std::string expectedHeader2 = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,567,88,123,456";
-    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,,,123,456";
+    std::string expectedHeader2 = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,89,567,88,123,456";
+    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,,,,123,456";
     std::string expected;
 
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeader2, 0);
     expected += ",login=aLogin,domain=aDomain,dname=thisname,url=this/url.htm,command=TEST|COMMAND|LONGLONGLONGLONG,sender=test1,recipient=test2,subject=test3,version=4.0";
     EXPECT_EQ(expected, messages[0]);
     messages.clear();
-    dm.SetMaxSize(108 + 8 + 36 + 4 - 5);
+    dm.SetMaxSize(108 + 8 + 36 + 4 + 1 - 5);
     messages = dm.GetSiemSyslogMessage(tDpiMessage);
     //   for (int i = 0; i < messages.size(); i++) {
     //      std::cout << messages[i] << std::endl;
@@ -899,7 +899,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
             syslogFacility, syslogPriority, true, 0);
     IndexedFieldPairs results;
     dm.GetSiemRequiredFieldPairs(tDpiMessage, results);
-    ASSERT_EQ(13, results.size());
+    ASSERT_EQ(14, results.size());
     EXPECT_EQ("sip", results[2].first);
     EXPECT_EQ("dip", results[3].first);
     EXPECT_EQ("sport", results[4].first);
@@ -909,9 +909,10 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
     EXPECT_EQ("protnum", results[9].first);
     EXPECT_EQ("process", results[10].first);
     EXPECT_EQ("bytesin", results[11].first);
-    EXPECT_EQ("packetsin", results[12].first);
-    EXPECT_EQ("timestart", results[13].first);
-    EXPECT_EQ("timeend", results[14].first);
+    EXPECT_EQ("bytesout", results[12].first);
+    EXPECT_EQ("packetsin", results[13].first);
+    EXPECT_EQ("timestart", results[14].first);
+    EXPECT_EQ("timeend", results[15].first);
 
     EXPECT_EQ("0.0.0.0", results[2].second);
     EXPECT_EQ("0.0.0.0", results[3].second);
@@ -923,6 +924,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
     EXPECT_EQ("unknown", results[10].second);
     EXPECT_EQ("0", results[11].second);
     EXPECT_EQ("0", results[12].second);
+    EXPECT_EQ("0", results[13].second);
 
     tDpiMessage.set_ethdst(123);
     tDpiMessage.set_ethsrc(124);
@@ -940,7 +942,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
     tDpiMessage.set_starttime(1234);
     tDpiMessage.set_endtime(5678);
     dm.GetSiemRequiredFieldPairs(tDpiMessage, results);
-    ASSERT_EQ(13, results.size());
+    ASSERT_EQ(14, results.size());
     EXPECT_EQ("sip", results[2].first);
     EXPECT_EQ("dip", results[3].first);
     EXPECT_EQ("sport", results[4].first);
@@ -950,9 +952,10 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
     EXPECT_EQ("protnum", results[9].first);
     EXPECT_EQ("process", results[10].first);
     EXPECT_EQ("bytesin", results[11].first);
-    EXPECT_EQ("packetsin", results[12].first);
-    EXPECT_EQ("timestart", results[13].first);
-    EXPECT_EQ("timeend", results[14].first);
+    EXPECT_EQ("bytesout", results[12].first);
+    EXPECT_EQ("packetsin", results[13].first);
+    EXPECT_EQ("timestart", results[14].first);
+    EXPECT_EQ("timeend", results[15].first);
     EXPECT_EQ("126.0.0.0", results[2].second);
     EXPECT_EQ("125.0.0.0", results[3].second);
     EXPECT_EQ("127", results[4].second);
@@ -961,10 +964,11 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
     EXPECT_EQ("7b:00:00:00:00:00", results[8].second);
     EXPECT_EQ("129", results[9].second);
     EXPECT_EQ("test", results[10].second);
-    EXPECT_EQ("567", results[11].second);
-    EXPECT_EQ("88", results[12].second);
-    EXPECT_EQ("1234", results[13].second);
-    EXPECT_EQ("5678", results[14].second);
+    EXPECT_EQ("89", results[11].second);
+    EXPECT_EQ("567", results[12].second);
+    EXPECT_EQ("88", results[13].second);
+    EXPECT_EQ("1234", results[14].second);
+    EXPECT_EQ("5678", results[15].second);
 
 #endif
 }
