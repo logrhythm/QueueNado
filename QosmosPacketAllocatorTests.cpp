@@ -89,7 +89,7 @@ TEST_F(QsomosPacketAllocatorTests, TwoPacketConversions) {
    struct pcap_file_header* fileHeader = reinterpret_cast<struct pcap_file_header*>(buffer);
    outputFile.open("resources/1000packets.tcpdump.copy",fstream::out | fstream::binary | fstream::trunc);
    struct pcap_file_header* ourFileHeader = t_allocator.GetPcapHdr();
-   outputFile.write(ourFileHeader,sizeof(struct pcap_file_header));
+   outputFile.write(reinterpret_cast<char*>(ourFileHeader),sizeof(struct pcap_file_header));
    free(ourFileHeader);
    ctb_ppacket dataPointer(NULL);
    char* zeros = new char[64];
