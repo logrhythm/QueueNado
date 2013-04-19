@@ -432,6 +432,7 @@ TEST_F(QosmosDpiTest, ProcessPacket) {
       std::string data("abc12345678787777777777777777777777777777777777777777777777777770000000000000000000000000000000000000000000");
       struct pcap_pkthdr hdr;
       hdr.len = data.size();
+      hdr.caplen = data.size();
       ctb_ppacket packet = NULL;
       //std::cout << "getting packet " << std::endl;
       unsigned int hash = mPacketAllocator.PopulatePacketData(reinterpret_cast<const uint8_t*> (&data[0]), &hdr, packet);
@@ -504,6 +505,7 @@ TEST_F(QosmosDpiTest, FreeAndSendCalls) {
    std::string data("abc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
    struct pcap_pkthdr hdr;
    hdr.len = data.size();
+   hdr.caplen = data.size();
    ctb_ppacket packet = NULL;
    unsigned int hash = mPacketAllocator.PopulatePacketData(
            reinterpret_cast<const uint8_t*> (&data[0]), &hdr, packet);
