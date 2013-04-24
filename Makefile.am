@@ -69,14 +69,14 @@ ShotgunAlienTests_LDADD=-lnm -lZMQ -lczmq -llrdpi -lpthread -ldl -lstdc++ -lgtes
               -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log 
 ShotgunAlienTests_LDFLAGS=${BASE_LIBS}
 ShotgunAlienTests_SOURCES=main.cpp ShotgunAlienTests.cpp
-ShotgunAlienTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+ShotgunAlienTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 RifleVampireTests_LDADD=-lnm -lZMQ -lczmq -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
               -lzmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata \
               -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log
 RifleVampireTests_LDFLAGS=${BASE_LIBS}
 RifleVampireTests_SOURCES=main.cpp RifleVampireTests.cpp
-RifleVampireTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+RifleVampireTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
 QosmosCodeGeneratorTest_LDADD=-lpthread -ldl -lstdc++ -lgtest -lz -lboost_regex\
@@ -113,7 +113,7 @@ ConfProcessorTests_LDFLAGS=${BASE_LIBS}
 ConfProcessorTests_SOURCES=main.cpp \
         ConfProcessorTests.cpp \
 	QosmosConfTest.cpp
-ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 CommandProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lprotobuf -lstats -lconf -llrdpi -lprocess -llib_g2log -lcommand -lboost_system
 CommandProcessorTests_LDFLAGS=${BASE_LIBS}
@@ -122,13 +122,13 @@ CommandProcessorTests_SOURCES=main.cpp \
         CommandFactoryTests.cpp \
         UpgradeCommandTest.h  \
 	MockProcessManagerCommand.h
-CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\" ${INCLUDES}
+CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\" ${INCLUDES}
 
 SysLoggerTest_LDADD=-lnm -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata \
 	            -lqmsecurity -lZMQ -lstats -lyaml-cpp -lboost_thread -lboost_system -llrdpi -llib_g2log
 SysLoggerTest_LDFLAGS=${BASE_LIBS}
 SysLoggerTest_SOURCES=main.cpp SysLoggerTest.cpp
-SysLoggerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+SysLoggerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
 RuleEngineTest_LDADD=-lnm -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lconf \
@@ -136,7 +136,7 @@ RuleEngineTest_LDADD=-lnm -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqm
                     -lprotobuf -lyaml-cpp -llib_g2log
 RuleEngineTest_LDFLAGS=${BASE_LIBS}
 RuleEngineTest_SOURCES=main.cpp RuleEngineTest.cpp
-RuleEngineTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+RuleEngineTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
 StatsAccumulatorTest_LDADD=-lnm -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lconf \
@@ -144,37 +144,37 @@ StatsAccumulatorTest_LDADD=-lnm -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengin
                     -lprotobuf -lyaml-cpp -llib_g2log
 StatsAccumulatorTest_LDFLAGS=${BASE_LIBS}
 StatsAccumulatorTest_SOURCES=main.cpp StatsAccumulatorTest.cpp
-StatsAccumulatorTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+StatsAccumulatorTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
 SendStatsTest_LDADD=-lnm -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf -lyaml-cpp -llib_g2log
 SendStatsTest_LDFLAGS=${BASE_LIBS}
 SendStatsTest_SOURCES=main.cpp SendStatsTest.cpp
-SendStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+SendStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
 ProcStatsTest_LDADD=-lnm -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf -lyaml-cpp -llib_g2log
 ProcStatsTest_LDFLAGS=${BASE_LIBS}
 ProcStatsTest_SOURCES=main.cpp ProcStatsTest.cpp
-ProcStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+ProcStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 ProcessManagerTest_LDADD=-lnm -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lboost_system -lprotobuf -llib_g2log -lzmq -lczmq -lprocess
 ProcessManagerTest_LDFLAGS=${BASE_LIBS}
 ProcessManagerTest_SOURCES=main.cpp ProcessManagerTest.cpp
-ProcessManagerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+ProcessManagerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
 DpiMsgLRTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log 
 DpiMsgLRTest_LDFLAGS=${BASE_LIBS}
 DpiMsgLRTest_SOURCES=main.cpp DpiMsgLRTest.cpp
-DpiMsgLRTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+DpiMsgLRTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
 TestTCPIPDirectionlessHash_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf -lstats -lyaml-cpp -lconf -llrdpi -llib_g2log -lcapture
 TestTCPIPDirectionlessHash_LDFLAGS=${BASE_LIBS}
 TestTCPIPDirectionlessHash_SOURCES=main.cpp \
         TestTCPIPDirectionlessHash.cpp
-TestTCPIPDirectionlessHash_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+TestTCPIPDirectionlessHash_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
 nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
@@ -182,7 +182,7 @@ nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtes
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log  
 
 nmTest_LDFLAGS=${BASE_LIBS}
-nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@NETWORK_FORENSIC_SENSOR_VERSION@\"
+nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
 nmTest_SOURCES=main.cpp \
