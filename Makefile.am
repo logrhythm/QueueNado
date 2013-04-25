@@ -16,6 +16,7 @@ SendStatsTest \
 ShotgunAlienTests \
 RifleVampireTests \
 TestTCPIPDirectionlessHash \
+LuaExecuterTest \
 ProcStatsTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
@@ -176,6 +177,14 @@ TestTCPIPDirectionlessHash_SOURCES=main.cpp \
         TestTCPIPDirectionlessHash.cpp
 TestTCPIPDirectionlessHash_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
+LuaExecuterTest_LDADD=-lstdc++ -lgtest \
+-lboost_thread -lboost_system -lprotobuf -lstats \
+-llib_g2log -lluajit-5.1
+LuaExecuterTest_LDFLAGS=${BASE_LIBS}
+LuaExecuterTest_SOURCES=main.cpp \
+        LuaExecuterTest.cpp
+LuaExecuterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  \
+-DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
