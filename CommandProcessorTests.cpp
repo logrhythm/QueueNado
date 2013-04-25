@@ -1,6 +1,7 @@
 #include "CommandProcessorTests.h"
 #include "Conf.h"
 #include "UpgradeCommandTest.h"
+#include "NetworkConfigCommandTest.h"
 #include "MockConf.h"
 #include "Headcrab.h"
 #include "Crowbar.h"
@@ -119,7 +120,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
    ASSERT_FALSE(exception);
 }
 
-TEST_F(CommandProcessorTests, DynaicUpgradeCommandExecSuccess) {
+TEST_F(CommandProcessorTests, DynamicUpgradeCommandExecSuccess) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
@@ -508,3 +509,56 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailSuccessRestart) {
    }
    ASSERT_TRUE(exception);
 }
+
+//Network Config commands
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandInit) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply reply = ncct.Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_TRUE(reply.success());
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+}
+
+TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   cmd.set_stringargone("filename");
+   NetworkConfigCommandTest* ncct = new NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply reply = ncct->Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_TRUE(reply.success());
+   } catch (...) {
+      exception = true;
+   }
+   delete ncct;
+   ASSERT_FALSE(exception);
+}
+
