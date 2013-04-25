@@ -5,6 +5,7 @@
  * Created on September 28, 2012, 3:53 PM
  */
 
+#include "ConfInterface.h"
 #include "ConfProcessorTests.h"
 #include "ConfMaster.h"
 #include "ConfSlave.h"
@@ -22,8 +23,33 @@
 #include "g2logworker.hpp"
 #include "g2log.hpp"
 #include "QosmosProtocolCapture.h"
+#include <stdio.h>
 using namespace std;
 using namespace networkMonitor;
+
+TEST_F(ConfProcessorTests, ConfInterfaceInitialize) {
+   ConfInterface conf;
+   ASSERT_EQ("conf/nm.yaml.Interface", conf.GetPath());
+}
+
+TEST_F(ConfProcessorTests, ConfInterfaceInitializeWithPath) {
+   ConfInterface conf("/tmp/path");
+   ASSERT_EQ("/tmp/path", conf.GetPath());
+}
+
+TEST_F(ConfProcessorTests, ConfInterfaceInitializeTestSerialize) {
+   ConfInterface conf(mTestInterfaceConf);
+   EXPECT_EQ("resources/test.yaml.Interface", conf.GetPath());
+   EXPECT_EQ("eth0", conf.GetInterface());
+   EXPECT_EQ(1, conf.GetMethod());
+   EXPECT_EQ("127.0.0.1", conf.GetIpAddress());
+   EXPECT_EQ("255.255.255.0", conf.GetNetMask());
+   EXPECT_EQ("127.0.0.2", conf.GetGateway());
+   EXPECT_EQ("127.1.1.1, 127.3.3.3", conf.GetDnsServers());
+   EXPECT_EQ("blah.domain.net, blah2.domain.net", conf.GetSearchDomains());
+   EXPECT_EQ("Management Interface", conf.GetName());
+}
+
 TEST_F(ConfProcessorTests, ReadPerformanceBenchmark_BASE) {
    ConfMaster& master = ConfMaster::Instance();
    master.Start();
