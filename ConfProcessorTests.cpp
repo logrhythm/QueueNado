@@ -102,12 +102,12 @@ TEST_F(ConfProcessorTests, TestProcessBaseConfigRequest) {
    serializedConf = master.SerializeCachedConfig(configTypeMessage);
    EXPECT_TRUE(serializedConf.empty());
 
-   baseConf.set_multithreadqosmos("true");
+   baseConf.set_qosmostcpreassemblyenabled("true");
    EXPECT_TRUE(master.ProcessBaseConfigRequest(conf, baseConf.SerializeAsString()));
    serializedConf = master.SerializeCachedConfig(configTypeMessage);
    EXPECT_FALSE(serializedConf.empty());
    EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
-   EXPECT_EQ("true", baseConf.multithreadqosmos());
+   EXPECT_EQ("true", baseConf.qosmostcpreassemblyenabled());
 
    unlink(master.mConfLocation.c_str());
 #endif
@@ -207,15 +207,15 @@ TEST_F(ConfProcessorTests, TestUpdateBaseCachedMessages) {
    serializedConf = master.SerializeCachedConfig(configTypeMessage);
    EXPECT_FALSE(serializedConf.empty());
    EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
-   EXPECT_EQ("false", baseConf.multithreadqosmos());
+   EXPECT_EQ("false", baseConf.qosmostcpreassemblyenabled());
 
-   baseConf.set_multithreadqosmos("true");
+   baseConf.set_qosmostcpreassemblyenabled("true");
    conf.updateFields(baseConf);
    master.UpdateCachedMessages(conf);
    serializedConf = master.SerializeCachedConfig(configTypeMessage);
    EXPECT_FALSE(serializedConf.empty());
    EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
-   EXPECT_EQ("true", baseConf.multithreadqosmos());
+   EXPECT_EQ("true", baseConf.qosmostcpreassemblyenabled());
 #endif
 }
 
@@ -538,7 +538,7 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
-   baseConfig.set_multithreadqosmos("false");
+   baseConfig.set_qosmostcpreassemblyenabled("false");
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(conf.EnableIPDefragmentation());
