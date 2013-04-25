@@ -39,6 +39,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libcapture/ \
           -L${abs_top_srcdir}/source/libcommand/ \
           -L${abs_top_srcdir}/source/libprocess/ \
+          -L${abs_top_srcdir}/source/liblua/ \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
@@ -52,6 +53,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libcapture \
          -I${abs_top_srcdir}/source/libcommand \
          -I${abs_top_srcdir}/source/libprocess \
+         -I${abs_top_srcdir}/source/liblua \
          -I/usr/local/probe/include
 
 ZMQTest_LDADD=-lnm -lZMQ -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
