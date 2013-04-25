@@ -31,7 +31,6 @@ TEST_F(ConfProcessorTests, ConfInterfaceInitialize) {
    ConfInterface conf;
    ASSERT_EQ("conf/nm.yaml.Interface", conf.GetPath());
    EXPECT_EQ(0, conf.GetMethod()); //default 
-   EXPECT_FALSE(conf.GetInterface().empty()); // validate that we actually read the config 
 }
 
 TEST_F(ConfProcessorTests, ConfInterfaceInitializeWithPath) {
