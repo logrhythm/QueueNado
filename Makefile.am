@@ -178,8 +178,8 @@ TestTCPIPDirectionlessHash_SOURCES=main.cpp \
 TestTCPIPDirectionlessHash_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 LuaExecuterTest_LDADD=-lstdc++ -lgtest \
--lboost_thread -lboost_system -lprotobuf -lstats \
--llib_g2log -lluajit-5.1
+-lboost_thread -lboost_system -lprotobuf \
+-llib_g2log -lluajit-5.1 -llua
 LuaExecuterTest_LDFLAGS=${BASE_LIBS}
 LuaExecuterTest_SOURCES=main.cpp \
         LuaExecuterTest.cpp
