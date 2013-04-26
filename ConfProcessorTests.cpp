@@ -546,41 +546,33 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
 
-   ASSERT_TRUE(conf.EnableIPDefragmentation());
+
    ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
-   ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(conf.EnableIPDefragmentation());
    ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
-   ASSERT_TRUE(conf.EnableIPDefragmentation());
+
 
    shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(conf.EnableIPDefragmentation());
    ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
-   ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
    baseConfig.set_multithreadqosmos("false");
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(conf.EnableIPDefragmentation());
    ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
-   ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
    baseConfig.set_qosmosipdefragmentationenabled("false");
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(conf.EnableIPDefragmentation());
    ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots, conf));
-   ASSERT_FALSE(conf.EnableIPDefragmentation());
 }
 
 TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
@@ -638,41 +630,33 @@ TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
 
-   ASSERT_FALSE(conf.SiemLogging());
    ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots, conf));
-   ASSERT_FALSE(conf.SiemLogging());
 
    shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(conf.SiemLogging());
+
    ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots, conf));
-   ASSERT_FALSE(conf.SiemLogging());
 
    shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(conf.SiemLogging());
+
    ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots, conf));
-   ASSERT_FALSE(conf.SiemLogging());
 
    shots.clear();
    baseConfig.set_siemlogging("true");
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(conf.SiemLogging());
    ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage, shots, conf));
-   ASSERT_TRUE(conf.SiemLogging());
 
    shots.clear();
    baseConfig.set_siemlogging("false");
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(conf.SiemLogging());
    ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage, shots, conf));
-   ASSERT_FALSE(conf.SiemLogging());
 }
 
 TEST_F(ConfProcessorTests, ProcessRestartMsg) {
