@@ -204,7 +204,7 @@ TEST_F(LuaExecuterTest, RegisterPacketRule) {
     executer.RegisterFunction("CFunction1", LuaTestPacketFunction);
 
     networkMonitor::DpiMsgLR dpiMsg;
-    ctb_ppacket packet = reinterpret_cast<ctb_ppacket> (malloc(sizeof (struct ctb_pkt)));
+    struct upacket* packet = reinterpret_cast<struct upacket*> (malloc(sizeof (struct upacket)));
     packet->len = 0;
     EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET,&dpiMsg,packet));
     EXPECT_EQ("TEST", dpiMsg.uuid());
