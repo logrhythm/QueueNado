@@ -111,14 +111,17 @@ SyslogConfigTest_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqm
 SyslogConfigTest_LDFLAGS=${BASE_LIBS}
 SyslogConfigTest_SOURCES=main.cpp SyslogConfigTest.cpp
 
-ConfProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf -lstats -lyaml-cpp -lconf -llrdpi -llib_g2log
+ConfProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols \
+ -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf \
+ -lstats -lyaml-cpp -lconf -llrdpi -llib_g2log
 ConfProcessorTests_LDFLAGS=${BASE_LIBS}
 ConfProcessorTests_SOURCES=main.cpp \
         ConfProcessorTests.cpp \
 	QosmosConfTest.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
-CommandProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lprotobuf -lstats -lconf -llrdpi -lprocess -llib_g2log -lcommand -lboost_system
+CommandProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lprotobuf -lstats \
+ -lconf -llrdpi -lprocess -llib_g2log -lcommand -lboost_system
 CommandProcessorTests_LDFLAGS=${BASE_LIBS}
 CommandProcessorTests_SOURCES=main.cpp \
         CommandProcessorTests.cpp \
@@ -194,32 +197,31 @@ nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtes
 
 nmTest_LDFLAGS=${BASE_LIBS}
 nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
-
-
 nmTest_SOURCES=main.cpp \
-        CommandFactoryTests.cpp \
-        CommandProcessorTests.cpp \
-	DpiMsgLRTest.cpp \
-	CrowbarHeadcrabTests.cpp \
-	CZMQToolkitTests.cpp \
-        MsgUuidTest.cpp \
-	PacketCaptureTest.cpp \
-        ProcessManagerTest.cpp \
-        ProcStatsTest.cpp \
-	QosmosDpiTest.cpp \
-	QosmosCodeGeneratorTests.cpp \
-	QosmosPacketAllocatorTests.cpp \
-	QosmosProtocolCaptureTest.cpp \
-	QosmosConfTest.cpp \
-        RifleVampireTests.cpp \
-        RuleEngineTest.cpp \
-	SendStatsTest.cpp \
-        ShotgunAlienTests.cpp \
-        StatsAccumulatorTest.cpp \
-	SyslogConfigTest.cpp \
-        TestTCPIPDirectionlessHash.cpp \
-	TestSendReceiveDpiMsgLRZMQ.cpp \
-	TestSendReceivePacketZMQ.cpp \
-        ZeroMQTests.cpp
+ CommandFactoryTests.cpp \
+ CommandProcessorTests.cpp \
+ DpiMsgLRTest.cpp \
+ CrowbarHeadcrabTests.cpp \
+ CZMQToolkitTests.cpp \
+ MsgUuidTest.cpp \
+ PacketCaptureTest.cpp \
+ ProcessManagerTest.cpp \
+ ProcStatsTest.cpp \
+ QosmosDpiTest.cpp \
+ QosmosCodeGeneratorTests.cpp \
+ QosmosPacketAllocatorTests.cpp \
+ QosmosProtocolCaptureTest.cpp \
+ QosmosConfTest.cpp \
+ RifleVampireTests.cpp \
+ RuleEngineTest.cpp \
+ SendStatsTest.cpp \
+ ShotgunAlienTests.cpp \
+ StatsAccumulatorTest.cpp \
+ SyslogConfigTest.cpp \
+ TestTCPIPDirectionlessHash.cpp \
+ TestSendReceiveDpiMsgLRZMQ.cpp \
+ TestSendReceivePacketZMQ.cpp \
+ LuaExecuterTest.cpp \
+ ZeroMQTests.cpp
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine
