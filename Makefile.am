@@ -183,8 +183,9 @@ TestTCPIPDirectionlessHash_SOURCES=main.cpp \
 TestTCPIPDirectionlessHash_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 LuaExecuterTest_LDADD=-lstdc++ -lgtest \
--lboost_thread -lboost_system -lprotobuf \
--llib_g2log -lluajit-5.1 -llua
+ -lboost_thread -lboost_system -lprotobuf \
+ -llib_g2log -lluajit-5.1 -llua -lnm -lZMQ -llrdpi -lstats \
+ -lzmq -lczmq  
 LuaExecuterTest_LDFLAGS=${BASE_LIBS}
 LuaExecuterTest_SOURCES=main.cpp \
         LuaExecuterTest.cpp
@@ -193,7 +194,7 @@ LuaExecuterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  \
 
 nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
-             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log  
+             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log  -lluajit-5.1 -llua
 
 nmTest_LDFLAGS=${BASE_LIBS}
 nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
