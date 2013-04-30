@@ -20,6 +20,7 @@
 #include "g2logworker.hpp"
 #include "g2log.hpp"
 #include "RestartSyslogCommandTest.h"
+#include "InterfaceMsg.pb.h"
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
@@ -528,6 +529,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::DHCP);
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
    bool exception = false;
    try {
@@ -548,7 +552,9 @@ TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   cmd.set_stringargone("filename");
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::DHCP);
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest* ncct = new NetworkConfigCommandTest(cmd, processManager);
    bool exception = false;
    try {
@@ -560,5 +566,550 @@ TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
    }
    delete ncct;
    ASSERT_FALSE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandBadInterfaceMsg) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   cmd.set_stringargone("BadInterfaceMsg");
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply reply = ncct.Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_FALSE(reply.success());
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->setInit(false);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::DHCP);
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply reply = ncct.Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_FALSE(reply.success());     
+   } catch (...) {
+      exception = true;
+   }
+
+   ASSERT_FALSE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailInterfaceMethodNotSet) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply reply = ncct.Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_FALSE(reply.success());
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply reply = ncct.Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_TRUE(reply.success());
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeIfcfgFileExists) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("NoIface");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.IfcfgFileExists();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessIfcfgFileExists) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("NoIface");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.IfcfgFileExists();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("NoIface");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.ResetIfcfgFile();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("NoIface");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.ResetIfcfgFile();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::DHCP);
+   interfaceConfig.set_interface("ethx");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddBootProto("dhcp");
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddBootProto("none");
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_ipaddress("192.168.1.1");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddIpAddr();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_ipaddress("192.168.1.1");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddIpAddr();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetMask) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_netmask("255.255.255.0");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddNetMask();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetMask) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_netmask("255.255.255.0");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddNetMask();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_gateway("192.168.1.100");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddGateway();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_gateway("192.168.1.100");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddGateway();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_dnsservers("192.168.1.10");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddDnsServers();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddDnsServers();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddDns1();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_dnsservers("192.168.1.10");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddDns1();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddDns2();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddDns2();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDomain) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_searchdomains("schq.secious.com");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddDomain();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::Interface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATIC);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_searchdomains("schq.secious.com");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddDomain();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
 }
 
