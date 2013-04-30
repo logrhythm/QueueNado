@@ -17,7 +17,7 @@ static int LuaTestDpiMsgFunction(lua_State *L) {
 
 static int LuaTestPacketFunction(lua_State *L) {
    networkMonitor::DpiMsgLR* dpiMsg = static_cast<networkMonitor::DpiMsgLR*> (lua_touserdata(L, 1));
-   ctb_ppacket packet = static_cast<ctb_ppacket> (lua_touserdata(L, 2));
+   struct upacket* packet = static_cast<struct upacket*> (lua_touserdata(L, 2));
    dpiMsg->set_uuid("TEST");
    packet->len = 999;
    return 0;
@@ -196,12 +196,10 @@ TEST_F(LuaExecuterTest, RegisterPacketRule) {
    rule.set_runforever(false);
    rule.set_ruletext("function test4 (x,y) return CFunction1(x,y) end");
    rule.set_numberofreturnvals(0);
-
-   EXPECT_EQ(0, executer.SizeOfRuleset(protoMsg::RuleConf_Type_PACKET));
-   executer.RegisterRule(rule);
-   EXPECT_EQ(1, executer.SizeOfRuleset(protoMsg::RuleConf_Type_PACKET));
-
    executer.RegisterFunction("CFunction1", LuaTestPacketFunction);
+   EXPECT_EQ(0, executer.SizeOfRuleset(protoMsg::RuleConf_Type_PACKET));
+   EXPECT_TRUE(executer.RegisterRule(rule));
+   EXPECT_EQ(1, executer.SizeOfRuleset(protoMsg::RuleConf_Type_PACKET));
 
    networkMonitor::DpiMsgLR dpiMsg;
    struct upacket* packet = reinterpret_cast<struct upacket*> (malloc(sizeof (struct upacket)));
