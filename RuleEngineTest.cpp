@@ -1,8 +1,7 @@
 /* 
- * File:   DpiSyslogTest.cpp
- * Author: John Gress
+ * File:   RuleEngineTest.cpp
+ * Author: Robert Weber
  * 
- * Created on October 19, 2012
  */
 #include <iostream>
 #include "SendDpiMsgLRZMQ.h"

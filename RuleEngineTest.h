@@ -1,8 +1,7 @@
 /* 
- * File:   DpiSyslogTest.h
- * Author: John Gress
+ * File:   RuleEngineTest.h
+ * Author: Robert Weber
  *
- * Created on October 19, 2012
  */
 
 #pragma once

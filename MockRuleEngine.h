@@ -1,6 +1,6 @@
 /* 
  * File:   MockRuleEngine.h
- * Author: root
+ * Author: Robert Weber
  *
  * Created on February 7, 2013, 8:23 AM
  */
