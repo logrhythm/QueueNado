@@ -208,12 +208,12 @@ TEST_F(LuaExecuterTest, RegisterPacketRule) {
    EXPECT_EQ("TEST", dpiMsg.uuid());
    EXPECT_EQ(999, packet->len);
    free(packet);
-} 
+}
 
 TEST_F(LuaExecuterTest, GetLuaStateOnlyCompilesOnce) {
 #ifdef LR_DEBUG
    MockLuaExecuter executer;
-   
+
    protoMsg::RuleConf rule;
    rule.set_name("test4");
    rule.set_repetitions(1);
@@ -222,10 +222,79 @@ TEST_F(LuaExecuterTest, GetLuaStateOnlyCompilesOnce) {
    rule.set_ruletext("function test4 (x,y) return CFunction1(x,y) end");
    rule.set_numberofreturnvals(0);
    executer.RegisterFunction("CFunction1", LuaTestPacketFunction);
-   
+
    lua_State* luaState = executer.GetLuaState(rule);
    lua_State* luaState2 = executer.GetLuaState(rule);
-   
-   EXPECT_EQ(luaState,luaState2);
+
+   EXPECT_EQ(luaState, luaState2);
 #endif
+}
+
+TEST_F(LuaExecuterTest, LoadStaticFunctionsOnlyLoadsOncePerRule) {
+#ifdef LR_DEBUG
+   MockLuaExecuter executer;
+
+   protoMsg::RuleConf rule;
+   rule.set_name("test4");
+   rule.set_repetitions(1);
+   rule.set_ruletype(::protoMsg::RuleConf_Type_PACKET);
+   rule.set_runforever(false);
+   rule.set_ruletext("function test4 (x,y) return CFunction1(x,y) end");
+   rule.set_numberofreturnvals(0);
+   executer.RegisterFunction("CFunction1", LuaTestPacketFunction);
+
+   lua_State* luaState = executer.GetLuaState(rule);
+   EXPECT_EQ(1, executer.GetRegisteredFunctions(luaState).size());
+   executer.LoadStaticCFunctions(luaState);
+   EXPECT_EQ(1, executer.GetRegisteredFunctions(luaState).size());
+#endif
+}
+
+TEST_F(LuaExecuterTest, NoStaticFunctions ){
+#ifdef LR_DEBUG
+   MockLuaExecuter executer;
+
+   protoMsg::RuleConf rule;
+   rule.set_name("test4");
+   rule.set_repetitions(1);
+   rule.set_ruletype(::protoMsg::RuleConf_Type_PACKET);
+   rule.set_runforever(false);
+   rule.set_ruletext("function test4 (x,y) return true end");
+   rule.set_numberofreturnvals(0);
+
+   lua_State* luaState = executer.GetLuaState(rule);
+   EXPECT_EQ(0, executer.GetRegisteredFunctions(luaState).size());
+   executer.RegisterFunction("CFunction1", LuaTestPacketFunction);
+   EXPECT_EQ(1, executer.GetRegisteredFunctions(luaState).size());
+#endif
+}
+
+TEST_F(LuaExecuterTest, ChangeInputVariables) {
+   LuaExecuter executer;
+   protoMsg::RuleConf rule;
+   rule.set_name("test1");
+   rule.set_repetitions(1);
+   rule.set_ruletype(::protoMsg::RuleConf_Type_GENERIC);
+   rule.set_runforever(false);
+   rule.set_ruletext("function test1 (x,y) return x/y end");
+   rule.set_numberofreturnvals(1);
+   rule.add_inputintegers(8);
+   rule.add_inputintegers(4);
+
+   std::vector<int> returnInts;
+   std::vector<bool> returnBools;
+   std::vector<std::string> returnStrings;
+   EXPECT_TRUE(executer.RunRule(rule, returnInts, returnBools, returnStrings));
+   ASSERT_EQ(1, returnInts.size());
+   EXPECT_EQ(0, returnBools.size());
+   EXPECT_EQ(0, returnStrings.size());
+   EXPECT_EQ(2, returnInts[0]);
+   
+   rule.set_inputintegers(0,9);
+   rule.set_inputintegers(1,3);
+   EXPECT_TRUE(executer.RunRule(rule, returnInts, returnBools, returnStrings));
+   ASSERT_EQ(1, returnInts.size());
+   EXPECT_EQ(0, returnBools.size());
+   EXPECT_EQ(0, returnStrings.size());
+   EXPECT_EQ(3, returnInts[0]);
 }
