@@ -1,5 +1,5 @@
 #include "LuaExecuterTest.h"
-#include "LuaExecuter.h"
+#include "MockLuaExecuter.h"
 #include "luajit-2.0/lua.hpp"
 
 static int LuaTestStringFunction(lua_State *L) {
@@ -209,3 +209,23 @@ TEST_F(LuaExecuterTest, RegisterPacketRule) {
    EXPECT_EQ(999, packet->len);
    free(packet);
 } 
+
+TEST_F(LuaExecuterTest, GetLuaStateOnlyCompilesOnce) {
+#ifdef LR_DEBUG
+   MockLuaExecuter executer;
+   
+   protoMsg::RuleConf rule;
+   rule.set_name("test4");
+   rule.set_repetitions(1);
+   rule.set_ruletype(::protoMsg::RuleConf_Type_PACKET);
+   rule.set_runforever(false);
+   rule.set_ruletext("function test4 (x,y) return CFunction1(x,y) end");
+   rule.set_numberofreturnvals(0);
+   executer.RegisterFunction("CFunction1", LuaTestPacketFunction);
+   
+   lua_state* luaState = executer.GetLuaState(rule);
+   lua_state* luaState2 = executer.GetLuaState(rule);
+   
+   EXPECT_EQ(luaState,luaState2);
+#endif
+}
