@@ -223,8 +223,8 @@ TEST_F(LuaExecuterTest, GetLuaStateOnlyCompilesOnce) {
    rule.set_numberofreturnvals(0);
    executer.RegisterFunction("CFunction1", LuaTestPacketFunction);
    
-   lua_state* luaState = executer.GetLuaState(rule);
-   lua_state* luaState2 = executer.GetLuaState(rule);
+   lua_State* luaState = executer.GetLuaState(rule);
+   lua_State* luaState2 = executer.GetLuaState(rule);
    
    EXPECT_EQ(luaState,luaState2);
 #endif
