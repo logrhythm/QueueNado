@@ -204,7 +204,10 @@ TEST_F(LuaExecuterTest, RegisterPacketRule) {
    networkMonitor::DpiMsgLR dpiMsg;
    struct upacket* packet = reinterpret_cast<struct upacket*> (malloc(sizeof (struct upacket)));
    packet->len = 0;
-   EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, &dpiMsg, packet));
+   std::vector<void*> args;
+   args.push_back(&dpiMsg);
+   args.push_back(packet);
+   EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
    EXPECT_EQ("TEST", dpiMsg.uuid());
    EXPECT_EQ(999, packet->len);
    free(packet);
