@@ -11,7 +11,6 @@
 #include "ConfProcessor.h"
 #include "boost/lexical_cast.hpp"
 #include <csignal>
-
 class ConfProcessorTests : public ::testing::Test {
 public:
 
@@ -19,15 +18,19 @@ public:
     };
 protected:
     std::string mWriteLocation;
+    std::string mWriteInterfaceLocation;
     std::string mTestConf;
+    std::string mTestInterfaceConf;
 
     virtual void SetUp() {
         int pid = getpid();
-        mWriteLocation = "/tmp/test.yaml.";
-        mWriteLocation += boost::lexical_cast<std::string > (pid);
+        std::string pidString = boost::lexical_cast<std::string > (pid);
+        mWriteLocation = "/tmp/test.yaml." + pidString;
+        mWriteInterfaceLocation = "/tmp/test.yaml.Interface." + pidString;
         remove(mWriteLocation.c_str());
+        remove(mWriteInterfaceLocation.c_str());
         mTestConf = "resources/test.yaml";
-
+        mTestInterfaceConf = "resources/test.yaml.Interface";
     };
 
     virtual void TearDown() {

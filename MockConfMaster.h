@@ -36,6 +36,10 @@ namespace networkMonitor {
       bool ProcessSyslogConfigRequest(Conf& conf, const std::string& msg) {
          return ConfMaster::ProcessSyslogConfigRequest(conf, msg);
       }
+      
+      bool ProcessInterfaceConfigRequest(AbstractConf& conf, const std::string& msg ) {
+         return ConfMaster::ProcessInterfaceConfigRequest(conf, msg);
+      }
 
       bool IsRestartRequest(const protoMsg::ConfType& configTypeMessage) {
          return ConfMaster::IsRestartRequest(configTypeMessage);
@@ -43,6 +47,10 @@ namespace networkMonitor {
 
       void UpdateCachedMessages(Conf& conf) {
          return ConfMaster::UpdateCachedMessages(conf);
+      }
+      
+      void UpdateCachedMessage(AbstractConf& conf) {
+         return ConfMaster::UpdateCachedMessage(conf);
       }
 
       std::string SerializeCachedConfig(const protoMsg::ConfType& configTypeMessage) {
@@ -53,6 +61,11 @@ namespace networkMonitor {
               const std::string& message) {
          return ConfMaster::ReconcileNewConf(configTypeMessage, conf, message);
       }
+      
+      bool ReconcileNewConf(const protoMsg::ConfType& configTypeMessage, AbstractConf& conf,
+              const std::string& message) {
+         return ConfMaster::ReconcileNewConf(configTypeMessage, conf, message);
+      } 
 
       void SetConfLocation(const std::string& path) {
          mConfLocation = path;
