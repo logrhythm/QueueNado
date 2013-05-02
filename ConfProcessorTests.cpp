@@ -102,12 +102,12 @@ TEST_F(ConfProcessorTests, TestProcessBaseConfigRequest) {
    serializedConf = master.SerializeCachedConfig(configTypeMessage);
    EXPECT_TRUE(serializedConf.empty());
 
-   baseConf.set_multithreadqosmos("true");
+   baseConf.set_qosmostcpreassemblyenabled("true");
    EXPECT_TRUE(master.ProcessBaseConfigRequest(conf, baseConf.SerializeAsString()));
    serializedConf = master.SerializeCachedConfig(configTypeMessage);
    EXPECT_FALSE(serializedConf.empty());
    EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
-   EXPECT_EQ("true", baseConf.multithreadqosmos());
+   EXPECT_EQ("true", baseConf.qosmostcpreassemblyenabled());
 
    unlink(master.mConfLocation.c_str());
 #endif
@@ -207,15 +207,15 @@ TEST_F(ConfProcessorTests, TestUpdateBaseCachedMessages) {
    serializedConf = master.SerializeCachedConfig(configTypeMessage);
    EXPECT_FALSE(serializedConf.empty());
    EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
-   EXPECT_EQ("false", baseConf.multithreadqosmos());
+   EXPECT_EQ("false", baseConf.qosmostcpreassemblyenabled());
 
-   baseConf.set_multithreadqosmos("true");
+   baseConf.set_qosmostcpreassemblyenabled("true");
    conf.updateFields(baseConf);
    master.UpdateCachedMessages(conf);
    serializedConf = master.SerializeCachedConfig(configTypeMessage);
    EXPECT_FALSE(serializedConf.empty());
    EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
-   EXPECT_EQ("true", baseConf.multithreadqosmos());
+   EXPECT_EQ("true", baseConf.qosmostcpreassemblyenabled());
 #endif
 }
 
@@ -538,7 +538,7 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    ASSERT_TRUE(conf.EnableIPDefragmentation());
 
    shots.clear();
-   baseConfig.set_multithreadqosmos("false");
+   baseConfig.set_qosmostcpreassemblyenabled("false");
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(conf.EnableIPDefragmentation());
@@ -747,7 +747,6 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.getDpiHalfSessions());
    EXPECT_TRUE(conf.EnableIPDefragmentation());
    EXPECT_TRUE(conf.EnableTCPReassembly());
-   EXPECT_TRUE(conf.SingleAppMultiThreadQosmos());
    EXPECT_FALSE(conf.SiemLogging());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * 5, conf.getQosmos64BytePool());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * 2.5, conf.getQosmos128BytePool());
@@ -789,7 +788,6 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ(30000, conf.GetDPIMsgSendQueueSize());
    EXPECT_EQ(1, conf.getStatsIntervalSeconds());
    EXPECT_TRUE(conf.getQosmosDebugModeEnabled());
-   EXPECT_FALSE(conf.SingleAppMultiThreadQosmos());
    EXPECT_TRUE(conf.SiemLogging());
    EXPECT_TRUE(conf.SiemDebugLogging());
    EXPECT_EQ(64, conf.getQosmos64BytePool());
@@ -964,16 +962,6 @@ TEST_F(ConfProcessorTests, teststatsQueue) {
    EXPECT_EQ("12347", conf.getSendStatsQueue());
 }
 
-TEST_F(ConfProcessorTests, testSingleAppMultiThreadQosmos) {
-   protoMsg::BaseConf msg;
-   msg.set_multithreadqosmos("true");
-   Conf conf(mTestConf);
-   conf.setPath(mWriteLocation);
-   EXPECT_FALSE(conf.SingleAppMultiThreadQosmos());
-   conf.updateFields(msg);
-   EXPECT_TRUE(conf.SingleAppMultiThreadQosmos());
-
-}
 
 TEST_F(ConfProcessorTests, testSiemLogging) {
    protoMsg::SyslogConf msg;
