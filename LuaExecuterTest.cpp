@@ -301,3 +301,69 @@ TEST_F(LuaExecuterTest, ChangeInputVariables) {
    EXPECT_EQ(0, returnStrings.size());
    EXPECT_EQ(3, returnInts[0]);
 }
+
+TEST_F(LuaExecuterTest, ChangeScript) {
+   LuaExecuter executer;
+   protoMsg::RuleConf rule;
+   rule.set_name("test1");
+   rule.set_repetitions(1);
+   rule.set_ruletype(::protoMsg::RuleConf_Type_GENERIC);
+   rule.set_runforever(false);
+   rule.set_ruletext("function test1 (x,y) return x/y end");
+   rule.set_numberofreturnvals(1);
+   rule.add_inputintegers(8);
+   rule.add_inputintegers(4);
+
+   std::vector<int> returnInts;
+   std::vector<bool> returnBools;
+   std::vector<std::string> returnStrings;
+   EXPECT_TRUE(executer.RegisterRule(rule));
+   EXPECT_TRUE(executer.RunRule(rule, returnInts, returnBools, returnStrings));
+   ASSERT_EQ(1, returnInts.size());
+   EXPECT_EQ(0, returnBools.size());
+   EXPECT_EQ(0, returnStrings.size());
+   EXPECT_EQ(2, returnInts[0]);
+   executer.RemoveRule(rule.ruletype(), rule.name());
+   rule.set_ruletext("function test1 (x,y) return x*y end");
+   
+   EXPECT_TRUE(executer.RunRule(rule, returnInts, returnBools, returnStrings));
+   ASSERT_EQ(1, returnInts.size());
+   EXPECT_EQ(0, returnBools.size());
+   EXPECT_EQ(0, returnStrings.size());
+   EXPECT_EQ(32, returnInts[0]);
+}
+
+TEST_F(LuaExecuterTest, ReRegisterPacketRule) {
+   LuaExecuter executer;
+
+   protoMsg::RuleConf rule;
+   rule.set_name("test4");
+   rule.set_repetitions(1);
+   rule.set_ruletype(::protoMsg::RuleConf_Type_PACKET);
+   rule.set_runforever(false);
+   rule.set_ruletext("function test4 (x,y) return CFunction1(x,y) end");
+   rule.set_numberofreturnvals(0);
+   executer.RegisterFunction("CFunction1", LuaTestPacketFunction);
+   EXPECT_EQ(0, executer.SizeOfRuleset(protoMsg::RuleConf_Type_PACKET));
+   EXPECT_TRUE(executer.RegisterRule(rule));
+   EXPECT_EQ(1, executer.SizeOfRuleset(protoMsg::RuleConf_Type_PACKET));
+
+   networkMonitor::DpiMsgLR dpiMsg;
+   struct upacket* packet = reinterpret_cast<struct upacket*> (malloc(sizeof (struct upacket)));
+   packet->len = 0;
+   std::vector<void*> args;
+   args.push_back(&dpiMsg);
+   args.push_back(packet);
+   EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
+   EXPECT_EQ("TEST", dpiMsg.uuid());
+   EXPECT_EQ(999, packet->len);
+   packet->len = 1;
+   rule.set_ruletext("function test4 (x,y) return 1 end");
+   EXPECT_TRUE(executer.RegisterRule(rule));
+   EXPECT_EQ(1, executer.SizeOfRuleset(protoMsg::RuleConf_Type_PACKET));
+   EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
+   EXPECT_EQ("TEST", dpiMsg.uuid());
+   EXPECT_EQ(1, packet->len);
+   
+   free(packet);
+}
