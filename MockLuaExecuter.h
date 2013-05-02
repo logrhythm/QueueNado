@@ -22,5 +22,8 @@ public:
    lua_State* GetLuaState(const protoMsg::RuleConf& rule) {
       return LuaExecuter::GetLuaState(rule);
    }
+   std::set<std::string> GetRegisteredFunctions(lua_State* luaState) {
+      return LuaExecuter::GetRegisteredFunctions(luaState);
+   }
 };
 
