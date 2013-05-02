@@ -1,0 +1,8 @@
+interface: eth0
+method: 1
+ipAddress: 127.0.0.1
+netMask: 255.255.255.0
+gateway: 127.0.0.2
+dnsServers: 127.1.1.1, 127.3.3.3
+searchDomains: blah.domain.net, blah2.domain.net
+name: Management Interface

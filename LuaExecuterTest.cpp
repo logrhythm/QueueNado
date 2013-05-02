@@ -179,24 +179,6 @@ TEST_F(LuaExecuterTest, RunDpiMsgRuleBadFunction) {
    EXPECT_FALSE(executer.RunFlowRule(rule, &dpiMsg));
 }
 
-TEST_F(LuaExecuterTest, NULLRunDpiMsgRule) {
-   LuaExecuter executer;
-   protoMsg::RuleConf rule;
-   rule.set_name("test3");
-   rule.set_repetitions(1);
-   rule.set_ruletype(::protoMsg::RuleConf_Type_FLOWCOMPLETE);
-   rule.set_runforever(false);
-   rule.set_ruletext("function test3 (x) return CFunction1(x) end");
-   rule.set_numberofreturnvals(0);
-
-   std::vector<int> returnInts;
-   std::vector<bool> returnBools;
-   std::vector<std::string> returnStrings;
-   executer.RegisterFunction("CFunction1", LuaTestDpiMsgFunction);
-
-   EXPECT_FALSE(executer.RunFlowRule(rule, NULL));
-
-}
 
 TEST_F(LuaExecuterTest, NonRunDpiMsgRule) {
    LuaExecuter executer;
