@@ -59,7 +59,7 @@ TEST_F(ConfProcessorTests, ConfInterfaceUpdateProto) {
    EXPECT_EQ(conf.GetMethod(), 0);
 
    protoMsg::NetInterface* interface = conf.getProtoMsg();
-   interface->set_method(protoMsg::NetInterfaceMethod::STATIC);
+   interface->set_method(protoMsg::NetInterfaceMethod::STATICIP);
    interface->set_interface("eth1");
    interface->set_ipaddress("24.24.24.24");
    interface->set_name("name");
@@ -70,7 +70,7 @@ TEST_F(ConfProcessorTests, ConfInterfaceUpdateProto) {
    //create new object with our proto message.
    ConfNetInterface updateConf(*interface);
 
-   EXPECT_EQ(protoMsg::NetInterfaceMethod::STATIC, updateConf.GetMethod());
+   EXPECT_EQ(protoMsg::NetInterfaceMethod::STATICIP, updateConf.GetMethod());
    EXPECT_EQ("eth1", updateConf.GetInterface());
    EXPECT_EQ("24.24.24.24", updateConf.GetIpAddress());
    EXPECT_EQ("name", updateConf.GetName());
@@ -81,7 +81,7 @@ TEST_F(ConfProcessorTests, ConfInterfaceUpdateProto) {
 
    protoMsg::NetInterface* updateInterface = updateConf.getProtoMsg();
 
-   EXPECT_EQ(updateInterface->method(), protoMsg::NetInterfaceMethod::STATIC);
+   EXPECT_EQ(updateInterface->method(), protoMsg::NetInterfaceMethod::STATICIP);
    EXPECT_EQ("eth1", updateInterface->interface());
    EXPECT_EQ("24.24.24.24", updateInterface->ipaddress());
    EXPECT_EQ("name", updateInterface->name());
@@ -581,7 +581,7 @@ TEST_F(ConfProcessorTests, NetInterfaceMessagePassedBetweenMasterAndSlave) {
    updateType.set_type(protoMsg::ConfType_Type_NETINTERFACE);
    updateType.set_direction(protoMsg::ConfType_Direction_SENDING);
    protoMsg::NetInterface confMsg;
-   confMsg.set_method(protoMsg::NetInterfaceMethod::STATIC);
+   confMsg.set_method(protoMsg::NetInterfaceMethod::STATICIP);
    confMsg.set_name("WOO");
    confMsg.set_ipaddress("24.24.24.24");
    confMsg.set_dnsservers("servers");
