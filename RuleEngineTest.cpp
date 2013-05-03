@@ -9,6 +9,7 @@
 #include "MockRuleEngine.h"
 #include "MockConfSlave.h"
 #include "DpiMsgLR.h"
+#include "luajit-2.0/lua.hpp"
 
 using namespace networkMonitor;
 
@@ -1407,3 +1408,136 @@ TEST_F(RuleEngineTest, GetSessionField) {
     tDpiMessage.Clear();
 #endif
 }
+
+TEST_F(RuleEngineTest, StaticCallLuaIsIntermediateFlow) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, expect false
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaIsIntermediateFlow(luaState);
+   EXPECT_FALSE(lua_toboolean(luaState, -1));
+
+   // Value set to FINAL, expect false
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaIsIntermediateFlow(luaState);
+   EXPECT_FALSE(lua_toboolean(luaState, -1));
+
+   // Value set to INTERMEDIATE, expect true
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaIsIntermediateFlow(luaState);
+   EXPECT_TRUE(lua_toboolean(luaState, -1));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaIsIntermediateFinalFlow) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, expect false
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaIsIntermediateFinalFlow(luaState);
+   EXPECT_FALSE(lua_toboolean(luaState, -1));
+
+   // Value set to FINAL, expect false
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaIsIntermediateFinalFlow(luaState);
+   EXPECT_FALSE(lua_toboolean(luaState, -1));
+
+   // Value set to INTERMEDIATE_FINAL, expect true
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaIsIntermediateFinalFlow(luaState);
+   EXPECT_TRUE(lua_toboolean(luaState, -1));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaGetUuid) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, UUID is required field, initialized to ""
+   std::string unknownUuid(UNKNOWN_UUID);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetUuid(luaState);
+   EXPECT_EQ(unknownUuid, lua_tostring(luaState, -1));
+
+   // Expect known value when set
+   std::string knownUuid("5a36f34b-d8e0-47d4-8712-1daccda18c48");
+   dpiMsg.set_uuid(knownUuid);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetUuid(luaState);
+   EXPECT_EQ(knownUuid, lua_tostring(luaState, -1));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaGetPacketCount) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, expect 0
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetPacketCount(luaState);
+   EXPECT_EQ(0, lua_tointeger(luaState, -1));
+
+   // Expect known value when set
+   int expectedPactetCount(236);
+   dpiMsg.set_packetcount(expectedPactetCount);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetPacketCount(luaState);
+   EXPECT_EQ(expectedPactetCount, lua_tointeger(luaState, -1));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaSetPacketCount) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Expect known value when set
+   int expectedPactetCount(632);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, expectedPactetCount);
+   RuleEngine::LuaSetPacketCount(luaState);
+   EXPECT_EQ(expectedPactetCount, dpiMsg.packetcount());
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaGetStartTime) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, expect 0
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetStartTime(luaState);
+   EXPECT_EQ(0, lua_tointeger(luaState, -1));
+
+   // Expect known value when set
+   int expectedStartTime(1367606483);
+   dpiMsg.set_starttime(expectedStartTime);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetStartTime(luaState);
+   EXPECT_EQ(expectedStartTime, lua_tointeger(luaState, -1));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaGetEndTime) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, expect 0
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetEndTime(luaState);
+   EXPECT_EQ(0, lua_tointeger(luaState, -1));
+
+   // Expect known value when set
+   int expectedEndTime(1367606583);
+   dpiMsg.set_endtime(expectedEndTime);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetEndTime(luaState);
+   EXPECT_EQ(expectedEndTime, lua_tointeger(luaState, -1));
+}
+
