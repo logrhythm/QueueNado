@@ -14,7 +14,7 @@ namespace networkMonitor {
    class MockConfSlave : public ConfSlave {
    public:
 
-      MockConfSlave() : mAppClosed(false), mNewConfSeen(false), mNewQosmosSeen(false), mNewSyslogSeen(false), mNewInterfaceMsg(false),
+      MockConfSlave() : mAppClosed(false), mNewConfSeen(false), mNewQosmosSeen(false), mNewSyslogSeen(false), mNewNetInterfaceMsg(false),
       mBroadcastQueueName("ipc:///tmp/testconfbroacast.ipc") {
 
       }
@@ -58,17 +58,17 @@ namespace networkMonitor {
          return ConfSlave::ProcessRestartMsg(configTypeMessage, shots);
       }
 
-      virtual bool ProcessInterfaceMsg(const protoMsg::ConfType& configTypeMessage,
+      virtual bool ProcessNetInterfaceMsg(const protoMsg::ConfType& configTypeMessage,
               const std::vector<std::string>& shots) {
          LOG(DEBUG) << "MockProcessInterfaceMsg";
-         return mNewInterfaceMsg = ConfSlave::ProcessInterfaceMsg(configTypeMessage, shots);
+         return mNewNetInterfaceMsg = ConfSlave::ProcessNetInterfaceMsg(configTypeMessage, shots);
       }
 
       bool mAppClosed;
       bool mNewConfSeen;
       bool mNewQosmosSeen;
       bool mNewSyslogSeen;
-      bool mNewInterfaceMsg;
+      bool mNewNetInterfaceMsg;
       std::string mBroadcastQueueName;
       MockConf mConf;
    };
