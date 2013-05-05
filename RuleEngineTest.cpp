@@ -168,6 +168,8 @@ TEST_F(RuleEngineTest, testMsgReceive) {
 
         DpiMsgLR msg;
 
+        msg.set_flowtype(DpiMsgLRproto_Type_FINAL);
+
         string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
         msg.set_uuid(testUuid.c_str());
 
@@ -279,6 +281,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
 
         DpiMsgLR msg;
 
+        msg.set_flowtype(DpiMsgLRproto_Type_FINAL);
+
         string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
         msg.set_uuid(testUuid.c_str());
 
@@ -377,6 +381,133 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
 #endif
 }
 
+TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
+#if defined(LR_DEBUG)
+    if (geteuid() != 0) {
+        MockConfSlave myConfSlave;
+
+        myConfSlave.SetPath("resources/test.yaml");
+        myConfSlave.mConf.mSiemLogging = true;
+        //myConfSlave.Start();
+        protoMsg::BaseConf confMsg;
+        protoMsg::SyslogConf sysMsg;
+        sysMsg.set_siemlogging("true");
+        Conf myConf = conf.GetConf();
+        myConf.updateFields(sysMsg);
+        myConf.sendConfigUpdate();
+        boost::this_thread::sleep(boost::posix_time::seconds(1));
+        MockRuleEngine dpiSyslog(myConfSlave, syslogName, syslogOption,
+                syslogFacility, syslogPriority, true, 0);
+        dpiSyslog.mSiemMode = true;
+        dpiSyslog.mSiemDebugMode = false;
+        dpiSyslog.start();
+        EXPECT_TRUE(dpiSyslog.isRunning());
+
+        // Send a message to the thread and check the syslog output contains the
+        // data send.
+        std::string queueName = dpiSyslog.GetDpiRcvrQueue();
+        queueName += "0";
+        SendDpiMsgLRZMQ sendQueue(queueName);
+        sendQueue.Initialize();
+
+        DpiMsgLR msg;
+
+        msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE);
+
+        string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
+        msg.set_uuid(testUuid.c_str());
+
+        string testEthSrc("00:22:19:08:2c:00");
+        vector<unsigned char> ethSrc;
+        ethSrc.push_back(0x00);
+        ethSrc.push_back(0x22);
+        ethSrc.push_back(0x19);
+        ethSrc.push_back(0x08);
+        ethSrc.push_back(0x2c);
+        ethSrc.push_back(0x00);
+        msg.SetEthSrc(ethSrc);
+
+        string testEthDst("f0:f7:55:dc:a8:00");
+
+        vector<unsigned char> ethDst;
+        ethDst.push_back(0xf0);
+        ethDst.push_back(0xf7);
+        ethDst.push_back(0x55);
+        ethDst.push_back(0xdc);
+        ethDst.push_back(0xa8);
+        ethDst.push_back(0x00);
+        msg.SetEthDst(ethDst);
+
+        string testIpSrc = "10.1.10.50";
+        uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
+        msg.set_ipsrc(ipSrc);
+
+        string testIpDst = "10.128.64.251";
+        uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
+        msg.set_ipdst(ipDst);
+
+        string path("base.eth.ip.udp.ntp");
+        msg.set_pktpath(path.c_str());
+
+        string testIpSourcePort = "=12345"; // bogus, but easier to test
+        msg.set_sourceport(12345);
+
+        string testIpDestPort = "=54321"; // bogus, but easier to test
+        msg.set_destport(54321);
+        msg.set_protoid(12);
+        msg.set_application_id_endq_proto_base(13);
+        msg.set_application_endq_proto_base("wrong|dummy");
+        msg.set_sessionlenserver(12345);
+        msg.set_sessionlenclient(6789);
+        msg.set_packetcount(99);
+        msg.set_loginq_proto_aim("aLogin");
+        msg.set_domainq_proto_smb("aDomain");
+        msg.set_uri_fullq_proto_http("this/url.htm");
+        msg.set_uriq_proto_http("notitUrl");
+        msg.set_serverq_proto_http("thisname");
+        msg.set_referer_serverq_proto_http("notitServer");
+        msg.set_methodq_proto_ftp("TEST|COMMAND");
+        msg.set_senderq_proto_smtp("test1");
+        msg.set_receiverq_proto_smtp("test2");
+        msg.set_subjectq_proto_smtp("test3");
+        msg.set_versionq_proto_http("4.0");
+        msg.set_filenameq_proto_gnutella("aFilename");
+        msg.set_filename_encodingq_proto_aim_transfer("notitFile");
+        msg.set_directoryq_proto_smb("aPath");
+        msg.set_starttime(123);
+        msg.set_endtime(456); // delta = 333
+        msg.set_sessionidq_proto_ymsg(2345);
+        string dataToSend;
+        msg.GetBuffer(dataToSend);
+        sendQueue.SendData(dataToSend);
+
+        msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
+        msg.set_endtime(567); // delta = 111
+        dataToSend.clear();
+        msg.GetBuffer(dataToSend);
+        sendQueue.SendData(dataToSend);
+
+        // Allow DPI Syslog Thread time to process the messages
+        timespec timeToSleep;
+        timeToSleep.tv_sec = 0;
+        timeToSleep.tv_nsec = 200000000;
+        nanosleep(&timeToSleep, NULL);
+
+        //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
+        // Did the data show up in the syslog output
+        ASSERT_EQ(2, sysLogOutput.size());
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:004 "));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,456,333"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:004 "));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuid));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,567,111"));
+
+        dpiSyslog.join();
+    }
+#endif
+}
+
 TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
 #if defined(LR_DEBUG)
     if (geteuid() != 0) {
@@ -409,6 +540,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         sendQueue.Initialize();
 
         DpiMsgLR msg;
+
+        msg.set_flowtype(DpiMsgLRproto_Type_FINAL);
 
         string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
         msg.set_uuid(testUuid.c_str());
@@ -1541,3 +1674,181 @@ TEST_F(RuleEngineTest, StaticCallLuaGetEndTime) {
    EXPECT_EQ(expectedEndTime, lua_tointeger(luaState, -1));
 }
 
+TEST_F(RuleEngineTest, StaticCallLuaSendInterFlow) {
+
+   MockRuleEngine mRuleEngine(conf, syslogName, syslogOption,
+         syslogFacility, syslogPriority, true, 0);
+   mRuleEngine.mSiemMode = true;
+   mRuleEngine.mSiemDebugMode = false;
+
+   DpiMsgLR dpiMsg;
+
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE);
+
+   string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
+   dpiMsg.set_uuid(testUuid.c_str());
+
+   string testEthSrc("00:22:19:08:2c:00");
+   vector<unsigned char> ethSrc;
+   ethSrc.push_back(0x00);
+   ethSrc.push_back(0x22);
+   ethSrc.push_back(0x19);
+   ethSrc.push_back(0x08);
+   ethSrc.push_back(0x2c);
+   ethSrc.push_back(0x00);
+   dpiMsg.SetEthSrc(ethSrc);
+
+   string testEthDst("f0:f7:55:dc:a8:00");
+
+   vector<unsigned char> ethDst;
+   ethDst.push_back(0xf0);
+   ethDst.push_back(0xf7);
+   ethDst.push_back(0x55);
+   ethDst.push_back(0xdc);
+   ethDst.push_back(0xa8);
+   ethDst.push_back(0x00);
+   dpiMsg.SetEthDst(ethDst);
+
+   string testIpSrc = "10.1.10.50";
+   uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
+   dpiMsg.set_ipsrc(ipSrc);
+
+   string testIpDst = "10.128.64.251";
+   uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
+   dpiMsg.set_ipdst(ipDst);
+
+   string path("base.eth.ip.udp.ntp");
+   dpiMsg.set_pktpath(path.c_str());
+
+   string testIpSourcePort = "=12345"; // bogus, but easier to test
+   dpiMsg.set_sourceport(12345);
+
+   string testIpDestPort = "=54321"; // bogus, but easier to test
+   dpiMsg.set_destport(54321);
+   dpiMsg.set_protoid(12);
+   dpiMsg.set_application_id_endq_proto_base(13);
+   dpiMsg.set_application_endq_proto_base("wrong|dummy");
+   dpiMsg.set_sessionlenserver(12345);
+   dpiMsg.set_sessionlenclient(6789);
+   dpiMsg.set_packetcount(99);
+   dpiMsg.set_loginq_proto_aim("aLogin");
+   dpiMsg.set_domainq_proto_smb("aDomain");
+   dpiMsg.set_uri_fullq_proto_http("this/url.htm");
+   dpiMsg.set_uriq_proto_http("notitUrl");
+   dpiMsg.set_serverq_proto_http("thisname");
+   dpiMsg.set_referer_serverq_proto_http("notitServer");
+   dpiMsg.set_methodq_proto_ftp("TEST|COMMAND");
+   dpiMsg.set_senderq_proto_smtp("test1");
+   dpiMsg.set_receiverq_proto_smtp("test2");
+   dpiMsg.set_subjectq_proto_smtp("test3");
+   dpiMsg.set_versionq_proto_http("4.0");
+   dpiMsg.set_filenameq_proto_gnutella("aFilename");
+   dpiMsg.set_filename_encodingq_proto_aim_transfer("notitFile");
+   dpiMsg.set_directoryq_proto_smb("aPath");
+   dpiMsg.set_starttime(123);
+   dpiMsg.set_endtime(456);
+   dpiMsg.set_sessionidq_proto_ymsg(2345);
+
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushlightuserdata(luaState, &mRuleEngine);
+   lua_pushinteger(luaState, 333);
+   RuleEngine::LuaSendInterFlow(luaState);
+
+   //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
+   // Did the data show up in the syslog output
+   ASSERT_EQ(1, sysLogOutput.size());
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:004 "));
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,456,333"));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaSendFinalFlow) {
+
+   MockRuleEngine mRuleEngine(conf, syslogName, syslogOption,
+         syslogFacility, syslogPriority, true, 0);
+   mRuleEngine.mSiemMode = true;
+   mRuleEngine.mSiemDebugMode = false;
+
+   DpiMsgLR dpiMsg;
+
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
+
+   string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
+   dpiMsg.set_uuid(testUuid.c_str());
+
+   string testEthSrc("00:22:19:08:2c:00");
+   vector<unsigned char> ethSrc;
+   ethSrc.push_back(0x00);
+   ethSrc.push_back(0x22);
+   ethSrc.push_back(0x19);
+   ethSrc.push_back(0x08);
+   ethSrc.push_back(0x2c);
+   ethSrc.push_back(0x00);
+   dpiMsg.SetEthSrc(ethSrc);
+
+   string testEthDst("f0:f7:55:dc:a8:00");
+
+   vector<unsigned char> ethDst;
+   ethDst.push_back(0xf0);
+   ethDst.push_back(0xf7);
+   ethDst.push_back(0x55);
+   ethDst.push_back(0xdc);
+   ethDst.push_back(0xa8);
+   ethDst.push_back(0x00);
+   dpiMsg.SetEthDst(ethDst);
+
+   string testIpSrc = "10.1.10.50";
+   uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
+   dpiMsg.set_ipsrc(ipSrc);
+
+   string testIpDst = "10.128.64.251";
+   uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
+   dpiMsg.set_ipdst(ipDst);
+
+   string path("base.eth.ip.udp.ntp");
+   dpiMsg.set_pktpath(path.c_str());
+
+   string testIpSourcePort = "=12345"; // bogus, but easier to test
+   dpiMsg.set_sourceport(12345);
+
+   string testIpDestPort = "=54321"; // bogus, but easier to test
+   dpiMsg.set_destport(54321);
+   dpiMsg.set_protoid(12);
+   dpiMsg.set_application_id_endq_proto_base(13);
+   dpiMsg.set_application_endq_proto_base("wrong|dummy");
+   dpiMsg.set_sessionlenserver(12345);
+   dpiMsg.set_sessionlenclient(6789);
+   dpiMsg.set_packetcount(99);
+   dpiMsg.set_loginq_proto_aim("aLogin");
+   dpiMsg.set_domainq_proto_smb("aDomain");
+   dpiMsg.set_uri_fullq_proto_http("this/url.htm");
+   dpiMsg.set_uriq_proto_http("notitUrl");
+   dpiMsg.set_serverq_proto_http("thisname");
+   dpiMsg.set_referer_serverq_proto_http("notitServer");
+   dpiMsg.set_methodq_proto_ftp("TEST|COMMAND");
+   dpiMsg.set_senderq_proto_smtp("test1");
+   dpiMsg.set_receiverq_proto_smtp("test2");
+   dpiMsg.set_subjectq_proto_smtp("test3");
+   dpiMsg.set_versionq_proto_http("4.0");
+   dpiMsg.set_filenameq_proto_gnutella("aFilename");
+   dpiMsg.set_filename_encodingq_proto_aim_transfer("notitFile");
+   dpiMsg.set_directoryq_proto_smb("aPath");
+   dpiMsg.set_starttime(123);
+   dpiMsg.set_endtime(456);
+   dpiMsg.set_sessionidq_proto_ymsg(2345);
+
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushlightuserdata(luaState, &mRuleEngine);
+   RuleEngine::LuaSendFinalFlow(luaState);
+
+   //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
+   // Did the data show up in the syslog output
+   ASSERT_EQ(1, sysLogOutput.size());
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,456"));
+}
