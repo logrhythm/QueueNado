@@ -93,7 +93,9 @@ QosmosDpiTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lg
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lyaml-cpp -lcapture -lconf -llib_g2log
 QosmosDpiTest_LDFLAGS=${BASE_LIBS}
-QosmosDpiTest_SOURCES=main.cpp QosmosDpiTest.cpp QosmosPacketAllocatorTests.cpp QosmosProtocolCaptureTest.cpp
+QosmosDpiTest_SOURCES=main.cpp QosmosDpiTest.cpp QosmosPacketAllocatorTests.cpp QosmosProtocolCaptureTest.cpp DiskPacketCaptureTest.cpp 
+
+
 
 PacketCaptureTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest \
                         -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl \
@@ -192,6 +194,8 @@ LuaExecuterTest_SOURCES=main.cpp \
 LuaExecuterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  \
 -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
+
+
 nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log  -lluajit-5.1 -llua
@@ -223,6 +227,7 @@ nmTest_SOURCES=main.cpp \
  TestSendReceiveDpiMsgLRZMQ.cpp \
  TestSendReceivePacketZMQ.cpp \
  LuaExecuterTest.cpp \
+ DiskPacketCaptureTest.cpp \
  ZeroMQTests.cpp
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine
