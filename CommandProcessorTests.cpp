@@ -20,7 +20,7 @@
 #include "g2logworker.hpp"
 #include "g2log.hpp"
 #include "RestartSyslogCommandTest.h"
-#include "InterfaceMsg.pb.h"
+#include "NetInterfaceMsg.pb.h"
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
@@ -529,7 +529,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
+   protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::DHCP);
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -552,7 +552,7 @@ TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
+   protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::DHCP);
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest* ncct = new NetworkConfigCommandTest(cmd, processManager);
@@ -598,7 +598,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
+   protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::DHCP);
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -622,7 +622,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInterfaceMethodNotSet) {
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
+   protoMsg::NetInterface interfaceConfig;
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
    bool exception = false;
@@ -644,8 +644,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
    bool exception = false;
@@ -667,8 +667,8 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgFileExists) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("NoIface");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -690,8 +690,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) 
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("NoIface");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -717,8 +717,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("NoIface");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -744,7 +744,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
+   protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::DHCP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -769,8 +769,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -794,8 +794,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_ipaddress("192.168.1.1");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -820,8 +820,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_ipaddress("192.168.1.1");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -846,8 +846,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetMask) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_netmask("255.255.255.0");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -872,8 +872,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetMask) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_netmask("255.255.255.0");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -898,8 +898,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_gateway("192.168.1.100");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -924,8 +924,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_gateway("192.168.1.100");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -950,8 +950,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -976,8 +976,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -1002,8 +1002,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -1028,8 +1028,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -1054,8 +1054,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -1080,8 +1080,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -1106,8 +1106,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDomain) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_searchdomains("schq.secious.com");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -1132,8 +1132,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_searchdomains("schq.secious.com");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -1158,8 +1158,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeInterfaceDown) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -1182,8 +1182,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceDown) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -1206,8 +1206,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeInterfaceUp) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -1230,8 +1230,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceUp) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -1254,8 +1254,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -1279,8 +1279,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -1304,8 +1304,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled)
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -1329,8 +1329,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
@@ -1354,8 +1354,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    // No DNS Servers or Search Domains set, which causes PEERDNS=no on output
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
@@ -1380,8 +1380,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::Interface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATIC);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    // Set a DNS Servers, which causes PEERDNS=yes on output
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
