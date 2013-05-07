@@ -855,7 +855,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) 
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ( "/usr/bin/perl", processManager->getRunCommand());
-   ASSERT_EQ( "-ni -e 'print unless /BOOTPROTO|IPADDR|NETMASK|NETWORK|"
+   ASSERT_EQ( "-ni -e 'print unless /BOOTPROTO|IPADDR|NETMASK|GATEWAY|NETWORK|"
               "NM_CONTROLLED|ONBOOT|DNS1|DNS2|PEERDNS|DOMAIN|BOARDCAST/i' "
               "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
               processManager->getRunArgs());
@@ -882,7 +882,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ( "/usr/bin/perl", processManager->getRunCommand());
-   ASSERT_EQ( "-ni -e 'print unless /BOOTPROTO|IPADDR|NETMASK|NETWORK|"
+   ASSERT_EQ( "-ni -e 'print unless /BOOTPROTO|IPADDR|NETMASK|GATEWAY|NETWORK|"
               "NM_CONTROLLED|ONBOOT|DNS1|DNS2|PEERDNS|DOMAIN|BOARDCAST/i' "
               "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
               processManager->getRunArgs());
