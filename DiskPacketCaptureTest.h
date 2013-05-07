@@ -5,23 +5,24 @@
 #include "gtest/gtest.h"
 #include "boost/lexical_cast.hpp"
 #include <csignal>
+
 class DiskPacketCaptureTest : public ::testing::Test {
 public:
 
-    DiskPacketCaptureTest() {
-    };
+   DiskPacketCaptureTest() {
+   };
 protected:
 
-    virtual void SetUp() {
+   virtual void SetUp() {
 
-    };
+   };
 
-    virtual void TearDown() {
+   virtual void TearDown() {
 
-    };
-    
-    void StartTimedSection(const double expectedTimePerTransaction,const unsigned int totalTransactions) {
-      t_expectedTime = expectedTimePerTransaction*totalTransactions * 1000000.0;
+   };
+
+   void StartTimedSection(const double expectedTimePerTransaction, const unsigned int totalTransactions) {
+      t_expectedTime = expectedTimePerTransaction * totalTransactions * 1000000.0;
       t_totalTransactions = totalTransactions;
       gettimeofday(&t_startTime, NULL);
    }
@@ -33,7 +34,7 @@ protected:
       std::cout << std::dec << "Elapsed Time :" << t_elapsedUS / 1000000L << "." << std::setfill('0') << std::setw(6) << t_elapsedUS % 1000000 << "s" << std::endl;
       double totalTransactionsPS = (t_totalTransactions * 1.0) / (t_elapsedUS * 1.0 / 1000000.0);
       std::cout << "Transactions/second :" << totalTransactionsPS << std::endl;
-      
+
    }
 
    bool TimedSectionPassed() {
