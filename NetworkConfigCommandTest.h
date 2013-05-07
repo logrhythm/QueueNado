@@ -14,11 +14,14 @@ class NetworkConfigCommandTest : public NetworkConfigCommand {
 public:
    using NetworkConfigCommand::InterfaceDown;
    using NetworkConfigCommand::InterfaceUp;
+   using NetworkConfigCommand::IfcfgInterfaceAllowed;
    using NetworkConfigCommand::IfcfgFileExists;
    using NetworkConfigCommand::ResetIfcfgFile;
+   using NetworkConfigCommand::BackupIfcfgFile;
+   using NetworkConfigCommand::RestoreIfcfgFile;
    using NetworkConfigCommand::AddBootProto;
    using NetworkConfigCommand::AddIpAddr;
-   using NetworkConfigCommand::AddNetMask;
+   using NetworkConfigCommand::AddNetmask;
    using NetworkConfigCommand::AddGateway;
    using NetworkConfigCommand::AddDnsServers;
    using NetworkConfigCommand::AddDns1;

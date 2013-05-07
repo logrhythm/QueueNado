@@ -646,6 +646,8 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
    protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_ipaddress("192.168.1.1");
+   interfaceConfig.set_netmask("255.255.255.0");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
    bool exception = false;
@@ -657,6 +659,52 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
       exception = true;
    }
    ASSERT_FALSE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth2) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("eth2");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   ncct.setStatFail();
+   bool exception = false;
+   try {
+      ncct.IfcfgInterfaceAllowed();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm3) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("em3");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   ncct.setStatFail();
+   bool exception = false;
+   try {
+      ncct.IfcfgInterfaceAllowed();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgFileExists) {
@@ -682,6 +730,110 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgFileExists) {
    ASSERT_TRUE(exception);
 }
 
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("NoIface");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.BackupIfcfgFile();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "/bin/cat", processManager->getRunCommand());
+   ASSERT_EQ( "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
+              "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
+              processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("NoIface");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.BackupIfcfgFile();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "/bin/cat", processManager->getRunCommand());
+   ASSERT_EQ( "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
+              "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
+              processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeRestoreIfcfgFile) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("NoIface");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.RestoreIfcfgFile();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "/bin/cat", processManager->getRunCommand());
+   ASSERT_EQ( "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\" > "
+              "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
+              processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessRestoreIfcfgFile) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("NoIface");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.RestoreIfcfgFile();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "/bin/cat", processManager->getRunCommand());
+   ASSERT_EQ( "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\" > "
+              "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
+              processManager->getRunArgs());
+}
+
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
@@ -704,7 +856,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) 
    ASSERT_TRUE(exception);
    ASSERT_EQ( "/usr/bin/perl", processManager->getRunCommand());
    ASSERT_EQ( "-ni -e 'print unless /BOOTPROTO|IPADDR|NETMASK|NETWORK|"
-              "NM_CONTROLLED|ONBOOT|DNS1|DNS2|PEERDNS|DOMAIN|BOARDCAST/i "
+              "NM_CONTROLLED|ONBOOT|DNS1|DNS2|PEERDNS|DOMAIN|BOARDCAST/i' "
               "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
               processManager->getRunArgs());
 }
@@ -731,7 +883,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
    ASSERT_TRUE(exception);
    ASSERT_EQ( "/usr/bin/perl", processManager->getRunCommand());
    ASSERT_EQ( "-ni -e 'print unless /BOOTPROTO|IPADDR|NETMASK|NETWORK|"
-              "NM_CONTROLLED|ONBOOT|DNS1|DNS2|PEERDNS|DOMAIN|BOARDCAST/i "
+              "NM_CONTROLLED|ONBOOT|DNS1|DNS2|PEERDNS|DOMAIN|BOARDCAST/i' "
               "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
               processManager->getRunArgs());
 }
@@ -786,6 +938,30 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
               processManager->getRunArgs());
 }
 
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddIpAddr();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "", processManager->getRunCommand());
+   ASSERT_EQ( "", processManager->getRunArgs());
+}
+
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
@@ -838,7 +1014,31 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
               processManager->getRunArgs());
 }
 
-TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetMask) {
+TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddNetmask();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "", processManager->getRunCommand());
+   ASSERT_EQ( "", processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
@@ -854,7 +1054,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetMask) {
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
    bool exception = false;
    try {
-      ncct.AddNetMask();
+      ncct.AddNetmask();
    } catch (...) {
       exception = true;
    }
@@ -864,7 +1064,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetMask) {
               processManager->getRunArgs());
 }
 
-TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetMask) {
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(false);
@@ -880,7 +1080,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetMask) {
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
    bool exception = false;
    try {
-      ncct.AddNetMask();
+      ncct.AddNetmask();
    } catch (...) {
       exception = true;
    }
@@ -888,6 +1088,30 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetMask) {
    ASSERT_EQ( "/bin/echo", processManager->getRunCommand());
    ASSERT_EQ( "\"NETMASK=255.255.255.0\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
               processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddGateway();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+   ASSERT_EQ( "", processManager->getRunCommand());
+   ASSERT_EQ( "", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
