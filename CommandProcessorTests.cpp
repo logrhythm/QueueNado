@@ -1374,7 +1374,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
               processManager->getRunArgs());
 }
 
-TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeInterfaceDown) {
+TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceDown) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
@@ -1393,12 +1393,12 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeInterfaceDown) {
    } catch (...) {
       exception = true;
    }
-   ASSERT_TRUE(exception);
+   ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifdown", processManager->getRunCommand());
-   ASSERT_EQ("ethx boot", processManager->getRunArgs());
+   ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
 }
 
-TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceDown) {
+TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(false);
@@ -1417,12 +1417,12 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceDown) {
    } catch (...) {
       exception = true;
    }
-   ASSERT_TRUE(exception);
+   ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifdown", processManager->getRunCommand());
-   ASSERT_EQ("ethx boot", processManager->getRunArgs());
+   ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
 }
 
-TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeInterfaceUp) {
+TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
@@ -1441,12 +1441,12 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeInterfaceUp) {
    } catch (...) {
       exception = true;
    }
-   ASSERT_TRUE(exception);
+   ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
-   ASSERT_EQ("ethx boot", processManager->getRunArgs());
+   ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
 }
 
-TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceUp) {
+TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(false);
@@ -1465,9 +1465,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceUp) {
    } catch (...) {
       exception = true;
    }
-   ASSERT_TRUE(exception);
+   ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
-   ASSERT_EQ("ethx boot", processManager->getRunArgs());
+   ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
