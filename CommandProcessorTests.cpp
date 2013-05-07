@@ -1395,7 +1395,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeInterfaceDown) {
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ("/sbin/ifdown", processManager->getRunCommand());
-   ASSERT_EQ("ethx boot", processManager->getRunArgs());
+   ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceDown) {
@@ -1419,7 +1419,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceDown) {
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ("/sbin/ifdown", processManager->getRunCommand());
-   ASSERT_EQ("ethx boot", processManager->getRunArgs());
+   ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeInterfaceUp) {
@@ -1443,7 +1443,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeInterfaceUp) {
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
-   ASSERT_EQ("ethx boot", processManager->getRunArgs());
+   ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceUp) {
@@ -1467,7 +1467,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceUp) {
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
-   ASSERT_EQ("ethx boot", processManager->getRunArgs());
+   ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
