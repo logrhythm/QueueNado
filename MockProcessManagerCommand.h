@@ -16,6 +16,14 @@ public:
       return mInit;
    }
 
+   const std::string& getRunCommand() {
+      return mRunCommand;
+   }
+
+   const std::string& getRunArgs() {
+      return mRunArgs;
+   }
+
    virtual void setInit(bool init) {
       mInit = init;
    }
@@ -35,6 +43,10 @@ public:
    }
 
    protoMsg::ProcessReply RunProcess(const std::string& execPath, const std::string& args) {
+      mRunCommand.clear();
+      mRunCommand = execPath;
+      mRunArgs.clear();
+      mRunArgs = args;
       protoMsg::ProcessReply reply;
       reply.set_success(mSuccess);
       reply.set_returncode(mReturnCode);
@@ -50,4 +62,6 @@ private:
    bool mInit;
    bool mSuccess;
    std::string mResult;
+   std::string mRunCommand;
+   std::string mRunArgs;
 };
