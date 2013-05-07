@@ -1443,7 +1443,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeInterfaceUp) {
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
-   ASSERT_EQ("ethx", processManager->getRunArgs());
+   ASSERT_EQ("ethx boot", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceUp) {
@@ -1467,7 +1467,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessInterfaceUp) {
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
-   ASSERT_EQ("ethx", processManager->getRunArgs());
+   ASSERT_EQ("ethx boot", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
