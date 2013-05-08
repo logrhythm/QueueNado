@@ -19,7 +19,8 @@ public:
    mSiemLogging(false), mPCAPBuffsize(1234), mPacketSendQueueSize(100),
    mPacketRecvQueueSize(100), mSyslogMaxLineLength(2048), mDPIMsgSendQueueSize(1024),
    mStatsIntervalSeconds(5), mDPIMsgRecvQueueSize(1024), mSiemDebug(false), mIntermediateFlowEnabled(false),
-   mUnknownCaptureEnabled(false), mPCapCaptureFileLimit(0), mPCapCaptureSizeLimit(0) {
+   mUnknownCaptureEnabled(false), mPCapCaptureFileLimit(0), mPCapCaptureSizeLimit(0),
+   mPCapCaptureMemoryLimit(0) {
    }
 
    ~MockConf() {
@@ -235,7 +236,9 @@ public:
    int GetPcapCaptureSizeLimit() {
       return mPCapCaptureSizeLimit;
    }
-
+   int GetPcapCaptureMemoryLimit() {
+      return mPCapCaptureMemoryLimit;
+   }
    std::string GetPcapCaptureLocation() {
       return mPCapCaptureLocation;
    }
@@ -257,4 +260,5 @@ public:
    int mPCapCaptureFileLimit;
    int mPCapCaptureSizeLimit;
    std::string mPCapCaptureLocation;
+   int mPCapCaptureMemoryLimit;
 };
