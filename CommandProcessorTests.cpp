@@ -962,6 +962,31 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
    ASSERT_EQ( "", processManager->getRunArgs());
 }
 
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_ipaddress("");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddIpAddr();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "", processManager->getRunCommand());
+   ASSERT_EQ( "", processManager->getRunArgs());
+}
+
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
@@ -1025,6 +1050,31 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
    protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddNetmask();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "", processManager->getRunCommand());
+   ASSERT_EQ( "", processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_netmask("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
    bool exception = false;
