@@ -12,8 +12,8 @@ public:
    virtual ~MockDiskPacketCapture() {
    }
 
-   std::vector<std::pair<struct pcap_pkthdr*, uint8_t*> >* GetRunningPackets(const std::string& uuid) {
-      return DiskPacketCapture::GetRunningPackets(uuid);
+   void GetRunningPackets(const std::string& uuid, std::pair<InMemoryPacketBuffer*, size_t>*& sessionInfo) {
+      DiskPacketCapture::GetRunningPackets(uuid,sessionInfo);
    }
 
    void RemoveOldestPCapFile(Conf& conf) {
@@ -31,6 +31,14 @@ public:
    std::string BuildFilename(Conf& conf, const std::string& uuid,
            const std::string& appName, const std::time_t time) {
       return DiskPacketCapture::BuildFilename(conf, uuid, appName, time);
+   }
+
+   int NewTotalMemory(const size_t memoryAddedIfSaved) {
+      return DiskPacketCapture::NewTotalMemory(memoryAddedIfSaved);
+   }
+
+   int CurrentMemoryForFlow(const std::string& uuid) {
+      return DiskPacketCapture::CurrentMemoryForFlow(uuid);
    }
 };
 
