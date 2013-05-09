@@ -1759,17 +1759,66 @@ TEST_F(RuleEngineTest, StaticCallLuaSetDeltaPackets) {
    EXPECT_EQ(expectedDeltaPackets, dpiMsg.deltapackets());
 }
 
-TEST_F(RuleEngineTest, StaticCallLuaSetDeltaTime) {
+TEST_F(RuleEngineTest, StaticCallLuaGetSessionLenServer) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, expect 0
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetSessionLenServer(luaState);
+   EXPECT_EQ(0, lua_tointeger(luaState, -1));
+
+   // Expect known value when set
+   int expectedSessionLenServer(99425);
+   dpiMsg.set_sessionlenserver(expectedSessionLenServer);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetSessionLenServer(luaState);
+   EXPECT_EQ(expectedSessionLenServer, lua_tointeger(luaState, -1));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaSetDeltaSessionLenServer) {
    DpiMsgLR dpiMsg;
    lua_State *luaState;
    luaState = luaL_newstate();
 
    // Expect known value when set
-   int expectedDeltaTime(632);
+   int expectedDeltaSessionLenServer(10254);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushinteger(luaState, expectedDeltaTime);
-   RuleEngine::LuaSetDeltaTime(luaState);
-   EXPECT_EQ(expectedDeltaTime, dpiMsg.deltatime());
+   lua_pushinteger(luaState, expectedDeltaSessionLenServer);
+   RuleEngine::LuaSetDeltaSessionLenServer(luaState);
+   EXPECT_EQ(expectedDeltaSessionLenServer, dpiMsg.deltasessionlenserver());
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaGetSessionLenClient) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, expect 0
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetSessionLenClient(luaState);
+   EXPECT_EQ(0, lua_tointeger(luaState, -1));
+
+   // Expect known value when set
+   int expectedSessionLenClient(21553);
+   dpiMsg.set_sessionlenclient(expectedSessionLenClient);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetSessionLenClient(luaState);
+   EXPECT_EQ(expectedSessionLenClient, lua_tointeger(luaState, -1));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaSetDeltaSessionLenClient) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Expect known value when set
+   int expectedDeltaSessionLenClient(4521);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, expectedDeltaSessionLenClient);
+   RuleEngine::LuaSetDeltaSessionLenClient(luaState);
+   EXPECT_EQ(expectedDeltaSessionLenClient, dpiMsg.deltasessionlenclient());
 }
 
 TEST_F(RuleEngineTest, StaticCallLuaGetStartTime) {
@@ -1806,6 +1855,19 @@ TEST_F(RuleEngineTest, StaticCallLuaGetEndTime) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    RuleEngine::LuaGetEndTime(luaState);
    EXPECT_EQ(expectedEndTime, lua_tointeger(luaState, -1));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaSetDeltaTime) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Expect known value when set
+   int expectedDeltaTime(632);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, expectedDeltaTime);
+   RuleEngine::LuaSetDeltaTime(luaState);
+   EXPECT_EQ(expectedDeltaTime, dpiMsg.deltatime());
 }
 
 TEST_F(RuleEngineTest, StaticCallLuaSendInterFlow) {
@@ -1881,21 +1943,29 @@ TEST_F(RuleEngineTest, StaticCallLuaSendInterFlow) {
    dpiMsg.set_directoryq_proto_smb("aPath");
    dpiMsg.set_starttime(123);
    dpiMsg.set_endtime(456);
+   dpiMsg.set_deltatime(333);
    dpiMsg.set_sessionidq_proto_ymsg(2345);
 
    lua_State *luaState;
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushlightuserdata(luaState, &mRuleEngine);
-   lua_pushinteger(luaState, 333);
+   RuleEngine::LuaSendInterFlow(luaState);
+
+   dpiMsg.set_endtime(567);
+   dpiMsg.set_deltatime(111); // 567 - 456
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushlightuserdata(luaState, &mRuleEngine);
    RuleEngine::LuaSendInterFlow(luaState);
 
    //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
    // Did the data show up in the syslog output
-   ASSERT_EQ(1, sysLogOutput.size());
+   ASSERT_EQ(2, sysLogOutput.size());
    EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:004 "));
    EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
    EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,456,333"));
+   EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,567,111"));
 }
 
 TEST_F(RuleEngineTest, StaticCallLuaSendFinalFlow) {
