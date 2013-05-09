@@ -1746,17 +1746,30 @@ TEST_F(RuleEngineTest, StaticCallLuaGetPacketCount) {
    EXPECT_EQ(expectedPactetCount, lua_tointeger(luaState, -1));
 }
 
-TEST_F(RuleEngineTest, StaticCallLuaSetPacketCount) {
+TEST_F(RuleEngineTest, StaticCallLuaSetDeltaPackets) {
    DpiMsgLR dpiMsg;
    lua_State *luaState;
    luaState = luaL_newstate();
 
    // Expect known value when set
-   int expectedPactetCount(632);
+   int expectedDeltaPackets(221);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushinteger(luaState, expectedPactetCount);
-   RuleEngine::LuaSetPacketCount(luaState);
-   EXPECT_EQ(expectedPactetCount, dpiMsg.packetcount());
+   lua_pushinteger(luaState, expectedDeltaPackets);
+   RuleEngine::LuaSetDeltaPackets(luaState);
+   EXPECT_EQ(expectedDeltaPackets, dpiMsg.deltapackets());
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaSetDeltaTime) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Expect known value when set
+   int expectedDeltaTime(632);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, expectedDeltaTime);
+   RuleEngine::LuaSetDeltaTime(luaState);
+   EXPECT_EQ(expectedDeltaTime, dpiMsg.deltatime());
 }
 
 TEST_F(RuleEngineTest, StaticCallLuaGetStartTime) {
