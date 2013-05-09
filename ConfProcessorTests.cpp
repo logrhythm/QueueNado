@@ -5,7 +5,7 @@
  * Created on September 28, 2012, 3:53 PM
  */
 
-#include "ConfInterface.h"
+#include "ConfNetInterface.h"
 #include "ConfProcessorTests.h"
 #include "ConfMaster.h"
 #include "ConfSlave.h"
@@ -28,20 +28,20 @@ using namespace std;
 using namespace networkMonitor;
 
 TEST_F(ConfProcessorTests, ConfInterfaceInitialize) {
-   ConfInterface conf;
+   ConfNetInterface conf;
    ASSERT_EQ("conf/nm.yaml.Interface", conf.GetPath());
    EXPECT_EQ(0, conf.GetMethod()); //default 
 }
 
 TEST_F(ConfProcessorTests, ConfInterfaceInitializeWithPath) {
-   ConfInterface conf("/tmp/path/does/not/exist.conf");
+   ConfNetInterface conf("/tmp/path/does/not/exist.conf");
    ASSERT_EQ("/tmp/path/does/not/exist.conf", conf.GetPath());
    EXPECT_EQ(0, conf.GetMethod()); //default
    EXPECT_TRUE(conf.GetInterface().empty());
 }
 
 TEST_F(ConfProcessorTests, ConfInterfaceInitializeTestSerialize) {
-   ConfInterface conf(mTestInterfaceConf);
+   ConfNetInterface conf(mTestInterfaceConf);
    EXPECT_EQ("resources/test.yaml.Interface", conf.GetPath());
    EXPECT_EQ("eth0", conf.GetInterface());
    EXPECT_EQ(1, conf.GetMethod());
@@ -54,12 +54,12 @@ TEST_F(ConfProcessorTests, ConfInterfaceInitializeTestSerialize) {
 }
 
 TEST_F(ConfProcessorTests, ConfInterfaceUpdateProto) {
-   ConfInterface conf;
+   ConfNetInterface conf;
 
    EXPECT_EQ(conf.GetMethod(), 0);
 
-   protoMsg::Interface* interface = conf.getProtoMsg();
-   interface->set_method(protoMsg::InterfaceMethod::STATIC);
+   protoMsg::NetInterface* interface = conf.getProtoMsg();
+   interface->set_method(protoMsg::NetInterfaceMethod::STATICIP);
    interface->set_interface("eth1");
    interface->set_ipaddress("24.24.24.24");
    interface->set_name("name");
@@ -68,9 +68,9 @@ TEST_F(ConfProcessorTests, ConfInterfaceUpdateProto) {
    interface->set_netmask("255.255.255.0");
    interface->set_searchdomains("search");
    //create new object with our proto message.
-   ConfInterface updateConf(*interface);
+   ConfNetInterface updateConf(*interface);
 
-   EXPECT_EQ(protoMsg::InterfaceMethod::STATIC, updateConf.GetMethod());
+   EXPECT_EQ(protoMsg::NetInterfaceMethod::STATICIP, updateConf.GetMethod());
    EXPECT_EQ("eth1", updateConf.GetInterface());
    EXPECT_EQ("24.24.24.24", updateConf.GetIpAddress());
    EXPECT_EQ("name", updateConf.GetName());
@@ -79,9 +79,9 @@ TEST_F(ConfProcessorTests, ConfInterfaceUpdateProto) {
    EXPECT_EQ("255.255.255.0", updateConf.GetNetMask());
    EXPECT_EQ("search", updateConf.GetSearchDomains());
 
-   protoMsg::Interface* updateInterface = updateConf.getProtoMsg();
+   protoMsg::NetInterface* updateInterface = updateConf.getProtoMsg();
 
-   EXPECT_EQ(updateInterface->method(), protoMsg::InterfaceMethod::STATIC);
+   EXPECT_EQ(updateInterface->method(), protoMsg::NetInterfaceMethod::STATICIP);
    EXPECT_EQ("eth1", updateInterface->interface());
    EXPECT_EQ("24.24.24.24", updateInterface->ipaddress());
    EXPECT_EQ("name", updateInterface->name());
@@ -409,10 +409,10 @@ TEST_F(ConfProcessorTests, TestReconcileNewConf) {
 TEST_F(ConfProcessorTests, TestReconcileNewInterfaceConf) {
 #ifdef LR_DEBUG
    MockConfMaster master;
-   ConfInterface conf(mTestInterfaceConf);
+   ConfNetInterface conf(mTestInterfaceConf);
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
-   configTypeMessage.set_type(protoMsg::ConfType_Type_INTERFACE);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_NETINTERFACE);
    master.UpdateCachedMessage(conf);
 
    std::string serializedConf = master.SerializeCachedConfig(configTypeMessage);
@@ -422,8 +422,8 @@ TEST_F(ConfProcessorTests, TestReconcileNewInterfaceConf) {
    EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf, message));
    master.Start();
 
-   ConfInterface conf2(mWriteLocation);
-   protoMsg::Interface interfaceMsg;
+   ConfNetInterface conf2(mWriteLocation);
+   protoMsg::NetInterface interfaceMsg;
    EXPECT_TRUE(interfaceMsg.ParseFromString(serializedConf));
    conf2.updateFields(interfaceMsg);
 
@@ -564,7 +564,7 @@ TEST_F(ConfProcessorTests, SyslogMessagePassedBetweenMasterAndSlave) {
 #endif
 }
 
-TEST_F(ConfProcessorTests, InterfaceMessagePassedBetweenMasterAndSlave) {
+TEST_F(ConfProcessorTests, NetInterfaceMessagePassedBetweenMasterAndSlave) {
 #if defined(LR_DEBUG)
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.Stop();
@@ -576,12 +576,12 @@ TEST_F(ConfProcessorTests, InterfaceMessagePassedBetweenMasterAndSlave) {
    testSlave.Start();
    sleep(1);
 
-   EXPECT_FALSE(testSlave.mNewInterfaceMsg);
+   EXPECT_FALSE(testSlave.mNewNetInterfaceMsg);
    protoMsg::ConfType updateType;
-   updateType.set_type(protoMsg::ConfType_Type_INTERFACE);
+   updateType.set_type(protoMsg::ConfType_Type_NETINTERFACE);
    updateType.set_direction(protoMsg::ConfType_Direction_SENDING);
-   protoMsg::Interface confMsg;
-   confMsg.set_method(protoMsg::InterfaceMethod::STATIC);
+   protoMsg::NetInterface confMsg;
+   confMsg.set_method(protoMsg::NetInterfaceMethod::STATICIP);
    confMsg.set_name("WOO");
    confMsg.set_ipaddress("24.24.24.24");
    confMsg.set_dnsservers("servers");
@@ -597,11 +597,11 @@ TEST_F(ConfProcessorTests, InterfaceMessagePassedBetweenMasterAndSlave) {
    EXPECT_TRUE(confSender.BlockForKill(encodedMessage));
    EXPECT_EQ(2, encodedMessage.size());
    int sleepCount = 1;
-   while (!testSlave.mNewInterfaceMsg && sleepCount <= 20) {
+   while (!testSlave.mNewNetInterfaceMsg && sleepCount <= 20) {
       sleep(1);
       sleepCount++;
    }
-   EXPECT_TRUE(testSlave.mNewInterfaceMsg);
+   EXPECT_TRUE(testSlave.mNewNetInterfaceMsg);
    testSlave.Stop();
    confThread.Stop();
 #endif
@@ -783,32 +783,32 @@ TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
    ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
 }
 
-TEST_F(ConfProcessorTests, ProcessInterfaceMsg) {
+TEST_F(ConfProcessorTests, ProcessNetInterfaceMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
 
-   protoMsg::Interface interfaceMsg;
+   protoMsg::NetInterface NetInterfaceMsg;
    std::vector<std::string> shots;
    Conf conf;
    shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(interfaceMsg.SerializeAsString());
+   shots.push_back(NetInterfaceMsg.SerializeAsString());
 
-   ASSERT_FALSE(testSlave.ProcessInterfaceMsg(configTypeMessage, shots));
+   ASSERT_FALSE(testSlave.ProcessNetInterfaceMsg(configTypeMessage, shots));
 
    shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
    shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(interfaceMsg.SerializeAsString());
+   shots.push_back(NetInterfaceMsg.SerializeAsString());
 
-   ASSERT_FALSE(testSlave.ProcessInterfaceMsg(configTypeMessage, shots));
+   ASSERT_FALSE(testSlave.ProcessNetInterfaceMsg(configTypeMessage, shots));
 
    shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
    shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(interfaceMsg.SerializeAsString());
+   shots.push_back(NetInterfaceMsg.SerializeAsString());
 
-   ASSERT_FALSE(testSlave.ProcessInterfaceMsg(configTypeMessage, shots));
+   ASSERT_FALSE(testSlave.ProcessNetInterfaceMsg(configTypeMessage, shots));
 
 }
 
