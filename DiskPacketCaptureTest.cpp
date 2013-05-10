@@ -252,6 +252,10 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
    conf.mPCapCaptureMemoryLimit = 3;
    EXPECT_EQ(3, capture.NewTotalMemory((1024 * 1024)));
    
+   capture.RemoveDataFromRunningPackets("FlowOne");
+   EXPECT_EQ(0, capture.NewTotalMemory(0));
+   EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));  
+   
    makeADir = "rm -rf ";
    makeADir += testDir.str();
    ASSERT_EQ(0, system(makeADir.c_str()));
