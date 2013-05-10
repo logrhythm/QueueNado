@@ -661,6 +661,52 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
    ASSERT_FALSE(exception);
 }
 
+TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth1) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("eth1");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   ncct.setStatFail();
+   bool exception = false;
+   try {
+      ncct.IfcfgInterfaceAllowed();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm2) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("em2");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   ncct.setStatFail();
+   bool exception = false;
+   try {
+      ncct.IfcfgInterfaceAllowed();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth2) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
