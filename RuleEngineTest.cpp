@@ -1766,7 +1766,6 @@ TEST_F(RuleEngineTest, StaticCallLuaGetLatestApplication) {
    
    dpiMsg.set_application_endq_proto_base("tcp|http|google");
 
-   // Value not set, expect 0
    lua_pushlightuserdata(luaState, &dpiMsg);
    RuleEngine::LuaGetLatestApplication(luaState);
    std::string result = lua_tostring(luaState, -1);
