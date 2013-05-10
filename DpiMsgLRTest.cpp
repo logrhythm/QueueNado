@@ -642,3 +642,28 @@ TEST_F(DpiMsgLRTests, GetLastStringFieldsByName) {
    ASSERT_EQ("", lastStr);
 }
 
+
+TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoMultipleProtocols) {
+   DpiMsgLR dm;
+   dm.set_application_endq_proto_base("tcp|http|google");
+   std::string lastStr;
+   lastStr = dm.GetLatestApplicationFromProto();
+   ASSERT_EQ("google", lastStr);
+
+}
+
+TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoSingleProtocol) {
+   DpiMsgLR dm;
+   dm.set_application_endq_proto_base("tcp");
+   std::string lastStr;
+   lastStr = dm.GetLatestApplicationFromProto();
+   ASSERT_EQ("tcp", lastStr);
+}
+
+TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoEmpty) {
+   DpiMsgLR dm;
+   std::string lastStr;
+   lastStr = dm.GetLatestApplicationFromProto();
+   ASSERT_EQ("unknown", lastStr);
+}
+

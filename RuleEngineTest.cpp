@@ -1759,6 +1759,21 @@ TEST_F(RuleEngineTest, StaticCallLuaSetPacketCount) {
    EXPECT_EQ(expectedPactetCount, dpiMsg.packetcount());
 }
 
+TEST_F(RuleEngineTest, StaticCallLuaGetLatestApplication) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   
+   dpiMsg.set_application_endq_proto_base("tcp|http|google");
+
+   // Value not set, expect 0
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetLatestApplication(luaState);
+   std::string result = lua_tostring(luaState, -1);
+   LOG(DEBUG) << "EXP: google got: " << result; 
+   EXPECT_EQ("google", result);
+}
+
 TEST_F(RuleEngineTest, StaticCallLuaGetStartTime) {
    DpiMsgLR dpiMsg;
    lua_State *luaState;
