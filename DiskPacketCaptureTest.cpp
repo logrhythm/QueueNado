@@ -13,6 +13,7 @@ TEST_F(DiskPacketCaptureTest, Construct) {
 }
 
 TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
+#ifdef LR_DEBUG
    MockDiskPacketCapture capture;
    std::pair<InMemoryPacketBuffer*, size_t>* sessionInfo;
    std::pair<InMemoryPacketBuffer*, size_t>* sessionInfo2;
@@ -50,18 +51,22 @@ TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
    // Verify that the code run in the thread gives you a different pointer 
    capture.GetRunningPackets("abc123", sessionInfo);
    ASSERT_NE(sessionInfo->first, futurePacket.get());
+#endif
 }
 
 TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
+   #ifdef LR_DEBUG
    MockDiskPacketCapture capture;
    MockConf conf;
    conf.mPCapCaptureLocation = "testLocation";
    std::time_t time = 123456789;
    std::string fileName = capture.BuildFilename(conf, "TestUUID", "TestAppName", time);
    ASSERT_EQ("testLocation/TestUUID_TestAppName_1973-11-29-14:33:09", fileName);
+#endif
 }
 
 TEST_F(DiskPacketCaptureTest, Initialize) {
+   #ifdef LR_DEBUG
    MockDiskPacketCapture capture;
    MockConf conf;
    conf.mPCapCaptureLocation = "testLocation";
@@ -70,9 +75,11 @@ TEST_F(DiskPacketCaptureTest, Initialize) {
    ASSERT_TRUE(capture.Initialize(conf));
    conf.mPCapCaptureLocation = "/etc/passwd";
    ASSERT_FALSE(capture.Initialize(conf));
+#endif 
 }
 
 TEST_F(DiskPacketCaptureTest, TooMuchPCap) {
+   #ifdef LR_DEBUG
    if (geteuid() == 0) {
       MockDiskPacketCapture capture;
       MockConf conf;
@@ -144,9 +151,11 @@ TEST_F(DiskPacketCaptureTest, TooMuchPCap) {
       ASSERT_EQ(0, system(makeADir.c_str()));
       ASSERT_FALSE(capture.Initialize(conf));
    }
+#endif
 }
 
 TEST_F(DiskPacketCaptureTest, CleanupOldPcapFiles) {
+   #ifdef LR_DEBUG
    if (geteuid() == 0) {
       MockDiskPacketCapture capture;
       MockConf conf;
@@ -201,9 +210,11 @@ TEST_F(DiskPacketCaptureTest, CleanupOldPcapFiles) {
       ASSERT_EQ(0, system(makeADir.c_str()));
       ASSERT_FALSE(capture.Initialize(conf));
    }
+#endif
 }
 
 TEST_F(DiskPacketCaptureTest, MemoryLimits) {
+   #ifdef LR_DEBUG
    MockConf conf;
    MockDiskPacketCapture capture;
    conf.mPCapCaptureLocation = "testLocation";
@@ -260,4 +271,5 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
    makeADir += testDir.str();
    ASSERT_EQ(0, system(makeADir.c_str()));
    ASSERT_FALSE(capture.Initialize(conf));
+#endif
 }
