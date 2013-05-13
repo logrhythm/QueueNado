@@ -661,6 +661,52 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
    ASSERT_FALSE(exception);
 }
 
+TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth1) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("eth1");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   ncct.setStatFail();
+   bool exception = false;
+   try {
+      ncct.IfcfgInterfaceAllowed();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm2) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("em2");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   ncct.setStatFail();
+   bool exception = false;
+   try {
+      ncct.IfcfgInterfaceAllowed();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+}
+
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth2) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
@@ -962,6 +1008,31 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
    ASSERT_EQ( "", processManager->getRunArgs());
 }
 
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_ipaddress("");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddIpAddr();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "", processManager->getRunCommand());
+   ASSERT_EQ( "", processManager->getRunArgs());
+}
+
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
@@ -1025,6 +1096,31 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
    protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddNetmask();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "", processManager->getRunCommand());
+   ASSERT_EQ( "", processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_netmask("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
    bool exception = false;
@@ -1166,6 +1262,31 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
               processManager->getRunArgs());
 }
 
+TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_gateway("");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddGateway();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+   ASSERT_EQ( "", processManager->getRunCommand());
+   ASSERT_EQ( "", processManager->getRunArgs());
+}
+
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
@@ -1216,6 +1337,31 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
    ASSERT_EQ( "/bin/echo", processManager->getRunCommand());
    ASSERT_EQ( "\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
               processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(false);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_dnsservers("");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddDnsServers();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+   ASSERT_EQ( "", processManager->getRunCommand());
+   ASSERT_EQ( "", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
@@ -1372,6 +1518,31 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
    ASSERT_EQ( "/bin/echo", processManager->getRunCommand());
    ASSERT_EQ( "\"DOMAIN=schq.secious.com\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
               processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandAddDomainEmptyString) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_searchdomains("");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddDomain();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+   ASSERT_EQ( "", processManager->getRunCommand());
+   ASSERT_EQ( "", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceDown) {
@@ -1596,6 +1767,88 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
               processManager->getRunArgs());
 }
 
+TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDomainNo) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_dnsservers("");
+   // DNS Server is empty string and no Search Domains set, which causes PEERDNS=no on output
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddPeerDns();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "/bin/echo", processManager->getRunCommand());
+   ASSERT_EQ( "\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
+              processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptyString) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_searchdomains("");
+   // No DNS Server and Search Domains is empty string, which causes PEERDNS=no on output
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddPeerDns();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "/bin/echo", processManager->getRunCommand());
+   ASSERT_EQ( "\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
+              processManager->getRunArgs());
+}
+
+TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStrings) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(1);
+   processManager->SetResult("Failed!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("ethx");
+   interfaceConfig.set_dnsservers("");
+   interfaceConfig.set_searchdomains("");
+   // DNS Server and Search Domains are both empty strings, which causes PEERDNS=no on output
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.AddPeerDns();
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_TRUE(exception);
+   ASSERT_EQ( "/bin/echo", processManager->getRunCommand());
+   ASSERT_EQ( "\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
+              processManager->getRunArgs());
+}
+
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
@@ -1609,6 +1862,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
    interfaceConfig.set_interface("ethx");
    // Set a DNS Servers, which causes PEERDNS=yes on output
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
+   interfaceConfig.set_searchdomains("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
    bool exception = false;

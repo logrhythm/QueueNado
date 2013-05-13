@@ -33,21 +33,25 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
     tDpiMessage.set_application_endq_proto_base("test");
     tDpiMessage.set_application_id_endq_proto_base(1234);
     tDpiMessage.set_sessionlenserver(567);
+    tDpiMessage.set_deltasessionlenserver(567);
     tDpiMessage.set_sessionlenclient(899);
+    tDpiMessage.set_deltasessionlenclient(899);
     tDpiMessage.set_packetcount(88);
+    tDpiMessage.set_deltapackets(88);
     tDpiMessage.set_loginq_proto_aim("aLogin");
-    tDpiMessage.set_domainq_proto_smb("aDomain");
+    tDpiMessage.set_domainq_proto_smb("aDomain123456789012345");
     tDpiMessage.set_uri_fullq_proto_http("this/url.htm");
     tDpiMessage.set_uriq_proto_http("not/this/one");
-    tDpiMessage.set_serverq_proto_http("thisname");
+    tDpiMessage.set_serverq_proto_http("thisname123456789012345");
     tDpiMessage.set_referer_serverq_proto_http("notThisOne");
-    tDpiMessage.set_methodq_proto_ftp("TEST|COMMAND|LONGLONGLONGLONG");
-    tDpiMessage.set_senderq_proto_smtp("test1");
-    tDpiMessage.set_receiverq_proto_smtp("test2");
-    tDpiMessage.set_subjectq_proto_smtp("test3");
+    tDpiMessage.set_methodq_proto_ftp("TEST|COMMAND|LONGLONGLONGLONGLONGLONGLONGLONG");
+    tDpiMessage.set_senderq_proto_smtp("test1123456789012345");
+    tDpiMessage.set_receiverq_proto_smtp("test2123456789012345");
+    tDpiMessage.set_subjectq_proto_smtp("test3123456789012345");
     tDpiMessage.set_versionq_proto_http("4.0");
     tDpiMessage.set_starttime(123);
     tDpiMessage.set_endtime(456);
+    tDpiMessage.set_deltatime(333);
     dm.SetMaxSize(512 + 8 + 36 + 4);
     messages = dm.GetSiemSyslogMessage(tDpiMessage);
     //   for (int i = 0; i < messages.size(); i++) {
@@ -55,11 +59,11 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
     //   }
     ASSERT_EQ(1, messages.size());
     std::string expectedEvent = "EVT:001 550e8400-e29b-41d4-a716-446655440000:";
-    std::string expectedHeader = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,899,567,88,123,456";
-    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,,,,123,456";
+    std::string expectedHeader = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,899/899,567/567,88/88,123,456,333/333";
+    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,/,/,/,123,456,/";
     std::string expected;
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeader, 0);
-    expected += ",login=aLogin,domain=aDomain,dname=thisname,url=this/url.htm,command=TEST|COMMAND|LONGLONGLONGLONG,sender=test1,recipient=test2,subject=test3,version=4.0";
+    expected += ",login=aLogin,domain=aDomain123456789012345,dname=thisname123456789012345,url=this/url.htm,command=TEST|COMMAND|LONGLONGLONGLONGLONGLONGLONGLONG,sender=test1123456789012345,recipient=test2123456789012345,subject=test3123456789012345,version=4.0";
     EXPECT_EQ(expected, messages[0]);
     expected = "EVT:002 " + expectedHeader;
     expected += "";
@@ -67,7 +71,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
 
 
     messages.clear();
-    dm.SetMaxSize(108 + 8 + 36 + 4 + 1 - 5);
+    dm.SetMaxSize(171); // Number of chars in SIEM static data, plus first field ",login=aLogin"
     messages = dm.GetSiemSyslogMessage(tDpiMessage);
     //   for (int i = 0; i < messages.size(); i++) {
     //      std::cout << messages[i] << std::endl;
@@ -78,10 +82,10 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
     expected += ",login=aLogin";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
-    expected += ",domain=aDomain";
+    expected += ",domain=aDomain123456789012345";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
-    expected += ",dname=thisname";
+    expected += ",dname=thisname123456789012345";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
     expected += ",url=this/url.htm";
@@ -90,19 +94,19 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
     expected += ",command=TEST|COMMAND";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
-    expected += ",command=LONGLONGLONG";
+    expected += ",command=LONGLONGLONGLONGLONGLONGLO";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
-    expected += ",command=LONG";
+    expected += ",command=NGLONG";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
-    expected += ",sender=test1";
+    expected += ",sender=test1123456789012345";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
-    expected += ",recipient=test2";
+    expected += ",recipient=test2123456789012345";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
-    expected += ",subject=test3";
+    expected += ",subject=test3123456789012345";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
     expected += ",version=4.0";
@@ -361,7 +365,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
         ASSERT_EQ(1, sysLogOutput.size());
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,456"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789/6789,12345/12345,99/99,123,456,333/333"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("login=aLogin"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("domain=aDomain"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("url=this/url.htm"));
@@ -481,8 +485,19 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
         msg.GetBuffer(dataToSend);
         sendQueue.SendData(dataToSend);
 
-        msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
+        msg.set_sessionlenserver(23456); // delta = 11111
+        msg.set_sessionlenclient(7900); // delta = 1111
+        msg.set_packetcount(210); // delta = 111
         msg.set_endtime(567); // delta = 111
+        dataToSend.clear();
+        msg.GetBuffer(dataToSend);
+        sendQueue.SendData(dataToSend);
+
+        msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
+        msg.set_sessionlenserver(45678); // delta = 22222
+        msg.set_sessionlenclient(10122); // delta = 2222
+        msg.set_packetcount(432); // delta = 222
+        msg.set_endtime(789); // delta = 222
         dataToSend.clear();
         msg.GetBuffer(dataToSend);
         sendQueue.SendData(dataToSend);
@@ -495,14 +510,16 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
 
         //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
         // Did the data show up in the syslog output
-        ASSERT_EQ(2, sysLogOutput.size());
+        ASSERT_EQ(3, sysLogOutput.size());
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:004 "));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,456,333"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789/6789,12345/12345,99/99,123,456,333/333"));
         EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:004 "));
         EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuid));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,567,111"));
-
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,1111/7900,11111/23456,111/210,123,567,111/444"));
+        EXPECT_NE(std::string::npos, sysLogOutput[2].find("EVT:004 "));
+        EXPECT_NE(std::string::npos, sysLogOutput[2].find(testUuid));
+        EXPECT_NE(std::string::npos, sysLogOutput[2].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,2222/10122,22222/45678,222/432,123,789,222/666"));
         dpiSyslog.join();
     }
 #endif
@@ -747,7 +764,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         testUuidWithNumber += ":00";
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuidWithNumber));
-        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,67890,12345,99,123,456"));
+        EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,67890/67890,12345/12345,99/99,123,456,333/333"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("login=aLogin"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("domain=aDomain"));
         EXPECT_NE(std::string::npos, sysLogOutput[0].find("url=this/url.htm"));
@@ -766,7 +783,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         testUuidWithNumber += ":01";
         EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:002 "));
         EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuidWithNumber));
-        EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,67890,12345,99,123,456"));
+        EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,67890/67890,12345/12345,99/99,123,456,333/333"));
         EXPECT_EQ(std::string::npos, sysLogOutput[1].find("EndTime=456"));
         EXPECT_NE(std::string::npos, sysLogOutput[1].find("applicationEnd=wrong|dummy"));
         EXPECT_NE(std::string::npos, sysLogOutput[1].find("applicationIdEnd=13"));
@@ -978,21 +995,25 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
     tDpiMessage.set_application_endq_proto_base("test");
     tDpiMessage.set_application_id_endq_proto_base(1234);
     tDpiMessage.set_sessionlenserver(567);
+    tDpiMessage.set_deltasessionlenserver(567);
     tDpiMessage.set_sessionlenclient(89);
+    tDpiMessage.set_deltasessionlenclient(89);
     tDpiMessage.set_packetcount(88);
+    tDpiMessage.set_deltapackets(88);
     tDpiMessage.set_loginq_proto_aim("aLogin");
-    tDpiMessage.set_domainq_proto_smb("aDomain");
+    tDpiMessage.set_domainq_proto_smb("aDomain123456789012345");
     tDpiMessage.set_uri_fullq_proto_http("this/url.htm");
     tDpiMessage.set_uriq_proto_http("not/this/one");
-    tDpiMessage.set_serverq_proto_http("thisname");
+    tDpiMessage.set_serverq_proto_http("thisname123456789012345");
     tDpiMessage.set_referer_serverq_proto_http("notThisOne");
-    tDpiMessage.set_methodq_proto_ftp("TEST|COMMAND|LONGLONGLONGLONG");
-    tDpiMessage.set_senderq_proto_smtp("test1");
-    tDpiMessage.set_receiverq_proto_smtp("test2");
-    tDpiMessage.set_subjectq_proto_smtp("test3");
+    tDpiMessage.set_methodq_proto_ftp("TEST|COMMAND|LONGLONGLONGLONGLONGLONGLONGLONG");
+    tDpiMessage.set_senderq_proto_smtp("test1123456789012345");
+    tDpiMessage.set_receiverq_proto_smtp("test2123456789012345");
+    tDpiMessage.set_subjectq_proto_smtp("test3123456789012345");
     tDpiMessage.set_versionq_proto_http("4.0");
     tDpiMessage.set_starttime(123);
     tDpiMessage.set_endtime(456);
+    tDpiMessage.set_deltatime(333);
     dm.SetMaxSize(512 + 8 + 36 + 4);
     messages = dm.GetSiemSyslogMessage(tDpiMessage);
     //   for (int i = 0; i < messages.size(); i++) {
@@ -1000,15 +1021,15 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
     //   }
     ASSERT_EQ(1, messages.size());
     std::string expectedHeader = "EVT:001 550e8400-e29b-41d4-a716-446655440000:";
-    std::string expectedHeader2 = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,89,567,88,123,456";
-    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,,,,123,456";
+    std::string expectedHeader2 = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,89/89,567/567,88/88,123,456,333/333";
+    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,/,/,/,123,456,/";
     std::string expected;
 
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeader2, 0);
-    expected += ",login=aLogin,domain=aDomain,dname=thisname,url=this/url.htm,command=TEST|COMMAND|LONGLONGLONGLONG,sender=test1,recipient=test2,subject=test3,version=4.0";
+    expected += ",login=aLogin,domain=aDomain123456789012345,dname=thisname123456789012345,url=this/url.htm,command=TEST|COMMAND|LONGLONGLONGLONGLONGLONGLONGLONG,sender=test1123456789012345,recipient=test2123456789012345,subject=test3123456789012345,version=4.0";
     EXPECT_EQ(expected, messages[0]);
     messages.clear();
-    dm.SetMaxSize(108 + 8 + 36 + 4 + 1 - 5);
+    dm.SetMaxSize(169); // Number of chars in SIEM static data, plus first field ",login=aLogin"
     messages = dm.GetSiemSyslogMessage(tDpiMessage);
     //   for (int i = 0; i < messages.size(); i++) {
     //      std::cout << messages[i] << std::endl;
@@ -1020,10 +1041,10 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
     expected += ",login=aLogin";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeaderNoCounts, index);
-    expected += ",domain=aDomain";
+    expected += ",domain=aDomain123456789012345";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeaderNoCounts, index);
-    expected += ",dname=thisname";
+    expected += ",dname=thisname123456789012345";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeaderNoCounts, index);
     expected += ",url=this/url.htm";
@@ -1032,19 +1053,19 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
     expected += ",command=TEST|COMMAND";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeaderNoCounts, index);
-    expected += ",command=LONGLONGLONG";
+    expected += ",command=LONGLONGLONGLONGLONGLONG";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeaderNoCounts, index);
-    expected += ",command=LONG";
+    expected += ",command=LONGLONG";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeaderNoCounts, index);
-    expected += ",sender=test1";
+    expected += ",sender=test1123456789012345";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeaderNoCounts, index);
-    expected += ",recipient=test2";
+    expected += ",recipient=test2123456789012345";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeaderNoCounts, index);
-    expected += ",subject=test3";
+    expected += ",subject=test3123456789012345";
     EXPECT_EQ(expected, messages[index++]);
     expected = BuildExpectedHeaderForSiem(expectedHeader, expectedHeaderNoCounts, index);
     expected += ",version=4.0";
@@ -1153,33 +1174,46 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
             syslogFacility, syslogPriority, true, 0);
     IndexedFieldPairs results;
     dm.GetSiemRequiredFieldPairs(tDpiMessage, results);
-    ASSERT_EQ(14, results.size());
-    EXPECT_EQ("sip", results[2].first);
-    EXPECT_EQ("dip", results[3].first);
-    EXPECT_EQ("sport", results[4].first);
-    EXPECT_EQ("dport", results[5].first);
-    EXPECT_EQ("smac", results[6].first);
-    EXPECT_EQ("dmac", results[8].first);
-    EXPECT_EQ("protnum", results[9].first);
-    EXPECT_EQ("process", results[10].first);
-    EXPECT_EQ("bytesin", results[11].first);
-    EXPECT_EQ("bytesout", results[12].first);
-    EXPECT_EQ("packetsin", results[13].first);
-    EXPECT_EQ("timestart", results[14].first);
-    EXPECT_EQ("timeend", results[15].first);
+    ASSERT_EQ(19, results.size());
+    EXPECT_EQ("UUID", results[SIEM_FIELD_UUID].first);
+    EXPECT_EQ("sip", results[SIEM_FIELD_SIP].first);
+    EXPECT_EQ("dip", results[SIEM_FIELD_DIP].first);
+    EXPECT_EQ("sport", results[SIEM_FIELD_SPORT].first);
+    EXPECT_EQ("dport", results[SIEM_FIELD_DPORT].first);
+    EXPECT_EQ("smac", results[SIEM_FIELD_SMAC].first);
+    EXPECT_EQ("dmac", results[SIEM_FIELD_DMAC].first);
+    EXPECT_EQ("protnum", results[SIEM_FIELD_PROTONUM].first);
+    EXPECT_EQ("process", results[SIEM_FIELD_PROCESS].first);
+    EXPECT_EQ("bytesin", results[SIEM_FIELD_BYTES_IN].first);
+    EXPECT_EQ("deltabytesin", results[SIEM_FIELD_DELTA_BYTES_IN].first);
+    EXPECT_EQ("bytesout", results[SIEM_FIELD_BYTES_OUT].first);
+    EXPECT_EQ("deltabytesout", results[SIEM_FIELD_DELTA_BYTES_OUT ].first);
+    EXPECT_EQ("packetsin", results[SIEM_FIELD_PACKETS_IN].first);
+    EXPECT_EQ("deltapacketsin", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
+    EXPECT_EQ("timestart", results[SIEM_FIELD_TIME_START].first);
+    EXPECT_EQ("timeend", results[SIEM_FIELD_TIME_END].first);
+    EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
+    EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
 
-    EXPECT_EQ("0.0.0.0", results[2].second);
-    EXPECT_EQ("0.0.0.0", results[3].second);
-    EXPECT_EQ("0", results[4].second);
-    EXPECT_EQ("0", results[5].second);
-    EXPECT_EQ("00:00:00:00:00:00", results[6].second);
-    EXPECT_EQ("00:00:00:00:00:00", results[8].second);
-    EXPECT_EQ("0", results[9].second);
-    EXPECT_EQ("unknown", results[10].second);
-    EXPECT_EQ("0", results[11].second);
-    EXPECT_EQ("0", results[12].second);
-    EXPECT_EQ("0", results[13].second);
+    EXPECT_EQ(UNKNOWN_UUID, results[SIEM_FIELD_UUID].second);
+    EXPECT_EQ("0.0.0.0", results[SIEM_FIELD_SIP].second);
+    EXPECT_EQ("0.0.0.0", results[SIEM_FIELD_DIP].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_SPORT].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_DPORT].second);
+    EXPECT_EQ("00:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
+    EXPECT_EQ("00:00:00:00:00:00", results[SIEM_FIELD_DMAC].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_PROTONUM].second);
+    EXPECT_EQ("unknown", results[SIEM_FIELD_PROCESS].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_BYTES_IN].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_DELTA_BYTES_IN].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_BYTES_OUT].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_DELTA_BYTES_OUT].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_PACKETS_IN].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_DELTA_PACKETS_IN].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_TIME_DELTA].second);
+    EXPECT_EQ("0", results[SIEM_FIELD_TIME_TOTAL].second);
 
+    tDpiMessage.set_uuid("550e8400-e29b-41d4-a716-446655440000");
     tDpiMessage.set_ethdst(123);
     tDpiMessage.set_ethsrc(124);
     tDpiMessage.set_ipdst(125);
@@ -1190,40 +1224,56 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
     tDpiMessage.set_application_endq_proto_base("test");
     tDpiMessage.set_application_id_endq_proto_base(1234);
     tDpiMessage.set_sessionlenserver(567);
+    tDpiMessage.set_deltasessionlenserver(456);
     tDpiMessage.set_sessionlenclient(89);
+    tDpiMessage.set_deltasessionlenclient(78);
     tDpiMessage.set_packetcount(88);
+    tDpiMessage.set_deltapackets(44);
     tDpiMessage.set_loginq_proto_0zz0("dontSeeMee");
     tDpiMessage.set_starttime(1234);
     tDpiMessage.set_endtime(5678);
+    tDpiMessage.set_deltatime(4444);
     dm.GetSiemRequiredFieldPairs(tDpiMessage, results);
-    ASSERT_EQ(14, results.size());
-    EXPECT_EQ("sip", results[2].first);
-    EXPECT_EQ("dip", results[3].first);
-    EXPECT_EQ("sport", results[4].first);
-    EXPECT_EQ("dport", results[5].first);
-    EXPECT_EQ("smac", results[6].first);
-    EXPECT_EQ("dmac", results[8].first);
-    EXPECT_EQ("protnum", results[9].first);
-    EXPECT_EQ("process", results[10].first);
-    EXPECT_EQ("bytesin", results[11].first);
-    EXPECT_EQ("bytesout", results[12].first);
-    EXPECT_EQ("packetsin", results[13].first);
-    EXPECT_EQ("timestart", results[14].first);
-    EXPECT_EQ("timeend", results[15].first);
+    ASSERT_EQ(19, results.size());
+    EXPECT_EQ("UUID", results[SIEM_FIELD_UUID].first);
+    EXPECT_EQ("sip", results[SIEM_FIELD_SIP].first);
+    EXPECT_EQ("dip", results[SIEM_FIELD_DIP].first);
+    EXPECT_EQ("sport", results[SIEM_FIELD_SPORT].first);
+    EXPECT_EQ("dport", results[SIEM_FIELD_DPORT].first);
+    EXPECT_EQ("smac", results[SIEM_FIELD_SMAC].first);
+    EXPECT_EQ("dmac", results[SIEM_FIELD_DMAC].first);
+    EXPECT_EQ("protnum", results[SIEM_FIELD_PROTONUM].first);
+    EXPECT_EQ("process", results[SIEM_FIELD_PROCESS].first);
+    EXPECT_EQ("bytesin", results[SIEM_FIELD_BYTES_IN].first);
+    EXPECT_EQ("deltabytesin", results[SIEM_FIELD_DELTA_BYTES_IN].first);
+    EXPECT_EQ("bytesout", results[SIEM_FIELD_BYTES_OUT].first);
+    EXPECT_EQ("deltabytesout", results[SIEM_FIELD_DELTA_BYTES_OUT ].first);
+    EXPECT_EQ("packetsin", results[SIEM_FIELD_PACKETS_IN].first);
+    EXPECT_EQ("deltapacketsin", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
+    EXPECT_EQ("timestart", results[SIEM_FIELD_TIME_START].first);
+    EXPECT_EQ("timeend", results[SIEM_FIELD_TIME_END].first);
+    EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
+    EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
     EXPECT_EQ("126.0.0.0", results[2].second);
-    EXPECT_EQ("125.0.0.0", results[3].second);
-    EXPECT_EQ("127", results[4].second);
-    EXPECT_EQ("128", results[5].second);
-    EXPECT_EQ("7c:00:00:00:00:00", results[6].second);
-    EXPECT_EQ("7b:00:00:00:00:00", results[8].second);
-    EXPECT_EQ("129", results[9].second);
-    EXPECT_EQ("test", results[10].second);
-    EXPECT_EQ("89", results[11].second);
-    EXPECT_EQ("567", results[12].second);
-    EXPECT_EQ("88", results[13].second);
-    EXPECT_EQ("1234", results[14].second);
-    EXPECT_EQ("5678", results[15].second);
-
+    EXPECT_EQ("125.0.0.0", results[SIEM_FIELD_DIP].second);
+    EXPECT_EQ("127", results[SIEM_FIELD_SPORT].second);
+    EXPECT_EQ("128", results[SIEM_FIELD_DPORT].second);
+    EXPECT_EQ("550e8400-e29b-41d4-a716-446655440000", results[SIEM_FIELD_UUID].second);
+    EXPECT_EQ("7c:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
+    EXPECT_EQ("7c:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
+    EXPECT_EQ("7b:00:00:00:00:00", results[SIEM_FIELD_DMAC].second);
+    EXPECT_EQ("129", results[SIEM_FIELD_PROTONUM].second);
+    EXPECT_EQ("test", results[SIEM_FIELD_PROCESS].second);
+    EXPECT_EQ("89", results[SIEM_FIELD_BYTES_IN].second);
+    EXPECT_EQ("78", results[SIEM_FIELD_DELTA_BYTES_IN].second);
+    EXPECT_EQ("567", results[SIEM_FIELD_BYTES_OUT].second);
+    EXPECT_EQ("456", results[SIEM_FIELD_DELTA_BYTES_OUT].second);
+    EXPECT_EQ("88", results[SIEM_FIELD_PACKETS_IN].second);
+    EXPECT_EQ("44", results[SIEM_FIELD_DELTA_PACKETS_IN].second);
+    EXPECT_EQ("1234", results[SIEM_FIELD_TIME_START].second);
+    EXPECT_EQ("5678", results[SIEM_FIELD_TIME_END].second);
+    EXPECT_EQ("4444", results[SIEM_FIELD_TIME_DELTA].second);
+    EXPECT_EQ("4444", results[SIEM_FIELD_TIME_TOTAL].second);
 #endif
 }
 
@@ -1746,17 +1796,79 @@ TEST_F(RuleEngineTest, StaticCallLuaGetPacketCount) {
    EXPECT_EQ(expectedPactetCount, lua_tointeger(luaState, -1));
 }
 
-TEST_F(RuleEngineTest, StaticCallLuaSetPacketCount) {
+TEST_F(RuleEngineTest, StaticCallLuaSetDeltaPackets) {
    DpiMsgLR dpiMsg;
    lua_State *luaState;
    luaState = luaL_newstate();
 
    // Expect known value when set
-   int expectedPactetCount(632);
+   int expectedDeltaPackets(221);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushinteger(luaState, expectedPactetCount);
-   RuleEngine::LuaSetPacketCount(luaState);
-   EXPECT_EQ(expectedPactetCount, dpiMsg.packetcount());
+   lua_pushinteger(luaState, expectedDeltaPackets);
+   RuleEngine::LuaSetDeltaPackets(luaState);
+   EXPECT_EQ(expectedDeltaPackets, dpiMsg.deltapackets());
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaGetSessionLenServer) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, expect 0
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetSessionLenServer(luaState);
+   EXPECT_EQ(0, lua_tointeger(luaState, -1));
+
+   // Expect known value when set
+   int expectedSessionLenServer(99425);
+   dpiMsg.set_sessionlenserver(expectedSessionLenServer);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetSessionLenServer(luaState);
+   EXPECT_EQ(expectedSessionLenServer, lua_tointeger(luaState, -1));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaSetDeltaSessionLenServer) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Expect known value when set
+   int expectedDeltaSessionLenServer(10254);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, expectedDeltaSessionLenServer);
+   RuleEngine::LuaSetDeltaSessionLenServer(luaState);
+   EXPECT_EQ(expectedDeltaSessionLenServer, dpiMsg.deltasessionlenserver());
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaGetSessionLenClient) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, expect 0
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetSessionLenClient(luaState);
+   EXPECT_EQ(0, lua_tointeger(luaState, -1));
+
+   // Expect known value when set
+   int expectedSessionLenClient(21553);
+   dpiMsg.set_sessionlenclient(expectedSessionLenClient);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetSessionLenClient(luaState);
+   EXPECT_EQ(expectedSessionLenClient, lua_tointeger(luaState, -1));
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaSetDeltaSessionLenClient) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Expect known value when set
+   int expectedDeltaSessionLenClient(4521);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, expectedDeltaSessionLenClient);
+   RuleEngine::LuaSetDeltaSessionLenClient(luaState);
+   EXPECT_EQ(expectedDeltaSessionLenClient, dpiMsg.deltasessionlenclient());
 }
 
 TEST_F(RuleEngineTest, StaticCallLuaGetLatestApplication) {
@@ -1809,8 +1921,21 @@ TEST_F(RuleEngineTest, StaticCallLuaGetEndTime) {
    EXPECT_EQ(expectedEndTime, lua_tointeger(luaState, -1));
 }
 
-TEST_F(RuleEngineTest, StaticCallLuaSendInterFlow) {
+TEST_F(RuleEngineTest, StaticCallLuaSetDeltaTime) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
 
+   // Expect known value when set
+   int expectedDeltaTime(632);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, expectedDeltaTime);
+   RuleEngine::LuaSetDeltaTime(luaState);
+   EXPECT_EQ(expectedDeltaTime, dpiMsg.deltatime());
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaSendInterFlow) {
+#ifdef LR_DEBUG
    MockRuleEngine mRuleEngine(conf, syslogName, syslogOption,
          syslogFacility, syslogPriority, true, 0);
    mRuleEngine.mSiemMode = true;
@@ -1882,25 +2007,44 @@ TEST_F(RuleEngineTest, StaticCallLuaSendInterFlow) {
    dpiMsg.set_directoryq_proto_smb("aPath");
    dpiMsg.set_starttime(123);
    dpiMsg.set_endtime(456);
+   dpiMsg.set_deltatime(222);
+   dpiMsg.set_deltasessionlenclient( 567 );
+   dpiMsg.set_deltasessionlenserver( 234 );
+   dpiMsg.set_deltapackets( 33 );
    dpiMsg.set_sessionidq_proto_ymsg(2345);
 
    lua_State *luaState;
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushlightuserdata(luaState, &mRuleEngine);
-   lua_pushinteger(luaState, 333);
+   RuleEngine::LuaSendInterFlow(luaState);
+
+   dpiMsg.set_endtime(567);
+   dpiMsg.set_sessionlenserver(23456);
+   dpiMsg.set_sessionlenclient(7890);
+   dpiMsg.set_packetcount(124);
+   dpiMsg.set_deltatime(111); // 567 - 456
+   dpiMsg.set_deltasessionlenclient( 1101 ); // 7890 - 6789
+   dpiMsg.set_deltasessionlenserver( 11111 ); // 23456 - 12345
+   dpiMsg.set_deltapackets( 25 ); // 124 - 99
+
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushlightuserdata(luaState, &mRuleEngine);
    RuleEngine::LuaSendInterFlow(luaState);
 
    //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
    // Did the data show up in the syslog output
-   ASSERT_EQ(1, sysLogOutput.size());
+   ASSERT_EQ(2, sysLogOutput.size());
    EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:004 "));
    EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,456,333"));
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,567/6789,234/12345,33/99,123,456,222/333"));
+   EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,1101/7890,11111/23456,25/124,123,567,111/444"));
+#endif
 }
 
 TEST_F(RuleEngineTest, StaticCallLuaSendFinalFlow) {
-
+#ifdef LR_DEBUG
    MockRuleEngine mRuleEngine(conf, syslogName, syslogOption,
          syslogFacility, syslogPriority, true, 0);
    mRuleEngine.mSiemMode = true;
@@ -1954,8 +2098,11 @@ TEST_F(RuleEngineTest, StaticCallLuaSendFinalFlow) {
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.set_application_endq_proto_base("wrong|dummy");
    dpiMsg.set_sessionlenserver(12345);
+   dpiMsg.set_deltasessionlenserver( 12345 );
    dpiMsg.set_sessionlenclient(6789);
+   dpiMsg.set_deltasessionlenclient( 6789 );
    dpiMsg.set_packetcount(99);
+   dpiMsg.set_deltapackets( 99 );
    dpiMsg.set_loginq_proto_aim("aLogin");
    dpiMsg.set_domainq_proto_smb("aDomain");
    dpiMsg.set_uri_fullq_proto_http("this/url.htm");
@@ -1972,6 +2119,7 @@ TEST_F(RuleEngineTest, StaticCallLuaSendFinalFlow) {
    dpiMsg.set_directoryq_proto_smb("aPath");
    dpiMsg.set_starttime(123);
    dpiMsg.set_endtime(456);
+   dpiMsg.set_deltatime(333);
    dpiMsg.set_sessionidq_proto_ymsg(2345);
 
    lua_State *luaState;
@@ -1985,5 +2133,6 @@ TEST_F(RuleEngineTest, StaticCallLuaSendFinalFlow) {
    ASSERT_EQ(1, sysLogOutput.size());
    EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
    EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789,12345,99,123,456"));
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789/6789,12345/12345,99/99,123,456,333/333"));
+#endif
 }
