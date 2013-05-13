@@ -6,7 +6,7 @@
 class MockDiskPacketCapture : public DiskPacketCapture {
 public:
 
-   MockDiskPacketCapture() : DiskPacketCapture() {
+   MockDiskPacketCapture(Conf& conf) : DiskPacketCapture(conf) {
    }
 
    virtual ~MockDiskPacketCapture() {
@@ -16,21 +16,21 @@ public:
       DiskPacketCapture::GetRunningPackets(uuid,sessionInfo);
    }
 
-   void RemoveOldestPCapFile(Conf& conf) {
-      DiskPacketCapture::RemoveOldestPCapFile(conf);
+   void RemoveOldestPCapFile() {
+      DiskPacketCapture::RemoveOldestPCapFile();
    }
 
    void RemoveFromRunningPackets(const std::string& uuid) {
       DiskPacketCapture::RemoveFromRunningPackets(uuid);
    }
 
-   bool TooMuchPCap(Conf& conf) {
-      return DiskPacketCapture::TooMuchPCap(conf);
+   bool TooMuchPCap() {
+      return DiskPacketCapture::TooMuchPCap();
    }
 
-   std::string BuildFilename(Conf& conf, const std::string& uuid,
+   std::string BuildFilename( const std::string& uuid,
            const std::string& appName, const std::time_t time) {
-      return DiskPacketCapture::BuildFilename(conf, uuid, appName, time);
+      return DiskPacketCapture::BuildFilename( uuid, appName, time);
    }
 
    int NewTotalMemory(const size_t memoryAddedIfSaved) {
@@ -40,8 +40,8 @@ public:
    int CurrentMemoryForFlow(const std::string& uuid) {
       return DiskPacketCapture::CurrentMemoryForFlow(uuid);
    }
-   void RecalculateDiskUsed(Conf& conf) {
-      DiskPacketCapture::RecalculateDiskUsed(conf);
+   void RecalculateDiskUsed() {
+      DiskPacketCapture::RecalculateDiskUsed();
    }
 };
 
