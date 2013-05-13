@@ -40,5 +40,8 @@ public:
    int CurrentMemoryForFlow(const std::string& uuid) {
       return DiskPacketCapture::CurrentMemoryForFlow(uuid);
    }
+   void RecalculateDiskUsed(Conf& conf) {
+      DiskPacketCapture::RecalculateDiskUsed(conf);
+   }
 };
 

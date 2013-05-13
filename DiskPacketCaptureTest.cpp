@@ -15,6 +15,19 @@ TEST_F(DiskPacketCaptureTest, Construct) {
 TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
 #ifdef LR_DEBUG
    MockDiskPacketCapture capture;
+   MockConf conf;
+   std::stringstream testDir;
+   testDir << "/tmp/TooMuchPcap." << pthread_self();
+
+   conf.mPCapCaptureLocation = testDir.str();
+
+   std::string makeADir = "mkdir -p ";
+   makeADir += testDir.str();
+
+   ASSERT_EQ(0, system(makeADir.c_str()));
+   conf.mPCapCaptureFileLimit = 10000;
+   conf.mPCapCaptureSizeLimit = 10000;
+   ASSERT_TRUE(capture.Initialize(conf));
    std::pair<InMemoryPacketBuffer*, size_t>* sessionInfo;
    std::pair<InMemoryPacketBuffer*, size_t>* sessionInfo2;
    capture.GetRunningPackets("abc123", sessionInfo);
@@ -24,10 +37,10 @@ TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
    ASSERT_NE(sessionInfo, sessionInfo2);
 
    //A promise object that can be used for sharing a variable between threads
-   std::promise<InMemoryPacketBuffer* > promisedPacket;
+   std::promise<std::pair<InMemoryPacketBuffer*, size_t>* > promisedPacket;
 
    // A future variable that reads from the promise, allows you to wait on the other thread
-   std::future<InMemoryPacketBuffer*> futurePacket = promisedPacket.get_future();
+   std::future<std::pair<InMemoryPacketBuffer*, size_t>* > futurePacket = promisedPacket.get_future();
 
    // A thread that does a call to the capture object, stores the result in the promise.
    //
@@ -39,23 +52,28 @@ TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
    // the arguments to be references rather than pointers in this context.  
    //
    // Finally the .detach() breaks the thread off to execute in the background
-   std::thread([](std::promise<InMemoryPacketBuffer* >& pointer,
+   std::thread([](std::promise<std::pair<InMemoryPacketBuffer*, size_t>* >& pointer,
            MockDiskPacketCapture & capture) {
       std::pair<InMemoryPacketBuffer*, size_t>* sessionInfo3;
       capture.GetRunningPackets("abc123", sessionInfo3);
-              pointer.set_value(sessionInfo3->first); }, std::ref(promisedPacket), std::ref(capture)).detach();
+              pointer.set_value(sessionInfo3); }, std::ref(promisedPacket), std::ref(capture)).detach();
 
    // Wait for the thread to set the promise object to a new value
    futurePacket.wait();
 
    // Verify that the code run in the thread gives you a different pointer 
    capture.GetRunningPackets("abc123", sessionInfo);
-   ASSERT_NE(sessionInfo->first, futurePacket.get());
+   std::pair<InMemoryPacketBuffer*, size_t>* otherRunningPacket = futurePacket.get();
+   EXPECT_NE(sessionInfo, otherRunningPacket);
+   makeADir = "";
+   makeADir = "rm -rf ";
+   makeADir += testDir.str();
+   ASSERT_EQ(0, system(makeADir.c_str()));
 #endif
 }
 
 TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
-   #ifdef LR_DEBUG
+#ifdef LR_DEBUG
    MockDiskPacketCapture capture;
    MockConf conf;
    conf.mPCapCaptureLocation = "testLocation";
@@ -66,20 +84,30 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
 }
 
 TEST_F(DiskPacketCaptureTest, Initialize) {
-   #ifdef LR_DEBUG
+#ifdef LR_DEBUG
    MockDiskPacketCapture capture;
    MockConf conf;
+   std::stringstream testDir;
+   testDir << "/tmp/TooMuchPcap." << pthread_self();
+
+   std::string makeADir = "mkdir -p ";
+   makeADir += testDir.str();
+   ASSERT_EQ(0, system(makeADir.c_str()));
    conf.mPCapCaptureLocation = "testLocation";
    ASSERT_FALSE(capture.Initialize(conf));
-   conf.mPCapCaptureLocation = "/tmp";
+   conf.mPCapCaptureLocation = testDir.str();
    ASSERT_TRUE(capture.Initialize(conf));
    conf.mPCapCaptureLocation = "/etc/passwd";
    ASSERT_FALSE(capture.Initialize(conf));
+   makeADir = "";
+   makeADir = "rm -rf ";
+   makeADir += testDir.str();
+   ASSERT_EQ(0, system(makeADir.c_str()));
 #endif 
 }
 
 TEST_F(DiskPacketCaptureTest, TooMuchPCap) {
-   #ifdef LR_DEBUG
+#ifdef LR_DEBUG
    if (geteuid() == 0) {
       MockDiskPacketCapture capture;
       MockConf conf;
@@ -114,6 +142,7 @@ TEST_F(DiskPacketCaptureTest, TooMuchPCap) {
       makeSmallFile += "/smallFile";
 
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
+      capture.RecalculateDiskUsed(conf);
       EXPECT_TRUE(capture.TooMuchPCap(conf));
       conf.mPCapCaptureFileLimit = 10;
       EXPECT_FALSE(capture.TooMuchPCap(conf));
@@ -123,6 +152,7 @@ TEST_F(DiskPacketCaptureTest, TooMuchPCap) {
 
 
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
+      capture.RecalculateDiskUsed(conf);
       EXPECT_TRUE(capture.TooMuchPCap(conf));
       conf.mPCapCaptureSizeLimit = 2;
       EXPECT_FALSE(capture.TooMuchPCap(conf));
@@ -130,6 +160,7 @@ TEST_F(DiskPacketCaptureTest, TooMuchPCap) {
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFilelessone";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
+      capture.RecalculateDiskUsed(conf);
       EXPECT_FALSE(capture.TooMuchPCap(conf));
 
       conf.mPCapCaptureFileLimit = 3;
@@ -155,7 +186,7 @@ TEST_F(DiskPacketCaptureTest, TooMuchPCap) {
 }
 
 TEST_F(DiskPacketCaptureTest, CleanupOldPcapFiles) {
-   #ifdef LR_DEBUG
+#ifdef LR_DEBUG
    if (geteuid() == 0) {
       MockDiskPacketCapture capture;
       MockConf conf;
@@ -180,17 +211,17 @@ TEST_F(DiskPacketCaptureTest, CleanupOldPcapFiles) {
       makeSmallFile += testDir.str();
       makeSmallFile += "/smallFile";
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
-
+      capture.RecalculateDiskUsed(conf);
       std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFile";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
-
+      capture.RecalculateDiskUsed(conf);
       make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFilelessone";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
-
+      capture.RecalculateDiskUsed(conf);
       conf.mPCapCaptureFileLimit = 3;
       EXPECT_TRUE(capture.TooMuchPCap(conf));
       capture.CleanupOldPcapFiles(conf);
@@ -214,7 +245,7 @@ TEST_F(DiskPacketCaptureTest, CleanupOldPcapFiles) {
 }
 
 TEST_F(DiskPacketCaptureTest, MemoryLimits) {
-   #ifdef LR_DEBUG
+#ifdef LR_DEBUG
    MockConf conf;
    MockDiskPacketCapture capture;
    conf.mPCapCaptureLocation = "testLocation";
@@ -237,36 +268,36 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
    struct upacket packet;
    ctb_pkt p;
    packet.p = &p;
-   unsigned char data[(1024 * 1024) - sizeof(struct pcap_pkthdr)];
-   p.len = (1024 * 1024) - sizeof(struct pcap_pkthdr);
+   unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
+   p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
    p.data = data;
-   capture.SavePacket("FlowOne", &packet,conf);
+   capture.SavePacket("FlowOne", &packet, conf);
    EXPECT_EQ(1, capture.NewTotalMemory(0));
    EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
-   p.len = (1024 * 1024) - sizeof(struct pcap_pkthdr) - sizeof(struct pcap_pkthdr) - 1;
-   capture.SavePacket("FlowOne", &packet,conf);
+   p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr) - sizeof (struct pcap_pkthdr) - 1;
+   capture.SavePacket("FlowOne", &packet, conf);
    EXPECT_EQ(1, capture.NewTotalMemory(0));
    EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
    p.len = 1;
-   capture.SavePacket("FlowTwo", &packet,conf);
+   capture.SavePacket("FlowTwo", &packet, conf);
    EXPECT_EQ(2, capture.NewTotalMemory(0));
    EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
    EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
-   
+
    conf.mPCapCaptureMemoryLimit = 2;
-   p.len = (1024 * 1024) - sizeof(struct pcap_pkthdr);
-   capture.SavePacket("FlowTwo", &packet,conf);
+   p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
+   capture.SavePacket("FlowTwo", &packet, conf);
    EXPECT_EQ(2, capture.NewTotalMemory(0));
    EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
    EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
-   
+
    conf.mPCapCaptureMemoryLimit = 3;
    EXPECT_EQ(3, capture.NewTotalMemory((1024 * 1024)));
-   
+
    capture.RemoveDataFromRunningPackets("FlowOne");
    EXPECT_EQ(0, capture.NewTotalMemory(0));
-   EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));  
-   
+   EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+
    makeADir = "rm -rf ";
    makeADir += testDir.str();
    ASSERT_EQ(0, system(makeADir.c_str()));
