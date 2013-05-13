@@ -7,15 +7,19 @@
 #include <future>
 
 TEST_F(DiskPacketCaptureTest, Construct) {
-   DiskPacketCapture capture;
-   DiskPacketCapture* pCapture = new DiskPacketCapture;
+#ifdef LR_DEBUG
+   MockConf conf;
+   DiskPacketCapture capture(conf);
+   DiskPacketCapture* pCapture = new DiskPacketCapture(conf);
    delete pCapture;
+#endif
 }
 
 TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
 #ifdef LR_DEBUG
-   MockDiskPacketCapture capture;
    MockConf conf;
+   MockDiskPacketCapture capture(conf);
+
    std::stringstream testDir;
    testDir << "/tmp/TooMuchPcap." << pthread_self();
 
@@ -27,7 +31,7 @@ TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
    ASSERT_EQ(0, system(makeADir.c_str()));
    conf.mPCapCaptureFileLimit = 10000;
    conf.mPCapCaptureSizeLimit = 10000;
-   ASSERT_TRUE(capture.Initialize(conf));
+   ASSERT_TRUE(capture.Initialize());
    std::pair<InMemoryPacketBuffer*, size_t>* sessionInfo;
    std::pair<InMemoryPacketBuffer*, size_t>* sessionInfo2;
    capture.GetRunningPackets("abc123", sessionInfo);
@@ -74,19 +78,21 @@ TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
 
 TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
 #ifdef LR_DEBUG
-   MockDiskPacketCapture capture;
    MockConf conf;
+   MockDiskPacketCapture capture(conf);
+   
    conf.mPCapCaptureLocation = "testLocation";
    std::time_t time = 123456789;
-   std::string fileName = capture.BuildFilename(conf, "TestUUID", "TestAppName", time);
+   std::string fileName = capture.BuildFilename("TestUUID", "TestAppName", time);
    ASSERT_EQ("testLocation/TestUUID_TestAppName_1973-11-29-14:33:09", fileName);
 #endif
 }
 
 TEST_F(DiskPacketCaptureTest, Initialize) {
 #ifdef LR_DEBUG
-   MockDiskPacketCapture capture;
    MockConf conf;
+   MockDiskPacketCapture capture(conf);
+
    std::stringstream testDir;
    testDir << "/tmp/TooMuchPcap." << pthread_self();
 
@@ -94,11 +100,11 @@ TEST_F(DiskPacketCaptureTest, Initialize) {
    makeADir += testDir.str();
    ASSERT_EQ(0, system(makeADir.c_str()));
    conf.mPCapCaptureLocation = "testLocation";
-   ASSERT_FALSE(capture.Initialize(conf));
+   ASSERT_FALSE(capture.Initialize());
    conf.mPCapCaptureLocation = testDir.str();
-   ASSERT_TRUE(capture.Initialize(conf));
+   ASSERT_TRUE(capture.Initialize());
    conf.mPCapCaptureLocation = "/etc/passwd";
-   ASSERT_FALSE(capture.Initialize(conf));
+   ASSERT_FALSE(capture.Initialize());
    makeADir = "";
    makeADir = "rm -rf ";
    makeADir += testDir.str();
@@ -109,13 +115,14 @@ TEST_F(DiskPacketCaptureTest, Initialize) {
 TEST_F(DiskPacketCaptureTest, TooMuchPCap) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
-      MockDiskPacketCapture capture;
       MockConf conf;
+      MockDiskPacketCapture capture(conf);
+
       conf.mPCapCaptureLocation = "testLocation";
       conf.mPCapCaptureFileLimit = 10000;
       conf.mPCapCaptureSizeLimit = 10000;
-      ASSERT_FALSE(capture.Initialize(conf));
-      ASSERT_FALSE(capture.TooMuchPCap(conf));
+      ASSERT_FALSE(capture.Initialize());
+      ASSERT_FALSE(capture.TooMuchPCap());
 
       std::stringstream testDir;
       testDir << "/tmp/TooMuchPcap." << pthread_self();
@@ -127,60 +134,60 @@ TEST_F(DiskPacketCaptureTest, TooMuchPCap) {
 
       ASSERT_EQ(0, system(makeADir.c_str()));
 
-      EXPECT_TRUE(capture.Initialize(conf));
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      EXPECT_TRUE(capture.Initialize());
+      EXPECT_FALSE(capture.TooMuchPCap());
       conf.mPCapCaptureFileLimit = 0;
-      EXPECT_TRUE(capture.TooMuchPCap(conf));
+      EXPECT_TRUE(capture.TooMuchPCap());
       conf.mPCapCaptureFileLimit = 10000;
       conf.mPCapCaptureSizeLimit = 0;
-      EXPECT_TRUE(capture.TooMuchPCap(conf));
+      EXPECT_TRUE(capture.TooMuchPCap());
       conf.mPCapCaptureFileLimit = 1;
       conf.mPCapCaptureSizeLimit = 1;
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      EXPECT_FALSE(capture.TooMuchPCap());
       std::string makeSmallFile = "touch ";
       makeSmallFile += testDir.str();
       makeSmallFile += "/smallFile";
 
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
-      capture.RecalculateDiskUsed(conf);
-      EXPECT_TRUE(capture.TooMuchPCap(conf));
+      capture.RecalculateDiskUsed();
+      EXPECT_TRUE(capture.TooMuchPCap());
       conf.mPCapCaptureFileLimit = 10;
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      EXPECT_FALSE(capture.TooMuchPCap());
       std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFile";
 
 
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
-      capture.RecalculateDiskUsed(conf);
-      EXPECT_TRUE(capture.TooMuchPCap(conf));
+      capture.RecalculateDiskUsed();
+      EXPECT_TRUE(capture.TooMuchPCap());
       conf.mPCapCaptureSizeLimit = 2;
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      EXPECT_FALSE(capture.TooMuchPCap());
       make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFilelessone";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
-      capture.RecalculateDiskUsed(conf);
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      capture.RecalculateDiskUsed();
+      EXPECT_FALSE(capture.TooMuchPCap());
 
       conf.mPCapCaptureFileLimit = 3;
-      EXPECT_TRUE(capture.TooMuchPCap(conf));
-      capture.RemoveOldestPCapFile(conf);
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      EXPECT_TRUE(capture.TooMuchPCap());
+      capture.RemoveOldestPCapFile();
+      EXPECT_FALSE(capture.TooMuchPCap());
       conf.mPCapCaptureSizeLimit = 1;
-      EXPECT_TRUE(capture.TooMuchPCap(conf));
-      capture.RemoveOldestPCapFile(conf);
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      EXPECT_TRUE(capture.TooMuchPCap());
+      capture.RemoveOldestPCapFile();
+      EXPECT_FALSE(capture.TooMuchPCap());
       conf.mPCapCaptureFileLimit = 1;
-      EXPECT_TRUE(capture.TooMuchPCap(conf));
-      capture.RemoveOldestPCapFile(conf);
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      EXPECT_TRUE(capture.TooMuchPCap());
+      capture.RemoveOldestPCapFile();
+      EXPECT_FALSE(capture.TooMuchPCap());
 
       makeADir = "";
       makeADir = "rm -rf ";
       makeADir += testDir.str();
       ASSERT_EQ(0, system(makeADir.c_str()));
-      ASSERT_FALSE(capture.Initialize(conf));
+      ASSERT_FALSE(capture.Initialize());
    }
 #endif
 }
@@ -188,13 +195,14 @@ TEST_F(DiskPacketCaptureTest, TooMuchPCap) {
 TEST_F(DiskPacketCaptureTest, CleanupOldPcapFiles) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
-      MockDiskPacketCapture capture;
       MockConf conf;
+      MockDiskPacketCapture capture(conf);
+
       conf.mPCapCaptureLocation = "testLocation";
       conf.mPCapCaptureFileLimit = 10000;
       conf.mPCapCaptureSizeLimit = 10000;
-      ASSERT_FALSE(capture.Initialize(conf));
-      ASSERT_FALSE(capture.TooMuchPCap(conf));
+      ASSERT_FALSE(capture.Initialize());
+      ASSERT_FALSE(capture.TooMuchPCap());
 
       std::stringstream testDir;
       testDir << "/tmp/TooMuchPcap." << pthread_self();
@@ -206,40 +214,40 @@ TEST_F(DiskPacketCaptureTest, CleanupOldPcapFiles) {
 
       ASSERT_EQ(0, system(makeADir.c_str()));
 
-      EXPECT_TRUE(capture.Initialize(conf));
+      EXPECT_TRUE(capture.Initialize());
       std::string makeSmallFile = "touch ";
       makeSmallFile += testDir.str();
       makeSmallFile += "/smallFile";
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
-      capture.RecalculateDiskUsed(conf);
+      capture.RecalculateDiskUsed();
       std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFile";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
-      capture.RecalculateDiskUsed(conf);
+      capture.RecalculateDiskUsed();
       make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFilelessone";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
-      capture.RecalculateDiskUsed(conf);
+      capture.RecalculateDiskUsed();
       conf.mPCapCaptureFileLimit = 3;
-      EXPECT_TRUE(capture.TooMuchPCap(conf));
-      capture.CleanupOldPcapFiles(conf);
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      EXPECT_TRUE(capture.TooMuchPCap());
+      capture.CleanupOldPcapFiles();
+      EXPECT_FALSE(capture.TooMuchPCap());
       conf.mPCapCaptureSizeLimit = 1;
-      EXPECT_TRUE(capture.TooMuchPCap(conf));
-      capture.CleanupOldPcapFiles(conf);
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      EXPECT_TRUE(capture.TooMuchPCap());
+      capture.CleanupOldPcapFiles();
+      EXPECT_FALSE(capture.TooMuchPCap());
       conf.mPCapCaptureFileLimit = 1;
-      EXPECT_TRUE(capture.TooMuchPCap(conf));
-      capture.CleanupOldPcapFiles(conf);
-      EXPECT_FALSE(capture.TooMuchPCap(conf));
+      EXPECT_TRUE(capture.TooMuchPCap());
+      capture.CleanupOldPcapFiles();
+      EXPECT_FALSE(capture.TooMuchPCap());
 
       makeADir = "";
       makeADir = "rm -rf ";
       makeADir += testDir.str();
       ASSERT_EQ(0, system(makeADir.c_str()));
-      ASSERT_FALSE(capture.Initialize(conf));
+      ASSERT_FALSE(capture.Initialize());
    }
 #endif
 }
@@ -247,7 +255,7 @@ TEST_F(DiskPacketCaptureTest, CleanupOldPcapFiles) {
 TEST_F(DiskPacketCaptureTest, MemoryLimits) {
 #ifdef LR_DEBUG
    MockConf conf;
-   MockDiskPacketCapture capture;
+   MockDiskPacketCapture capture(conf);
    conf.mPCapCaptureLocation = "testLocation";
    conf.mPCapCaptureFileLimit = 10000;
    conf.mPCapCaptureSizeLimit = 10000;
@@ -261,7 +269,7 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
    makeADir += testDir.str();
 
    ASSERT_EQ(0, system(makeADir.c_str()));
-   ASSERT_TRUE(capture.Initialize(conf));
+   ASSERT_TRUE(capture.Initialize());
 
    EXPECT_EQ(0, capture.NewTotalMemory(0));
    EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
@@ -271,22 +279,22 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
    unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
    p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
    p.data = data;
-   capture.SavePacket("FlowOne", &packet, conf);
+   capture.SavePacket("FlowOne", &packet);
    EXPECT_EQ(1, capture.NewTotalMemory(0));
    EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
    p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr) - sizeof (struct pcap_pkthdr) - 1;
-   capture.SavePacket("FlowOne", &packet, conf);
+   capture.SavePacket("FlowOne", &packet);
    EXPECT_EQ(1, capture.NewTotalMemory(0));
    EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
    p.len = 1;
-   capture.SavePacket("FlowTwo", &packet, conf);
+   capture.SavePacket("FlowTwo", &packet);
    EXPECT_EQ(2, capture.NewTotalMemory(0));
    EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
    EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
 
    conf.mPCapCaptureMemoryLimit = 2;
    p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
-   capture.SavePacket("FlowTwo", &packet, conf);
+   capture.SavePacket("FlowTwo", &packet);
    EXPECT_EQ(2, capture.NewTotalMemory(0));
    EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
    EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
@@ -301,6 +309,6 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
    makeADir = "rm -rf ";
    makeADir += testDir.str();
    ASSERT_EQ(0, system(makeADir.c_str()));
-   ASSERT_FALSE(capture.Initialize(conf));
+   ASSERT_FALSE(capture.Initialize());
 #endif
 }
