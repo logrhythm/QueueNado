@@ -19,9 +19,11 @@ public:
    }
 
    void RemoveOldestPCapFile() {
-      DiskPacketCapture::RemoveOldestPCapFile();
+      DiskPacketCapture::RemoveOldestPCapFiles(1);
    }
-
+   void RemoveOldestPCapFiles(const size_t max) {
+      DiskPacketCapture::RemoveOldestPCapFiles(1);
+   }
    void RemoveFromRunningPackets(const std::string& uuid) {
       DiskPacketCapture::RemoveFromRunningPackets(uuid);
    }

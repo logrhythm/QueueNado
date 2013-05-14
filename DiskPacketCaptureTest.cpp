@@ -152,6 +152,7 @@ capture.RecalculateDiskUsed(aDiskUsed,aTotalFiles);
       makeSmallFile += "/smallFile";
 
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculateDiskUsed(aDiskUsed,aTotalFiles);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed,aTotalFiles));
       conf.mPCapCaptureFileLimit = 10;
@@ -162,6 +163,7 @@ capture.RecalculateDiskUsed(aDiskUsed,aTotalFiles);
 
 
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculateDiskUsed(aDiskUsed,aTotalFiles);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed,aTotalFiles));
       conf.mPCapCaptureSizeLimit = 2;
@@ -170,6 +172,7 @@ capture.RecalculateDiskUsed(aDiskUsed,aTotalFiles);
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFilelessone";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculateDiskUsed(aDiskUsed,aTotalFiles);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed,aTotalFiles));
 
@@ -228,16 +231,19 @@ TEST_F(DiskPacketCaptureTest, CleanupOldPcapFiles) {
       makeSmallFile += testDir.str();
       makeSmallFile += "/smallFile";
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculateDiskUsed(aDiskUsed,aTotalFiles);
       std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFile";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculateDiskUsed(aDiskUsed,aTotalFiles);
       make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFilelessone";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculateDiskUsed(aDiskUsed,aTotalFiles);
       conf.mPCapCaptureFileLimit = 3;
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed,aTotalFiles));
