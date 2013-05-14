@@ -11,7 +11,9 @@ public:
 
    virtual ~MockDiskPacketCapture() {
    }
-
+   bool Initialize(const bool diskCleanThread = false) {
+      return DiskPacketCapture::Initialize(diskCleanThread);
+   }
    void GetRunningPackets(const std::string& uuid, std::pair<InMemoryPacketBuffer*, size_t>*& sessionInfo) {
       DiskPacketCapture::GetRunningPackets(uuid,sessionInfo);
    }
@@ -24,8 +26,8 @@ public:
       DiskPacketCapture::RemoveFromRunningPackets(uuid);
    }
 
-   bool TooMuchPCap() {
-      return DiskPacketCapture::TooMuchPCap();
+   bool TooMuchPCap(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
+      return DiskPacketCapture::TooMuchPCap(aDiskUsed, aTotalFiles);
    }
 
    std::string BuildFilename( const std::string& uuid,
@@ -40,8 +42,11 @@ public:
    int CurrentMemoryForFlow(const std::string& uuid) {
       return DiskPacketCapture::CurrentMemoryForFlow(uuid);
    }
-   void RecalculateDiskUsed() {
-      DiskPacketCapture::RecalculateDiskUsed();
+   void RecalculateDiskUsed(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
+      DiskPacketCapture::RecalculateDiskUsed(aDiskUsed, aTotalFiles);
+   }
+   void CleanupOldPcapFiles(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
+      DiskPacketCapture::CleanupOldPcapFiles(aDiskUsed, aTotalFiles);
    }
 };
 
