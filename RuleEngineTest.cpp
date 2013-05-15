@@ -2136,3 +2136,114 @@ TEST_F(RuleEngineTest, StaticCallLuaSendFinalFlow) {
    EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789/6789,12345/12345,99/99,123,456,333/333"));
 #endif
 }
+
+TEST_F(RuleEngineTest, StaticCallLuaGetThreadId) {
+#ifdef LR_DEBUG
+   unsigned int expectedThreadId(5);
+   MockRuleEngine mre(conf, syslogName, syslogOption,
+            syslogFacility, syslogPriority, true, expectedThreadId);
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Expect the threadId to be 5 as initialized.
+   lua_pushlightuserdata(luaState, &mre);
+   RuleEngine::LuaGetThreadId(luaState);
+   EXPECT_EQ(expectedThreadId, lua_tointeger(luaState, -1));
+#endif
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaGetRawMsgSize) {
+#ifdef LR_DEBUG
+   MockRuleEngine mre(conf, syslogName, syslogOption,
+            syslogFacility, syslogPriority, true, 0);
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Expect the raw message size to match the initialized value of 0
+   lua_pushlightuserdata(luaState, &mre);
+   RuleEngine::LuaGetRawMsgSize(luaState);
+   EXPECT_EQ(0, lua_tointeger(luaState, -1));
+#endif
+}
+
+TEST_F(RuleEngineTest, StaticCallLuaGetDpiMsgSize) {
+   DpiMsgLR dpiMsg;
+
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
+
+   string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
+   dpiMsg.set_uuid(testUuid.c_str());
+
+   string testEthSrc("00:22:19:08:2c:00");
+   vector<unsigned char> ethSrc;
+   ethSrc.push_back(0x00);
+   ethSrc.push_back(0x22);
+   ethSrc.push_back(0x19);
+   ethSrc.push_back(0x08);
+   ethSrc.push_back(0x2c);
+   ethSrc.push_back(0x00);
+   dpiMsg.SetEthSrc(ethSrc);
+
+   string testEthDst("f0:f7:55:dc:a8:00");
+
+   vector<unsigned char> ethDst;
+   ethDst.push_back(0xf0);
+   ethDst.push_back(0xf7);
+   ethDst.push_back(0x55);
+   ethDst.push_back(0xdc);
+   ethDst.push_back(0xa8);
+   ethDst.push_back(0x00);
+   dpiMsg.SetEthDst(ethDst);
+
+   string testIpSrc = "10.1.10.50";
+   uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
+   dpiMsg.set_ipsrc(ipSrc);
+
+   string testIpDst = "10.128.64.251";
+   uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
+   dpiMsg.set_ipdst(ipDst);
+
+   string path("base.eth.ip.udp.ntp");
+   dpiMsg.set_pktpath(path.c_str());
+
+   string testIpSourcePort = "=12345"; // bogus, but easier to test
+   dpiMsg.set_sourceport(12345);
+
+   string testIpDestPort = "=54321"; // bogus, but easier to test
+   dpiMsg.set_destport(54321);
+   dpiMsg.set_protoid(12);
+   dpiMsg.set_application_id_endq_proto_base(13);
+   dpiMsg.set_application_endq_proto_base("wrong|dummy");
+   dpiMsg.set_sessionlenserver(12345);
+   dpiMsg.set_deltasessionlenserver( 12345 );
+   dpiMsg.set_sessionlenclient(6789);
+   dpiMsg.set_deltasessionlenclient( 6789 );
+   dpiMsg.set_packetcount(99);
+   dpiMsg.set_deltapackets( 99 );
+   dpiMsg.set_loginq_proto_aim("aLogin");
+   dpiMsg.set_domainq_proto_smb("aDomain");
+   dpiMsg.set_uri_fullq_proto_http("this/url.htm");
+   dpiMsg.set_uriq_proto_http("notitUrl");
+   dpiMsg.set_serverq_proto_http("thisname");
+   dpiMsg.set_referer_serverq_proto_http("notitServer");
+   dpiMsg.set_methodq_proto_ftp("TEST|COMMAND");
+   dpiMsg.set_senderq_proto_smtp("test1");
+   dpiMsg.set_receiverq_proto_smtp("test2");
+   dpiMsg.set_subjectq_proto_smtp("test3");
+   dpiMsg.set_versionq_proto_http("4.0");
+   dpiMsg.set_filenameq_proto_gnutella("aFilename");
+   dpiMsg.set_filename_encodingq_proto_aim_transfer("notitFile");
+   dpiMsg.set_directoryq_proto_smb("aPath");
+   dpiMsg.set_starttime(123);
+   dpiMsg.set_endtime(456);
+   dpiMsg.set_deltatime(333);
+   dpiMsg.set_sessionidq_proto_ymsg(2345);
+
+   int expectedSpaceUsed = dpiMsg.SpaceUsed();
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   RuleEngine::LuaGetDpiMsgSize(luaState);
+   EXPECT_EQ(expectedSpaceUsed, lua_tointeger(luaState, -1));
+}
+
