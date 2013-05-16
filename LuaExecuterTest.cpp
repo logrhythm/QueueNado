@@ -448,3 +448,46 @@ TEST_F(LuaExecuterTest, PacketRuleBenchmark) {
 
 #endif
 }
+
+TEST_F(LuaExecuterTest, ReadScriptsFromDirectories) {
+#ifdef LR_DEBUG
+   MockLuaExecuter executer;
+
+   executer.ClearScriptLocation();
+   executer.SetScriptLocation(protoMsg::RuleConf_Type_PACKET, "resources/luatestpacket");
+   
+   ASSERT_TRUE(executer.Initialize());
+
+   ASSERT_EQ(1,executer.NumberOfFunctionFiles(protoMsg::RuleConf_Type_PACKET));
+   ASSERT_EQ("test1",executer.GetFunctionFileName(protoMsg::RuleConf_Type_PACKET,0));
+   ASSERT_EQ("function test1 (x,y) return CFunction1(x,y) end\n", 
+           executer.GetFunctionFileContents(protoMsg::RuleConf_Type_PACKET,"test1"));
+   
+   executer.RegisterFunction("CFunction1", LuaTestPacketFunction);
+   executer.RegisterFunction("CFunction2", LuaTestPacketFunction2);
+   protoMsg::RuleConf rule;
+   rule.set_name("test1");
+   rule.set_repetitions(1);
+   rule.set_ruletype(::protoMsg::RuleConf_Type_PACKET);
+   rule.set_runforever(false);
+   rule.set_ruletext("function test1 (x,y) return CFunction2(x,y) end");
+   rule.set_numberofreturnvals(0);
+   EXPECT_TRUE(executer.RegisterRule(rule));
+   EXPECT_EQ(1, executer.SizeOfRuleset(protoMsg::RuleConf_Type_PACKET));
+   
+   networkMonitor::DpiMsgLR dpiMsg;
+   struct upacket* packet = reinterpret_cast<struct upacket*> (malloc(sizeof (struct upacket)));
+   packet->len = 0;
+   std::vector<void*> args;
+   args.push_back(&dpiMsg);
+   args.push_back(packet);
+   EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
+   EXPECT_EQ("TEST", dpiMsg.uuid());
+   EXPECT_EQ(999, packet->len); // Indicating CFunction1 ran (ignoring the rule text but using the file instead)
+   packet->len = 0;
+   rule.set_ruletext("");
+   EXPECT_TRUE(executer.RegisterRule(rule));
+   EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
+   EXPECT_EQ(999, packet->len); // no need for rule text if the rule is already defined in a file
+#endif
+}
