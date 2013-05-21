@@ -23,5 +23,5 @@ chmod 777 ../*.xml
 ./TestTCPIPDirectionlessHash --gtest_output=xml:../TestTCPIPDirectionlessHash.junit.xml
 ./CommandProcessorTests --gtest_output=xml:../CommandProcessorTests.junit.xml
 ./ProcessManagerTest --gtest_output=xml:../ProcessManagerTest.junit.xml
-./LuaExecturerTest --gtest_output=xml:../LuaExecturerTest.junit.xml
+./LuaExecuterTest --gtest_output=xml:../LuaExecuterTest.junit.xml
 
