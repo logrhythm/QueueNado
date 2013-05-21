@@ -30,7 +30,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
     tDpiMessage.set_sourceport(127);
     tDpiMessage.set_destport(128);
     tDpiMessage.set_protoid(129);
-    tDpiMessage.set_application_endq_proto_base("test");
+    tDpiMessage.add_application_endq_proto_base("test");
     tDpiMessage.set_application_id_endq_proto_base(1234);
     tDpiMessage.set_sessionlenserver(567);
     tDpiMessage.set_deltasessionlenserver(567);
@@ -38,17 +38,17 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
     tDpiMessage.set_deltasessionlenclient(899);
     tDpiMessage.set_packetcount(88);
     tDpiMessage.set_deltapackets(88);
-    tDpiMessage.set_loginq_proto_aim("aLogin");
-    tDpiMessage.set_domainq_proto_smb("aDomain12345");
-    tDpiMessage.set_uri_fullq_proto_http("this/url.htm");
-    tDpiMessage.set_uriq_proto_http("not/this/one");
-    tDpiMessage.set_serverq_proto_http("thisname12345");
-    tDpiMessage.set_referer_serverq_proto_http("notThisOne");
-    tDpiMessage.set_methodq_proto_ftp("RUN|COMMAND|LONGLONGLONGLONG");
-    tDpiMessage.set_senderq_proto_smtp("test1_123456");
-    tDpiMessage.set_receiverq_proto_smtp("test2_123");
-    tDpiMessage.set_subjectq_proto_smtp("test3_12345");
-    tDpiMessage.set_versionq_proto_http("4.0");
+    tDpiMessage.add_loginq_proto_aim("aLogin");
+    tDpiMessage.add_domainq_proto_smb("aDomain12345");
+    tDpiMessage.add_uri_fullq_proto_http("this/url.htm");
+    tDpiMessage.add_uriq_proto_http("not/this/one");
+    tDpiMessage.add_serverq_proto_http("thisname12345");
+    tDpiMessage.add_referer_serverq_proto_http("notThisOne");
+    tDpiMessage.add_methodq_proto_ftp("RUN|COMMAND|LONGLONGLONGLONG");
+    tDpiMessage.add_senderq_proto_smtp("test1_123456");
+    tDpiMessage.add_receiverq_proto_smtp("test2_123");
+    tDpiMessage.add_subjectq_proto_smtp("test3_12345");
+    tDpiMessage.add_versionq_proto_http("4.0");
     tDpiMessage.set_starttime(123);
     tDpiMessage.set_endtime(456);
     tDpiMessage.set_deltatime(333);
@@ -328,24 +328,24 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
         msg.set_destport(54321);
         msg.set_protoid(12);
         msg.set_application_id_endq_proto_base(13);
-        msg.set_application_endq_proto_base("wrong|dummy");
+        msg.add_application_endq_proto_base("wrong|dummy");
         msg.set_sessionlenserver(12345);
         msg.set_sessionlenclient(6789);
         msg.set_packetcount(99);
-        msg.set_loginq_proto_aim("aLogin");
-        msg.set_domainq_proto_smb("aDomain");
-        msg.set_uri_fullq_proto_http("this/url.htm");
-        msg.set_uriq_proto_http("notitUrl");
-        msg.set_serverq_proto_http("thisname");
-        msg.set_referer_serverq_proto_http("notitServer");
-        msg.set_methodq_proto_ftp("TEST|COMMAND");
-        msg.set_senderq_proto_smtp("test1");
-        msg.set_receiverq_proto_smtp("test2");
-        msg.set_subjectq_proto_smtp("test3");
-        msg.set_versionq_proto_http("4.0");
-        msg.set_filenameq_proto_gnutella("aFilename");
-        msg.set_filename_encodingq_proto_aim_transfer("notitFile");
-        msg.set_directoryq_proto_smb("aPath");
+        msg.add_loginq_proto_aim("aLogin");
+        msg.add_domainq_proto_smb("aDomain");
+        msg.add_uri_fullq_proto_http("this/url.htm");
+        msg.add_uriq_proto_http("notitUrl");
+        msg.add_serverq_proto_http("thisname");
+        msg.add_referer_serverq_proto_http("notitServer");
+        msg.add_methodq_proto_ftp("TEST|COMMAND");
+        msg.add_senderq_proto_smtp("test1");
+        msg.add_receiverq_proto_smtp("test2");
+        msg.add_subjectq_proto_smtp("test3");
+        msg.add_versionq_proto_http("4.0");
+        msg.add_filenameq_proto_gnutella("aFilename");
+        msg.add_filename_encodingq_proto_aim_transfer("notitFile");
+        msg.add_directoryq_proto_smb("aPath");
         msg.set_starttime(123);
         msg.set_endtime(456);
         msg.set_sessionidq_proto_ymsg(2345);
@@ -459,24 +459,24 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
         msg.set_destport(54321);
         msg.set_protoid(12);
         msg.set_application_id_endq_proto_base(13);
-        msg.set_application_endq_proto_base("wrong|dummy");
+        msg.add_application_endq_proto_base("wrong|dummy");
         msg.set_sessionlenserver(12345);
         msg.set_sessionlenclient(6789);
         msg.set_packetcount(99);
-        msg.set_loginq_proto_aim("aLogin");
-        msg.set_domainq_proto_smb("aDomain");
-        msg.set_uri_fullq_proto_http("this/url.htm");
-        msg.set_uriq_proto_http("notitUrl");
-        msg.set_serverq_proto_http("thisname");
-        msg.set_referer_serverq_proto_http("notitServer");
-        msg.set_methodq_proto_ftp("TEST|COMMAND");
-        msg.set_senderq_proto_smtp("test1");
-        msg.set_receiverq_proto_smtp("test2");
-        msg.set_subjectq_proto_smtp("test3");
-        msg.set_versionq_proto_http("4.0");
-        msg.set_filenameq_proto_gnutella("aFilename");
-        msg.set_filename_encodingq_proto_aim_transfer("notitFile");
-        msg.set_directoryq_proto_smb("aPath");
+        msg.add_loginq_proto_aim("aLogin");
+        msg.add_domainq_proto_smb("aDomain");
+        msg.add_uri_fullq_proto_http("this/url.htm");
+        msg.add_uriq_proto_http("notitUrl");
+        msg.add_serverq_proto_http("thisname");
+        msg.add_referer_serverq_proto_http("notitServer");
+        msg.add_methodq_proto_ftp("TEST|COMMAND");
+        msg.add_senderq_proto_smtp("test1");
+        msg.add_receiverq_proto_smtp("test2");
+        msg.add_subjectq_proto_smtp("test3");
+        msg.add_versionq_proto_http("4.0");
+        msg.add_filenameq_proto_gnutella("aFilename");
+        msg.add_filename_encodingq_proto_aim_transfer("notitFile");
+        msg.add_directoryq_proto_smb("aPath");
         msg.set_starttime(123);
         msg.set_endtime(456); // delta = 333
         msg.set_sessionidq_proto_ymsg(2345);
@@ -600,24 +600,24 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
         msg.set_destport(54321);
         msg.set_protoid(12);
         msg.set_application_id_endq_proto_base(13);
-        msg.set_application_endq_proto_base("wrong|dummy");
+        msg.add_application_endq_proto_base("wrong|dummy");
         msg.set_sessionlenserver(12345);
         msg.set_sessionlenclient(6789);
         msg.set_packetcount(99);
-        msg.set_loginq_proto_aim("aLogin");
-        msg.set_domainq_proto_smb("aDomain");
-        msg.set_uri_fullq_proto_http("this/url.htm");
-        msg.set_uriq_proto_http("notitUrl");
-        msg.set_serverq_proto_http("thisname");
-        msg.set_referer_serverq_proto_http("notitServer");
-        msg.set_methodq_proto_ftp("TEST|COMMAND");
-        msg.set_senderq_proto_smtp("test1");
-        msg.set_receiverq_proto_smtp("test2");
-        msg.set_subjectq_proto_smtp("test3");
-        msg.set_versionq_proto_http("4.0");
-        msg.set_filenameq_proto_gnutella("aFilename");
-        msg.set_filename_encodingq_proto_aim_transfer("notitFile");
-        msg.set_directoryq_proto_smb("aPath");
+        msg.add_loginq_proto_aim("aLogin");
+        msg.add_domainq_proto_smb("aDomain");
+        msg.add_uri_fullq_proto_http("this/url.htm");
+        msg.add_uriq_proto_http("notitUrl");
+        msg.add_serverq_proto_http("thisname");
+        msg.add_referer_serverq_proto_http("notitServer");
+        msg.add_methodq_proto_ftp("TEST|COMMAND");
+        msg.add_senderq_proto_smtp("test1");
+        msg.add_receiverq_proto_smtp("test2");
+        msg.add_subjectq_proto_smtp("test3");
+        msg.add_versionq_proto_http("4.0");
+        msg.add_filenameq_proto_gnutella("aFilename");
+        msg.add_filename_encodingq_proto_aim_transfer("notitFile");
+        msg.add_directoryq_proto_smb("aPath");
         msg.set_starttime(123);
         msg.set_endtime(456); // delta = 333
         msg.set_sessionidq_proto_ymsg(2345);
@@ -727,24 +727,24 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         msg.set_destport(54321);
         msg.set_protoid(12);
         msg.set_application_id_endq_proto_base(13);
-        msg.set_application_endq_proto_base("wrong|dummy");
+        msg.add_application_endq_proto_base("wrong|dummy");
         msg.set_sessionlenserver(12345);
         msg.set_sessionlenclient(67890);
         msg.set_packetcount(99);
-        msg.set_loginq_proto_aim("aLogin");
-        msg.set_domainq_proto_smb("aDomain");
-        msg.set_uri_fullq_proto_http("this/url.htm");
-        msg.set_uriq_proto_http("notitUrl");
-        msg.set_serverq_proto_http("thisname");
-        msg.set_referer_serverq_proto_http("notitServer");
-        msg.set_methodq_proto_ftp("TEST|COMMAND");
-        msg.set_senderq_proto_smtp("test1");
-        msg.set_receiverq_proto_smtp("test2");
-        msg.set_subjectq_proto_smtp("test3");
-        msg.set_versionq_proto_http("4.0");
-        msg.set_filenameq_proto_gnutella("aFilename");
-        msg.set_filename_encodingq_proto_aim_transfer("notitFile");
-        msg.set_directoryq_proto_smb("aPath");
+        msg.add_loginq_proto_aim("aLogin");
+        msg.add_domainq_proto_smb("aDomain");
+        msg.add_uri_fullq_proto_http("this/url.htm");
+        msg.add_uriq_proto_http("notitUrl");
+        msg.add_serverq_proto_http("thisname");
+        msg.add_referer_serverq_proto_http("notitServer");
+        msg.add_methodq_proto_ftp("TEST|COMMAND");
+        msg.add_senderq_proto_smtp("test1");
+        msg.add_receiverq_proto_smtp("test2");
+        msg.add_subjectq_proto_smtp("test3");
+        msg.add_versionq_proto_http("4.0");
+        msg.add_filenameq_proto_gnutella("aFilename");
+        msg.add_filename_encodingq_proto_aim_transfer("notitFile");
+        msg.add_directoryq_proto_smb("aPath");
         msg.set_starttime(123);
         msg.set_endtime(456);
         msg.set_sessionidq_proto_ymsg(2345);
@@ -849,7 +849,7 @@ TEST_F(RuleEngineTest, getSyslogMessages) {
 
     tDpiMessage.set_filesizeq_proto_bittorrent(1212);
     tDpiMessage.set_filesizeq_proto_edonkey(12345678901234L);
-    tDpiMessage.set_attach_filenameq_proto_facebook_mail("this is a file");
+    tDpiMessage.add_attach_filenameq_proto_facebook_mail("this is a file");
 
     results = tDpiMessage.GetAllFieldsAsStrings();
     ASSERT_EQ(11, results.size());
@@ -1002,7 +1002,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
     tDpiMessage.set_sourceport(127);
     tDpiMessage.set_destport(128);
     tDpiMessage.set_protoid(129);
-    tDpiMessage.set_application_endq_proto_base("test");
+    tDpiMessage.add_application_endq_proto_base("test");
     tDpiMessage.set_application_id_endq_proto_base(1234);
     tDpiMessage.set_sessionlenserver(567);
     tDpiMessage.set_deltasessionlenserver(567);
@@ -1010,19 +1010,19 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
     tDpiMessage.set_deltasessionlenclient(89);
     tDpiMessage.set_packetcount(88);
     tDpiMessage.set_deltapackets(88);
-    tDpiMessage.set_loginq_proto_aim("aLogin");
-    tDpiMessage.set_domainq_proto_smb("aDomain1234");
-    tDpiMessage.set_uri_fullq_proto_http("this/url.htm");
-    tDpiMessage.set_uriq_proto_http("not/this/one");
-    tDpiMessage.set_serverq_proto_http("thisname1234");
-    tDpiMessage.set_referer_serverq_proto_http("notThisOne");
+    tDpiMessage.add_loginq_proto_aim("aLogin");
+    tDpiMessage.add_domainq_proto_smb("aDomain1234");
+    tDpiMessage.add_uri_fullq_proto_http("this/url.htm");
+    tDpiMessage.add_uriq_proto_http("not/this/one");
+    tDpiMessage.add_serverq_proto_http("thisname1234");
+    tDpiMessage.add_referer_serverq_proto_http("notThisOne");
     // Notice the delimter character '|' placed before LAST.  This forces the
     // application to split the string before the delimiter.
-    tDpiMessage.set_methodq_proto_ftp("RUN|DOCMD|LONGLONGLONG|LAST");
-    tDpiMessage.set_senderq_proto_smtp("test1_12345");
-    tDpiMessage.set_receiverq_proto_smtp("test2_12");
-    tDpiMessage.set_subjectq_proto_smtp("test3_1234");
-    tDpiMessage.set_versionq_proto_http("4.0");
+    tDpiMessage.add_methodq_proto_ftp("RUN|DOCMD|LONGLONGLONG|LAST");
+    tDpiMessage.add_senderq_proto_smtp("test1_12345");
+    tDpiMessage.add_receiverq_proto_smtp("test2_12");
+    tDpiMessage.add_subjectq_proto_smtp("test3_1234");
+    tDpiMessage.add_versionq_proto_http("4.0");
     tDpiMessage.set_starttime(123);
     tDpiMessage.set_endtime(456);
     tDpiMessage.set_deltatime(333);
@@ -1313,7 +1313,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
     tDpiMessage.set_sourceport(127);
     tDpiMessage.set_destport(128);
     tDpiMessage.set_protoid(129);
-    tDpiMessage.set_application_endq_proto_base("test");
+    tDpiMessage.add_application_endq_proto_base("test");
     tDpiMessage.set_application_id_endq_proto_base(1234);
     tDpiMessage.set_sessionlenserver(567);
     tDpiMessage.set_deltasessionlenserver(456);
@@ -1321,7 +1321,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
     tDpiMessage.set_deltasessionlenclient(78);
     tDpiMessage.set_packetcount(88);
     tDpiMessage.set_deltapackets(44);
-    tDpiMessage.set_loginq_proto_0zz0("dontSeeMee");
+    tDpiMessage.add_loginq_proto_0zz0("dontSeeMee");
     tDpiMessage.set_starttime(1234);
     tDpiMessage.set_endtime(5678);
     tDpiMessage.set_deltatime(4444);
@@ -1377,7 +1377,7 @@ TEST_F(RuleEngineTest, GetLoginField) {
     ASSERT_EQ(1, dm.GetLoginField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
-    tDpiMessage.set_loginq_proto_0zz0("test1");
+    tDpiMessage.add_loginq_proto_0zz0("test1");
     ASSERT_EQ(2, dm.GetLoginField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("login", results[1].first);
@@ -1385,7 +1385,7 @@ TEST_F(RuleEngineTest, GetLoginField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_loginq_proto_aim("test1");
+    tDpiMessage.add_loginq_proto_aim("test1");
     ASSERT_EQ(2, dm.GetLoginField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("login", results[1].first);
@@ -1393,19 +1393,19 @@ TEST_F(RuleEngineTest, GetLoginField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_contact_loginq_proto_aim("test1");
+    tDpiMessage.add_contact_loginq_proto_aim("test1");
     ASSERT_EQ(1, dm.GetLoginField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_proxy_loginq_proto_http("test1");
+    tDpiMessage.add_proxy_loginq_proto_http("test1");
     ASSERT_EQ(1, dm.GetLoginField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_login_serverq_proto_imap("test1");
+    tDpiMessage.add_login_serverq_proto_imap("test1");
     ASSERT_EQ(1, dm.GetLoginField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
@@ -1421,7 +1421,7 @@ TEST_F(RuleEngineTest, GetDomainField) {
     ASSERT_EQ(1, dm.GetDomainField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
-    tDpiMessage.set_domainq_proto_smb("test1");
+    tDpiMessage.add_domainq_proto_smb("test1");
     ASSERT_EQ(2, dm.GetDomainField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("domain", results[1].first);
@@ -1429,7 +1429,7 @@ TEST_F(RuleEngineTest, GetDomainField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_real_sender_domainq_proto_gmail("test1");
+    tDpiMessage.add_real_sender_domainq_proto_gmail("test1");
     ASSERT_EQ(2, dm.GetDomainField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("domain", results[1].first);
@@ -1437,7 +1437,7 @@ TEST_F(RuleEngineTest, GetDomainField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_vtp_mgmt_domainq_proto_cdp("test1");
+    tDpiMessage.add_vtp_mgmt_domainq_proto_cdp("test1");
     ASSERT_EQ(2, dm.GetDomainField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("domain", results[1].first);
@@ -1457,7 +1457,7 @@ TEST_F(RuleEngineTest, GetDestHostField) {
     ASSERT_EQ(1, dm.GetDestHostField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
-    tDpiMessage.set_serverq_proto_http("test1");
+    tDpiMessage.add_serverq_proto_http("test1");
     ASSERT_EQ(2, dm.GetDestHostField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("dname", results[1].first);
@@ -1466,7 +1466,7 @@ TEST_F(RuleEngineTest, GetDestHostField) {
     tDpiMessage.Clear();
 
 
-    tDpiMessage.set_destination_hostq_proto_diameter("test1");
+    tDpiMessage.add_destination_hostq_proto_diameter("test1");
     ASSERT_EQ(2, dm.GetDestHostField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("dname", results[1].first);
@@ -1474,7 +1474,7 @@ TEST_F(RuleEngineTest, GetDestHostField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_origin_hostq_proto_diameter("test1");
+    tDpiMessage.add_origin_hostq_proto_diameter("test1");
     ASSERT_EQ(1, dm.GetDestHostField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
@@ -1496,8 +1496,8 @@ TEST_F(RuleEngineTest, GetUrlField) {
     ASSERT_EQ(1, dm.GetUrlField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
-    tDpiMessage.set_uriq_proto_http("notit");
-    tDpiMessage.set_uri_fullq_proto_http("test1");
+    tDpiMessage.add_uriq_proto_http("notit");
+    tDpiMessage.add_uri_fullq_proto_http("test1");
     ASSERT_EQ(2, dm.GetUrlField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("url", results[1].first);
@@ -1505,9 +1505,9 @@ TEST_F(RuleEngineTest, GetUrlField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_uri_pathq_proto_http("notit");
-    tDpiMessage.set_uriq_proto_http("test1");
-    tDpiMessage.set_destination_hostq_proto_diameter("test1");
+    tDpiMessage.add_uri_pathq_proto_http("notit");
+    tDpiMessage.add_uriq_proto_http("test1");
+    tDpiMessage.add_destination_hostq_proto_diameter("test1");
     ASSERT_EQ(2, dm.GetUrlField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("url", results[1].first);
@@ -1515,9 +1515,9 @@ TEST_F(RuleEngineTest, GetUrlField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_ad_urlq_proto_google_ads("notit");
-    tDpiMessage.set_ad_url_fullq_proto_google_ads("test1");
-    tDpiMessage.set_destination_hostq_proto_diameter("test1");
+    tDpiMessage.add_ad_urlq_proto_google_ads("notit");
+    tDpiMessage.add_ad_url_fullq_proto_google_ads("test1");
+    tDpiMessage.add_destination_hostq_proto_diameter("test1");
     ASSERT_EQ(2, dm.GetUrlField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("url", results[1].first);
@@ -1525,8 +1525,8 @@ TEST_F(RuleEngineTest, GetUrlField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_ad_urlq_proto_google_ads("test1");
-    tDpiMessage.set_ad_visible_urlq_proto_google_ads("notit");
+    tDpiMessage.add_ad_urlq_proto_google_ads("test1");
+    tDpiMessage.add_ad_visible_urlq_proto_google_ads("notit");
     ASSERT_EQ(2, dm.GetUrlField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("url", results[1].first);
@@ -1534,13 +1534,13 @@ TEST_F(RuleEngineTest, GetUrlField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_urilast64q_proto_rtsp("notit");
+    tDpiMessage.add_urilast64q_proto_rtsp("notit");
     ASSERT_EQ(1, dm.GetUrlField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_ad_visible_urlq_proto_google_ads("test1");
+    tDpiMessage.add_ad_visible_urlq_proto_google_ads("test1");
     ASSERT_EQ(2, dm.GetUrlField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("url", results[1].first);
@@ -1558,7 +1558,7 @@ TEST_F(RuleEngineTest, GetCommandField) {
     ASSERT_EQ(1, dm.GetCommandField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
-    tDpiMessage.set_command_stringq_proto_smb("test1");
+    tDpiMessage.add_command_stringq_proto_smb("test1");
     ASSERT_EQ(2, dm.GetCommandField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("command", results[1].first);
@@ -1566,7 +1566,7 @@ TEST_F(RuleEngineTest, GetCommandField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_methodq_proto_ftp("test1");
+    tDpiMessage.add_methodq_proto_ftp("test1");
     ASSERT_EQ(2, dm.GetCommandField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("command", results[1].first);
@@ -1580,7 +1580,7 @@ TEST_F(RuleEngineTest, GetCommandField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_h245_methodq_proto_h225("notit");
+    tDpiMessage.add_h245_methodq_proto_h225("notit");
     ASSERT_EQ(1, dm.GetCommandField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
@@ -1597,7 +1597,7 @@ TEST_F(RuleEngineTest, GetSenderField) {
     ASSERT_EQ(1, dm.GetSenderField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
-    tDpiMessage.set_senderq_proto_aim("test1");
+    tDpiMessage.add_senderq_proto_aim("test1");
     ASSERT_EQ(2, dm.GetSenderField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("sender", results[1].first);
@@ -1605,7 +1605,7 @@ TEST_F(RuleEngineTest, GetSenderField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_msglist_sender_aliasq_proto_dimp("notit");
+    tDpiMessage.add_msglist_sender_aliasq_proto_dimp("notit");
     ASSERT_EQ(1, dm.GetSenderField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
@@ -1622,7 +1622,7 @@ TEST_F(RuleEngineTest, GetRecipientField) {
     ASSERT_EQ(1, dm.GetRecipientField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
-    tDpiMessage.set_receiverq_proto_aim("test1");
+    tDpiMessage.add_receiverq_proto_aim("test1");
     ASSERT_EQ(2, dm.GetRecipientField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("recipient", results[1].first);
@@ -1630,7 +1630,7 @@ TEST_F(RuleEngineTest, GetRecipientField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_msglist_receiver_aliasq_proto_dimp("notit");
+    tDpiMessage.add_msglist_receiver_aliasq_proto_dimp("notit");
     ASSERT_EQ(1, dm.GetSenderField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
@@ -1647,7 +1647,7 @@ TEST_F(RuleEngineTest, GetSubjectField) {
     ASSERT_EQ(1, dm.GetSubjectField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
-    tDpiMessage.set_subjectq_proto_smtp("test1");
+    tDpiMessage.add_subjectq_proto_smtp("test1");
     ASSERT_EQ(2, dm.GetSubjectField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("subject", results[1].first);
@@ -1655,7 +1655,7 @@ TEST_F(RuleEngineTest, GetSubjectField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_msglist_subjectq_proto_dimp("notit");
+    tDpiMessage.add_msglist_subjectq_proto_dimp("notit");
     ASSERT_EQ(1, dm.GetSubjectField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
@@ -1679,14 +1679,14 @@ TEST_F(RuleEngineTest, GetVersionField) {
     EXPECT_EQ("21", results[1].second);
     results.clear();
     tDpiMessage.Clear();
-    tDpiMessage.set_versionq_proto_skype("test1");
+    tDpiMessage.add_versionq_proto_skype("test1");
     ASSERT_EQ(2, dm.GetVersionField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("version", results[1].first);
     EXPECT_EQ("test1", results[1].second);
     results.clear();
     tDpiMessage.Clear();
-    tDpiMessage.set_server_versionq_proto_teamspeak("test1");
+    tDpiMessage.add_server_versionq_proto_teamspeak("test1");
     ASSERT_EQ(2, dm.GetVersionField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("version", results[1].first);
@@ -1710,14 +1710,14 @@ TEST_F(RuleEngineTest, GetPathField) {
     ASSERT_EQ(1, dm.GetPathField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
-    tDpiMessage.set_directoryq_proto_http("aPath");
+    tDpiMessage.add_directoryq_proto_http("aPath");
     ASSERT_EQ(2, dm.GetPathField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("object", results[1].first);
     EXPECT_EQ("aPath", results[1].second);
     results.clear();
     tDpiMessage.Clear();
-    tDpiMessage.set_directoryq_proto_smb("test1");
+    tDpiMessage.add_directoryq_proto_smb("test1");
     ASSERT_EQ(2, dm.GetPathField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("object", results[1].first);
@@ -1736,14 +1736,14 @@ TEST_F(RuleEngineTest, GetFilenameField) {
     ASSERT_EQ(1, dm.GetFilenameField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
-    tDpiMessage.set_filenameq_proto_winmx("aName");
+    tDpiMessage.add_filenameq_proto_winmx("aName");
     ASSERT_EQ(2, dm.GetFilenameField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("objectname", results[1].first);
     EXPECT_EQ("aName", results[1].second);
     results.clear();
     tDpiMessage.Clear();
-    tDpiMessage.set_attach_filenameq_proto_yandex_webmail("test1");
+    tDpiMessage.add_attach_filenameq_proto_yandex_webmail("test1");
     ASSERT_EQ(2, dm.GetFilenameField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("objectname", results[1].first);
@@ -1751,7 +1751,7 @@ TEST_F(RuleEngineTest, GetFilenameField) {
     results.clear();
     tDpiMessage.Clear();
 
-    tDpiMessage.set_bootfilenameq_proto_dhcp("notit");
+    tDpiMessage.add_bootfilenameq_proto_dhcp("notit");
     ASSERT_EQ(1, dm.GetFilenameField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
 
@@ -1774,7 +1774,7 @@ TEST_F(RuleEngineTest, GetSessionField) {
     EXPECT_EQ("1234", results[1].second);
     results.clear();
     tDpiMessage.Clear();
-    tDpiMessage.set_session_idq_proto_ymail2("test1");
+    tDpiMessage.add_session_idq_proto_ymail2("test1");
     ASSERT_EQ(2, dm.GetSessionField(1, tDpiMessage, results));
     ASSERT_EQ(1, results.size());
     EXPECT_EQ("session", results[1].first);
@@ -1786,7 +1786,7 @@ TEST_F(RuleEngineTest, GetSessionField) {
     ASSERT_EQ(0, results.size());
     results.clear();
     tDpiMessage.Clear();
-    tDpiMessage.set_end_sessionq_proto_rtp("test1");
+    tDpiMessage.add_end_sessionq_proto_rtp("test1");
     ASSERT_EQ(1, dm.GetSessionField(1, tDpiMessage, results));
     ASSERT_EQ(0, results.size());
     results.clear();
@@ -1968,7 +1968,7 @@ TEST_F(RuleEngineTest, StaticCallLuaGetLatestApplication) {
    lua_State *luaState;
    luaState = luaL_newstate();
    
-   dpiMsg.set_application_endq_proto_base("tcp|http|google");
+   dpiMsg.add_application_endq_proto_base("tcp|http|google");
 
    lua_pushlightuserdata(luaState, &dpiMsg);
    RuleEngine::LuaGetLatestApplication(luaState);
@@ -2079,24 +2079,24 @@ TEST_F(RuleEngineTest, StaticCallLuaSendInterFlow) {
    dpiMsg.set_destport(54321);
    dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
-   dpiMsg.set_application_endq_proto_base("wrong|dummy");
+   dpiMsg.add_application_endq_proto_base("wrong|dummy");
    dpiMsg.set_sessionlenserver(12345);
    dpiMsg.set_sessionlenclient(6789);
    dpiMsg.set_packetcount(99);
-   dpiMsg.set_loginq_proto_aim("aLogin");
-   dpiMsg.set_domainq_proto_smb("aDomain");
-   dpiMsg.set_uri_fullq_proto_http("this/url.htm");
-   dpiMsg.set_uriq_proto_http("notitUrl");
-   dpiMsg.set_serverq_proto_http("thisname");
-   dpiMsg.set_referer_serverq_proto_http("notitServer");
-   dpiMsg.set_methodq_proto_ftp("TEST|COMMAND");
-   dpiMsg.set_senderq_proto_smtp("test1");
-   dpiMsg.set_receiverq_proto_smtp("test2");
-   dpiMsg.set_subjectq_proto_smtp("test3");
-   dpiMsg.set_versionq_proto_http("4.0");
-   dpiMsg.set_filenameq_proto_gnutella("aFilename");
-   dpiMsg.set_filename_encodingq_proto_aim_transfer("notitFile");
-   dpiMsg.set_directoryq_proto_smb("aPath");
+   dpiMsg.add_loginq_proto_aim("aLogin");
+   dpiMsg.add_domainq_proto_smb("aDomain");
+   dpiMsg.add_uri_fullq_proto_http("this/url.htm");
+   dpiMsg.add_uriq_proto_http("notitUrl");
+   dpiMsg.add_serverq_proto_http("thisname");
+   dpiMsg.add_referer_serverq_proto_http("notitServer");
+   dpiMsg.add_methodq_proto_ftp("TEST|COMMAND");
+   dpiMsg.add_senderq_proto_smtp("test1");
+   dpiMsg.add_receiverq_proto_smtp("test2");
+   dpiMsg.add_subjectq_proto_smtp("test3");
+   dpiMsg.add_versionq_proto_http("4.0");
+   dpiMsg.add_filenameq_proto_gnutella("aFilename");
+   dpiMsg.add_filename_encodingq_proto_aim_transfer("notitFile");
+   dpiMsg.add_directoryq_proto_smb("aPath");
    dpiMsg.set_starttime(123);
    dpiMsg.set_endtime(456);
    dpiMsg.set_deltatime(222);
@@ -2190,27 +2190,27 @@ TEST_F(RuleEngineTest, StaticCallLuaSendFinalFlow) {
    dpiMsg.set_destport(54321);
    dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
-   dpiMsg.set_application_endq_proto_base("wrong|dummy");
+   dpiMsg.add_application_endq_proto_base("wrong|dummy");
    dpiMsg.set_sessionlenserver(12345);
    dpiMsg.set_deltasessionlenserver( 12345 );
    dpiMsg.set_sessionlenclient(6789);
    dpiMsg.set_deltasessionlenclient( 6789 );
    dpiMsg.set_packetcount(99);
    dpiMsg.set_deltapackets( 99 );
-   dpiMsg.set_loginq_proto_aim("aLogin");
-   dpiMsg.set_domainq_proto_smb("aDomain");
-   dpiMsg.set_uri_fullq_proto_http("this/url.htm");
-   dpiMsg.set_uriq_proto_http("notitUrl");
-   dpiMsg.set_serverq_proto_http("thisname");
-   dpiMsg.set_referer_serverq_proto_http("notitServer");
-   dpiMsg.set_methodq_proto_ftp("TEST|COMMAND");
-   dpiMsg.set_senderq_proto_smtp("test1");
-   dpiMsg.set_receiverq_proto_smtp("test2");
-   dpiMsg.set_subjectq_proto_smtp("test3");
-   dpiMsg.set_versionq_proto_http("4.0");
-   dpiMsg.set_filenameq_proto_gnutella("aFilename");
-   dpiMsg.set_filename_encodingq_proto_aim_transfer("notitFile");
-   dpiMsg.set_directoryq_proto_smb("aPath");
+   dpiMsg.add_loginq_proto_aim("aLogin");
+   dpiMsg.add_domainq_proto_smb("aDomain");
+   dpiMsg.add_uri_fullq_proto_http("this/url.htm");
+   dpiMsg.add_uriq_proto_http("notitUrl");
+   dpiMsg.add_serverq_proto_http("thisname");
+   dpiMsg.add_referer_serverq_proto_http("notitServer");
+   dpiMsg.add_methodq_proto_ftp("TEST|COMMAND");
+   dpiMsg.add_senderq_proto_smtp("test1");
+   dpiMsg.add_receiverq_proto_smtp("test2");
+   dpiMsg.add_subjectq_proto_smtp("test3");
+   dpiMsg.add_versionq_proto_http("4.0");
+   dpiMsg.add_filenameq_proto_gnutella("aFilename");
+   dpiMsg.add_filename_encodingq_proto_aim_transfer("notitFile");
+   dpiMsg.add_directoryq_proto_smb("aPath");
    dpiMsg.set_starttime(123);
    dpiMsg.set_endtime(456);
    dpiMsg.set_deltatime(333);
@@ -2307,27 +2307,27 @@ TEST_F(RuleEngineTest, StaticCallLuaGetDpiMsgSize) {
    dpiMsg.set_destport(54321);
    dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
-   dpiMsg.set_application_endq_proto_base("wrong|dummy");
+   dpiMsg.add_application_endq_proto_base("wrong|dummy");
    dpiMsg.set_sessionlenserver(12345);
    dpiMsg.set_deltasessionlenserver( 12345 );
    dpiMsg.set_sessionlenclient(6789);
    dpiMsg.set_deltasessionlenclient( 6789 );
    dpiMsg.set_packetcount(99);
    dpiMsg.set_deltapackets( 99 );
-   dpiMsg.set_loginq_proto_aim("aLogin");
-   dpiMsg.set_domainq_proto_smb("aDomain");
-   dpiMsg.set_uri_fullq_proto_http("this/url.htm");
-   dpiMsg.set_uriq_proto_http("notitUrl");
-   dpiMsg.set_serverq_proto_http("thisname");
-   dpiMsg.set_referer_serverq_proto_http("notitServer");
-   dpiMsg.set_methodq_proto_ftp("TEST|COMMAND");
-   dpiMsg.set_senderq_proto_smtp("test1");
-   dpiMsg.set_receiverq_proto_smtp("test2");
-   dpiMsg.set_subjectq_proto_smtp("test3");
-   dpiMsg.set_versionq_proto_http("4.0");
-   dpiMsg.set_filenameq_proto_gnutella("aFilename");
-   dpiMsg.set_filename_encodingq_proto_aim_transfer("notitFile");
-   dpiMsg.set_directoryq_proto_smb("aPath");
+   dpiMsg.add_loginq_proto_aim("aLogin");
+   dpiMsg.add_domainq_proto_smb("aDomain");
+   dpiMsg.add_uri_fullq_proto_http("this/url.htm");
+   dpiMsg.add_uriq_proto_http("notitUrl");
+   dpiMsg.add_serverq_proto_http("thisname");
+   dpiMsg.add_referer_serverq_proto_http("notitServer");
+   dpiMsg.add_methodq_proto_ftp("TEST|COMMAND");
+   dpiMsg.add_senderq_proto_smtp("test1");
+   dpiMsg.add_receiverq_proto_smtp("test2");
+   dpiMsg.add_subjectq_proto_smtp("test3");
+   dpiMsg.add_versionq_proto_http("4.0");
+   dpiMsg.add_filenameq_proto_gnutella("aFilename");
+   dpiMsg.add_filename_encodingq_proto_aim_transfer("notitFile");
+   dpiMsg.add_directoryq_proto_smb("aPath");
    dpiMsg.set_starttime(123);
    dpiMsg.set_endtime(456);
    dpiMsg.set_deltatime(333);
