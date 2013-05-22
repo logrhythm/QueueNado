@@ -615,39 +615,44 @@ TEST_F(DpiMsgLRTests, SetStringFieldsByName) {
 TEST_F(DpiMsgLRTests, SetStringFieldsByNameSerializes) {
    DpiMsgLR dm;
    std::string serializeData;
-   dm.CanAddRepeatedString("uuid", "abc123");
-   dm.CanAddRepeatedString("uuid", "def456");
-   dm.CanAddRepeatedString("application_endq_proto_base", "ghi789");
-   dm.add_application_endq_proto_base("a");
+   dm.set_uuid("abc123");
+   
+   EXPECT_TRUE(dm.CanAddRepeatedString("application_endq_proto_base", "ghi789"));
+   EXPECT_FALSE(dm.CanAddRepeatedString("application_endq_proto_base", "ghi789"));
+   dm.add_application_endq_proto_base("ghi789");
+   dm.add_application_endq_proto_base("abc123");
    dm.GetBuffer(serializeData);
    DpiMsgLR rdm;
 
    rdm.PutBuffer(serializeData);
-   ASSERT_EQ("abc123|def456", rdm.uuid());
-   ASSERT_EQ("ghi789", rdm.application_endq_proto_base(1));
+   ASSERT_EQ("abc123", rdm.uuid());
+   ASSERT_EQ("abc123", rdm.application_endq_proto_base(1));
 }
 
 TEST_F(DpiMsgLRTests, GetLastStringFieldsByName) {
    DpiMsgLR dm;
-   std::string serializeData;
-   dm.CanAddRepeatedString("uuid", "abc123");
    std::string lastStr;
-   ASSERT_TRUE(dm.GetLastStringByName("uuid", lastStr));
-   ASSERT_EQ("abc123", lastStr);
-   dm.CanAddRepeatedString("uuid", "def456");
-   lastStr.clear();
-   ASSERT_TRUE(dm.GetLastStringByName("uuid", lastStr));
-   ASSERT_EQ("def456", lastStr);
-
-   lastStr.clear();
+   std::string serializeData;
    ASSERT_FALSE(dm.GetLastStringByName("application_endq_proto_base", lastStr));
    ASSERT_EQ("", lastStr);
+   dm.add_application_endq_proto_base("abc123");
+
+   ASSERT_TRUE(dm.GetLastStringByName("application_endq_proto_base", lastStr));
+   ASSERT_EQ("abc123", lastStr);
+   EXPECT_TRUE(dm.CanAddRepeatedString("uuid", "def456"));
+   dm.add_application_endq_proto_base("def456");
+   lastStr.clear();
+   ASSERT_TRUE(dm.GetLastStringByName("application_endq_proto_base", lastStr));
+   ASSERT_EQ("def456", lastStr);
+
 }
 
 
 TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoMultipleProtocols) {
    DpiMsgLR dm;
-   dm.add_application_endq_proto_base("tcp|http|google");
+   dm.add_application_endq_proto_base("tcp");
+   dm.add_application_endq_proto_base("http");
+   dm.add_application_endq_proto_base("google");
    std::string lastStr;
    lastStr = dm.GetLatestApplicationFromProto();
    ASSERT_EQ("google", lastStr);
