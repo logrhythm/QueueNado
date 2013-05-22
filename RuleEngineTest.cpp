@@ -44,7 +44,9 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
     tDpiMessage.add_uriq_proto_http("not/this/one");
     tDpiMessage.add_serverq_proto_http("thisname12345");
     tDpiMessage.add_referer_serverq_proto_http("notThisOne");
-    tDpiMessage.add_methodq_proto_ftp("RUN|COMMAND|LONGLONGLONGLONG");
+    tDpiMessage.add_methodq_proto_ftp("RUN");
+    tDpiMessage.add_methodq_proto_ftp("COMMAND");
+    tDpiMessage.add_methodq_proto_ftp("LONGLONGLONGLONG");
     tDpiMessage.add_senderq_proto_smtp("test1_123456");
     tDpiMessage.add_receiverq_proto_smtp("test2_123");
     tDpiMessage.add_subjectq_proto_smtp("test3_12345");
@@ -328,7 +330,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
         msg.set_destport(54321);
         msg.set_protoid(12);
         msg.set_application_id_endq_proto_base(13);
-        msg.add_application_endq_proto_base("wrong|dummy");
+        msg.add_application_endq_proto_base("wrong");
+        msg.add_application_endq_proto_base("dummy");
         msg.set_sessionlenserver(12345);
         msg.set_sessionlenclient(6789);
         msg.set_packetcount(99);
@@ -338,7 +341,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
         msg.add_uriq_proto_http("notitUrl");
         msg.add_serverq_proto_http("thisname");
         msg.add_referer_serverq_proto_http("notitServer");
-        msg.add_methodq_proto_ftp("TEST|COMMAND");
+        msg.add_methodq_proto_ftp("TEST");
+        msg.add_methodq_proto_ftp("COMMAND");
         msg.add_senderq_proto_smtp("test1");
         msg.add_receiverq_proto_smtp("test2");
         msg.add_subjectq_proto_smtp("test3");
@@ -459,7 +463,8 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
         msg.set_destport(54321);
         msg.set_protoid(12);
         msg.set_application_id_endq_proto_base(13);
-        msg.add_application_endq_proto_base("wrong|dummy");
+        msg.add_application_endq_proto_base("wrong");
+        msg.add_application_endq_proto_base("dummy");
         msg.set_sessionlenserver(12345);
         msg.set_sessionlenclient(6789);
         msg.set_packetcount(99);
@@ -469,7 +474,8 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
         msg.add_uriq_proto_http("notitUrl");
         msg.add_serverq_proto_http("thisname");
         msg.add_referer_serverq_proto_http("notitServer");
-        msg.add_methodq_proto_ftp("TEST|COMMAND");
+        msg.add_methodq_proto_ftp("TEST");
+        msg.add_methodq_proto_ftp("COMMAND");
         msg.add_senderq_proto_smtp("test1");
         msg.add_receiverq_proto_smtp("test2");
         msg.add_subjectq_proto_smtp("test3");
@@ -600,7 +606,8 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
         msg.set_destport(54321);
         msg.set_protoid(12);
         msg.set_application_id_endq_proto_base(13);
-        msg.add_application_endq_proto_base("wrong|dummy");
+        msg.add_application_endq_proto_base("wrong");
+        msg.add_application_endq_proto_base("dummy");
         msg.set_sessionlenserver(12345);
         msg.set_sessionlenclient(6789);
         msg.set_packetcount(99);
@@ -610,7 +617,8 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
         msg.add_uriq_proto_http("notitUrl");
         msg.add_serverq_proto_http("thisname");
         msg.add_referer_serverq_proto_http("notitServer");
-        msg.add_methodq_proto_ftp("TEST|COMMAND");
+        msg.add_methodq_proto_ftp("TEST");
+        msg.add_methodq_proto_ftp("COMMAND");
         msg.add_senderq_proto_smtp("test1");
         msg.add_receiverq_proto_smtp("test2");
         msg.add_subjectq_proto_smtp("test3");
@@ -727,7 +735,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         msg.set_destport(54321);
         msg.set_protoid(12);
         msg.set_application_id_endq_proto_base(13);
-        msg.add_application_endq_proto_base("wrong|dummy");
+        msg.add_application_endq_proto_base("wrong");
+        msg.add_application_endq_proto_base("dummy");
         msg.set_sessionlenserver(12345);
         msg.set_sessionlenclient(67890);
         msg.set_packetcount(99);
@@ -737,7 +746,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         msg.add_uriq_proto_http("notitUrl");
         msg.add_serverq_proto_http("thisname");
         msg.add_referer_serverq_proto_http("notitServer");
-        msg.add_methodq_proto_ftp("TEST|COMMAND");
+        msg.add_methodq_proto_ftp("TEST");
+        msg.add_methodq_proto_ftp("COMMAND");
         msg.add_senderq_proto_smtp("test1");
         msg.add_receiverq_proto_smtp("test2");
         msg.add_subjectq_proto_smtp("test3");
@@ -884,9 +894,9 @@ TEST_F(RuleEngineTest, getSyslogMessagesBigMessage) {
     dataPairs[6] = make_pair("5", "5");
     dataPairs[8] = make_pair("6", "6");
     dataPairs[9] = make_pair("7", "7");
-    dataPairs[23] = make_pair("a", "10");
-    dataPairs[24] = make_pair("b", "123456789aaaaaaaaaaaaaaaa0|aaaaaaaaa|bbbbbbbb");
-    dataPairs[25] = make_pair("c", "1");
+    dataPairs[DYNAMIC_DATA_START] = make_pair("a", "10");
+    dataPairs[DYNAMIC_DATA_START+1] = make_pair("b", "123456789aaaaaaaaaaaaaaaa0|aaaaaaaaa|bbbbbbbb");
+    dataPairs[DYNAMIC_DATA_START+2] = make_pair("c", "1");
 
     dm.SetMaxSize((7 * 5 + 3) + 8 + 8);
 
@@ -908,7 +918,7 @@ TEST_F(RuleEngineTest, getSyslogMessagesSplitDataTest) {
     map<unsigned int, pair <string, string> > dataPairs;
     vector<string> messages;
 
-
+    int currentDynamicField = DYNAMIC_DATA_START;
     dataPairs[1] = make_pair("UUID", "57c4384a-15b7-44c0-9814-b2e95b23dd15");
     dataPairs[2] = make_pair("EthSrc", "f0:f7:55:dc:a8:7f");
     dataPairs[3] = make_pair("EthDst", "84:18:88:7b:db:04");
@@ -930,21 +940,21 @@ TEST_F(RuleEngineTest, getSyslogMessagesSplitDataTest) {
     dataPairs[19] = make_pair("applicationIdEnd", "67");
     dataPairs[20] = make_pair("sessionLen", "74256");
     dataPairs[21] = make_pair("server", "192.168.178.21");
-    dataPairs[22] = make_pair("referer", "http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/");
-    dataPairs[23] = make_pair("referer", "http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/");
-    dataPairs[24] = make_pair("refererServer", "192.168.178.21");
-    dataPairs[25] = make_pair("uri", "/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel");
-    dataPairs[26] = make_pair("uri", "uri=/ha/status_json|/activity/query/");
-    dataPairs[27] = make_pair("uriFull", "/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel");
-    dataPairs[28] = make_pair("userAgent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; MDDR)");
-    dataPairs[29] = make_pair("mime", "text/html");
-    dataPairs[30] = make_pair("method", "GET");
-    dataPairs[31] = make_pair("version", "1.1");
-    dataPairs[32] = make_pair("serverAgent", "Apache/2.2.14 (Ubuntu) mod_ssl/2.2.14 OpenSSL/0.9.8k mod_fastcgi/2.4.6");
-    dataPairs[33] = make_pair("rttQ_PROTO_HTTP", "0.236118|0.720132|0.721577|0.726061|0.730292|0.712930|0.717017|0.689391|0.744431|0.725071|0.732237|0.719680|0.720685|0.731514|0.733816|0.763178|0.219743|0.719475|0.723441|0.734603|0.706938|0.692968|0.658081|0.731333|0.739257|0.737810|0.725861|0.731982|0.727546|0.721841|0.704078|0.709424|0.232954|0.764327|0.717029|0.724730|0.715977|0.705920|0.763877|0.728564|0.738548|0.727176|0.714079|0.714557|0.694057|0.726929|0.701185|0.727373|0.227517|0.699752|0.765659|0.732002|0.736440|0.720890|0.724230|0.719586|0.729707|0.712549|0.715832|0.723022|0.722323|0.722087|0.712564|0.714766|0.725085|0.722592|0.718138|0.732483|0.732279|0.758076|0.711826|0.730520|0.216783|0.718176|0.719815|0.711295|0.694291|0.771365|0.722658|0.707148|0.729696|0.717143|0.718489|0.714692|0.712587|0.736150|0.719579|0.705759|0.216820|0.760850|0.703886|0.710497|0.720210|0.712620|0.733677|0.716371|0.722511|0.712855|0.764938|0.702055|0.678128");
-    dataPairs[34] = make_pair("header_nameQ_PROTO_HTTP", "headerName=x-requested-with|Accept-Language|Referer|Accept|Accept-Encoding|User-Agent|Host|Connection|Date|Server|Content-Length|Expires|Pragma|Cache-Control|Set-Cookie|Keep-Alive|Content-Type|Transfer-Encoding");
-    dataPairs[35] = make_pair("header_valueQ_PROTO_HTTP", "XMLHttpRequest|en-us|http://192.168.178.21/frameset/upper/http://192.168.178.21/frameset/upper/|application/json, text/javascript, */*|gzip, deflate");
-    dataPairs[36] = make_pair("long_field_valueQ_PROTO_BOGUS", "123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_|Next field beyond 520 boundary");
+    dataPairs[currentDynamicField++] = make_pair("referer", "http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/");
+    dataPairs[currentDynamicField++] = make_pair("referer", "http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/");
+    dataPairs[currentDynamicField++] = make_pair("refererServer", "192.168.178.21");
+    dataPairs[currentDynamicField++] = make_pair("uri", "/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel");
+    dataPairs[currentDynamicField++] = make_pair("uri", "uri=/ha/status_json|/activity/query/");
+    dataPairs[currentDynamicField++] = make_pair("uriFull", "/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel");
+    dataPairs[currentDynamicField++] = make_pair("userAgent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; MDDR)");
+    dataPairs[currentDynamicField++] = make_pair("mime", "text/html");
+    dataPairs[currentDynamicField++] = make_pair("method", "GET");
+    dataPairs[currentDynamicField++] = make_pair("version", "1.1");
+    dataPairs[currentDynamicField++] = make_pair("serverAgent", "Apache/2.2.14 (Ubuntu) mod_ssl/2.2.14 OpenSSL/0.9.8k mod_fastcgi/2.4.6");
+    dataPairs[currentDynamicField++] = make_pair("rttQ_PROTO_HTTP", "0.236118|0.720132|0.721577|0.726061|0.730292|0.712930|0.717017|0.689391|0.744431|0.725071|0.732237|0.719680|0.720685|0.731514|0.733816|0.763178|0.219743|0.719475|0.723441|0.734603|0.706938|0.692968|0.658081|0.731333|0.739257|0.737810|0.725861|0.731982|0.727546|0.721841|0.704078|0.709424|0.232954|0.764327|0.717029|0.724730|0.715977|0.705920|0.763877|0.728564|0.738548|0.727176|0.714079|0.714557|0.694057|0.726929|0.701185|0.727373|0.227517|0.699752|0.765659|0.732002|0.736440|0.720890|0.724230|0.719586|0.729707|0.712549|0.715832|0.723022|0.722323|0.722087|0.712564|0.714766|0.725085|0.722592|0.718138|0.732483|0.732279|0.758076|0.711826|0.730520|0.216783|0.718176|0.719815|0.711295|0.694291|0.771365|0.722658|0.707148|0.729696|0.717143|0.718489|0.714692|0.712587|0.736150|0.719579|0.705759|0.216820|0.760850|0.703886|0.710497|0.720210|0.712620|0.733677|0.716371|0.722511|0.712855|0.764938|0.702055|0.678128");
+    dataPairs[currentDynamicField++] = make_pair("header_nameQ_PROTO_HTTP", "headerName=x-requested-with|Accept-Language|Referer|Accept|Accept-Encoding|User-Agent|Host|Connection|Date|Server|Content-Length|Expires|Pragma|Cache-Control|Set-Cookie|Keep-Alive|Content-Type|Transfer-Encoding");
+    dataPairs[currentDynamicField++] = make_pair("header_valueQ_PROTO_HTTP", "XMLHttpRequest|en-us|http://192.168.178.21/frameset/upper/http://192.168.178.21/frameset/upper/|application/json, text/javascript, */*|gzip, deflate");
+    dataPairs[currentDynamicField++] = make_pair("long_field_valueQ_PROTO_BOGUS", "123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_|Next field beyond 520 boundary");
 
     dm.SetMaxSize(2048);
     ASSERT_TRUE(dm.GetSyslogMessages(dataPairs, messages, DYNAMIC_DATA_START));
@@ -1018,7 +1028,10 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
     tDpiMessage.add_referer_serverq_proto_http("notThisOne");
     // Notice the delimter character '|' placed before LAST.  This forces the
     // application to split the string before the delimiter.
-    tDpiMessage.add_methodq_proto_ftp("RUN|DOCMD|LONGLONGLONG|LAST");
+    tDpiMessage.add_methodq_proto_ftp("RUN");
+    tDpiMessage.add_methodq_proto_ftp("DOCMD");
+    tDpiMessage.add_methodq_proto_ftp("LONGLONGLONG");
+    tDpiMessage.add_methodq_proto_ftp("LAST");
     tDpiMessage.add_senderq_proto_smtp("test1_12345");
     tDpiMessage.add_receiverq_proto_smtp("test2_12");
     tDpiMessage.add_subjectq_proto_smtp("test3_1234");
@@ -1171,7 +1184,7 @@ TEST_F(RuleEngineTest, CrazyData) {
             syslogFacility, syslogPriority, true, 0);
     map<unsigned int, pair <string, string> > dataPairs;
     vector<string> messages;
-
+    int currentDynamicField = DYNAMIC_DATA_START;
     dataPairs[1] = make_pair("0", "0");
     dataPairs[2] = make_pair("1", "1");
     dataPairs[3] = make_pair("2", "2");
@@ -1180,8 +1193,8 @@ TEST_F(RuleEngineTest, CrazyData) {
     dataPairs[6] = make_pair("5", "5");
     dataPairs[8] = make_pair("6", "6");
     dataPairs[9] = make_pair("7", "7");
-    dataPairs[23] = make_pair("a", "10");
-    dataPairs[24] = make_pair("b", "123456789aaaaaaaaaaaaaaaa0|aaaaaaaaa|bbbbbbbb1234567890123456789012345678900aaaa");
+    dataPairs[currentDynamicField++] = make_pair("a", "10");
+    dataPairs[currentDynamicField++] = make_pair("b", "123456789aaaaaaaaaaaaaaaa0|aaaaaaaaa|bbbbbbbb1234567890123456789012345678900aaaa");
     dm.SetMaxSize((7 * 5 + 3) + 8 + 8);
     ASSERT_TRUE(dm.GetSyslogMessages(dataPairs, messages, DYNAMIC_DATA_START));
     //      for (int i = 0 ; i < messages.size(); i++) {
@@ -1201,7 +1214,7 @@ TEST_F(RuleEngineTest, getSyslogMessagesLongMessage) {
             syslogFacility, syslogPriority, true, 0);
     map<unsigned int, pair <string, string> > dataPairs;
     vector<string> messages;
-
+    int currentDynamicField = DYNAMIC_DATA_START;
     dataPairs[1] = make_pair("0", "0");
     dataPairs[2] = make_pair("1", "1");
     dataPairs[3] = make_pair("2", "2");
@@ -1210,12 +1223,12 @@ TEST_F(RuleEngineTest, getSyslogMessagesLongMessage) {
     dataPairs[6] = make_pair("5", "5");
     dataPairs[8] = make_pair("6", "6");
     dataPairs[9] = make_pair("7", "7");
-    dataPairs[23] = make_pair("a", "1");
-    dataPairs[24] = make_pair("b", "1");
-    dataPairs[25] = make_pair("c", "1");
-    dataPairs[26] = make_pair("d", "1");
-    dataPairs[27] = make_pair("e", "1");
-    dataPairs[28] = make_pair("f", "1");
+    dataPairs[currentDynamicField++] = make_pair("a", "1");
+    dataPairs[currentDynamicField++] = make_pair("b", "1");
+    dataPairs[currentDynamicField++] = make_pair("c", "1");
+    dataPairs[currentDynamicField++] = make_pair("d", "1");
+    dataPairs[currentDynamicField++] = make_pair("e", "1");
+    dataPairs[currentDynamicField++] = make_pair("f", "1");
     dm.SetMaxSize((7 * 5 + 3) + 10 + 8);
     ASSERT_TRUE(dm.GetSyslogMessages(dataPairs, messages, DYNAMIC_DATA_START));
 
@@ -1230,7 +1243,7 @@ TEST_F(RuleEngineTest, getStaticInfo) {
     map<unsigned int, pair <string, string> > dataPairs;
     MockRuleEngine dm(conf, syslogName, syslogOption,
             syslogFacility, syslogPriority, true, 0);
-
+    int currentDynamicField = DYNAMIC_DATA_START;
     dataPairs[0] = make_pair("bad", "one");
     dataPairs[1] = make_pair("test", "me");
     dataPairs[2] = make_pair("test1", "me1");
@@ -1968,7 +1981,9 @@ TEST_F(RuleEngineTest, StaticCallLuaGetLatestApplication) {
    lua_State *luaState;
    luaState = luaL_newstate();
    
-   dpiMsg.add_application_endq_proto_base("tcp|http|google");
+   dpiMsg.add_application_endq_proto_base("tcp");
+   dpiMsg.add_application_endq_proto_base("http");
+   dpiMsg.add_application_endq_proto_base("google");
 
    lua_pushlightuserdata(luaState, &dpiMsg);
    RuleEngine::LuaGetLatestApplication(luaState);
@@ -2079,7 +2094,8 @@ TEST_F(RuleEngineTest, StaticCallLuaSendInterFlow) {
    dpiMsg.set_destport(54321);
    dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
-   dpiMsg.add_application_endq_proto_base("wrong|dummy");
+   dpiMsg.add_application_endq_proto_base("wrong");
+   dpiMsg.add_application_endq_proto_base("dummy");
    dpiMsg.set_sessionlenserver(12345);
    dpiMsg.set_sessionlenclient(6789);
    dpiMsg.set_packetcount(99);
@@ -2190,7 +2206,8 @@ TEST_F(RuleEngineTest, StaticCallLuaSendFinalFlow) {
    dpiMsg.set_destport(54321);
    dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
-   dpiMsg.add_application_endq_proto_base("wrong|dummy");
+   dpiMsg.add_application_endq_proto_base("wrong");
+   dpiMsg.add_application_endq_proto_base("dummy");
    dpiMsg.set_sessionlenserver(12345);
    dpiMsg.set_deltasessionlenserver( 12345 );
    dpiMsg.set_sessionlenclient(6789);
@@ -2203,7 +2220,8 @@ TEST_F(RuleEngineTest, StaticCallLuaSendFinalFlow) {
    dpiMsg.add_uriq_proto_http("notitUrl");
    dpiMsg.add_serverq_proto_http("thisname");
    dpiMsg.add_referer_serverq_proto_http("notitServer");
-   dpiMsg.add_methodq_proto_ftp("TEST|COMMAND");
+   dpiMsg.add_methodq_proto_ftp("TEST");
+   dpiMsg.add_methodq_proto_ftp("COMMAND");
    dpiMsg.add_senderq_proto_smtp("test1");
    dpiMsg.add_receiverq_proto_smtp("test2");
    dpiMsg.add_subjectq_proto_smtp("test3");
@@ -2307,7 +2325,8 @@ TEST_F(RuleEngineTest, StaticCallLuaGetDpiMsgSize) {
    dpiMsg.set_destport(54321);
    dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
-   dpiMsg.add_application_endq_proto_base("wrong|dummy");
+   dpiMsg.add_application_endq_proto_base("wrong");
+   dpiMsg.add_application_endq_proto_base("dummy");
    dpiMsg.set_sessionlenserver(12345);
    dpiMsg.set_deltasessionlenserver( 12345 );
    dpiMsg.set_sessionlenclient(6789);
@@ -2320,7 +2339,8 @@ TEST_F(RuleEngineTest, StaticCallLuaGetDpiMsgSize) {
    dpiMsg.add_uriq_proto_http("notitUrl");
    dpiMsg.add_serverq_proto_http("thisname");
    dpiMsg.add_referer_serverq_proto_http("notitServer");
-   dpiMsg.add_methodq_proto_ftp("TEST|COMMAND");
+   dpiMsg.add_methodq_proto_ftp("TEST");
+   dpiMsg.add_methodq_proto_ftp("COMMAND");
    dpiMsg.add_senderq_proto_smtp("test1");
    dpiMsg.add_receiverq_proto_smtp("test2");
    dpiMsg.add_subjectq_proto_smtp("test3");
