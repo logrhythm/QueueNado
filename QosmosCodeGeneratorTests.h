@@ -8,7 +8,7 @@
 #include <string>
 #include "QosmosCodeGenerator.h"
 #include "QosmosCodeGeneratorConfigParser.h"
-#define CALLBACK_FUNCTION_LINES 16
+#define CALLBACK_FUNCTION_LINES 15
 
 class QosmosCodeGeneratorTests : public ::testing::Test {
 public:
@@ -73,13 +73,12 @@ protected:
    std::string getCheckForCharBuffer(size_t size);
    std::string getCheckForConversion(const std::string& variableName);
    std::string getCheckForAssignment(const std::string& variableName);
+   std::string getCheckForRepeatedAssignment(const std::string& variableName);
    std::string getCheckForAssignmentDeref(const std::string& variableName);
    std::string getCheckForAddHook(const std::string& functionName, const std::string& qosmosPath, const std::string& qosmosName);
    std::string getCheckForRemoveHook(const std::string& functionName, const std::string& qosmosPath, const std::string& qosmosName);
    std::string getCheckForAddHookDefine();
    std::string getCheckForRemoveHookDefine();
-
-   std::string getCheckForDummyAssignment(const std::string& variableName);
 
    std::stringstream t_testStream;
    std::string t_functionName;
@@ -146,5 +145,8 @@ public:
 
    virtual void CloseAllCurl(std::stringstream& stream) {
       QosmosCodeGenerator::CloseAllCurl(stream);
+   }
+   std::string GetBodyWithConverterToRepeatedString(size_t bufferSize,const std::string& hiddenType, const std::string& converter,const std::string& finalVariableName) {
+      return QosmosCodeGenerator::GetBodyWithConverterToRepeatedString(bufferSize, hiddenType, converter, finalVariableName);
    }
 };
