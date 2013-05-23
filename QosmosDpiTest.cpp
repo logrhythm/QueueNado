@@ -101,12 +101,10 @@ TEST_F(QosmosDpiTest, DisableEnableProtoTest) {
       EXPECT_TRUE(mDpiEngine->FamilyEnable(validFamilyName));
       EXPECT_TRUE(mDpiEngine->FamilyDisable(validFamilyName));
 
-      /* Doesn't work ... Locks up in the Qosmos library
       validFamilyName.clear();
       validFamilyName.assign("Instant Messaging");
       EXPECT_TRUE( mDpiEngine->FamilyEnable( validFamilyName ) );
       EXPECT_TRUE( mDpiEngine->FamilyDisable( validFamilyName ) );
-       */
 
       validFamilyName.clear();
       validFamilyName.assign("Mail");
@@ -183,12 +181,10 @@ TEST_F(QosmosDpiTest, DisableEnableProtoTest) {
       EXPECT_TRUE(mDpiEngine->FamilyEnable(validFamilyName));
       EXPECT_TRUE(mDpiEngine->FamilyDisable(validFamilyName));
 
-      /* Doesn't work ... Locks up in the Qosmos library
       validFamilyName.clear();
       validFamilyName.assign("Web");
       EXPECT_TRUE( mDpiEngine->FamilyEnable( validFamilyName ) );
       EXPECT_TRUE( mDpiEngine->FamilyDisable( validFamilyName ) );
-       */
 
       validFamilyName.clear();
       validFamilyName.assign("Webmail");
