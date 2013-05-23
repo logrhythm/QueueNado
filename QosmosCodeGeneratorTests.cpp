@@ -181,19 +181,19 @@ TEST_F(QosmosCodeGeneratorTests, generateAllEventCallMultiple) {
 
       r = "[[:space:]]*+if \\(gReportEverything\\)";
 
-      ASSERT_TRUE(regex_search(lines[10 + CALLBACK_FUNCTION_LINES * i], r));
+      ASSERT_TRUE(regex_search(lines[9 + CALLBACK_FUNCTION_LINES * i], r));
 
       r = "[[:space:]]*+\\{[[:space:]]*+";
-      ASSERT_TRUE(regex_search(lines[11 + CALLBACK_FUNCTION_LINES * i], r));
+      ASSERT_TRUE(regex_search(lines[10 + CALLBACK_FUNCTION_LINES * i], r));
       r = "[[:space:]]*+event_send_data\\(uapp_cnx, event, 0\\)\\;";
-      ASSERT_TRUE(regex_search(lines[12 + CALLBACK_FUNCTION_LINES * i], r));
+      ASSERT_TRUE(regex_search(lines[11 + CALLBACK_FUNCTION_LINES * i], r));
       r = "[[:space:]]*+\\}[[:space:]]*+";
-      ASSERT_TRUE(regex_search(lines[13 + CALLBACK_FUNCTION_LINES * i], r));
+      ASSERT_TRUE(regex_search(lines[12 + CALLBACK_FUNCTION_LINES * i], r));
 
       r = "[[:space:]]*+\\}[[:space:]]*+";
-      ASSERT_TRUE(regex_search(lines[14 + CALLBACK_FUNCTION_LINES * i], r));
+      ASSERT_TRUE(regex_search(lines[13 + CALLBACK_FUNCTION_LINES * i], r));
       r = "[[:space:]]*+\\}[[:space:]]*+";
-      ASSERT_TRUE(regex_search(lines[15 + CALLBACK_FUNCTION_LINES * i], r));
+      ASSERT_TRUE(regex_search(lines[14 + CALLBACK_FUNCTION_LINES * i], r));
    }
 
 
@@ -266,20 +266,18 @@ string QosmosCodeGeneratorTests::getCheckForConversion(const string& variableNam
 
 string QosmosCodeGeneratorTests::getCheckForAssignment(const string& variableName) {
    stringstream pattern;
-   pattern << "[[:space:]]*+pDpiMsg->SetStringByName\\(\\\"";
-   pattern << variableName;
-   pattern << "\\\",[[:space:]]*+str[[:space:]]*+\\)[[:space:]]*+\\;";
-   return pattern.str();
-}
-
-string QosmosCodeGeneratorTests::getCheckForDummyAssignment(const string& variableName) {
-   stringstream pattern;
    pattern << "[[:space:]]*+pDpiMsg->set_";
    pattern << variableName;
-   pattern << "\\(\\\"a\\\"\\)[[:space:]]*+\\;";
+   pattern << "\\(str\\)[[:space:]]*+\\;";
    return pattern.str();
 }
-
+string QosmosCodeGeneratorTests::getCheckForRepeatedAssignment(const string& variableName) {
+   stringstream pattern;
+   pattern << "[[:space:]]*+pDpiMsg->add_";
+   pattern << variableName;
+   pattern << "\\(str\\)[[:space:]]*+\\;[[:space:]]*\\}";
+   return pattern.str();
+}
 string QosmosCodeGeneratorTests::getCheckForAssignmentDeref(const string& variableName) {
    stringstream pattern;
    pattern << "[[:space:]]*+pDpiMsg->set_";
@@ -391,14 +389,46 @@ TEST_F(QosmosCodeGeneratorTests, BodyWithConverterToString) {
    r = getCheckForConversion(converter);
    EXPECT_TRUE(regex_search(lines[2], r));
 
-   r = getCheckForDummyAssignment(finalVariableName);
-
-   EXPECT_TRUE(regex_search(lines[3], r));
    r = getCheckForAssignment(finalVariableName);
-   //cout << lines[4] << endl;
-   EXPECT_TRUE(regex_search(lines[4], r));
+   //cout << lines[3] << endl;
+   EXPECT_TRUE(regex_search(lines[3], r));
 }
+TEST_F(QosmosCodeGeneratorTests, BodyWithConverterToRepeatedString) {
+   QosmosCodeGeneratorConfigParser parser;
 
+   MockQosmosCodeGenerator generator(parser);
+   size_t bufferSize = 51234;
+   string hiddenType = "weirdType";
+   string converter = "convertWeirdToChar";
+   string finalVariableName = "pktpath";
+
+   string functionBody = generator.GetBodyWithConverterToRepeatedString(bufferSize, hiddenType, converter, finalVariableName);
+
+   ASSERT_TRUE(parensMatch(functionBody));
+
+   stringstream ss(functionBody);
+   string line;
+   vector<string> lines;
+   while (getline(ss, line)) {
+      lines.push_back(line);
+   }
+
+   ASSERT_TRUE(lines.size() > 3);
+   //cout << functionBody;
+   regex r(getCheckForHiddenVariable(hiddenType));
+
+   EXPECT_TRUE(regex_search(lines[0], r));
+
+   r = getCheckForCharBuffer(bufferSize);
+   EXPECT_TRUE(regex_search(lines[1], r));
+
+   r = getCheckForConversion(converter);
+   EXPECT_TRUE(regex_search(lines[2], r));
+
+   r = getCheckForRepeatedAssignment(finalVariableName);
+   //cout << lines[3] << endl;
+   EXPECT_TRUE(regex_search(lines[3], r));
+}
 TEST_F(QosmosCodeGeneratorTests, GetBodyWithConverterToStringDeref) {
    QosmosCodeGeneratorConfigParser parser;
 
@@ -461,10 +491,9 @@ TEST_F(QosmosCodeGeneratorTests, AutoBodyCreation) {
    r = getCheckForConversion(converter);
    EXPECT_TRUE(regex_search(lines[2], r));
 
-   r = getCheckForDummyAssignment(functionName);
-   EXPECT_TRUE(regex_search(lines[3], r));
    r = getCheckForAssignment(functionName);
-   EXPECT_TRUE(regex_search(lines[4], r));
+   //cout << lines[3] << std::endl;
+   EXPECT_TRUE(regex_search(lines[3], r));
 
 
 }

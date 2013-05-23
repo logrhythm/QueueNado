@@ -33,7 +33,7 @@ TEST_F(DpiMsgLRTests, enablePasswordScrubbing) {
    DpiMsgLR* dm = new DpiMsgLR;
    dm->EnablePasswordScrubbing(true);
    dm->set_uuid("01234567-89ab-cdef-0123456789abcdef");
-   dm->set_passwordq_proto_ftp("wooo");
+   dm->add_passwordq_proto_ftp("wooo");
    IndexedFieldPairs pairs = dm->GetAllFieldsAsStrings();
    ASSERT_EQ(2, pairs.size());
    IndexedFieldPairs::const_iterator it;
@@ -431,7 +431,7 @@ TEST_F(DpiMsgLRTests, GetDynamicFieldPairs) {
    expecteds["filesize"] = filesizes;
 
    string filename = "this is a file";
-   tDpiMessage.set_attach_filenameq_proto_facebook_mail(filename);
+   tDpiMessage.add_attach_filenameq_proto_facebook_mail(filename);
    tDpiMessage.GetDynamicFieldPairs(results);
    expecteds["attachFilename"] = filename;
 
@@ -491,7 +491,7 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    expecteds["filesize"] = filesizes;
 
    string filename = "this is a file";
-   dm.set_attach_filenameq_proto_facebook_mail(filename);
+   dm.add_attach_filenameq_proto_facebook_mail(filename);
    expecteds["attachFilename"] = filename;
 
    results = dm.GetAllFieldsAsStrings();
@@ -599,53 +599,60 @@ TEST_F(DpiMsgLRTests, serializationSuccess) {
 
 TEST_F(DpiMsgLRTests, SetStringFieldsByName) {
    DpiMsgLR dm;
-   std::string serializeData;
-   dm.SetStringByName("uuid", "abc123");
-   ASSERT_EQ("", dm.uuid());
-   dm.GetBuffer(serializeData);
-   ASSERT_EQ("abc123", dm.uuid());
-   dm.SetStringByName("uuid", "def456");
-   ASSERT_EQ("abc123", dm.uuid());
-   dm.GetBuffer(serializeData);
-   ASSERT_EQ("abc123|def456", dm.uuid());
+   
+   ASSERT_EQ(0, dm.application_endq_proto_base_size());
+   if (dm.CanAddRepeatedString("application_endq_proto_base", "abc123") ) {
+      dm.add_application_endq_proto_base("abc123");
+   }
+   EXPECT_FALSE(dm.CanAddRepeatedString("application_endq_proto_base", "abc123"));
+   ASSERT_EQ("abc123", dm.application_endq_proto_base(0));
+   if (dm.CanAddRepeatedString("application_endq_proto_base", "def456")) {
+      dm.add_application_endq_proto_base("def456");
+   }
+   ASSERT_EQ("def456", dm.application_endq_proto_base(1));
 }
 
 TEST_F(DpiMsgLRTests, SetStringFieldsByNameSerializes) {
    DpiMsgLR dm;
    std::string serializeData;
-   dm.SetStringByName("uuid", "abc123");
-   dm.SetStringByName("uuid", "def456");
-   dm.SetStringByName("application_endq_proto_base", "ghi789");
-   dm.set_application_endq_proto_base("a");
+   dm.set_uuid("abc123");
+   
+   EXPECT_TRUE(dm.CanAddRepeatedString("application_endq_proto_base", "ghi789"));
+   EXPECT_FALSE(dm.CanAddRepeatedString("application_endq_proto_base", "ghi789"));
+   dm.add_application_endq_proto_base("ghi789");
+   dm.add_application_endq_proto_base("abc123");
    dm.GetBuffer(serializeData);
    DpiMsgLR rdm;
 
    rdm.PutBuffer(serializeData);
-   ASSERT_EQ("abc123|def456", rdm.uuid());
-   ASSERT_EQ("ghi789", rdm.application_endq_proto_base());
+   ASSERT_EQ("abc123", rdm.uuid());
+   ASSERT_EQ("abc123", rdm.application_endq_proto_base(1));
 }
 
 TEST_F(DpiMsgLRTests, GetLastStringFieldsByName) {
    DpiMsgLR dm;
-   std::string serializeData;
-   dm.SetStringByName("uuid", "abc123");
    std::string lastStr;
-   ASSERT_TRUE(dm.GetLastStringByName("uuid", lastStr));
-   ASSERT_EQ("abc123", lastStr);
-   dm.SetStringByName("uuid", "def456");
-   lastStr.clear();
-   ASSERT_TRUE(dm.GetLastStringByName("uuid", lastStr));
-   ASSERT_EQ("def456", lastStr);
-
-   lastStr.clear();
+   std::string serializeData;
    ASSERT_FALSE(dm.GetLastStringByName("application_endq_proto_base", lastStr));
    ASSERT_EQ("", lastStr);
+   dm.add_application_endq_proto_base("abc123");
+
+   ASSERT_TRUE(dm.GetLastStringByName("application_endq_proto_base", lastStr));
+   ASSERT_EQ("abc123", lastStr);
+   EXPECT_TRUE(dm.CanAddRepeatedString("uuid", "def456"));
+   dm.add_application_endq_proto_base("def456");
+   lastStr.clear();
+   ASSERT_TRUE(dm.GetLastStringByName("application_endq_proto_base", lastStr));
+   ASSERT_EQ("def456", lastStr);
+
 }
 
 
 TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoMultipleProtocols) {
    DpiMsgLR dm;
-   dm.set_application_endq_proto_base("tcp|http|google");
+   dm.add_application_endq_proto_base("tcp");
+   dm.add_application_endq_proto_base("http");
+   dm.add_application_endq_proto_base("google");
    std::string lastStr;
    lastStr = dm.GetLatestApplicationFromProto();
    ASSERT_EQ("google", lastStr);
@@ -654,7 +661,7 @@ TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoMultipleProtocols) {
 
 TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoSingleProtocol) {
    DpiMsgLR dm;
-   dm.set_application_endq_proto_base("tcp");
+   dm.add_application_endq_proto_base("tcp");
    std::string lastStr;
    lastStr = dm.GetLatestApplicationFromProto();
    ASSERT_EQ("tcp", lastStr);
