@@ -41,9 +41,9 @@ protected:
    virtual void TearDown() {
       //std::cout << "teardownStart" << std::endl;
 #ifdef LR_DEBUG
-       if (geteuid() == 0) {
-          raise(SIGTERM);
-       }
+      if (geteuid() == 0) {
+         raise(SIGTERM);
+      }
 #endif
       //std::cout << "teardownEnd" << std::endl;
 
@@ -57,7 +57,7 @@ protected:
    PCapInfo t_pcapInfo;
    networkMonitor::MockConfMaster mConf;
    QosmosPacketAllocator& mPacketAllocator;
-      pcap_pkthdr mBogusHeader;
+   pcap_pkthdr mBogusHeader;
    uint8_t mBogusPacket[100];
 };
 
@@ -169,6 +169,14 @@ public:
 
    bool WasActivationSuccessful(pcap_t* pcaph, int status) {
       return PacketCapturePCap::WasActivationSuccessful(pcaph, status);
+   }
+
+   int GetNumberOfRetries() {
+      return 2;
+   }
+
+   boost::posix_time::time_duration GetRetrySleepInterval() {
+      return std::move(boost::posix_time::microseconds(5));
    }
 
    int GetStats(struct pcap_stat* ps) {
@@ -314,6 +322,7 @@ public:
    void FailPacket(ctb_ppacket& packet) {
       return PacketCapturePCapClientThread::FailPacket(packet);
    }
+
    void FailPackets(std::vector<std::pair<void*, unsigned int> >& packets) {
       return PacketCapturePCapClientThread::FailPackets(packets);
    }
