@@ -17,7 +17,8 @@ ShotgunAlienTests \
 RifleVampireTests \
 TestTCPIPDirectionlessHash \
 LuaExecuterTest \
-ProcStatsTest
+ProcStatsTest \
+ThreadContainerTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/ \
@@ -195,6 +196,13 @@ LuaExecuterTest_SOURCES=main.cpp \
 LuaExecuterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  \
 -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
+ThreadContainerTest_LDADD=-lnm -llua -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lconf \
+                    -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system \
+                    -lprotobuf -lyaml-cpp -llib_g2log
+ThreadContainerTest_LDFLAGS=${BASE_LIBS}
+ThreadContainerTest_SOURCES=main.cpp ThreadContainerTest.cpp
+ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+
 
 
 nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
@@ -229,6 +237,7 @@ nmTest_SOURCES=main.cpp \
  TestSendReceivePacketZMQ.cpp \
  LuaExecuterTest.cpp \
  DiskPacketCaptureTest.cpp \
- ZeroMQTests.cpp
+ ZeroMQTests.cpp \
+ ThreadContainerTest.cpp
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine
