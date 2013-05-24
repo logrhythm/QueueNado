@@ -80,7 +80,6 @@ int Vampire::GetIOThreads() {
  */
 bool Vampire::PrepareToBeShot() {
    if (mBody) {
-      LOG(WARNING) << "Socket uninitialized!";
       return true;
    }
    if (!mContext) {
@@ -145,6 +144,7 @@ void Vampire::setIpcFilePermissions() {
 bool Vampire::GetShot(std::string& wound, const int timeout) {
    if (!mBody) {
       LOG(WARNING) << "Socket uninitialized!";
+      boost::this_thread::sleep(boost::posix_time::seconds(1));
       return false;
    }
    zmq_pollitem_t items [] = {
@@ -188,6 +188,7 @@ bool Vampire::GetShot(std::string& wound, const int timeout) {
 bool Vampire::GetStake(void*& stake, const int timeout) {
    if (!mBody) {
       LOG(WARNING) << "Socket uninitialized!";
+      boost::this_thread::sleep(boost::posix_time::seconds(1));
       return false;
    }
    if (zsocket_poll(mBody, timeout)) {
@@ -233,6 +234,7 @@ bool Vampire::GetStakes(std::vector<std::pair<void*, unsigned int> >& stakes,
         const int timeout) {
    if (!mBody) {
       LOG(WARNING) << "Socket uninitialized!";
+      boost::this_thread::sleep(boost::posix_time::seconds(1));
       return false;
    }
    if (zsocket_poll(mBody, timeout)) {
