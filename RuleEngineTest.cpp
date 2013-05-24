@@ -142,7 +142,7 @@ TEST_F(RuleEngineTest, testStartStop) {
             syslogFacility, syslogPriority, true, 0);
 
     EXPECT_FALSE(dpiSyslog.isRunning());
-    dpiSyslog.start();
+    dpiSyslog.Start();
     EXPECT_TRUE(dpiSyslog.isRunning());
     dpiSyslog.join();
 }
@@ -159,7 +159,7 @@ TEST_F(RuleEngineTest, testMsgReceive) {
         MockRuleEngine dpiSyslog(conf, syslogName, syslogOption,
                 syslogFacility, syslogPriority, true, 0);
         dpiSyslog.mSiemMode = false;
-        dpiSyslog.start();
+        dpiSyslog.Start();
         EXPECT_TRUE(dpiSyslog.isRunning());
 
         // Send a message to the thread and check the syslog output contains the
@@ -272,7 +272,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
                 syslogFacility, syslogPriority, true, 0);
         dpiSyslog.mSiemMode = true;
         dpiSyslog.mSiemDebugMode = false;
-        dpiSyslog.start();
+        dpiSyslog.Start();
         EXPECT_TRUE(dpiSyslog.isRunning());
 
         // Send a message to the thread and check the syslog output contains the
@@ -403,7 +403,7 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
                 syslogFacility, syslogPriority, true, 0);
         dpiSyslog.mSiemMode = true;
         dpiSyslog.mSiemDebugMode = false;
-        dpiSyslog.start();
+        dpiSyslog.Start();
         EXPECT_TRUE(dpiSyslog.isRunning());
 
         // Send a message to the thread and check the syslog output contains the
@@ -546,7 +546,7 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
                 syslogFacility, syslogPriority, true, 0);
         dpiSyslog.mSiemMode = true;
         dpiSyslog.mSiemDebugMode = false;
-        dpiSyslog.start();
+        dpiSyslog.Start();
         EXPECT_TRUE(dpiSyslog.isRunning());
 
         // Send a message to the thread and check the syslog output contains the
@@ -671,7 +671,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
         dpiSyslog.mSiemMode = true;
 
         dpiSyslog.mSiemDebugMode = true;
-        dpiSyslog.start();
+        dpiSyslog.Start();
         EXPECT_TRUE(dpiSyslog.isRunning());
 
         // Send a message to the thread and check the syslog output contains the

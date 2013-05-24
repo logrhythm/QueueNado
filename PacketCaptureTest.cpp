@@ -94,14 +94,6 @@ TEST_F(PacketCaptureTest, DynamicConstructAndInitialize) {
 
 }
 
-TEST_F(PacketCaptureTest, InitializationFailureCantStartWorkers) {
-#ifdef LR_DEBUG
-   MockPacketCapturePCap capturer(t_clientAddr, t_interface, mConf);
-   capturer.mFailStartWorkers = true;
-   EXPECT_FALSE(capturer.Initialize());
-#endif
-}
-
 TEST_F(PacketCaptureTest, InitializationFailureCantCreatePCapHandle) {
 #ifdef LR_DEBUG
    MockPacketCapturePCap capturer(t_clientAddr, t_interface, mConf);

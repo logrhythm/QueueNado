@@ -68,7 +68,6 @@ public:
    m_numberCaptured(0),
    m_numberToCapture(0),
    m_numberOfEmptyReadsToTolerate(0),
-   mFailStartWorkers(false),
    mFailCreatePCapHandle(false),
    mFailSetPCapTimeout(false),
    mFailSetBufferSize(false),
@@ -86,7 +85,6 @@ public:
    m_numberCaptured(0),
    m_numberToCapture(0),
    m_numberOfEmptyReadsToTolerate(0),
-   mFailStartWorkers(false),
    mFailCreatePCapHandle(false),
    mFailSetPCapTimeout(false),
    mFailSetBufferSize(false),
@@ -104,7 +102,6 @@ public:
    m_numberCaptured(0),
    m_numberToCapture(0),
    m_numberOfEmptyReadsToTolerate(0),
-   mFailStartWorkers(false),
    mFailCreatePCapHandle(false),
    mFailSetPCapTimeout(false),
    mFailSetBufferSize(false),
@@ -119,13 +116,6 @@ public:
    }
 
    virtual ~MockPacketCapturePCap() {
-   }
-
-   virtual bool StartWorkers() {
-      if (mFailStartWorkers) {
-         return false;
-      }
-      return PacketCapturePCap::StartWorkers();
    }
 
    virtual pcap_t* CreatePCapHandle() {
@@ -193,7 +183,6 @@ public:
    unsigned int m_numberCaptured;
    unsigned int m_numberToCapture;
    unsigned int m_numberOfEmptyReadsToTolerate;
-   bool mFailStartWorkers;
    bool mFailCreatePCapHandle;
    bool mFailSetPCapTimeout;
    bool mFailSetBufferSize;
