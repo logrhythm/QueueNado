@@ -59,13 +59,24 @@ TEST_F(ThreadContainerTest, testThreadRunStopOneThread) {
 
    tc.StartThreads();
 
-   ItLoopCount = 0;
-   for ( ThreadContainer<TestThread*>::iterator it = tc.begin();
-         it != tc.end(); it++ ) {
-      EXPECT_TRUE(it->first->GetRunState());
-      ItLoopCount++;
+   // Give the thread some time to start
+   int StartLoopCount = 0;
+   bool bStarted = false;
+   while ( ! bStarted && StartLoopCount < 50 ) {
+      boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+      bStarted = true; 
+      ItLoopCount = 0;
+      for ( ThreadContainer<TestThread*>::iterator it = tc.begin();
+            it != tc.end(); it++ ) {
+         if (!it->first->GetRunState()) {
+            bStarted = false;
+         }
+         ItLoopCount++;
+      }
+      EXPECT_EQ(1, ItLoopCount);
+      StartLoopCount++;
    }
-   EXPECT_EQ(1, ItLoopCount);
+   EXPECT_TRUE(bStarted);
 
    tc.StopThreads();
 
@@ -100,13 +111,24 @@ TEST_F(ThreadContainerTest, testThreadRunStopManyThreads) {
 
    tc.StartThreads();
 
-   ItLoopCount = 0;
-   for ( ThreadContainer<TestThread*>::const_iterator it = tc.begin();
-         it != tc.end(); it++ ) {
-      EXPECT_TRUE(it->first->GetRunState());
-      ItLoopCount++;
+   // Give the threads some time to start
+   int StartLoopCount = 0;
+   bool bStarted = false;
+   while ( ! bStarted && StartLoopCount < 50 ) {
+      boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+      bStarted = true; 
+      ItLoopCount = 0;
+      for ( ThreadContainer<TestThread*>::const_iterator it = tc.begin();
+            it != tc.end(); it++ ) {
+         if (!it->first->GetRunState()) {
+            bStarted = false;
+         }
+         ItLoopCount++;
+      }
+      EXPECT_EQ(TotalNumThreads, ItLoopCount);
+      StartLoopCount++;
    }
-   EXPECT_EQ(TotalNumThreads, ItLoopCount);
+   EXPECT_TRUE(bStarted);
 
    tc.StopThreads();
 
@@ -137,13 +159,25 @@ TEST_F(ThreadContainerTest, testThreadRunStopThreadDoesNotJoin) {
 
    tc.StartThreads();
 
+   // Give the threads some time to start
    int ItLoopCount(0);
-   for ( ThreadContainer<TestThread*>::const_iterator it = tc.begin();
-         it != tc.end(); it++ ) {
-      EXPECT_TRUE(it->first->GetRunState());
-      ItLoopCount++;
+   int StartLoopCount = 0;
+   bool bStarted = false;
+   while ( ! bStarted && StartLoopCount < 50 ) {
+      boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+      bStarted = true; 
+      ItLoopCount = 0;
+      for ( ThreadContainer<TestThread*>::const_iterator it = tc.begin();
+            it != tc.end(); it++ ) {
+         if (!it->first->GetRunState()) {
+            bStarted = false;
+         }
+         ItLoopCount++;
+      }
+      EXPECT_EQ(TotalNumThreads, ItLoopCount);
+      StartLoopCount++;
    }
-   EXPECT_EQ(TotalNumThreads, ItLoopCount);
+   EXPECT_TRUE(bStarted);
 
    tc.StopThreads();
 
