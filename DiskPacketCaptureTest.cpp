@@ -83,8 +83,8 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
    
    conf.mPCapCaptureLocation = "testLocation";
    std::time_t time = 123456789;
-   std::string fileName = capture.BuildFilename("TestUUID", "TestAppName", time);
-   ASSERT_EQ("testLocation/TestUUID_TestAppName_1973-11-29-14:33:09", fileName);
+   std::string fileName = capture.BuildFilename("TestUUID", "TestAppName", "24.24.24.24", "255.255.255.255", time);
+   ASSERT_EQ("testLocation/TestUUID|TestAppName|24.24.24.24|255.255.255.255|1973-11-29-21:33:09", fileName);
 #endif
 }
 

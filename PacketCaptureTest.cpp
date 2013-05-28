@@ -61,6 +61,21 @@ int MockPacketCapturePCap::GetPacketFromPCap(ctb_ppacket& packet, unsigned int& 
    return returnVal;
 }
 
+TEST_F(PacketCaptureTest, NonExistantInterface) {
+   if (geteuid() == 0 ) {
+#ifdef LR_DEBUG
+      std::string interface = "NOPE";
+      MockPacketCapturePCap capturer(t_clientAddr, interface, mConf);
+      pcap_t* handle = capturer.CreatePCapHandle();
+      ASSERT_FALSE(NULL==handle);
+      
+      int status = capturer.ActivatePCapHandle(handle);
+      EXPECT_EQ(PCAP_ERROR_NO_SUCH_DEVICE,status);
+      EXPECT_FALSE(capturer.WasActivationSuccessful(handle, status));
+      EXPECT_FALSE(capturer.Initialize(true));
+#endif
+   }
+}
 TEST_F(PacketCaptureTest, ConstructAndInitialize) {
    if (geteuid() == 0) {
 #ifdef LR_DEBUG
