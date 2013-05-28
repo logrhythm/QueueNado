@@ -494,6 +494,7 @@ TEST_F(QosmosDpiTest, EnableAndDisableCapture) {
       mDpiEngine->DisableDpiMsgLRCapture();
       //std::cout << "enable last time" << std::endl;
       mDpiEngine->EnableDpiMsgLRCapture();
+      mDpiEngine->DisableDpiMsgLRCapture();
    }
 }
 
