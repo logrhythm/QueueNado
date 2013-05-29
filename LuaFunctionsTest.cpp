@@ -70,6 +70,142 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("CapturePacket"));
    ASSERT_TRUE(registered.end() != registered.find("WriteAllCapturedPackets"));
    ASSERT_TRUE(registered.end() != registered.find("CleanupCapturedPackets"));
+
+   ASSERT_EQ(registered["SessionAge"], LuaPacketFunctions::LuaSessionAge);
+   ASSERT_EQ(registered["EndOfFlow"], LuaPacketFunctions::LuaDataNull);
+   ASSERT_EQ(registered["GetCurrentClassification"], LuaPacketFunctions::LuaDpiMsgClassification);
+   ASSERT_EQ(registered["CapturePacket"], LuaPacketFunctions::LuaBufferSessionToMemory);
+   ASSERT_EQ(registered["WriteAllCapturedPackets"], LuaPacketFunctions::LuaWriteAllPacketsToDisk);
+   ASSERT_EQ(registered["CleanupCapturedPackets"], LuaPacketFunctions::LuaEmptyBufferOfSession);
+   delete functions;
+}
+
+TEST_F(LuaFunctionsTest, LuaSessionAge) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, 10);
+   LuaPacketFunctions::LuaSessionAge(luaState);
+   EXPECT_FALSE(lua_toboolean(luaState, -1));
+   lua_close(luaState);
+   luaState = luaL_newstate();
+   dpiMsg.set_endtime(std::time(NULL));
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, 999);
+   LuaPacketFunctions::LuaSessionAge(luaState);
+   EXPECT_FALSE(lua_toboolean(luaState, -1));
+   lua_close(luaState);
+   luaState = luaL_newstate();
+   time_t pasttime = std::time(NULL) - 999;
+   dpiMsg.set_endtime(pasttime);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, 10);
+   LuaPacketFunctions::LuaSessionAge(luaState);
+   EXPECT_TRUE(lua_toboolean(luaState, -1));
+   EXPECT_TRUE(dpiMsg.flowtype() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
+   EXPECT_NE(pasttime, dpiMsg.endtime());
+   lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, LuaDataNull) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaPacketFunctions::LuaDataNull(luaState);
+   EXPECT_FALSE(lua_toboolean(luaState, -1));
+   lua_close(luaState);
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, NULL);
+   LuaPacketFunctions::LuaDataNull(luaState);
+   EXPECT_TRUE(lua_toboolean(luaState, -1));
+
+   lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, LuaDpiMsgClassification) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaPacketFunctions::LuaDpiMsgClassification(luaState);
+   std::string classification(lua_tostring(luaState, -1));
+   EXPECT_EQ("unknown", classification);
+   lua_close(luaState);
+   luaState = luaL_newstate();
+   dpiMsg.add_applicationq_proto_base("test1");
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaPacketFunctions::LuaDpiMsgClassification(luaState);
+   classification=lua_tostring(luaState, -1);
+   EXPECT_EQ("test1", classification);
+   lua_close(luaState);
+   dpiMsg.add_application_endq_proto_base("test2");
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaPacketFunctions::LuaDpiMsgClassification(luaState);
+   classification=lua_tostring(luaState, -1);
+   EXPECT_EQ("test2", classification);
+   lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
+   LuaRuleEngineFunctions* functions = new LuaRuleEngineFunctions;
+   MockConf conf;
+
+   MockLuaExecuter ruleEngine;
+   functions->RegisterAllKnownFunctions(ruleEngine);
+
+   std::map<std::string, lua_CFunction> registered = ruleEngine.GetPossibleFunctions();
+
+   ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFlow"));
+   ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFinalFlow"));
+   ASSERT_TRUE(registered.end() != registered.find("IsFinalFlow"));
+   ASSERT_TRUE(registered.end() != registered.find("GetUuid"));
+   ASSERT_TRUE(registered.end() != registered.find("GetLatestApplication"));
+   ASSERT_TRUE(registered.end() != registered.find("GetPacketCount"));
+   ASSERT_TRUE(registered.end() != registered.find("SetDeltaPackets"));
+   ASSERT_TRUE(registered.end() != registered.find("GetSessionLenServer"));
+   ASSERT_TRUE(registered.end() != registered.find("SetDeltaSessionLenServer"));
+   ASSERT_TRUE(registered.end() != registered.find("GetSessionLenClient"));
+   ASSERT_TRUE(registered.end() != registered.find("SetDeltaSessionLenClient"));
+   ASSERT_TRUE(registered.end() != registered.find("GetStartTime"));
+   ASSERT_TRUE(registered.end() != registered.find("GetEndTime"));
+   ASSERT_TRUE(registered.end() != registered.find("SetDeltaTime"));
+   ASSERT_TRUE(registered.end() != registered.find("GetDeltaTime"));
+   ASSERT_TRUE(registered.end() != registered.find("SendInterFlow"));
+   ASSERT_TRUE(registered.end() != registered.find("SendFinalFlow"));
+   ASSERT_TRUE(registered.end() != registered.find("SendAccStat"));
+   ASSERT_TRUE(registered.end() != registered.find("GetThreadId"));
+   ASSERT_TRUE(registered.end() != registered.find("GetRawMsgSize"));
+   ASSERT_TRUE(registered.end() != registered.find("GetDpiMsgSize"));
+   ASSERT_TRUE(registered.end() != registered.find("SendStat"));
+   ASSERT_EQ(registered["IsIntermediateFlow"], LuaRuleEngineFunctions::LuaIsIntermediateFlow);
+   ASSERT_EQ(registered["IsIntermediateFinalFlow"], LuaRuleEngineFunctions::LuaIsIntermediateFinalFlow);
+   ASSERT_EQ(registered["IsFinalFlow"], LuaRuleEngineFunctions::LuaIsFinalFlow);
+   ASSERT_EQ(registered["GetUuid"], LuaRuleEngineFunctions::LuaGetUuid);
+   ASSERT_EQ(registered["GetLatestApplication"], LuaRuleEngineFunctions::LuaGetLatestApplication);
+   ASSERT_EQ(registered["GetPacketCount"], LuaRuleEngineFunctions::LuaGetPacketCount);
+   ASSERT_EQ(registered["SetDeltaPackets"], LuaRuleEngineFunctions::LuaSetDeltaPackets);
+   ASSERT_EQ(registered["GetSessionLenServer"], LuaRuleEngineFunctions::LuaGetSessionLenServer);
+   ASSERT_EQ(registered["SetDeltaSessionLenServer"], LuaRuleEngineFunctions::LuaSetDeltaSessionLenServer);
+   ASSERT_EQ(registered["GetSessionLenClient"], LuaRuleEngineFunctions::LuaGetSessionLenClient);
+   ASSERT_EQ(registered["SetDeltaSessionLenClient"], LuaRuleEngineFunctions::LuaSetDeltaSessionLenClient);
+   ASSERT_EQ(registered["GetStartTime"], LuaRuleEngineFunctions::LuaGetStartTime);
+   ASSERT_EQ(registered["GetEndTime"], LuaRuleEngineFunctions::LuaGetEndTime);
+   ASSERT_EQ(registered["SetDeltaTime"], LuaRuleEngineFunctions::LuaSetDeltaTime);
+   ASSERT_EQ(registered["GetDeltaTime"], LuaRuleEngineFunctions::LuaGetDeltaTime);
+   ASSERT_EQ(registered["SendInterFlow"], LuaRuleEngineFunctions::LuaSendInterFlow);
+   ASSERT_EQ(registered["SendFinalFlow"], LuaRuleEngineFunctions::LuaSendFinalFlow);
+   ASSERT_EQ(registered["SendAccStat"], LuaRuleEngineFunctions::LuaSendAccStat);
+   ASSERT_EQ(registered["GetThreadId"], LuaRuleEngineFunctions::LuaGetThreadId);
+   ASSERT_EQ(registered["GetRawMsgSize"], LuaRuleEngineFunctions::LuaGetRawMsgSize);
+   ASSERT_EQ(registered["GetDpiMsgSize"], LuaRuleEngineFunctions::LuaGetDpiMsgSize);
+   ASSERT_EQ(registered["SendStat"], LuaRuleEngineFunctions::LuaSendStat);
+
    delete functions;
 }
 using namespace networkMonitor;
@@ -77,7 +213,7 @@ using namespace std;
 
 TEST_F(LuaFunctionsTest, StaticCallLuaGetDpiMsgSize) {
    DpiMsgLR dpiMsg;
-   
+
    dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
 
    string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
