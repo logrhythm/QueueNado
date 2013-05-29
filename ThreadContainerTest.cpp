@@ -153,7 +153,7 @@ TEST_F(ThreadContainerTest, testThreadRunStopThreadDoesNotJoin) {
    // 2nd thread sleeps 20 seconds
    tc.AddThread(new TestThread(2,20));
    // 3rd threads sleeps 45 seconds. 3rd thread does not join so future is not set.
-   tc.AddThread(new TestThread(3,40));
+   tc.AddThread(new TestThread(3,35));
 
    EXPECT_EQ(TotalNumThreads, tc.Size());
 
@@ -196,6 +196,9 @@ TEST_F(ThreadContainerTest, testThreadRunStopThreadDoesNotJoin) {
    EXPECT_EQ(TotalNumThreads, ItLoopCount);
    EXPECT_EQ(2, ThreadStopCount);
    EXPECT_EQ(1, ThreadStillRunningCount);
+
+   // Sleep until missing thread exits.
+   boost::this_thread::sleep(boost::posix_time::seconds(7));
 
    tc.Clear();
    EXPECT_EQ(0, tc.Size());
