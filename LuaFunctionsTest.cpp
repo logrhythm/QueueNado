@@ -38,6 +38,8 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["GetLongFromFlow"], LuaFunctions::LuaGetLongFromDpi);
    ASSERT_TRUE(registered.end() != registered.find("GetLongsInFlow"));
    ASSERT_EQ(registered["GetLongsInFlow"], LuaFunctions::LuaGetListOfLongs);
+   ASSERT_TRUE(registered.end() != registered.find("GetLatestStringFromFlow"));
+   ASSERT_EQ(registered["GetLatestStringFromFlow"], LuaFunctions::LuaGetLatestStringFromDpi);
    delete functions;
 }
 
@@ -53,6 +55,29 @@ TEST_F(LuaFunctionsTest, AddRemoveFromContainer) {
    ASSERT_EQ(number, functions.NumberOfFunctions());
 }
 
+TEST_F(LuaFunctionsTest, LuaGetLatestStringFromDpi) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_uuid("uuid");
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushstring(luaState, "accept_encodingq_proto_http");
+   LuaFunctions::LuaGetLatestStringFromDpi(luaState);
+   std::string result = lua_tostring(luaState, -1);
+   EXPECT_EQ("test2", result);
+   lua_close(luaState);
+   
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushstring(luaState, "uuid");
+   EXPECT_EQ(1, LuaFunctions::LuaGetLatestStringFromDpi(luaState));
+   result = lua_tostring(luaState, -1);
+   EXPECT_EQ("uuid", result);
+   lua_close(luaState);
+}
 TEST_F(LuaFunctionsTest, LuaGetFullListFromDpi) {
    networkMonitor::DpiMsgLR dpiMsg;
 
