@@ -59,7 +59,7 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    makeADir += testDir.str();
 
    ASSERT_EQ(0, system(makeADir.c_str()));
-   functions->Initialize(conf);
+   functions->StartPacketCapture(conf);
    MockLuaExecuter ruleEngine;
    functions->RegisterAllKnownFunctions(ruleEngine);
 
@@ -98,7 +98,7 @@ TEST_F(LuaFunctionsTest, LuaSessionAge) {
    EXPECT_FALSE(lua_toboolean(luaState, -1));
    lua_close(luaState);
    luaState = luaL_newstate();
-   time_t pasttime = std::time(NULL) - 999;
+   time_t pasttime = std::time(NULL) - 11;
    dpiMsg.set_endtime(pasttime);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, 10);
