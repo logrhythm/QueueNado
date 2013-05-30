@@ -1,3 +1,4 @@
+
 #include <stdlib.h>
 #include "LuaFunctionsTest.h"
 #include "MockConf.h"
@@ -17,26 +18,170 @@ static int LuaTestFunction2(lua_State *L) {
    return 0;
 }
 
+TEST_F(LuaFunctionsTest, BasicFunctions) {
+   LuaFunctions* functions = new LuaFunctions;
+
+   MockLuaExecuter ruleEngine;
+   functions->RegisterAllKnownFunctions(ruleEngine);
+
+   std::map<std::string, lua_CFunction> registered = ruleEngine.GetPossibleFunctions();
+
+   ASSERT_TRUE(registered.end() != registered.find("GetFullStringFromFlow"));
+   ASSERT_EQ(registered["GetFullStringFromFlow"], LuaFunctions::LuaGetFullStringFromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetStringsInFlow"));
+   ASSERT_EQ(registered["GetStringsInFlow"], LuaFunctions::LuaGetListOfStrings);
+   ASSERT_TRUE(registered.end() != registered.find("GetIntFromFlow"));
+   ASSERT_EQ(registered["GetIntFromFlow"], LuaFunctions::LuaGetIntFromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetIntsInFlow"));
+   ASSERT_EQ(registered["GetIntsInFlow"], LuaFunctions::LuaGetListOfInts);
+   ASSERT_TRUE(registered.end() != registered.find("GetLongFromFlow"));
+   ASSERT_EQ(registered["GetLongFromFlow"], LuaFunctions::LuaGetLongFromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetLongsInFlow"));
+   ASSERT_EQ(registered["GetLongsInFlow"], LuaFunctions::LuaGetListOfLongs);
+   delete functions;
+}
+
 TEST_F(LuaFunctionsTest, AddRemoveFromContainer) {
    MockLuaFunctions functions;
 
-   ASSERT_EQ(0, functions.NumberOfFunctions());
+   int number = functions.NumberOfFunctions();
    functions.AddFunction("Test1", LuaTestFunction);
-   ASSERT_EQ(1, functions.NumberOfFunctions());
+   ASSERT_EQ(number + 1, functions.NumberOfFunctions());
    functions.AddFunction("Test1", LuaTestFunction2);
-   ASSERT_EQ(1, functions.NumberOfFunctions());
+   ASSERT_EQ(number + 1, functions.NumberOfFunctions());
    functions.RemoveFunction("Test1");
-   ASSERT_EQ(0, functions.NumberOfFunctions());
+   ASSERT_EQ(number, functions.NumberOfFunctions());
 }
 
+TEST_F(LuaFunctionsTest, LuaGetFullListFromDpi) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_uuid("uuid");
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushstring(luaState, "accept_encodingq_proto_http");
+   LuaFunctions::LuaGetFullStringFromDpi(luaState);
+   std::string result = lua_tostring(luaState, -1);
+   EXPECT_EQ("test1|test2", result);
+   lua_close(luaState);
+
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushstring(luaState, "uuid");
+   EXPECT_EQ(1, LuaFunctions::LuaGetFullStringFromDpi(luaState));
+   result = lua_tostring(luaState, -1);
+   EXPECT_EQ("uuid", result);
+   lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, LuaGetListOfInts) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_uuid("uuid");
+   dpiMsg.set_ack_numberq_proto_tcp(1234);
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   EXPECT_EQ(1, LuaFunctions::LuaGetListOfInts(luaState));
+   std::vector<std::string> fields;
+   for (int i = 1; i < lua_gettop(luaState); i++) {
+      ASSERT_EQ(LUA_TSTRING, lua_type(luaState, i + 1));
+      fields.push_back(lua_tostring(luaState, i + 1));
+   }
+   ASSERT_EQ(1, fields.size());
+   EXPECT_NE(fields.end(), std::find(fields.begin(), fields.end(), "ack_numberq_proto_tcp"));
+   lua_close(luaState);
+
+}
+TEST_F(LuaFunctionsTest, LuaGetIntFromDpi) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_uuid("uuid");
+   dpiMsg.set_ack_numberq_proto_tcp(1234);
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushstring(luaState, "ack_numberq_proto_tcp");
+   LuaFunctions::LuaGetIntFromDpi(luaState);
+   int result = lua_tointeger(luaState, -1);
+   EXPECT_EQ(1234, result);
+   lua_close(luaState);
+}
+TEST_F(LuaFunctionsTest, LuaGetListOfLongs) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_uuid("uuid");
+   dpiMsg.set_ack_numberq_proto_tcp(1234);
+   dpiMsg.set_avp_int64q_proto_radius(123456789L);
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   EXPECT_EQ(1, LuaFunctions::LuaGetListOfLongs(luaState));
+   std::vector<std::string> fields;
+   for (int i = 1; i < lua_gettop(luaState); i++) {
+      ASSERT_EQ(LUA_TSTRING, lua_type(luaState, i + 1));
+      fields.push_back(lua_tostring(luaState, i + 1));
+   }
+   ASSERT_EQ(1, fields.size());
+   EXPECT_NE(fields.end(), std::find(fields.begin(), fields.end(), "avp_int64q_proto_radius"));
+   lua_close(luaState);
+
+}
+TEST_F(LuaFunctionsTest, LuaGetLongFromDpi) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_uuid("uuid");
+   dpiMsg.set_ack_numberq_proto_tcp(1234);
+   dpiMsg.set_avp_int64q_proto_radius(123456789L);
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushstring(luaState, "avp_int64q_proto_radius");
+   LuaFunctions::LuaGetLongFromDpi(luaState);
+   int64_t result = lua_tointeger(luaState, -1);
+   EXPECT_EQ(123456789L, result);
+   lua_close(luaState);
+}
+TEST_F(LuaFunctionsTest, LuaGetListOfStrings) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_uuid("uuid");
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   EXPECT_EQ(2, LuaFunctions::LuaGetListOfStrings(luaState));
+   std::vector<std::string> fields;
+   for (int i = 1; i < lua_gettop(luaState); i++) {
+      ASSERT_EQ(LUA_TSTRING, lua_type(luaState, i + 1));
+      fields.push_back(lua_tostring(luaState, i + 1));
+   }
+   ASSERT_EQ(2, fields.size());
+   EXPECT_NE(fields.end(), std::find(fields.begin(), fields.end(), "uuid"));
+   EXPECT_NE(fields.end(), std::find(fields.begin(), fields.end(), "accept_encodingq_proto_http"));
+   lua_close(luaState);
+
+}
 TEST_F(LuaFunctionsTest, AddThenRegister) {
    MockLuaFunctions functions;
 
-   ASSERT_EQ(0, functions.NumberOfFunctions());
+   int number = functions.NumberOfFunctions();
    functions.AddFunction("Test1", LuaTestFunction);
-   ASSERT_EQ(1, functions.NumberOfFunctions());
+   ASSERT_EQ(number + 1, functions.NumberOfFunctions());
    functions.AddFunction("Test2", LuaTestFunction2);
-   ASSERT_EQ(2, functions.NumberOfFunctions());
+   ASSERT_EQ(number + 2, functions.NumberOfFunctions());
 
    MockLuaExecuter ruleEngine;
    functions.RegisterAllKnownFunctions(ruleEngine);
@@ -140,14 +285,14 @@ TEST_F(LuaFunctionsTest, LuaDpiMsgClassification) {
    dpiMsg.add_applicationq_proto_base("test1");
    lua_pushlightuserdata(luaState, &dpiMsg);
    LuaPacketFunctions::LuaDpiMsgClassification(luaState);
-   classification=lua_tostring(luaState, -1);
+   classification = lua_tostring(luaState, -1);
    EXPECT_EQ("test1", classification);
    lua_close(luaState);
    dpiMsg.add_application_endq_proto_base("test2");
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    LuaPacketFunctions::LuaDpiMsgClassification(luaState);
-   classification=lua_tostring(luaState, -1);
+   classification = lua_tostring(luaState, -1);
    EXPECT_EQ("test2", classification);
    lua_close(luaState);
 }
