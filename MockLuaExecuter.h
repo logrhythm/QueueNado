@@ -46,5 +46,8 @@ public:
       return mLoadedRules[type][name];
    }
 
+   std::map<std::string, lua_CFunction> GetPossibleFunctions() {
+      return mFunctions;
+   }
 };
 

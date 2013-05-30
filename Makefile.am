@@ -192,7 +192,8 @@ LuaExecuterTest_LDADD=-lstdc++ -lgtest \
  -lzmq -lczmq  
 LuaExecuterTest_LDFLAGS=${BASE_LIBS}
 LuaExecuterTest_SOURCES=main.cpp \
-        LuaExecuterTest.cpp
+        LuaExecuterTest.cpp \
+        LuaFunctionsTest.cpp
 LuaExecuterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  \
 -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
