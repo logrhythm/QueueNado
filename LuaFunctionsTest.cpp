@@ -40,6 +40,14 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["GetLongsInFlow"], LuaFunctions::LuaGetListOfLongs);
    ASSERT_TRUE(registered.end() != registered.find("GetLatestStringFromFlow"));
    ASSERT_EQ(registered["GetLatestStringFromFlow"], LuaFunctions::LuaGetLatestStringFromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetSourceIPFromFlow"));
+   ASSERT_EQ(registered["GetSourceIPFromFlow"], LuaFunctions::LuaGetSourceIPFromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetDestIPFromFlow"));
+   ASSERT_EQ(registered["GetDestIPFromFlow"], LuaFunctions::LuaGetDestIPFromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetSourceMACFromFlow"));
+   ASSERT_EQ(registered["GetSourceMACFromFlow"], LuaFunctions::LuaGetSourceMACFromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetDestMACFromFlow"));
+   ASSERT_EQ(registered["GetDestMACFromFlow"], LuaFunctions::LuaGetDestMACFromDpi);
    delete functions;
 }
 
@@ -55,6 +63,71 @@ TEST_F(LuaFunctionsTest, AddRemoveFromContainer) {
    ASSERT_EQ(number, functions.NumberOfFunctions());
 }
 
+TEST_F(LuaFunctionsTest, LuaGetIpInfoFromDpi) {
+   networkMonitor::DpiMsgLR dpiMsg;
+   uint32_t ipDst = 0x4B00010A; // 10.1.0.75
+   uint32_t ipSrc = 0x6401A8C0; // 192.168.1.100
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_uuid("uuid");
+   dpiMsg.set_ipdst(ipDst);
+   dpiMsg.set_ipsrc(ipSrc);
+
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaFunctions::LuaGetSourceIPFromDpi(luaState);
+   std::string result = lua_tostring(luaState, -1);
+   EXPECT_EQ("192.168.1.100", result);
+   lua_close(luaState);
+   
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaFunctions::LuaGetDestIPFromDpi(luaState);
+   result = lua_tostring(luaState, -1);
+   EXPECT_EQ("10.1.0.75", result);
+   lua_close(luaState);
+}
+TEST_F(LuaFunctionsTest, LuaGetMACInfoFromDpi) {
+   networkMonitor::DpiMsgLR dpiMsg;
+   uint32_t ipDst = 0x4B00010A; // 10.1.0.75
+   uint32_t ipSrc = 0x6401A8C0; // 192.168.1.100
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_uuid("uuid");
+   dpiMsg.set_ipdst(ipDst);
+   dpiMsg.set_ipsrc(ipSrc);
+   vector<unsigned char> ethSrc;
+   ethSrc.push_back(0x00);
+   ethSrc.push_back(0x50);
+   ethSrc.push_back(0x56);
+   ethSrc.push_back(0xBE);
+   ethSrc.push_back(0x00);
+   ethSrc.push_back(0x1C);
+   dpiMsg.SetEthSrc(ethSrc);
+   vector<unsigned char> ethDst;
+   ethDst.push_back(0x10);
+   ethDst.push_back(0x52);
+   ethDst.push_back(0x36);
+   ethDst.push_back(0xB4);
+   ethDst.push_back(0x50);
+   ethDst.push_back(0x16);
+   dpiMsg.SetEthDst(ethDst);
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaFunctions::LuaGetDestMACFromDpi(luaState);
+   std::string result = lua_tostring(luaState, -1);
+   EXPECT_EQ("10:52:36:b4:50:16", result);
+   lua_close(luaState);
+   
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaFunctions::LuaGetSourceMACFromDpi(luaState);
+   result = lua_tostring(luaState, -1);
+   EXPECT_EQ("00:50:56:be:00:1c", result);
+   lua_close(luaState);
+}
 TEST_F(LuaFunctionsTest, LuaGetLatestStringFromDpi) {
    networkMonitor::DpiMsgLR dpiMsg;
 
@@ -69,7 +142,7 @@ TEST_F(LuaFunctionsTest, LuaGetLatestStringFromDpi) {
    std::string result = lua_tostring(luaState, -1);
    EXPECT_EQ("test2", result);
    lua_close(luaState);
-   
+
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushstring(luaState, "uuid");
@@ -78,6 +151,7 @@ TEST_F(LuaFunctionsTest, LuaGetLatestStringFromDpi) {
    EXPECT_EQ("uuid", result);
    lua_close(luaState);
 }
+
 TEST_F(LuaFunctionsTest, LuaGetFullListFromDpi) {
    networkMonitor::DpiMsgLR dpiMsg;
 
@@ -123,6 +197,7 @@ TEST_F(LuaFunctionsTest, LuaGetListOfInts) {
    lua_close(luaState);
 
 }
+
 TEST_F(LuaFunctionsTest, LuaGetIntFromDpi) {
    networkMonitor::DpiMsgLR dpiMsg;
 
@@ -139,6 +214,7 @@ TEST_F(LuaFunctionsTest, LuaGetIntFromDpi) {
    EXPECT_EQ(1234, result);
    lua_close(luaState);
 }
+
 TEST_F(LuaFunctionsTest, LuaGetListOfLongs) {
    networkMonitor::DpiMsgLR dpiMsg;
 
@@ -161,6 +237,7 @@ TEST_F(LuaFunctionsTest, LuaGetListOfLongs) {
    lua_close(luaState);
 
 }
+
 TEST_F(LuaFunctionsTest, LuaGetLongFromDpi) {
    networkMonitor::DpiMsgLR dpiMsg;
 
@@ -178,6 +255,7 @@ TEST_F(LuaFunctionsTest, LuaGetLongFromDpi) {
    EXPECT_EQ(123456789L, result);
    lua_close(luaState);
 }
+
 TEST_F(LuaFunctionsTest, LuaGetListOfStrings) {
    networkMonitor::DpiMsgLR dpiMsg;
 
@@ -199,6 +277,7 @@ TEST_F(LuaFunctionsTest, LuaGetListOfStrings) {
    lua_close(luaState);
 
 }
+
 TEST_F(LuaFunctionsTest, AddThenRegister) {
    MockLuaFunctions functions;
 
