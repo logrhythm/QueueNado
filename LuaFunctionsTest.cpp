@@ -415,6 +415,7 @@ TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("IsFinalFlow"));
    ASSERT_TRUE(registered.end() != registered.find("GetUuid"));
    ASSERT_TRUE(registered.end() != registered.find("GetLatestApplication"));
+   ASSERT_TRUE(registered.end() != registered.find("SetCustomApplication"));
    ASSERT_TRUE(registered.end() != registered.find("GetPacketCount"));
    ASSERT_TRUE(registered.end() != registered.find("SetDeltaPackets"));
    ASSERT_TRUE(registered.end() != registered.find("GetSessionLenServer"));
@@ -437,6 +438,7 @@ TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
    ASSERT_EQ(registered["IsFinalFlow"], LuaRuleEngineFunctions::LuaIsFinalFlow);
    ASSERT_EQ(registered["GetUuid"], LuaRuleEngineFunctions::LuaGetUuid);
    ASSERT_EQ(registered["GetLatestApplication"], LuaRuleEngineFunctions::LuaGetLatestApplication);
+   ASSERT_EQ(registered["SetCustomApplication"], LuaRuleEngineFunctions::LuaSetCustomApplication);
    ASSERT_EQ(registered["GetPacketCount"], LuaRuleEngineFunctions::LuaGetPacketCount);
    ASSERT_EQ(registered["SetDeltaPackets"], LuaRuleEngineFunctions::LuaSetDeltaPackets);
    ASSERT_EQ(registered["GetSessionLenServer"], LuaRuleEngineFunctions::LuaGetSessionLenServer);
@@ -725,6 +727,37 @@ TEST_F(LuaFunctionsTest, StaticCallLuaGetLatestApplication) {
    LOG(DEBUG) << "EXP: google got: " << result;
    EXPECT_EQ("google", result);
    lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, StaticCallLuaSetCustomApplication) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState1;
+   luaState1 = luaL_newstate();
+   lua_pushlightuserdata(luaState1, &dpiMsg);
+   lua_pushstring(luaState1, "custom_app_1");
+   LuaRuleEngineFunctions::LuaSetCustomApplication(luaState1);
+   EXPECT_EQ(1, dpiMsg.customapplication_size());
+   EXPECT_EQ("custom_app_1", dpiMsg.customapplication(0));
+   lua_close(luaState1);
+
+   lua_State *luaState2;
+   luaState2 = luaL_newstate();
+   lua_pushlightuserdata(luaState2, &dpiMsg);
+   lua_pushstring(luaState2, "custom_app_1");
+   LuaRuleEngineFunctions::LuaSetCustomApplication(luaState2);
+   EXPECT_EQ(1, dpiMsg.customapplication_size());
+   EXPECT_EQ("custom_app_1", dpiMsg.customapplication(0));
+   lua_close(luaState2);
+
+   lua_State *luaState3;
+   luaState3 = luaL_newstate();
+   lua_pushlightuserdata(luaState3, &dpiMsg);
+   lua_pushstring(luaState3, "custom_app_2");
+   LuaRuleEngineFunctions::LuaSetCustomApplication(luaState3);
+   EXPECT_EQ(2, dpiMsg.customapplication_size());
+   EXPECT_EQ("custom_app_1", dpiMsg.customapplication(0));
+   EXPECT_EQ("custom_app_2", dpiMsg.customapplication(1));
+   lua_close(luaState3);
 }
 
 TEST_F(LuaFunctionsTest, StaticCallLuaGetStartTime) {
