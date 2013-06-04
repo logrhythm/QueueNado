@@ -674,3 +674,29 @@ TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoEmpty) {
    ASSERT_EQ("unknown", lastStr);
 }
 
+TEST_F(DpiMsgLRTests, EmptyLongFields) {
+   DpiMsgLR dm;
+   dm.EmptyLongFields(0,0);
+   dm.add_application_endq_proto_base("dontDeleteMe");
+   dm.add_applicationq_proto_base("meNeither");
+   dm.add_familyq_proto_base("not me");
+   dm.add_family_endq_proto_base("or me");
+   dm.EmptyLongFields(0,0);
+   EXPECT_EQ(1,dm.application_endq_proto_base_size());
+   EXPECT_EQ(1,dm.applicationq_proto_base_size());
+   EXPECT_EQ(1,dm.familyq_proto_base_size());
+   EXPECT_EQ(1,dm.family_endq_proto_base_size());
+   dm.add_access_pointq_proto_gtp("test1");
+   dm.add_access_pointq_proto_gtp("test2");
+   dm.add_access_pointq_proto_gtp("test3");
+   dm.EmptyLongFields(4,0);
+   EXPECT_EQ(3,dm.access_pointq_proto_gtp_size());
+   dm.EmptyLongFields(3,0);
+   EXPECT_EQ(0,dm.access_pointq_proto_gtp_size());
+   dm.add_stringq_proto_base("test1");
+   dm.EmptyLongFields(0,108);
+   EXPECT_EQ(1,dm.stringq_proto_base_size());
+   dm.EmptyLongFields(0,107);
+   EXPECT_EQ(0,dm.stringq_proto_base_size());
+}
+
