@@ -674,6 +674,18 @@ TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoEmpty) {
    ASSERT_EQ("unknown", lastStr);
 }
 
+TEST_F(DpiMsgLRTests, CountUpRepeats) {
+   DpiMsgLR dm;
+   
+   EXPECT_EQ(0,dm.CountUpRepeats());
+   dm.add_accept_encodingq_proto_http("test1");
+   EXPECT_EQ(1,dm.CountUpRepeats());
+   dm.add_accept_encodingq_proto_http("test2");
+   EXPECT_EQ(2,dm.CountUpRepeats());
+   dm.add_actionq_proto_adobe_update("test3");
+   EXPECT_EQ(3,dm.CountUpRepeats());
+}
+
 TEST_F(DpiMsgLRTests, EmptyLongFields) {
    DpiMsgLR dm;
    dm.EmptyLongFields(0,0);

@@ -9,6 +9,7 @@
 #include "LuaRuleEngineFunctions.h"
 #include "RuleEngine.h"
 #include "MockRuleEngine.h"
+#include "MockDpiMsgLR.h"
 
 static int LuaTestFunction(lua_State *L) {
    return 0;
@@ -48,6 +49,9 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["GetSourceMACFromFlow"], LuaFunctions::LuaGetSourceMACFromDpi);
    ASSERT_TRUE(registered.end() != registered.find("GetDestMACFromFlow"));
    ASSERT_EQ(registered["GetDestMACFromFlow"], LuaFunctions::LuaGetDestMACFromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetTallyOfRepeats"));
+   ASSERT_EQ(registered["GetTallyOfRepeats"], LuaFunctions::GetTotalCountRepeatedElements);
+
    delete functions;
 }
 
@@ -810,6 +814,23 @@ TEST_F(LuaFunctionsTest, StaticCallLuaSetDeltaTime) {
    LuaRuleEngineFunctions::LuaSetDeltaTime(luaState);
    EXPECT_EQ(expectedDeltaTime, dpiMsg.deltatime());
    lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, GetTotalCountRepeatedElements) {
+#ifdef LR_DEBUG
+   MockDpiMsgLR dpiMsg;
+   dpiMsg.mRepeats = 1234;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   // Value not set, expect 0
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaRuleEngineFunctions::GetTotalCountRepeatedElements(luaState);
+   EXPECT_EQ(1234, lua_tointeger(luaState, -1));
+
+
+   lua_close(luaState);
+#endif
 }
 
 TEST_F(LuaFunctionsTest, StaticCallLuaSendInterFlow) {
