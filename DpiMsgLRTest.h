@@ -14,5 +14,9 @@ public:
 protected:
 	virtual void SetUp() {}
 	virtual void TearDown() {}
+#ifdef LR_DEBUG
 	networkMonitor::MockDpiMsgLR tDpiMessage;
+#else
+   networkMonitor::DpiMsgLR tDpiMessage;
+#endif
 };

@@ -39,85 +39,89 @@ void closelog(void);
 class RuleEngineTest : public ::testing::Test {
 public:
 
-    RuleEngineTest() : conf(networkMonitor::ConfSlave::Instance()), masterConf(networkMonitor::ConfMaster::Instance()) {
-        //std::cout << "Pre" << std::endl;
-        masterConf.SetPath("resources/test.yaml");
-        masterConf.Start();
+   RuleEngineTest() : conf(networkMonitor::ConfSlave::Instance()), masterConf(networkMonitor::ConfMaster::Instance()) {
+      //std::cout << "Pre" << std::endl;
+      masterConf.SetPath("resources/test.yaml");
+      masterConf.Start();
 
-        conf.Start();
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
-        //std::cout << "Pre-end" << std::endl;
-    };
+      conf.Start();
+      boost::this_thread::sleep(boost::posix_time::seconds(1));
+      //std::cout << "Pre-end" << std::endl;
+   };
 
-    ~RuleEngineTest() {
-        conf.Stop();
-        masterConf.Stop();
-    }
+   ~RuleEngineTest() {
+      conf.Stop();
+      masterConf.Stop();
+   }
 
-    std::string BuildExpectedHeaderForSiem(const std::string& expectedHeader,
-            const std::string& expectedHeader2, unsigned int index) {
-        std::string expected = expectedHeader;
-        if (index < 10) {
-            expected += "0";
-        }
-        if (index < 100) {
-            expected += boost::lexical_cast<std::string>(index);
-        } else {
-            expected += "**";
-        }
-        expected += expectedHeader2;
-        return std::move(expected);
-    }
+   std::string BuildExpectedHeaderForSiem(const std::string& expectedHeader,
+           const std::string& expectedHeader2, unsigned int index) {
+      std::string expected = expectedHeader;
+      if (index < 10) {
+         expected += "0";
+      }
+      if (index < 100) {
+         expected += boost::lexical_cast<std::string>(index);
+      } else {
+         expected += "**";
+      }
+      expected += expectedHeader2;
+      return std::move(expected);
+   }
 protected:
 
-    virtual void SetUp() {
-        //std::cout << "setup" << std::endl;
-        sysLogOpenIdent.clear();
-        sysLogOpenOption = 0;
-        sysLogOpenFacility = 0;
-        sysLogOpenPriority = 0;
-        sysLogOutput.clear();
-        bLogOpen = false;
-        //std::cout << "setup-end" << std::endl;
-    };
+   virtual void SetUp() {
+      //std::cout << "setup" << std::endl;
+      sysLogOpenIdent.clear();
+      sysLogOpenOption = 0;
+      sysLogOpenFacility = 0;
+      sysLogOpenPriority = 0;
+      sysLogOutput.clear();
+      bLogOpen = false;
+      //std::cout << "setup-end" << std::endl;
+   };
 
-    virtual void TearDown() {
-        EXPECT_FALSE(bLogOpen);
-        //EXPECT_EQ( sysLogOpenIdent, sysLogOutput );
-    };
+   virtual void TearDown() {
+      EXPECT_FALSE(bLogOpen);
+      //EXPECT_EQ( sysLogOpenIdent, sysLogOutput );
+   };
 
-    networkMonitor::ConfSlave& conf;
-    networkMonitor::ConfMaster& masterConf;
-    networkMonitor::MockDpiMsgLR tDpiMessage;
+   networkMonitor::ConfSlave& conf;
+   networkMonitor::ConfMaster& masterConf;
+#ifdef LR_DEBUG
+   networkMonitor::MockDpiMsgLR tDpiMessage;
+#else
+   networkMonitor::DpiMsgLR tDpiMessage;
+#endif
 private:
 
 };
 
 void openlog(const char *ident, int option, int facility) {
-    sysLogOpenIdent.clear();
-    sysLogOpenIdent = ident;
-    sysLogOpenOption = option;
-    sysLogOpenFacility = facility;
-    bLogOpen = true;
+   sysLogOpenIdent.clear();
+   sysLogOpenIdent = ident;
+   sysLogOpenOption = option;
+   sysLogOpenFacility = facility;
+   bLogOpen = true;
 }
 
 void syslog(int priority, const char *format, ...) {
-    char output[MaxSyslogSize];
-    va_list arguments;
-    sysLogOpenPriority = priority;
-    va_start(arguments, format);
-    vsnprintf(output, MaxSyslogSize, format, arguments);
-    va_end(arguments);
-    sysLogOutput.push_back(output);
+   char output[MaxSyslogSize];
+   va_list arguments;
+   sysLogOpenPriority = priority;
+   va_start(arguments, format);
+   vsnprintf(output, MaxSyslogSize, format, arguments);
+   va_end(arguments);
+   sysLogOutput.push_back(output);
 }
 
 void closelog(void) {
-    // Clean up the test data
-    sysLogOpenIdent.clear();
-    sysLogOpenOption = 0;
-    sysLogOpenFacility = 0;
-    sysLogOpenPriority = 0;
-    sysLogOutput.clear();
-    bLogOpen = false;
+   // Clean up the test data
+   sysLogOpenIdent.clear();
+   sysLogOpenOption = 0;
+   sysLogOpenFacility = 0;
+   sysLogOpenPriority = 0;
+   sysLogOutput.clear();
+   bLogOpen = false;
 }
 

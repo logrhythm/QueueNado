@@ -42,11 +42,11 @@ TEST_F(DpiMsgLRTests, enablePasswordScrubbing) {
       const std::string value((*it).second.second);
       LOG(DEBUG) << "Key: " << key;
       LOG(DEBUG) << "Value: " << value;
-      if(key.find("uuid") != std::string::npos) {
-         ASSERT_EQ("01234567-89ab-cdef-0123456789abcdef",value);
-      } else if(key.find("password") != std::string::npos) {
-         ASSERT_EQ("********",value);
-      } 
+      if (key.find("uuid") != std::string::npos) {
+         ASSERT_EQ("01234567-89ab-cdef-0123456789abcdef", value);
+      } else if (key.find("password") != std::string::npos) {
+         ASSERT_EQ("********", value);
+      }
    }
 
    delete dm;
@@ -245,6 +245,7 @@ TEST_F(DpiMsgLRTests, convertEtherToString) {
 }
 
 TEST_F(DpiMsgLRTests, ReadShortFromString) {
+#ifdef LR_DEBUG
    char charbuffer[100];
    memset(charbuffer, 0, 100);
    charbuffer[5] = '9';
@@ -256,6 +257,7 @@ TEST_F(DpiMsgLRTests, ReadShortFromString) {
    MockDpiMsgLR dm;
    EXPECT_EQ(0x90af, dm.ReadShortFromString(charbuffer, index));
    EXPECT_EQ(9, index);
+#endif
 }
 
 TEST_F(DpiMsgLRTests, ReadIPSrcDstSPortDPortProto) {
@@ -329,7 +331,7 @@ TEST_F(DpiMsgLRTests, GetUuidPair) {
    tDpiMessage.set_uuid("01234567-89ab-cdef-0123456789abcdef");
    EXPECT_EQ("UUID", tDpiMessage.GetUuidPair().first);
    EXPECT_EQ("01234567-89ab-cdef-0123456789abcdef",
-      tDpiMessage.GetUuidPair().second);
+           tDpiMessage.GetUuidPair().second);
 }
 
 TEST_F(DpiMsgLRTests, GetEthSrcPair) {
@@ -444,6 +446,7 @@ TEST_F(DpiMsgLRTests, GetDynamicFieldPairs) {
 }
 
 TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
+#ifdef LR_DEBUG
    map<unsigned int, pair<string, string> > results;
    std::map<string, string> expecteds;
    MockDpiMsgLR dm;
@@ -502,9 +505,11 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
       string fieldValue = i->second.second;
       EXPECT_EQ(expecteds[fieldName], fieldValue);
    }
+#endif
 }
 
 TEST_F(DpiMsgLRTests, MissingKeyFields) {
+#ifdef LR_DEBUG
    map<unsigned int, pair<string, string> > results;
    MockDpiMsgLR dm;
 
@@ -513,7 +518,7 @@ TEST_F(DpiMsgLRTests, MissingKeyFields) {
    results = dm.GetAllFieldsAsStrings();
 
    ASSERT_EQ(1, results.size());
-
+#endif
 }
 
 TEST_F(DpiMsgLRTests, serializationSuccess) {
@@ -599,9 +604,9 @@ TEST_F(DpiMsgLRTests, serializationSuccess) {
 
 TEST_F(DpiMsgLRTests, SetStringFieldsByName) {
    DpiMsgLR dm;
-   
+
    ASSERT_EQ(0, dm.application_endq_proto_base_size());
-   if (dm.CanAddRepeatedString("application_endq_proto_base", "abc123") ) {
+   if (dm.CanAddRepeatedString("application_endq_proto_base", "abc123")) {
       dm.add_application_endq_proto_base("abc123");
    }
    EXPECT_FALSE(dm.CanAddRepeatedString("application_endq_proto_base", "abc123"));
@@ -616,7 +621,7 @@ TEST_F(DpiMsgLRTests, SetStringFieldsByNameSerializes) {
    DpiMsgLR dm;
    std::string serializeData;
    dm.set_uuid("abc123");
-   
+
    EXPECT_TRUE(dm.CanAddRepeatedString("application_endq_proto_base", "ghi789"));
    EXPECT_FALSE(dm.CanAddRepeatedString("application_endq_proto_base", "ghi789"));
    dm.add_application_endq_proto_base("ghi789");
@@ -647,7 +652,6 @@ TEST_F(DpiMsgLRTests, GetLastStringFieldsByName) {
 
 }
 
-
 TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoMultipleProtocols) {
    DpiMsgLR dm;
    dm.add_application_endq_proto_base("tcp");
@@ -676,39 +680,39 @@ TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoEmpty) {
 
 TEST_F(DpiMsgLRTests, CountUpRepeats) {
    DpiMsgLR dm;
-   
-   EXPECT_EQ(0,dm.CountUpRepeats());
+
+   EXPECT_EQ(0, dm.CountUpRepeats());
    dm.add_accept_encodingq_proto_http("test1");
-   EXPECT_EQ(1,dm.CountUpRepeats());
+   EXPECT_EQ(1, dm.CountUpRepeats());
    dm.add_accept_encodingq_proto_http("test2");
-   EXPECT_EQ(2,dm.CountUpRepeats());
+   EXPECT_EQ(2, dm.CountUpRepeats());
    dm.add_actionq_proto_adobe_update("test3");
-   EXPECT_EQ(3,dm.CountUpRepeats());
+   EXPECT_EQ(3, dm.CountUpRepeats());
 }
 
 TEST_F(DpiMsgLRTests, EmptyLongFields) {
    DpiMsgLR dm;
-   dm.EmptyLongFields(0,0);
+   dm.EmptyLongFields(0, 0);
    dm.add_application_endq_proto_base("dontDeleteMe");
    dm.add_applicationq_proto_base("meNeither");
    dm.add_familyq_proto_base("not me");
    dm.add_family_endq_proto_base("or me");
-   dm.EmptyLongFields(0,0);
-   EXPECT_EQ(1,dm.application_endq_proto_base_size());
-   EXPECT_EQ(1,dm.applicationq_proto_base_size());
-   EXPECT_EQ(1,dm.familyq_proto_base_size());
-   EXPECT_EQ(1,dm.family_endq_proto_base_size());
+   dm.EmptyLongFields(0, 0);
+   EXPECT_EQ(1, dm.application_endq_proto_base_size());
+   EXPECT_EQ(1, dm.applicationq_proto_base_size());
+   EXPECT_EQ(1, dm.familyq_proto_base_size());
+   EXPECT_EQ(1, dm.family_endq_proto_base_size());
    dm.add_access_pointq_proto_gtp("test1");
    dm.add_access_pointq_proto_gtp("test2");
    dm.add_access_pointq_proto_gtp("test3");
-   dm.EmptyLongFields(4,0);
-   EXPECT_EQ(3,dm.access_pointq_proto_gtp_size());
-   dm.EmptyLongFields(3,0);
-   EXPECT_EQ(0,dm.access_pointq_proto_gtp_size());
+   dm.EmptyLongFields(4, 0);
+   EXPECT_EQ(3, dm.access_pointq_proto_gtp_size());
+   dm.EmptyLongFields(3, 0);
+   EXPECT_EQ(0, dm.access_pointq_proto_gtp_size());
    dm.add_stringq_proto_base("test1");
-   dm.EmptyLongFields(0,108);
-   EXPECT_EQ(1,dm.stringq_proto_base_size());
-   dm.EmptyLongFields(0,107);
-   EXPECT_EQ(0,dm.stringq_proto_base_size());
+   dm.EmptyLongFields(0, 108);
+   EXPECT_EQ(1, dm.stringq_proto_base_size());
+   dm.EmptyLongFields(0, 107);
+   EXPECT_EQ(0, dm.stringq_proto_base_size());
 }
 

@@ -6,6 +6,7 @@
  */
 #pragma once
 #include "DpiMsgLR.h"
+#ifdef LR_DEBUG
 namespace networkMonitor {
 
    class MockDpiMsgLR : public DpiMsgLR {
@@ -102,4 +103,4 @@ namespace networkMonitor {
 
    };
 }
-
+#endif
