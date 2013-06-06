@@ -4,7 +4,7 @@
 
 class Vampire {
 public:
-   Vampire(const std::string& location);
+   explicit Vampire(const std::string& location);
    bool PrepareToBeShot();
    std::string GetBinding() const;
    bool GetShot(std::string& wound, const int timeout);

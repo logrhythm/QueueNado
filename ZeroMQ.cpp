@@ -23,7 +23,7 @@ using namespace boost;
  *   An integer id number for the process that will own this queue, such as
  * the child thread number.
  */
-ZeroMQ<void*>::ZeroMQ(unsigned int id) :
+ZeroMQ<void*>::ZeroMQ(const unsigned int id) :
 IComponentQueue::IComponentQueue(), mId(id), mOwnsContext(
 true), mContext(NULL), mSocket(NULL) {
    stringstream bindingStream;

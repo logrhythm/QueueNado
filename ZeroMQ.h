@@ -20,7 +20,7 @@ public:
 template<>
 class ZeroMQ<void*> : public IComponentQueue {
 public:
-   explicit ZeroMQ(unsigned int id);
+   explicit ZeroMQ(const unsigned int id);
    ZeroMQ(const ZeroMQ<void*>& that);
    ZeroMQ(const ZeroMQ<void*>* that);
    virtual ~ZeroMQ();

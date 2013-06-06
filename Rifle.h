@@ -6,7 +6,7 @@
 
 class Rifle {
 public:
-   Rifle(const std::string& location);
+   explicit Rifle(const std::string& location);
    bool Aim();
    std::string GetBinding() const;
    bool Fire(const std::string& bullet, const int waitToFire = 10000);
