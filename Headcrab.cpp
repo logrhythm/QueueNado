@@ -189,7 +189,7 @@ bool Headcrab::SendSplatter(std::vector<std::string>& feedback) {
       return false;
    }
    zmsg_t* message = zmsg_new();
-   for (std::vector<std::string>::iterator it = feedback.begin();
+   for (auto it = feedback.begin();
            it != feedback.end(); it++) {
       zmsg_addmem(message, &((*it)[0]), it->size());
    }

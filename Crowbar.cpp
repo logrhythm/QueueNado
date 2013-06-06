@@ -113,7 +113,7 @@ bool Crowbar::Flurry( std::vector<std::string>& hits) {
       return false;
    }
    zmsg_t* message = zmsg_new();
-   for (std::vector<std::string>::iterator it = hits.begin();
+   for (auto it = hits.begin();
            it != hits.end(); it++) {
       zmsg_addmem(message, &((*it)[0]), it->size());
    }
