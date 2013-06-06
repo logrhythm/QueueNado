@@ -31,7 +31,7 @@ TEST_F(ThreadContainerTest, testThreadRunStopZeroThreads) {
 
    EXPECT_EQ(0, tc.Size());
 
-   for ( ThreadContainer<TestThread*>::iterator it = tc.begin();
+   for ( auto it = tc.begin();
          it != tc.end(); it++ ) {
       EXPECT_FALSE(it->first->GetRunState());
       ItLoopCount++;
@@ -50,7 +50,7 @@ TEST_F(ThreadContainerTest, testThreadRunStopOneThread) {
    EXPECT_EQ(1, tc.Size());
 
    int ItLoopCount(0);
-   for ( ThreadContainer<TestThread*>::iterator it = tc.begin();
+   for ( auto it = tc.begin();
          it != tc.end(); it++ ) {
       EXPECT_FALSE(it->first->GetRunState());
       ItLoopCount++;
@@ -66,7 +66,7 @@ TEST_F(ThreadContainerTest, testThreadRunStopOneThread) {
       boost::this_thread::sleep(boost::posix_time::milliseconds(100));
       bStarted = true; 
       ItLoopCount = 0;
-      for ( ThreadContainer<TestThread*>::iterator it = tc.begin();
+      for ( auto it = tc.begin();
             it != tc.end(); it++ ) {
          if (!it->first->GetRunState()) {
             bStarted = false;
@@ -81,7 +81,7 @@ TEST_F(ThreadContainerTest, testThreadRunStopOneThread) {
    tc.StopThreads();
 
    ItLoopCount = 0;
-   for ( ThreadContainer<TestThread*>::iterator it = tc.begin();
+   for ( auto it = tc.begin();
          it != tc.end(); it++ ) {
       EXPECT_FALSE(it->first->GetRunState());
       ItLoopCount++;

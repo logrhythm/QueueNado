@@ -29,14 +29,14 @@ TEST_F( QosmosProtocolCaptureTest, AddingProtocolsAndFamilies ) {
    ProtocolFamilyMap pfm = qpc.GetProtocolFamilies();
    EXPECT_EQ( 1, pfm.size() );
 
-   ProtocolFamilyMap::iterator pfmIt = pfm.begin();
+   auto pfmIt = pfm.begin();
    EXPECT_EQ( protocolName, pfmIt->first );
    EXPECT_EQ( familyName, pfmIt->second.first );
    EXPECT_EQ( protocolLongName, pfmIt->second.second );
 
    ProtocolEnabledMap pem = qpc.GetProtocolEnabled();
    EXPECT_EQ( 1, pem.size() );
-   ProtocolEnabledMap::iterator pemIt = pem.begin();
+   auto pemIt = pem.begin();
    EXPECT_EQ( protocolName, pemIt->first );
    EXPECT_EQ( enabled, pemIt->second );
 }

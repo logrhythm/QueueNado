@@ -17,7 +17,7 @@ public:
    size_t SizeOfgivenHashData(unsigned int hash) {
       unsigned int position(0);
 
-      std::map<uLong, size_t>::iterator foundPosition(mPacketPositions.find(hash));
+      auto foundPosition(mPacketPositions.find(hash));
       if (foundPosition != mPacketPositions.end()) {
          return mPackets[foundPosition->second]->size();
       }

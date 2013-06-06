@@ -36,7 +36,7 @@ public:
    }
    std::string GetFunctionFileName(protoMsg::RuleConf_Type type,size_t number) {
       size_t count(0);
-      std::map<std::string, std::string>::iterator it = mLoadedRules[type].begin();
+      auto it = mLoadedRules[type].begin();
       for ( ; it != mLoadedRules[type].end() && count < number ; it++ ) {
          count++;
       }

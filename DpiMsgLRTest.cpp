@@ -436,7 +436,7 @@ TEST_F(DpiMsgLRTests, GetDynamicFieldPairs) {
    expecteds["attachFilename"] = filename;
 
    ASSERT_EQ(3, results.size());
-   for (map<unsigned int, pair<string, string> >::iterator i = results.begin(); i != results.end(); ++i) {
+   for (auto i = results.begin(); i != results.end(); ++i) {
       string fieldName = i->second.first;
       string fieldValue = i->second.second;
       EXPECT_EQ(expecteds[fieldName], fieldValue);
@@ -497,7 +497,7 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    results = dm.GetAllFieldsAsStrings();
    ASSERT_EQ(11, results.size());
 
-   for (map<unsigned int, pair<string, string> >::iterator i = results.begin(); i != results.end(); ++i) {
+   for (auto i = results.begin(); i != results.end(); ++i) {
       string fieldName = i->second.first;
       string fieldValue = i->second.second;
       EXPECT_EQ(expecteds[fieldName], fieldValue);

@@ -1275,7 +1275,7 @@ TEST_F(RuleEngineTest, getNextDataPair) {
            syslogFacility, syslogPriority, true, 0);
 
    dataPairs[0] = make_pair("test", "me");
-   map<unsigned int, pair <string, string> >::iterator i = dataPairs.begin();
+   auto i = dataPairs.begin();
    ASSERT_EQ(", test=me", dm.GetNextDataPair(i));
 #endif
 
