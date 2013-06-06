@@ -35,12 +35,11 @@ TEST_F(ProcStatsTest, ThreadRegistration) {
       EXPECT_EQ(0, mProcStats.GetThreadUserPercent(syscall(SYS_gettid)));
       EXPECT_EQ(0, mProcStats.GetThreadSystemPercent(syscall(SYS_gettid)));
       mProcStats.Update();
-      std::map<std::string, pid_t> registeredThreads;
+      std::unordered_map<std::string, pid_t> registeredThreads;
       std::stringstream hiddenName;
       hiddenName << threadName << "_" << 0;
       mProcStats.GetRegisteredThreads(registeredThreads);
-      std::map<std::string, pid_t>::iterator myRegistration =
-              registeredThreads.find(hiddenName.str());
+      auto myRegistration = registeredThreads.find(hiddenName.str());
       ASSERT_NE(registeredThreads.end(), myRegistration);
       EXPECT_EQ(syscall(SYS_gettid), myRegistration->second);
       //      for (std::map<std::string, pid_t>::iterator it = registeredThreads.begin();
@@ -57,17 +56,15 @@ TEST_F(ProcStatsTest, ThreadReRegistration) {
    mProcStats.ThreadRegister(threadName);
    std::string nextThreadName = "TestThreadThree";
    mProcStats.ThreadRegister(nextThreadName);
-   std::map<std::string, pid_t> registeredThreads;
+   std::unordered_map<std::string, pid_t> registeredThreads;
    mProcStats.GetRegisteredThreads(registeredThreads);
    std::stringstream hiddenName;
    hiddenName << threadName << "_" << 0;
-   std::map<std::string, pid_t>::iterator myRegistration =
-           registeredThreads.find(hiddenName.str());
+   auto myRegistration = registeredThreads.find(hiddenName.str());
    ASSERT_EQ(registeredThreads.end(), myRegistration);
    hiddenName.str("");
    hiddenName << nextThreadName << "_" << 0;
-   myRegistration =
-           registeredThreads.find(hiddenName.str());
+   myRegistration = registeredThreads.find(hiddenName.str());
    ASSERT_NE(registeredThreads.end(), myRegistration);
 }
 
