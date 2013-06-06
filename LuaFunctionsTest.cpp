@@ -24,7 +24,7 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    MockLuaExecuter ruleEngine;
    functions->RegisterAllKnownFunctions(ruleEngine);
 
-   std::map<std::string, lua_CFunction> registered = ruleEngine.GetPossibleFunctions();
+   auto registered = ruleEngine.GetPossibleFunctions();
 
    ASSERT_TRUE(registered.end() != registered.find("GetFullStringFromFlow"));
    ASSERT_EQ(registered["GetFullStringFromFlow"], LuaFunctions::GetFullStringFromDpi);
@@ -290,7 +290,7 @@ TEST_F(LuaFunctionsTest, AddThenRegister) {
    MockLuaExecuter ruleEngine;
    functions.RegisterAllKnownFunctions(ruleEngine);
 
-   std::map<std::string, lua_CFunction> registered = ruleEngine.GetPossibleFunctions();
+   auto registered = ruleEngine.GetPossibleFunctions();
 
    ASSERT_TRUE(registered["Test1"] == LuaTestFunction);
    ASSERT_TRUE(registered["Test2"] == LuaTestFunction2);
@@ -312,7 +312,7 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    MockLuaExecuter ruleEngine;
    functions->RegisterAllKnownFunctions(ruleEngine);
 
-   std::map<std::string, lua_CFunction> registered = ruleEngine.GetPossibleFunctions();
+   auto registered = ruleEngine.GetPossibleFunctions();
    ASSERT_TRUE(registered.end() != registered.find("SessionAge"));
    ASSERT_TRUE(registered.end() != registered.find("EndOfFlow"));
    ASSERT_TRUE(registered.end() != registered.find("GetCurrentClassification"));
@@ -408,7 +408,7 @@ TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
    MockLuaExecuter ruleEngine;
    functions->RegisterAllKnownFunctions(ruleEngine);
 
-   std::map<std::string, lua_CFunction> registered = ruleEngine.GetPossibleFunctions();
+   auto registered = ruleEngine.GetPossibleFunctions();
 
    ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFlow"));
    ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFinalFlow"));
