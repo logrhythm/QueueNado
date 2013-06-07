@@ -20,7 +20,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
    EXPECT_TRUE(sendManager.Initialize());
    std::string processName("/bin/sh");
    std::string processArgs;
-   std::map<std::string, std::string> env;
+   EnvironmentMapping env;
    env["a"] = "b";
    processArgs = "resources/sleepIfA.sh";
    EXPECT_TRUE(sendManager.RegisterProcessWithEnvironment(processName, processArgs, env, ""));
@@ -328,8 +328,8 @@ TEST_F(ProcessManagerTest, StartProcessBadExitCode) {
    request.set_path("/bin/bash");
    request.set_realexecstring("resources/returnBadExit.sh");
    request.set_args("resources/returnBadExit.sh");
-   std::map<std::string, pid_t> daemonPIDs;
-   std::map<std::string, protoMsg::ProcessRequest> requestedDaemons;
+   PidMapping daemonPIDs;
+   DaemonRequestMapping requestedDaemons;
    protoMsg::ProcessReply reply;
    mockProcessManager.StartDaemon(request, daemonPIDs, requestedDaemons, reply);
    ASSERT_FALSE(reply.success());
