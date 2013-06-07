@@ -277,7 +277,7 @@ TEST_F(LuaFunctionsTest, GetListOfStrings) {
    lua_close(luaState);
 
 }
-
+#ifdef LR_DEUBG
 TEST_F(LuaFunctionsTest, AddThenRegister) {
    MockLuaFunctions functions;
 
@@ -319,16 +319,17 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("CapturePacket"));
    ASSERT_TRUE(registered.end() != registered.find("WriteAllCapturedPackets"));
    ASSERT_TRUE(registered.end() != registered.find("CleanupCapturedPackets"));
-
+   ASSERT_TRUE(registered.end() != registered.find("GetUuid"));
    ASSERT_EQ(registered["SessionAge"], LuaPacketFunctions::SessionAge);
    ASSERT_EQ(registered["EndOfFlow"], LuaPacketFunctions::DataNull);
    ASSERT_EQ(registered["GetCurrentClassification"], LuaPacketFunctions::DpiMsgClassification);
    ASSERT_EQ(registered["CapturePacket"], LuaPacketFunctions::BufferSessionToMemory);
    ASSERT_EQ(registered["WriteAllCapturedPackets"], LuaPacketFunctions::WriteAllPacketsToDisk);
    ASSERT_EQ(registered["CleanupCapturedPackets"], LuaPacketFunctions::EmptyBufferOfSession);
+   ASSERT_EQ(registered["GetUuid"], LuaFunctions::GetUuid);
    delete functions;
 }
-
+#endif
 TEST_F(LuaFunctionsTest, SessionAge) {
    networkMonitor::DpiMsgLR dpiMsg;
 
@@ -400,7 +401,7 @@ TEST_F(LuaFunctionsTest, DpiMsgClassification) {
    EXPECT_EQ("test2", classification);
    lua_close(luaState);
 }
-
+#ifdef LR_DEBUG
 TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
    LuaRuleEngineFunctions* functions = new LuaRuleEngineFunctions;
    MockConf conf;
@@ -413,7 +414,7 @@ TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFlow"));
    ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFinalFlow"));
    ASSERT_TRUE(registered.end() != registered.find("IsFinalFlow"));
-   ASSERT_TRUE(registered.end() != registered.find("GetUuid"));
+
    ASSERT_TRUE(registered.end() != registered.find("GetLatestApplication"));
    ASSERT_TRUE(registered.end() != registered.find("SetCustomApplication"));
    ASSERT_TRUE(registered.end() != registered.find("GetPacketCount"));
@@ -436,7 +437,7 @@ TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
    ASSERT_EQ(registered["IsIntermediateFlow"], LuaRuleEngineFunctions::IsIntermediateFlow);
    ASSERT_EQ(registered["IsIntermediateFinalFlow"], LuaRuleEngineFunctions::IsIntermediateFinalFlow);
    ASSERT_EQ(registered["IsFinalFlow"], LuaRuleEngineFunctions::IsFinalFlow);
-   ASSERT_EQ(registered["GetUuid"], LuaRuleEngineFunctions::GetUuid);
+
    ASSERT_EQ(registered["GetLatestApplication"], LuaRuleEngineFunctions::GetLatestApplication);
    ASSERT_EQ(registered["SetCustomApplication"], LuaRuleEngineFunctions::SetCustomApplication);
    ASSERT_EQ(registered["GetPacketCount"], LuaRuleEngineFunctions::GetPacketCount);
@@ -459,6 +460,7 @@ TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
 
    delete functions;
 }
+#endif
 using namespace networkMonitor;
 using namespace std;
 

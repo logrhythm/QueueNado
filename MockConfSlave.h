@@ -70,7 +70,11 @@ namespace networkMonitor {
       bool mNewSyslogSeen;
       bool mNewNetInterfaceMsg;
       std::string mBroadcastQueueName;
+#ifdef LR_DEBUG
       MockConf mConf;
+#else
+      Conf mConf;
+#endif
    };
 }
 
