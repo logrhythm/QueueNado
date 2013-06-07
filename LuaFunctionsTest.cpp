@@ -48,6 +48,40 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["GetSourceMACFromFlow"], LuaFunctions::GetSourceMACFromDpi);
    ASSERT_TRUE(registered.end() != registered.find("GetDestMACFromFlow"));
    ASSERT_EQ(registered["GetDestMACFromFlow"], LuaFunctions::GetDestMACFromDpi);
+
+   ASSERT_TRUE(registered.end() != registered.find("GetDpiMsgSize"));
+
+   ASSERT_EQ(registered["GetDpiMsgSize"], LuaFunctions::GetDpiMsgSize);
+   ASSERT_TRUE(registered.end() != registered.find("GetUuid"));
+   ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFlow"));
+   ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFinalFlow"));
+   ASSERT_TRUE(registered.end() != registered.find("IsFinalFlow"));
+
+   ASSERT_TRUE(registered.end() != registered.find("GetLatestApplication"));
+   ASSERT_TRUE(registered.end() != registered.find("SetCustomApplication"));
+   ASSERT_TRUE(registered.end() != registered.find("GetPacketCount"));
+   ASSERT_TRUE(registered.end() != registered.find("SetDeltaPackets"));
+   ASSERT_TRUE(registered.end() != registered.find("GetSessionLenServer"));
+   ASSERT_TRUE(registered.end() != registered.find("SetDeltaSessionLenServer"));
+   ASSERT_TRUE(registered.end() != registered.find("GetSessionLenClient"));
+   ASSERT_TRUE(registered.end() != registered.find("SetDeltaSessionLenClient"));
+   ASSERT_TRUE(registered.end() != registered.find("GetStartTime"));
+   ASSERT_TRUE(registered.end() != registered.find("GetEndTime"));
+   ASSERT_TRUE(registered.end() != registered.find("SetDeltaTime"));
+   ASSERT_TRUE(registered.end() != registered.find("GetDeltaTime"));
+   ASSERT_EQ(registered["GetLatestApplication"], LuaRuleEngineFunctions::GetLatestApplication);
+   ASSERT_EQ(registered["SetCustomApplication"], LuaRuleEngineFunctions::SetCustomApplication);
+   ASSERT_EQ(registered["GetPacketCount"], LuaRuleEngineFunctions::GetPacketCount);
+   ASSERT_EQ(registered["SetDeltaPackets"], LuaRuleEngineFunctions::SetDeltaPackets);
+   ASSERT_EQ(registered["GetSessionLenServer"], LuaRuleEngineFunctions::GetSessionLenServer);
+   ASSERT_EQ(registered["SetDeltaSessionLenServer"], LuaRuleEngineFunctions::SetDeltaSessionLenServer);
+   ASSERT_EQ(registered["GetSessionLenClient"], LuaRuleEngineFunctions::GetSessionLenClient);
+   ASSERT_EQ(registered["SetDeltaSessionLenClient"], LuaRuleEngineFunctions::SetDeltaSessionLenClient);
+   ASSERT_EQ(registered["GetStartTime"], LuaRuleEngineFunctions::GetStartTime);
+   ASSERT_EQ(registered["GetEndTime"], LuaRuleEngineFunctions::GetEndTime);
+   ASSERT_EQ(registered["SetDeltaTime"], LuaRuleEngineFunctions::SetDeltaTime);
+   ASSERT_EQ(registered["GetDeltaTime"], LuaRuleEngineFunctions::GetDeltaTime);
+   ASSERT_EQ(registered["GetUuid"], LuaFunctions::GetUuid);
    delete functions;
 }
 
@@ -80,7 +114,7 @@ TEST_F(LuaFunctionsTest, LuaGetIpInfoFromDpi) {
    std::string result = lua_tostring(luaState, -1);
    EXPECT_EQ("192.168.1.100", result);
    lua_close(luaState);
-   
+
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    LuaFunctions::GetDestIPFromDpi(luaState);
@@ -88,6 +122,7 @@ TEST_F(LuaFunctionsTest, LuaGetIpInfoFromDpi) {
    EXPECT_EQ("10.1.0.75", result);
    lua_close(luaState);
 }
+
 TEST_F(LuaFunctionsTest, LuaGetMACInfoFromDpi) {
    networkMonitor::DpiMsgLR dpiMsg;
    uint32_t ipDst = 0x4B00010A; // 10.1.0.75
@@ -120,7 +155,7 @@ TEST_F(LuaFunctionsTest, LuaGetMACInfoFromDpi) {
    std::string result = lua_tostring(luaState, -1);
    EXPECT_EQ("10:52:36:b4:50:16", result);
    lua_close(luaState);
-   
+
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    LuaFunctions::GetSourceMACFromDpi(luaState);
@@ -128,6 +163,7 @@ TEST_F(LuaFunctionsTest, LuaGetMACInfoFromDpi) {
    EXPECT_EQ("00:50:56:be:00:1c", result);
    lua_close(luaState);
 }
+
 TEST_F(LuaFunctionsTest, GetLatestStringFromDpi) {
    networkMonitor::DpiMsgLR dpiMsg;
 
@@ -278,6 +314,7 @@ TEST_F(LuaFunctionsTest, GetListOfStrings) {
 
 }
 #ifdef LR_DEUBG
+
 TEST_F(LuaFunctionsTest, AddThenRegister) {
    MockLuaFunctions functions;
 
@@ -319,17 +356,19 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("CapturePacket"));
    ASSERT_TRUE(registered.end() != registered.find("WriteAllCapturedPackets"));
    ASSERT_TRUE(registered.end() != registered.find("CleanupCapturedPackets"));
-   ASSERT_TRUE(registered.end() != registered.find("GetUuid"));
+
+
    ASSERT_EQ(registered["SessionAge"], LuaPacketFunctions::SessionAge);
    ASSERT_EQ(registered["EndOfFlow"], LuaPacketFunctions::DataNull);
    ASSERT_EQ(registered["GetCurrentClassification"], LuaPacketFunctions::DpiMsgClassification);
    ASSERT_EQ(registered["CapturePacket"], LuaPacketFunctions::BufferSessionToMemory);
    ASSERT_EQ(registered["WriteAllCapturedPackets"], LuaPacketFunctions::WriteAllPacketsToDisk);
    ASSERT_EQ(registered["CleanupCapturedPackets"], LuaPacketFunctions::EmptyBufferOfSession);
-   ASSERT_EQ(registered["GetUuid"], LuaFunctions::GetUuid);
+
    delete functions;
 }
 #endif
+
 TEST_F(LuaFunctionsTest, SessionAge) {
    networkMonitor::DpiMsgLR dpiMsg;
 
@@ -402,6 +441,7 @@ TEST_F(LuaFunctionsTest, DpiMsgClassification) {
    lua_close(luaState);
 }
 #ifdef LR_DEBUG
+
 TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
    LuaRuleEngineFunctions* functions = new LuaRuleEngineFunctions;
    MockConf conf;
@@ -411,51 +451,24 @@ TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
 
    auto registered = ruleEngine.GetPossibleFunctions();
 
-   ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFlow"));
-   ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFinalFlow"));
-   ASSERT_TRUE(registered.end() != registered.find("IsFinalFlow"));
 
-   ASSERT_TRUE(registered.end() != registered.find("GetLatestApplication"));
-   ASSERT_TRUE(registered.end() != registered.find("SetCustomApplication"));
-   ASSERT_TRUE(registered.end() != registered.find("GetPacketCount"));
-   ASSERT_TRUE(registered.end() != registered.find("SetDeltaPackets"));
-   ASSERT_TRUE(registered.end() != registered.find("GetSessionLenServer"));
-   ASSERT_TRUE(registered.end() != registered.find("SetDeltaSessionLenServer"));
-   ASSERT_TRUE(registered.end() != registered.find("GetSessionLenClient"));
-   ASSERT_TRUE(registered.end() != registered.find("SetDeltaSessionLenClient"));
-   ASSERT_TRUE(registered.end() != registered.find("GetStartTime"));
-   ASSERT_TRUE(registered.end() != registered.find("GetEndTime"));
-   ASSERT_TRUE(registered.end() != registered.find("SetDeltaTime"));
-   ASSERT_TRUE(registered.end() != registered.find("GetDeltaTime"));
    ASSERT_TRUE(registered.end() != registered.find("SendInterFlow"));
    ASSERT_TRUE(registered.end() != registered.find("SendFinalFlow"));
    ASSERT_TRUE(registered.end() != registered.find("SendAccStat"));
    ASSERT_TRUE(registered.end() != registered.find("GetThreadId"));
-   ASSERT_TRUE(registered.end() != registered.find("GetRawMsgSize"));
-   ASSERT_TRUE(registered.end() != registered.find("GetDpiMsgSize"));
+
    ASSERT_TRUE(registered.end() != registered.find("SendStat"));
    ASSERT_EQ(registered["IsIntermediateFlow"], LuaRuleEngineFunctions::IsIntermediateFlow);
    ASSERT_EQ(registered["IsIntermediateFinalFlow"], LuaRuleEngineFunctions::IsIntermediateFinalFlow);
    ASSERT_EQ(registered["IsFinalFlow"], LuaRuleEngineFunctions::IsFinalFlow);
+   ASSERT_TRUE(registered.end() != registered.find("GetRawMsgSize"));
+   ASSERT_EQ(registered["GetRawMsgSize"], LuaRuleEngineFunctions::GetRawMsgSize);
 
-   ASSERT_EQ(registered["GetLatestApplication"], LuaRuleEngineFunctions::GetLatestApplication);
-   ASSERT_EQ(registered["SetCustomApplication"], LuaRuleEngineFunctions::SetCustomApplication);
-   ASSERT_EQ(registered["GetPacketCount"], LuaRuleEngineFunctions::GetPacketCount);
-   ASSERT_EQ(registered["SetDeltaPackets"], LuaRuleEngineFunctions::SetDeltaPackets);
-   ASSERT_EQ(registered["GetSessionLenServer"], LuaRuleEngineFunctions::GetSessionLenServer);
-   ASSERT_EQ(registered["SetDeltaSessionLenServer"], LuaRuleEngineFunctions::SetDeltaSessionLenServer);
-   ASSERT_EQ(registered["GetSessionLenClient"], LuaRuleEngineFunctions::GetSessionLenClient);
-   ASSERT_EQ(registered["SetDeltaSessionLenClient"], LuaRuleEngineFunctions::SetDeltaSessionLenClient);
-   ASSERT_EQ(registered["GetStartTime"], LuaRuleEngineFunctions::GetStartTime);
-   ASSERT_EQ(registered["GetEndTime"], LuaRuleEngineFunctions::GetEndTime);
-   ASSERT_EQ(registered["SetDeltaTime"], LuaRuleEngineFunctions::SetDeltaTime);
-   ASSERT_EQ(registered["GetDeltaTime"], LuaRuleEngineFunctions::GetDeltaTime);
    ASSERT_EQ(registered["SendInterFlow"], LuaRuleEngineFunctions::SendInterFlow);
    ASSERT_EQ(registered["SendFinalFlow"], LuaRuleEngineFunctions::SendFinalFlow);
    ASSERT_EQ(registered["SendAccStat"], LuaRuleEngineFunctions::SendAccStat);
    ASSERT_EQ(registered["GetThreadId"], LuaRuleEngineFunctions::GetThreadId);
-   ASSERT_EQ(registered["GetRawMsgSize"], LuaRuleEngineFunctions::GetRawMsgSize);
-   ASSERT_EQ(registered["GetDpiMsgSize"], LuaRuleEngineFunctions::GetDpiMsgSize);
+
    ASSERT_EQ(registered["SendStat"], LuaRuleEngineFunctions::SendStat);
 
    delete functions;
