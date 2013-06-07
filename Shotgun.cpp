@@ -56,7 +56,7 @@ void Shotgun::setIpcFilePermissions(const std::string& location) {
 void Shotgun::Fire(const std::string& bullet) {
    std::vector<std::string> bullets;
    bullets.push_back(bullet);
-   Fire(std::move(bullets));
+   Fire(bullets);
 }
 /**
  * Fire our shotgun, hopefully we hit something.
