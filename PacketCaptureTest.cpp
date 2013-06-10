@@ -3,6 +3,7 @@
 #include "PacketCaptureTest.h"
 #include "PacketCapturePCapClientThread.h"
 #include <sys/socket.h>
+#include "QosmosDPI.h"
 #include <algorithm>
 
 using namespace std;
@@ -73,6 +74,8 @@ TEST_F(PacketCaptureTest, NonExistantInterface) {
       EXPECT_EQ(PCAP_ERROR_NO_SUCH_DEVICE,status);
       EXPECT_FALSE(capturer.WasActivationSuccessful(handle, status));
       EXPECT_FALSE(capturer.Initialize(true));
+      pcap_close(handle);
+      
 #endif
    }
 }
@@ -420,7 +423,8 @@ TEST_F(PacketCaptureTest, PacketCapturePCapClientThread_GetPackets) {
    rawData.insert(0, reinterpret_cast<char*> (packet->data), packet->len);
    ASSERT_EQ(capturer.mBogusHeader.len, rawData.size());
    ASSERT_EQ(0, memcmp(capturer.mBogusPacket, rawData.c_str(), rawData.size()));
-   
+   free(packet->data);
+   free(packet);
    capturer.mFakePCapRetVal = 0;
    ASSERT_EQ(0, clientThread.GetPacket(packet, hash));
 #endif
@@ -428,6 +432,7 @@ TEST_F(PacketCaptureTest, PacketCapturePCapClientThread_GetPackets) {
 }
 
 TEST_F(PacketCaptureTest, FailPackets) {
+   QosmosDPI dpiEngine(mConf);
    PacketCaptureReceiver receiver(t_serverAddr);
    MockPacketCapturePCap capturer(receiver.GetZMQ(), t_interface, mConf);
    ctb_ppacket packet(NULL);
