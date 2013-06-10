@@ -22,7 +22,7 @@ public:
    lua_State* GetLuaState(const protoMsg::RuleConf& rule) {
       return LuaExecuter::GetLuaState(rule);
    }
-   std::set<std::string> GetRegisteredFunctions(lua_State* luaState) {
+   std::unordered_set<std::string> GetRegisteredFunctions(lua_State* luaState) {
       return LuaExecuter::GetRegisteredFunctions(luaState);
    }
    void ClearScriptLocation() {
@@ -36,7 +36,7 @@ public:
    }
    std::string GetFunctionFileName(protoMsg::RuleConf_Type type,size_t number) {
       size_t count(0);
-      std::map<std::string, std::string>::iterator it = mLoadedRules[type].begin();
+      auto it = mLoadedRules[type].begin();
       for ( ; it != mLoadedRules[type].end() && count < number ; it++ ) {
          count++;
       }
@@ -46,7 +46,7 @@ public:
       return mLoadedRules[type][name];
    }
 
-   std::map<std::string, lua_CFunction> GetPossibleFunctions() {
+   std::unordered_map<std::string, lua_CFunction> GetPossibleFunctions() {
       return mFunctions;
    }
 };

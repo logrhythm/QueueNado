@@ -7,15 +7,15 @@
 #pragma once
 #include "Conf.h"
 #include "include/global.h"
-
+#ifdef LR_DEBUG
 class MockConf : public Conf {
 public:
 
    MockConf() : mQosmosDebug(false), mDpiHalfSessions(0), mQosmos64(100000),
    mQosmos128(100000), mQosmos256(100000), mQosmos512(100000), mSyslogEnabled(true),
    mSyslogAgentPort("1234"), mSyslogFacility("local4"), mReportEverything(false),
-   mDpiThreads(3), mLogBufferSize(124), mPCAPETimeOut(12), mQosmosExpirePerCallback(1),
-   mSingleAppMultiThreadQosmos(true), mEnableTCPReAssembly(true), mEnableIPDefragmentation(true),
+   mDpiThreads(3), mPCAPETimeOut(12), mQosmosExpirePerCallback(1),
+   mEnableTCPReAssembly(true), mEnableIPDefragmentation(true),
    mSiemLogging(false), mPCAPBuffsize(1234), mPacketSendQueueSize(100),
    mPacketRecvQueueSize(100), mSyslogMaxLineLength(2048), mDPIMsgSendQueueSize(1024),
    mStatsIntervalSeconds(5), mDPIMsgRecvQueueSize(1024), mSiemDebug(false), mIntermediateFlowEnabled(false),
@@ -26,220 +26,211 @@ public:
    ~MockConf() {
    }
 
-   std::string getSyslogAgentIP(void) {
+   std::string getSyslogAgentIP(void) override {
       return mSyslogAgentIp;
    }
    std::string mSyslogAgentIp;
 
-   bool getSyslogEnabled(void) {
+   bool getSyslogEnabled(void) override  {
       return mSyslogEnabled;
    }
    bool mSyslogEnabled;
 
-   std::string getLogDir() {
+   std::string getLogDir() const override {
       return mLogDir;
    }
    std::string mLogDir;
 
-   std::string getSyslogAgentPort(void) {
+   std::string getSyslogAgentPort(void) override  {
       return mSyslogAgentPort;
    }
    std::string mSyslogAgentPort;
 
-   std::string getSyslogFacility(void) {
+   std::string getSyslogFacility(void)  override {
       return mSyslogFacility;
    }
    std::string mSyslogFacility;
 
-   std::string getSyslogLogName(void) {
+   std::string getSyslogLogName(void)  override {
       return mSyslogName;
    }
    std::string mSyslogName;
 
-   std::string getSyslogConfName(void) {
+   std::string getSyslogConfName(void)  override {
       return mSyslogConfName;
    }
    std::string mSyslogConfName;
 
-   std::string getConfChangeQueue(void) {
+   std::string getConfChangeQueue(void)  override {
       return mConfChangeQueue;
    }
    std::string mConfChangeQueue;
 
-   std::string getDpiRcvrQueue(void) {
+   std::string getDpiRcvrQueue(void)  override {
       return mDpiRcvrQueue;
    }
    std::string mDpiRcvrQueue;
 
-   std::string getBroadcastQueue(void) {
+   std::string getBroadcastQueue(void) override  {
       return mBroadcastQueue;
    }
    std::string mBroadcastQueue;
 
-   std::string getStatsAccumulatorQueue(void) {
+   std::string getStatsAccumulatorQueue(void)  override {
       return mStatsAccumulatorQueue;
    }
    std::string mStatsAccumulatorQueue;
 
-   std::string getSendStatsQueue(void) {
+   std::string getSendStatsQueue(void)  override {
       return mSendStatsQueue;
    }
    std::string mSendStatsQueue;
 
-   std::string getPath(void) {
+   std::string getPath(void)  override {
       return mPath;
    }
    std::string mPath;
 
-   bool getReportEveythingEnabled(void) {
+   bool getReportEveythingEnabled(void)  override {
       return mReportEverything;
    }
    bool mReportEverything;
 
-   unsigned int getDpiThreads() {
+   unsigned int getDpiThreads() override  {
       return mDpiThreads;
    }
    unsigned int mDpiThreads;
 
-   unsigned int getLogBufferSize() {
-      return mLogBufferSize;
-   }
-   unsigned int mLogBufferSize;
-
-   unsigned int getPCAPETimeOut() {
+   unsigned int getPCAPETimeOut()  override {
       return mPCAPETimeOut;
    }
    unsigned int mPCAPETimeOut;
 
-   unsigned int getQosmosExpirePerCallback() {
+   unsigned int getQosmosExpirePerCallback()  override {
       return mQosmosExpirePerCallback;
    }
    unsigned int mQosmosExpirePerCallback;
 
-   bool SingleAppMultiThreadQosmos() {
-      return mSingleAppMultiThreadQosmos;
-   }
-   bool mSingleAppMultiThreadQosmos;
 
-   bool EnableTCPReassembly() {
+   bool EnableTCPReassembly() override  {
       return mEnableTCPReAssembly;
    }
    bool mEnableTCPReAssembly;
 
-   bool EnableIPDefragmentation() {
+   bool EnableIPDefragmentation()  override {
       return mEnableIPDefragmentation;
    }
    bool mEnableIPDefragmentation;
 
-   bool SiemLogging() {
+   bool SiemLogging()  override {
       return mSiemLogging;
    }
    bool mSiemLogging;
 
-   int getPCAPBuffsize() {
+   int getPCAPBuffsize() override  {
       return mPCAPBuffsize;
    }
    int mPCAPBuffsize;
 
-   int GetPacketSendQueueSize() {
+   int GetPacketSendQueueSize()  override {
       return mPacketSendQueueSize;
    }
    int mPacketSendQueueSize;
 
-   int GetPacketRecvQueueSize() {
+   int GetPacketRecvQueueSize()  override {
       return mPacketRecvQueueSize;
    }
    int mPacketRecvQueueSize;
 
-   unsigned int getSyslogMaxLineLength() {
+   unsigned int getSyslogMaxLineLength()  override {
       return mSyslogMaxLineLength;
    }
    unsigned int mSyslogMaxLineLength;
 
-   int GetDPIMsgSendQueueSize() {
+   int GetDPIMsgSendQueueSize()  override {
       return mDPIMsgSendQueueSize;
    }
    int mDPIMsgSendQueueSize;
 
-   unsigned int getStatsIntervalSeconds() {
+   unsigned int getStatsIntervalSeconds()  override {
       return mStatsIntervalSeconds;
    }
    unsigned int mStatsIntervalSeconds;
 
-   int GetDPIMsgRecvQueueSize() {
+   int GetDPIMsgRecvQueueSize()  override {
       return mDPIMsgRecvQueueSize;
    }
    int mDPIMsgRecvQueueSize;
 
-   std::string getPCAPInterface() {
+   std::string getPCAPInterface()  override {
       return mPCAPInterface;
    }
    std::string mPCAPInterface;
 
-   bool getQosmosDebugModeEnabled(void) {
+   bool getQosmosDebugModeEnabled(void)  override {
       return mQosmosDebug;
    }
 
-   unsigned int getDpiHalfSessions() {
+   unsigned int getDpiHalfSessions() override  {
       return mDpiHalfSessions;
    }
 
-   unsigned int getQosmos64BytePool() {
+   unsigned int getQosmos64BytePool()  override {
       return mQosmos64;
    }
 
-   unsigned int getQosmos128BytePool() {
+   unsigned int getQosmos128BytePool() override  {
       return mQosmos128;
    }
 
-   unsigned int getQosmos256BytePool() {
+   unsigned int getQosmos256BytePool()  override {
       return mQosmos256;
    }
 
-   unsigned int getQosmos512BytePool() {
+   unsigned int getQosmos512BytePool()  override {
       return mQosmos512;
    }
 
-   void InsertFakeQosmosProtocol(const std::string& name) {
+   void InsertFakeQosmosProtocol(const std::string& name)  {
 
       mQosmosProtoEnabled[name] = "false";
       mQosmosProtoLongNames[name] = name;
       mQosmosProtoFamiles[name] = name;
    }
 
-   std::string getCommandQueue() const {
+   std::string getCommandQueue() const  override {
       if (mCommandQueue.empty()) {
          return Conf::getCommandQueue();
       }
       return mCommandQueue;
    }
 
-   std::string getProccessManagementQueue() const {
+   std::string getProccessManagementQueue() const  override {
       if (mProcessManagmentQueue.empty()) {
          return Conf::getProccessManagementQueue();
       }
       return mProcessManagmentQueue;
    }
 
-   bool IntermediateFlowEnabled() {
+   bool IntermediateFlowEnabled()  override {
       return mIntermediateFlowEnabled;
    }
 
-   bool UnknownCaptureEnabled() {
+   bool UnknownCaptureEnabled()  override {
       return mUnknownCaptureEnabled;
    }
 
-   int GetPcapCaptureFileLimit() {
+   int GetPcapCaptureFileLimit()  override {
       return mPCapCaptureFileLimit;
    }
 
-   int GetPcapCaptureSizeLimit() {
+   int GetPcapCaptureSizeLimit()  override {
       return mPCapCaptureSizeLimit;
    }
-   int GetPcapCaptureMemoryLimit() {
+   int GetPcapCaptureMemoryLimit()  override {
       return mPCapCaptureMemoryLimit;
    }
-   std::string GetPcapCaptureLocation() {
+   std::string GetPcapCaptureLocation()  override {
       return mPCapCaptureLocation;
    }
    bool mQosmosDebug;
@@ -262,3 +253,4 @@ public:
    std::string mPCapCaptureLocation;
    int mPCapCaptureMemoryLimit;
 };
+#endif

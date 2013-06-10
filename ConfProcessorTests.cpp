@@ -698,8 +698,9 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots));
 }
-
+#ifdef LR_DEBUG
 TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
+
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
@@ -744,6 +745,7 @@ TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
 }
 
 TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
+
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
@@ -813,7 +815,7 @@ TEST_F(ConfProcessorTests, ProcessNetInterfaceMsg) {
 }
 
 TEST_F(ConfProcessorTests, ProcessRestartMsg) {
-#if defined(LR_DEBUG)
+
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
@@ -859,9 +861,9 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
    ASSERT_FALSE(testSlave.mAppClosed);
    ASSERT_TRUE(testSlave.ProcessRestartMsg(configTypeMessage, shots));
    ASSERT_TRUE(testSlave.mAppClosed);
-#endif
-}
 
+}
+#endif
 TEST_F(ConfProcessorTests, testSingletonInstantiation) {
    ConfMaster& confThread = ConfMaster::Instance();
    //   confThread.Stop();

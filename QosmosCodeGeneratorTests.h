@@ -42,7 +42,7 @@ protected:
       int curly = 0;
       int brackets = 0;
 
-      for (std::string::iterator i = str.begin(); i != str.end(); i++) {
+      for (auto i = str.begin(); i != str.end(); i++) {
          switch (*i) {
             case '{':
                curly++;

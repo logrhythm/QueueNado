@@ -105,8 +105,10 @@ public:
 
 protected:
    virtual void SetUp() {
+#ifdef LR_DEBUG
       mConf.mQosmosDebug = false;
       mConf.mDpiHalfSessions = QOSMOS_TEST_NUM_HALF_SESSIONS;
+#endif
       if (!gDpiInit) {
          gDpiInit = mDpiEngine->Initialize(QOSMOS_TEST_PACKET_SIZE,t_interface, mConf);
       }
@@ -126,6 +128,10 @@ protected:
    ExposedQosmosDPI mNoInitDpiEngine;
    PCapInfo t_pcapInfo;
    std::string t_interface;
+#ifdef LR_DEBUG
    MockConf mConf;
+#else
+   Conf mConf;
+#endif
 };
 

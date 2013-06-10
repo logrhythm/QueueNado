@@ -186,8 +186,8 @@ void RifleVampireTests::StakeAVampireThread(int numberOfMessages,
       std::vector<std::pair<void*, unsigned int> > data;
 
       if (vampire.GetStakes(data, 2000)) {
-         std::vector<std::pair<void*, unsigned int> >::iterator it = data.begin();
-         std::vector<std::pair<void*, unsigned int> >::iterator jt = exampleData.begin();
+         auto it = data.begin();
+         auto jt = exampleData.begin();
          for (; it != data.end(); it++, jt++) {
             EXPECT_EQ(it->first, jt->first);
             EXPECT_EQ(it->second, jt->second);
@@ -235,7 +235,7 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
       }
    }
    std::cout << "Staking Vampires..." << std::endl;
-   for (std::vector<boost::thread*>::iterator it = theVampires.begin();
+   for (auto it = theVampires.begin();
            it != theVampires.end(); it++) {
       (*it)->interrupt();
       (*it)->join();
@@ -283,7 +283,7 @@ void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOTh
       }
    }
    std::cout << "Staking Vampires..." << std::endl;
-   for (std::vector<boost::thread*>::iterator it = theVampires.begin();
+   for (auto it = theVampires.begin();
            it != theVampires.end(); it++) {
       (*it)->interrupt();
       (*it)->join();
@@ -335,7 +335,7 @@ void RifleVampireTests::NRiflesOneVampireBenchmarkZeroCopy(int nRifles, int nIOT
    }
 
    std::cout << "Collecting Rifles..." << std::endl;
-   for (std::vector<boost::thread*>::iterator it = theRifles.begin();
+   for (auto it = theRifles.begin();
            it != theRifles.end(); it++) {
       (*it)->interrupt();
       (*it)->join();
@@ -386,7 +386,7 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
    }
 
    std::cout << "Collecting Rifles..." << std::endl;
-   for (std::vector<boost::thread*>::iterator it = theRifles.begin();
+   for (auto it = theRifles.begin();
            it != theRifles.end(); it++) {
       (*it)->interrupt();
       (*it)->join();
@@ -1512,8 +1512,8 @@ TEST_F(RifleVampireTests, StopPreparingAlreadyAndJustGoPointer) {
    EXPECT_TRUE(rifle.FireStakes(bundle));
    EXPECT_TRUE(vampire.GetStakes(gotBundle));
    ASSERT_EQ(bundle.size(), gotBundle.size());
-   std::vector<std::pair<void*, unsigned int> >::iterator it = bundle.begin();
-   std::vector<std::pair<void*, unsigned int> >::iterator jt = gotBundle.begin();
+   auto it = bundle.begin();
+   auto jt = gotBundle.begin();
    for (; it != bundle.end() && it != gotBundle.end(); it++, jt++) {
       EXPECT_EQ(it->first, jt->first);
       EXPECT_EQ(it->second, jt->second);

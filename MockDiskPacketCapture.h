@@ -24,8 +24,8 @@ public:
    void RemoveOldestPCapFiles(const size_t max) {
       DiskPacketCapture::RemoveOldestPCapFiles(1);
    }
-   void RemoveFromRunningPackets(const std::string& uuid) {
-      DiskPacketCapture::RemoveFromRunningPackets(uuid);
+   void RemoveFromRunningPackets(const pthread_t tid,const std::string& uuid) {
+      DiskPacketCapture::RemoveFromRunningPackets(tid, uuid);
    }
 
    bool TooMuchPCap(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
