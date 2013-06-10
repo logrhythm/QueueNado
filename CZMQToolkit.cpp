@@ -40,7 +40,7 @@ void CZMQToolkit::PrintCurrentHighWater(void* socket, const std::string& name) {
    int sndhwm = zsocket_sndhwm(socket);
    std::string tmpName = name;
    LOG(DEBUG) << tmpName << ": rcvbuf:" << rcvbuf << " rcvhwm:"
-      << rcvhwm << " sndbuf:" << sndbuf << " sndhwm:" << sndhwm;
+           << rcvhwm << " sndbuf:" << sndbuf << " sndhwm:" << sndhwm;
 
 }
 
@@ -100,13 +100,16 @@ bool CZMQToolkit::GetSizeTFromSocket(void* socket, size_t& value) {
 
    if (!CZMQToolkit::IsValidMessage(numberReply)) {
       LOG(WARNING) << "Invalid Message!";
+      if (numberReply) {
+         zmsg_destroy(&numberReply);
+      }
       return false;
    }
    zframe_t* frame = zmsg_last(numberReply);
    if (zframe_size(frame) != sizeof (size_t)) {
       zmsg_destroy(&numberReply);
       LOG(WARNING) << "Invalid Message, expected size:" << sizeof (size_t)
-         << " :: actual size:" << zframe_size(frame);
+              << " :: actual size:" << zframe_size(frame);
       return false;
    }
    value = *reinterpret_cast<size_t*> (zframe_data(frame));
@@ -157,6 +160,9 @@ bool CZMQToolkit::SocketFIFO(void* socket) {
    zmsg_t* bullet = zmsg_recv(socket);
 
    if (!CZMQToolkit::IsValidMessage(bullet)) {
+      if (bullet) {
+         zmsg_destroy(&bullet);
+      }
       LOG(WARNING) << "Invalid Message!";
       return false;
    }
@@ -215,6 +221,9 @@ bool CZMQToolkit::PopAndDiscardMessage(void* socket) {
    zmsg_t* tossMe = zmsg_recv(socket);
 
    if (!CZMQToolkit::IsValidMessage(tossMe)) {
+      if (tossMe) {
+         zmsg_destroy(&tossMe);
+      }
       LOG(WARNING) << "Invalid Message!";
       return false;
    }
@@ -306,6 +315,9 @@ bool CZMQToolkit::SendStringContentsToSocket(void* sourceSocket, void* destSocke
    }
    zmsg_t* message = zmsg_recv(sourceSocket);
    if (!CZMQToolkit::IsValidMessage(message)) {
+      if (message) {
+         zmsg_destroy(&message);
+      }
       LOG(WARNING) << "Invalid Message!";
       return false;
    }
@@ -339,13 +351,16 @@ bool CZMQToolkit::SendStringContentsToSocket(void* sourceSocket, void* destSocke
  *   If the call succeeded
  */
 bool CZMQToolkit::ForkPartsOfMessageTwoDirections(void* sourceSocket,
-   void* firstDestination, void* secondDestination) {
+        void* firstDestination, void* secondDestination) {
    if (!sourceSocket || !firstDestination || !secondDestination) {
       LOG(WARNING) << "Invalid socket!";
       return false;
    }
    zmsg_t* shot = zmsg_recv(sourceSocket);
    if (!CZMQToolkit::IsValidMessage(shot)) {
+      if (shot) {
+         zmsg_destroy(&shot);
+      }
       LOG(WARNING) << "Invalid Message!";
       return false;
    }
