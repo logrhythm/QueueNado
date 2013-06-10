@@ -100,6 +100,7 @@ TEST_F(QsomosPacketAllocatorTests, TwoPacketConversions) {
          struct pcap_pkthdr* header = static_cast<struct pcap_pkthdr*> (malloc(sizeof (struct pcap_pkthdr)));
          inputFile.read(reinterpret_cast<char*> (buffer), sizeof (struct pcap_pkthdr) - 8);
          if (!inputFile && inputFile.gcount() < sizeof (struct pcap_pkthdr) - 8) {
+            free(header);
             break;
          }
          memset(&header->ts.tv_sec, 0, 8);
