@@ -67,6 +67,7 @@ TEST_F(CZMQToolkitTests, ValidateMessage) {
       zmsg_addmem(message, "", 0);
    }
    ASSERT_FALSE(CZMQToolkit::IsValidMessage(message));
+   zmsg_destroy(&message);
 }
 
 TEST_F(CZMQToolkitTests, SendShutdownMessage) {
@@ -77,6 +78,7 @@ TEST_F(CZMQToolkitTests, SendShutdownMessage) {
    zmsg_t* message = zmsg_recv(mRepSocket);
    ASSERT_FALSE(message == NULL);
    ASSERT_FALSE(CZMQToolkit::IsValidMessage(message));
+   zmsg_destroy(&message);
 }
 
 TEST_F(CZMQToolkitTests, SendAndGetSizeTFromSocketFailures) {
@@ -218,6 +220,7 @@ TEST_F(CZMQToolkitTests, SendExistingMessage) {
    std::string aString(reinterpret_cast<char*> (zframe_data(frame)), 3);
    ASSERT_EQ("abc", aString);
    zframe_destroy(&frame);
+   zmsg_destroy(&gotMessage);
    zmsg_destroy(&message);
 }
 

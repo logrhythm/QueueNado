@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 #include "g2logworker.hpp"
 #include "g2log.hpp"
+#include <thread>
 int main(int argc, char *argv[])
 {
    // Start the g2log logger running
@@ -17,5 +18,6 @@ int main(int argc, char *argv[])
 //      int ignoreVal = RUN_ALL_TESTS();
 //      seteuid(0);
 //   }
+   std::this_thread::sleep_for(std::chrono::seconds(2));
    return retval;
 }

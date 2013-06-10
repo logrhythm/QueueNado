@@ -211,6 +211,7 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
    rifle->SetOwnSocket(bRifleOwnSocket);
    EXPECT_TRUE(rifle->Aim());
 #if RIFLE_VAMPIRE_PRODUCTION == 0
+   delete rifle;
    return;
 #endif   
    std::cout << "Rifle at :" << rifle->GetBinding() << std::endl;
