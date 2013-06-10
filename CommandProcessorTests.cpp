@@ -509,6 +509,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess) {
       exception = true;
    }
    ASSERT_FALSE(exception);
+   delete processManager;
 #endif
 }
 
@@ -529,6 +530,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailRestart) {
       exception = true;
    }
    ASSERT_TRUE(exception);
+   delete processManager;
 #endif
 }
 
@@ -549,23 +551,25 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailSuccessRestart) {
       exception = true;
    }
    ASSERT_TRUE(exception);
+   delete processManager; 
 #endif
 }
 
 // Network Config commands
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandInit) {
-   #ifdef LR_DEBUG
+#ifdef LR_DEBUG
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   delete processManager;
 #endif 
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
-   #ifdef LR_DEBUG
+#ifdef LR_DEBUG
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
@@ -586,11 +590,12 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
       exception = true;
    }
    ASSERT_FALSE(exception);
+   delete processManager;
 #endif
 }
 
 TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
-   #ifdef LR_DEBUG
+#ifdef LR_DEBUG
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
@@ -612,6 +617,7 @@ TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
    }
    delete ncct;
    ASSERT_FALSE(exception);
+   delete processManager;
 
 }
 
@@ -635,6 +641,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandBadInterfaceMsg) {
       exception = true;
    }
    ASSERT_FALSE(exception);
+   delete processManager;
 
 }
 
@@ -662,6 +669,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
    }
 
    ASSERT_FALSE(exception);
+   delete processManager;
 
 }
 
@@ -685,6 +693,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInterfaceMethodNotSet) {
       exception = true;
    }
    ASSERT_FALSE(exception);
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
@@ -709,6 +718,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
    } catch (...) {
       exception = true;
    }
+   delete processManager;
    ASSERT_FALSE(exception);
 }
 
@@ -732,6 +742,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth1) {
    } catch (...) {
       exception = true;
    }
+   delete processManager;
    ASSERT_TRUE(exception);
 }
 
@@ -755,6 +766,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm2) {
    } catch (...) {
       exception = true;
    }
+   delete processManager;
    ASSERT_TRUE(exception);
 }
 
@@ -778,6 +790,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth2) {
    } catch (...) {
       exception = true;
    }
+   delete processManager;
    ASSERT_TRUE(exception);
 }
 
@@ -801,6 +814,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm3) {
    } catch (...) {
       exception = true;
    }
+   delete processManager;
    ASSERT_TRUE(exception);
 }
 
@@ -824,6 +838,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgFileExists) {
    } catch (...) {
       exception = true;
    }
+   delete processManager;
    ASSERT_TRUE(exception);
 }
 
@@ -851,6 +866,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile)
    ASSERT_EQ("\"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
@@ -877,6 +893,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
    ASSERT_EQ("\"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeRestoreIfcfgFile) {
@@ -903,6 +920,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeRestoreIfcfgFile
    ASSERT_EQ("\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessRestoreIfcfgFile) {
@@ -929,6 +947,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessRestoreIfcfgFile) {
    ASSERT_EQ("\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) {
@@ -956,6 +975,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) 
            "NM_CONTROLLED|ONBOOT|DNS1|DNS2|PEERDNS|DOMAIN|BOARDCAST/i' "
            "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
@@ -983,6 +1003,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
            "NM_CONTROLLED|ONBOOT|DNS1|DNS2|PEERDNS|DOMAIN|BOARDCAST/i' "
            "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
@@ -1008,6 +1029,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"BOOTPROTO=dhcp\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
@@ -1033,6 +1055,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"BOOTPROTO=none\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
@@ -1057,6 +1080,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
    ASSERT_TRUE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
@@ -1082,6 +1106,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
    ASSERT_TRUE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
@@ -1108,6 +1133,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"IPADDR=192.168.1.1\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
@@ -1134,6 +1160,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"IPADDR=192.168.1.1\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
@@ -1158,6 +1185,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
    ASSERT_TRUE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
@@ -1183,6 +1211,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
    ASSERT_TRUE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
@@ -1209,6 +1238,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"NETMASK=255.255.255.0\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
@@ -1235,6 +1265,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"NETMASK=255.255.255.0\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
@@ -1259,6 +1290,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
    ASSERT_FALSE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
@@ -1285,6 +1317,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"GATEWAY=192.168.1.100\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
@@ -1311,6 +1344,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"GATEWAY=192.168.1.100\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
@@ -1336,6 +1370,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
    ASSERT_FALSE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
@@ -1362,6 +1397,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
@@ -1388,6 +1424,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
@@ -1413,6 +1450,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
    ASSERT_FALSE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
@@ -1439,6 +1477,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
@@ -1465,6 +1504,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
@@ -1491,6 +1531,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DNS2=192.168.1.11\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
@@ -1517,6 +1558,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DNS2=192.168.1.11\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDomain) {
@@ -1543,6 +1585,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDomain) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DOMAIN=schq.secious.com\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
@@ -1569,6 +1612,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DOMAIN=schq.secious.com\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddDomainEmptyString) {
@@ -1594,6 +1638,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDomainEmptyString) {
    ASSERT_FALSE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceDown) {
@@ -1618,6 +1663,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceDown)
    ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifdown", processManager->getRunCommand());
    ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
@@ -1642,6 +1688,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
    ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifdown", processManager->getRunCommand());
    ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
@@ -1666,6 +1713,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
    ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
    ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
@@ -1690,6 +1738,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
    ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
    ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
@@ -1715,6 +1764,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"ONBOOT=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
@@ -1740,6 +1790,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"ONBOOT=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled) {
@@ -1765,6 +1816,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled)
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"NM_CONTROLLED=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
@@ -1790,6 +1842,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"NM_CONTROLLED=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
@@ -1816,6 +1869,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDomainNo) {
@@ -1843,6 +1897,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDoma
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptyString) {
@@ -1870,6 +1925,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptySt
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStrings) {
@@ -1898,6 +1954,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStri
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
@@ -1927,6 +1984,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"PEERDNS=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
+   delete processManager;
 #endif
 }
 
