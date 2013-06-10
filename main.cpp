@@ -12,10 +12,10 @@ int main(int argc, char *argv[])
 
    ::testing::InitGoogleTest(&argc, argv);
    int retval = RUN_ALL_TESTS();
-   if (geteuid() == 0 ) {
-      seteuid(500);
-      int ignoreVal = RUN_ALL_TESTS();
-      seteuid(0);
-   }
+//   if (geteuid() == 0 ) {
+//      seteuid(500);
+//      int ignoreVal = RUN_ALL_TESTS();
+//      seteuid(0);
+//   }
    return retval;
 }

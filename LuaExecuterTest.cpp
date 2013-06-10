@@ -412,6 +412,7 @@ TEST_F(LuaExecuterTest, PacketRuleBenchmarkReBuilds) {
    }
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
+   free(packet);
 #endif
 
 }
@@ -445,6 +446,7 @@ TEST_F(LuaExecuterTest, PacketRuleBenchmark) {
    }
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
+   free(packet);
 
 #endif
 }
@@ -489,5 +491,6 @@ TEST_F(LuaExecuterTest, ReadScriptsFromDirectories) {
    EXPECT_TRUE(executer.RegisterRule(rule));
    EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
    EXPECT_EQ(999, packet->len); // no need for rule text if the rule is already defined in a file
+   free(packet);
 #endif
 }
