@@ -5,10 +5,11 @@ using namespace std;
 
 bool QosmosDpiTest::gDpiInit(false);
 networkMonitor::MockConfMaster QosmosDpiTest::mConfMaster;
-ExposedQosmosDPI *QosmosDpiTest::mDpiEngine = new ExposedQosmosDPI(QosmosDpiTest::mConfMaster);
+ExposedQosmosDPI *QosmosDpiTest::mDpiEngine(NULL);
 QosmosPacketAllocator& QosmosDpiTest::mPacketAllocator(QosmosPacketAllocator::Instance());
 // Callback function called for each protocol. See ctl_proto_getlist.
 boost::mutex QosmosDpiTest::mMutex;
+::testing::Environment * const gEnv = ::testing::AddGlobalTestEnvironment(new Environment);
 
 void QosmosDpiTest::testDisableAllProtocols(const clep_proto_t * proto,
         int nb_uppers, int *upper_proto_id,
