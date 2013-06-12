@@ -153,6 +153,7 @@ TEST_F(ProcessManagerTest, RunProcessFromAnotherObject) {
    EXPECT_NE(std::string::npos, result.find("/bin/ls"));
    raise(SIGTERM);
    testManager.DeInit();
+   sendManager.DeInit();
 
 #endif
 }
@@ -176,7 +177,7 @@ TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
    EXPECT_TRUE(result.empty());
    raise(SIGTERM);
    testManager.DeInit();
-
+   sendManager.DeInit();
 #endif
 }
 
@@ -220,7 +221,7 @@ TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
 //   EXPECT_EQ(std::string::npos, result2.find("/bin/sleep"));
 //   raise(SIGTERM);
 //   testManager.DeInit();
-//
+//   sendManager.DeInit();
 //#endif
 //}
 
@@ -261,7 +262,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
    raise(SIGTERM);
    testManager.DeInit();
-
+   sendManager.DeInit();
 #endif
 }
 
@@ -293,7 +294,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
    EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
    raise(SIGTERM);
    testManager.DeInit();
-
+   sendManager.DeInit();
 #endif
 }
 
@@ -317,7 +318,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
    EXPECT_FALSE(sendManager.UnRegisterProcess("/bin/sleep"));
    raise(SIGTERM);
    testManager.DeInit();
-
+   sendManager.DeInit();
 #endif
 }
 
