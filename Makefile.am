@@ -176,7 +176,7 @@ ProcessManagerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\
 
 DpiMsgLRTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log 
 DpiMsgLRTest_LDFLAGS=${BASE_LIBS}
-DpiMsgLRTest_SOURCES=main.cpp DpiMsgLRTest.cpp
+DpiMsgLRTest_SOURCES=main.cpp DpiMsgLRTest.cpp DpiMsgLRPoolTest.cpp
 DpiMsgLRTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
@@ -216,6 +216,7 @@ nmTest_SOURCES=main.cpp \
  CommandFactoryTests.cpp \
  CommandProcessorTests.cpp \
  DpiMsgLRTest.cpp \
+ DpiMsgLRPoolTest.cpp \
  CrowbarHeadcrabTests.cpp \
  CZMQToolkitTests.cpp \
  MsgUuidTest.cpp \
