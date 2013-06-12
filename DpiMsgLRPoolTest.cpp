@@ -54,7 +54,12 @@ TEST_F(DpiMsgLRPoolTest, GetAMessageAndReturnIt) {
 TEST_F(DpiMsgLRPoolTest, HammerTime) {
    std::vector<std::thread*> threads;
    DpiMsgLRPool testPool;
-   for (int i = 0; i < 1000; i++) {
+#ifdef LR_DEBUG
+   int iterations = 10;
+#else
+   int iterations = 1000;
+#endif
+   for (int i = 0; i < iterations; i++) {
       threads.push_back(new std::thread(SimulatorThread, &testPool, rand() % 1000));
    }
    for (auto jt = threads.begin(); jt != threads.end(); jt++) {
