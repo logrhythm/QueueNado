@@ -49,6 +49,7 @@ TEST_F(DpiMsgLRPoolTest, GetAMessageAndReturnIt) {
    networkMonitor::DpiMsgLR* notMine = new networkMonitor::DpiMsgLR;
 
    EXPECT_FALSE(testPool.ReturnDpiMsg(&notMine));
+   delete notMine;
 }
 
 TEST_F(DpiMsgLRPoolTest, HammerTime) {
@@ -93,7 +94,7 @@ TEST_F(DpiMsgLRPoolTest, DpiMsgSize) {
    EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg,currentSize+1));
    testMsg->ClearAll();
    EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg,currentSize+1));
-
+   delete testMsg;
 }
 
 #endif
