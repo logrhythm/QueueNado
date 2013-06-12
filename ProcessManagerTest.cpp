@@ -37,7 +37,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
    EXPECT_NE(std::string::npos, result.find("/bin/sh"));
    raise(SIGTERM);
    testManager.DeInit();
-
+   sendManager.DeInit();
 #endif
 }
 
