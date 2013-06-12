@@ -75,6 +75,7 @@ void* Crowbar::GetTip() {
       boost::this_thread::interruption_point();
       int err = zmq_errno();
       if (err == ETERM) {
+         zsocket_destroy(mContext, tip);
          return NULL;
       }
       std::string error(zmq_strerror(err));
@@ -82,6 +83,7 @@ void* Crowbar::GetTip() {
       zclock_sleep(100);
    }
    if (connectRetries <= 0) {
+      zsocket_destroy(mContext, tip);
       return NULL;
    }
 
