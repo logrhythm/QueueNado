@@ -4,8 +4,12 @@
 #include "g2log.hpp"
 #include <stdlib.h>
 #include <time.h>
+#include "BaseConfMsg.pb.h"
+#include <thread>
 int main(int argc, char *argv[])
 {
+   GOOGLE_PROTOBUF_VERIFY_VERSION;
+
    // Start the g2log logger running
    srand(time(NULL));
    std::stringstream fileName;
@@ -20,5 +24,8 @@ int main(int argc, char *argv[])
 //      int ignoreVal = RUN_ALL_TESTS();
 //      seteuid(0);
 //   }
+   google::protobuf::ShutdownProtobufLibrary();
+   g2::shutDownLogging();
+   std::this_thread::sleep_for(std::chrono::seconds(2));
    return retval;
 }

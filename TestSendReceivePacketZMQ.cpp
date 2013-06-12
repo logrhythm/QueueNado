@@ -149,6 +149,7 @@ TEST_F(TestSendReceivePacketZMQ, TestSenderDumbReceiver) {
       boost::this_thread::sleep(boost::posix_time::milliseconds(10));
       ASSERT_TRUE(mReaderThread.joinable());
       mReaderThread.join();
+      delete readerThreadConfig.serverThread;
    }
 
 }
