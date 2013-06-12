@@ -127,8 +127,9 @@ TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
    ProcessManager sendManager(conf);
    EXPECT_FALSE(sendManager.Initialize());
    raise(SIGTERM);
+  
    testManager.DeInit();
-
+   
 #endif
 }
 

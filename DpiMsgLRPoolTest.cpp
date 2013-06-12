@@ -64,6 +64,7 @@ TEST_F(DpiMsgLRPoolTest, HammerTime) {
    }
    for (auto jt = threads.begin(); jt != threads.end(); jt++) {
       (*jt)->join();
+      delete *jt;
    }
 }
 
