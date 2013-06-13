@@ -69,8 +69,7 @@ void Shotgun::Fire(const std::vector<std::string>& bullets) {
    int rc;
    zmsg_t* msg = zmsg_new();
    zmsg_add(msg, key);
-   for (std::vector<std::string>::const_iterator it = bullets.begin();
-           it != bullets.end(); it++) {
+   for (auto it = bullets.begin(); it != bullets.end(); it++) {
       zframe_t* body = zframe_new(it->c_str(), it->size());
       zmsg_add(msg, body);
    }
