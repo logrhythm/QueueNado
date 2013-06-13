@@ -315,7 +315,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
    processArgs = "1";
    EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs, ""));
    std::this_thread::sleep_for(std::chrono::seconds(1));
-   EXPECT_FALSE(sendManager.UnRegisterProcess("/bin/sleep"));
+   EXPECT_FALSE(sendManager.UnRegisterProcess(processName));
    raise(SIGTERM);
    testManager.DeInit();
    sendManager.DeInit();
