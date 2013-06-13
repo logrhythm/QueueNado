@@ -81,20 +81,21 @@ TEST_F(DpiMsgLRPoolTest, DpiMsgSize) {
          testMsg->add_accept_encodingq_proto_http(oneHundredByteString);
       }
    }
-   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg,MSG_POOL_RECYCLE_LIMIT));
+   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, MSG_POOL_RECYCLE_LIMIT));
    for (int i = 0; i < 100; i++) {
       testMsg->add_accept_encodingq_proto_http(oneHundredByteString);
    }
-   EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg,MSG_POOL_RECYCLE_LIMIT));
+   EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg, MSG_POOL_RECYCLE_LIMIT));
    testMsg->ClearAll();
-   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg,MSG_POOL_RECYCLE_LIMIT));
-   size_t currentSize= testMsg->SpaceUsed();
-   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg,currentSize+1));
+   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, MSG_POOL_RECYCLE_LIMIT));
+   size_t currentSize = testMsg->SpaceUsed();
+   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, currentSize + 1));
    testMsg->add_account_uidq_proto_vkontakte(oneHundredByteString);
-   EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg,currentSize+1));
+   EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg, currentSize + 1));
    testMsg->ClearAll();
-   EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg,currentSize+1));
+   EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg, currentSize + 1));
    delete testMsg;
+#endif
 }
 
-#endif
+
