@@ -2,7 +2,7 @@
 #include "ZeroMQ.h"
 
 
-
+#ifdef LR_DEBUG
 class MockZeroMQPacket: public ZeroMQ<void*> {
 public:
    explicit MockZeroMQPacket(unsigned int id) :
@@ -29,31 +29,31 @@ public:
    bool SocketSet() {
       return mSocket != NULL;
    }
-   void* GetContext() {
+   void* GetContext() override {
       return ZeroMQ<void*>::GetContext();
    }
-   void* GetSocket(void* context) {
+   void* GetSocket(void* context) override {
       return ZeroMQ<void*>::GetSocket(context);
    }
-   void ServerSetup(const std::string& binding, void*& socket) {
+   void ServerSetup(const std::string& binding, void*& socket) override {
       ZeroMQ<void*>::ServerSetup(binding, socket);
    }
-   void ClientSetup(const std::string& binding, void*& socket) {
+   void ClientSetup(const std::string& binding, void*& socket) override {
       ZeroMQ<void*>::ClientSetup(binding, socket);
    }
-   bool InitializeMsg(zmq_msg_t& msg) {
+   bool InitializeMsg(zmq_msg_t& msg) override {
       if (mFailsToInitMsg) {
          return false;
       }
       return ZeroMQ<void*>::InitializeMsg(msg);
    }
-   bool SetSendHWM(void *socket, int highWaterMark) {
+   bool SetSendHWM(void *socket, int highWaterMark) override {
       if (mFailsToSetSendHWM) {
          return false;
       }
       return ZeroMQ<void*>::SetSendHWM(socket,highWaterMark);
    }
-   bool SetReceiveHWM(void *socket, int highWaterMark) {
+   bool SetReceiveHWM(void *socket, int highWaterMark) override {
       if (mFailsToSetReceiveHWM) {
          return false;
       }
@@ -63,3 +63,4 @@ public:
    bool mFailsToSetReceiveHWM;
    bool mFailsToInitMsg;
 };
+#endif
