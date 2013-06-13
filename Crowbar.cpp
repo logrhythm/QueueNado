@@ -10,7 +10,7 @@
  */
 Crowbar::Crowbar(const std::string& binding) : mContext(NULL),
 mBinding(binding), mTip(NULL), mOwnsContext(true) {
-
+   
 }
 
 /**
@@ -21,7 +21,9 @@ mBinding(binding), mTip(NULL), mOwnsContext(true) {
  */
 Crowbar::Crowbar(const Headcrab& target) : mContext(target.GetContext()),
 mBinding(target.GetBinding()), mTip(NULL), mOwnsContext(false) {
-
+   if (mContext == NULL ) {
+      mOwnsContext = true;
+   }
 }
 
 /**
@@ -99,6 +101,10 @@ bool Crowbar::Wield() {
    }
    if (!mTip) {
       mTip = GetTip();
+      if (!mTip && mOwnsContext) {
+         zctx_destroy(&mContext);
+         mContext = NULL;
+      }
    }
    return ((mContext != NULL) && (mTip != NULL));
 }
