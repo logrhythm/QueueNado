@@ -153,15 +153,9 @@ void* ZeroMQ<void*>::GetSocket(void* context) {
       if (!SetSendHWM(socket, GetHighWater()) || !SetReceiveHWM(socket, GetHighWater())) {
          zmq_close(socket);
          socket = NULL;
-      }
-      int sndhwm;
-      int rcvhwm;
-      size_t size = sizeof(sndhwm);
-      CZMQToolkit::PrintCurrentHighWater(socket, "ZMQ");
-//      zmq_getsockopt(socket, ZMQ_SNDHWM, &sndhwm, &size);
-//      zmq_getsockopt(socket, ZMQ_SNDHWM, &rcvhwm, &size);
-//      printf("ZMQ sndhwm: %d\n", sndhwm);
-//      printf("ZMQ rcvhwm: %d\n", sndhwm);    
+      } else {
+         CZMQToolkit::PrintCurrentHighWater(socket, "ZMQ");
+      }  
    }
    return socket;
 }
@@ -173,7 +167,7 @@ void* ZeroMQ<void*>::GetSocket(void* context) {
  *   In/Out parameter that will be closed and set to NULL on a failure
  */
 void ZeroMQ<void*>::ServerSetup(const std::string& binding,
-   void*& socket) {
+        void*& socket) {
    if (socket == NULL) {
       return;
    }
@@ -190,7 +184,7 @@ void ZeroMQ<void*>::ServerSetup(const std::string& binding,
  *   In/Out parameter that will be closed and set to NULL on a failure
  */
 void ZeroMQ<void*>::ClientSetup(const std::string& binding,
-   void*& socket) {
+        void*& socket) {
    if (socket == NULL) {
       return;
    }
@@ -363,7 +357,7 @@ bool ZeroMQ<void*>::SendPointer(void* packet) {
  */
 bool ZeroMQ<void*>::SetReceiveHWM(void *socket, int highWaterMark) {
    return (zmq_setsockopt(socket, ZMQ_RCVHWM, &highWaterMark,
-      sizeof (highWaterMark)) == 0);
+           sizeof (highWaterMark)) == 0);
 }
 
 /**
@@ -379,7 +373,7 @@ bool ZeroMQ<void*>::SetReceiveHWM(void *socket, int highWaterMark) {
  */
 bool ZeroMQ<void*>::SetSendHWM(void *socket, int highWaterMark) {
    return (zmq_setsockopt(socket, ZMQ_SNDHWM, &highWaterMark,
-      sizeof (highWaterMark)) == 0);
+           sizeof (highWaterMark)) == 0);
 }
 
 /**

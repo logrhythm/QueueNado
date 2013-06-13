@@ -121,6 +121,9 @@ bool Crowbar::Flurry( std::vector<std::string>& hits) {
    }
    //std::cout << "Sending message with " << zmsg_size(message) << " " << hits.size() << std::endl;
    if (zmsg_send(&message, mTip) != 0) {
+      if (message) {
+         zmsg_destroy(&message);
+      }
       return false;
    }
    return true;

@@ -30,7 +30,7 @@ Headcrab::~Headcrab() {
  * @return 
  *   the high water mark
  */
-int Headcrab::GetHighWater()  {
+int Headcrab::GetHighWater() {
    return 1024;
 }
 
@@ -57,8 +57,8 @@ void* Headcrab::GetFace(zctx_t* context) {
             return NULL;
          }
          std::string error(zmq_strerror(err));
-         LOG(WARNING) <<  "Could not bind to " <<GetBinding()<<":" << error;
-                 
+         LOG(WARNING) << "Could not bind to " << GetBinding() << ":" << error;
+
          zclock_sleep(100);
       }
       if (connectRetries <= 0) {
@@ -75,14 +75,14 @@ void* Headcrab::GetFace(zctx_t* context) {
  */
 void Headcrab::setIpcFilePermissions() {
 
-   mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP 
-                         | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
+   mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP
+           | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
 
    std::string binding(GetBinding());
    size_t ipcFound = binding.find("ipc");
-   if ( ipcFound != std::string::npos ) {
+   if (ipcFound != std::string::npos) {
       size_t tmpFound = binding.find("/tmp");
-      if ( tmpFound != std::string::npos ) {
+      if (tmpFound != std::string::npos) {
          std::string ipcFile = binding.substr(tmpFound);
          LOG(INFO) << "Headcrab set ipc permissions: " << ipcFile;
          chmod(ipcFile.c_str(), mode);
@@ -129,14 +129,16 @@ std::string Headcrab::GetBinding() const {
 zctx_t* Headcrab::GetContext() const {
    return mContext;
 }
+
 bool Headcrab::GetHitBlock(std::string& theHit) {
    std::vector<std::string> hits;
-   if(GetHitBlock(hits) && !hits.empty()) {
+   if (GetHitBlock(hits) && !hits.empty()) {
       theHit = hits[0];
       return true;
    }
    return false;
 }
+
 bool Headcrab::GetHitBlock(std::vector<std::string>& theHits) {
    if (!mFace) {
       return false;
@@ -162,15 +164,17 @@ bool Headcrab::GetHitBlock(std::vector<std::string>& theHits) {
    return true;
 
 }
-bool Headcrab::GetHitWait(std::string& theHit,const int timeout) {
+
+bool Headcrab::GetHitWait(std::string& theHit, const int timeout) {
    std::vector<std::string> hits;
-   if(GetHitWait(hits,timeout) && !hits.empty()) {
+   if (GetHitWait(hits, timeout) && !hits.empty()) {
       theHit = hits[0];
       return true;
    }
    return false;
 }
-bool Headcrab::GetHitWait(std::vector<std::string>& theHits,const int timeout) {
+
+bool Headcrab::GetHitWait(std::vector<std::string>& theHits, const int timeout) {
    if (!mFace) {
       return false;
    }
@@ -179,11 +183,13 @@ bool Headcrab::GetHitWait(std::vector<std::string>& theHits,const int timeout) {
    }
    return false;
 }
+
 bool Headcrab::SendSplatter(const std::string& feedback) {
    std::vector<std::string> allReplies;
    allReplies.push_back(feedback);
    return SendSplatter(allReplies);
 }
+
 bool Headcrab::SendSplatter(std::vector<std::string>& feedback) {
    if (!mFace) {
       return false;
@@ -195,6 +201,9 @@ bool Headcrab::SendSplatter(std::vector<std::string>& feedback) {
    }
 
    if (zmsg_send(&message, mFace) != 0) {
+      if (message) {
+         zmsg_destroy(&message);
+      }
       return false;
    }
    return true;
