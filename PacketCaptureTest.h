@@ -81,7 +81,7 @@ public:
    mFakePCapRetVal(1) {
    }
 
-   explicit MockPacketCapturePCap(std::string& sendToAddress, std::string& interface, std::string& filename, networkMonitor::ConfProcessor& conf) : PacketCapturePCap(sendToAddress, interface, filename, conf),
+   explicit MockPacketCapturePCap(std::string& filename, networkMonitor::ConfProcessor& conf) : PacketCapturePCap(filename, conf),
    m_numberCaptured(0),
    m_numberToCapture(0),
    m_numberOfEmptyReadsToTolerate(0),
