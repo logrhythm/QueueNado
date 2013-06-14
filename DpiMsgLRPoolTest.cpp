@@ -14,7 +14,7 @@ void SimulatorThread(DpiMsgLRPool* testPool, const int iterations) {
       messages.push_back(testPool->GetDpiMsg());
       for (auto it = messages.begin(); it != messages.end(); it++) {
 
-         if (rand() % 0x1 == 0) {
+         if (rand() % 0x2 == 0) {
             ASSERT_TRUE(testPool->ReturnDpiMsg(&(*it)));
          } else {
             temp.push_back(*it);
