@@ -356,6 +356,7 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("GetCurrentClassification"));
    ASSERT_TRUE(registered.end() != registered.find("CapturePacket"));
    ASSERT_TRUE(registered.end() != registered.find("WriteAllCapturedPackets"));
+   ASSERT_TRUE(registered.end() != registered.find("CleanupCapturedPackets"));
    ASSERT_TRUE(registered.end() != registered.find("SetFlowState"));
    ASSERT_TRUE(registered.end() != registered.find("DebugLog"));
    ASSERT_TRUE(registered.end() != registered.find("GetPacketBytes"));
