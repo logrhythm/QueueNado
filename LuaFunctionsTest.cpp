@@ -53,6 +53,7 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("GetDpiMsgSize"));
 
    ASSERT_EQ(registered["GetDpiMsgSize"], LuaFunctions::GetDpiMsgSize);
+
    ASSERT_TRUE(registered.end() != registered.find("GetUuid"));
    ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFlow"));
    ASSERT_TRUE(registered.end() != registered.find("IsIntermediateFinalFlow"));
@@ -70,6 +71,9 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("GetEndTime"));
    ASSERT_TRUE(registered.end() != registered.find("SetDeltaTime"));
    ASSERT_TRUE(registered.end() != registered.find("GetDeltaTime"));
+   ASSERT_TRUE(registered.end() != registered.find("SetFlowState"));
+   ASSERT_TRUE(registered.end() != registered.find("DebugLog"));
+
    ASSERT_EQ(registered["GetLatestApplication"], LuaRuleEngineFunctions::GetLatestApplication);
    ASSERT_EQ(registered["SetCustomApplication"], LuaRuleEngineFunctions::SetCustomApplication);
    ASSERT_EQ(registered["GetPacketCount"], LuaRuleEngineFunctions::GetPacketCount);
@@ -83,6 +87,8 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["SetDeltaTime"], LuaRuleEngineFunctions::SetDeltaTime);
    ASSERT_EQ(registered["GetDeltaTime"], LuaRuleEngineFunctions::GetDeltaTime);
    ASSERT_EQ(registered["GetUuid"], LuaFunctions::GetUuid);
+   ASSERT_EQ(registered["SetFlowState"], LuaFunctions::SetFlowState);
+   ASSERT_EQ(registered["DebugLog"], LuaFunctions::DebugLog);
    delete functions;
 }
 
@@ -357,8 +363,6 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("CapturePacket"));
    ASSERT_TRUE(registered.end() != registered.find("WriteAllCapturedPackets"));
    ASSERT_TRUE(registered.end() != registered.find("CleanupCapturedPackets"));
-   ASSERT_TRUE(registered.end() != registered.find("SetFlowState"));
-   ASSERT_TRUE(registered.end() != registered.find("DebugLog"));
    ASSERT_TRUE(registered.end() != registered.find("GetPacketBytes"));
 
 
@@ -368,8 +372,6 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    ASSERT_EQ(registered["CapturePacket"], LuaPacketFunctions::BufferSessionToMemory);
    ASSERT_EQ(registered["WriteAllCapturedPackets"], LuaPacketFunctions::WriteAllPacketsToDisk);
    ASSERT_EQ(registered["CleanupCapturedPackets"], LuaPacketFunctions::EmptyBufferOfSession);
-   ASSERT_EQ(registered["SetFlowState"], LuaPacketFunctions::SetFlowState);
-   ASSERT_EQ(registered["DebugLog"], LuaPacketFunctions::DebugLog);
    ASSERT_EQ(registered["GetPacketBytes"], LuaPacketFunctions::GetPacketBytes);
 
    delete functions;
@@ -448,38 +450,9 @@ TEST_F(LuaFunctionsTest, DpiMsgClassification) {
    lua_close(luaState);
 }
 
-TEST_F(LuaFunctionsTest, SetFlowState) {
-   networkMonitor::DpiMsgLR dpiMsg;
-   string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-   dpiMsg.set_uuid(testUuid.c_str());
-
-   lua_State *luaState;
-   luaState = luaL_newstate();
-   lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushinteger(luaState, networkMonitor::DpiMsgLRproto_FlowStateType_MID_FLOW_DETECT);
-   LuaPacketFunctions::SetFlowState(luaState);
-   EXPECT_EQ(networkMonitor::DpiMsgLRproto_FlowStateType_MID_FLOW_DETECT, dpiMsg.flowstate());
-   lua_close(luaState);
-
-   luaState = luaL_newstate();
-   lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushinteger(luaState, networkMonitor::DpiMsgLRproto_FlowStateType_SYN);
-   LuaPacketFunctions::SetFlowState(luaState);
-   EXPECT_EQ(networkMonitor::DpiMsgLRproto_FlowStateType_SYN, dpiMsg.flowstate());
-   lua_close(luaState);
-}
-
-TEST_F(LuaFunctionsTest, DebugLog) {
-   lua_State *luaState;
-   luaState = luaL_newstate();
-   lua_pushstring(luaState, "test debug 1 2 3");
-   LuaPacketFunctions::DebugLog(luaState);
-   lua_close(luaState);
-}
-
 TEST_F(LuaFunctionsTest, GetPacketBytes) {
    struct upacket packet;
-   unsigned char byteData[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+   unsigned char byteData[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
    packet.buffer = byteData;
    packet.len = 10;
@@ -492,7 +465,7 @@ TEST_F(LuaFunctionsTest, GetPacketBytes) {
    lua_pushlightuserdata(luaState, &packet);
    lua_pushinteger(luaState, first);
    lua_pushinteger(luaState, last);
-   LuaPacketFunctions::GetPacketBytes(luaState);
+   ASSERT_EQ(1, LuaPacketFunctions::GetPacketBytes(luaState));
    EXPECT_EQ(5, lua_tonumber(luaState, -1));
    lua_close(luaState);
 
@@ -503,8 +476,41 @@ TEST_F(LuaFunctionsTest, GetPacketBytes) {
    lua_pushlightuserdata(luaState, &packet);
    lua_pushinteger(luaState, first);
    lua_pushinteger(luaState, last);
-   LuaPacketFunctions::GetPacketBytes(luaState);
+   ASSERT_EQ(1, LuaPacketFunctions::GetPacketBytes(luaState));
    EXPECT_EQ(0x06070809, lua_tonumber(luaState, -1));
+   lua_close(luaState);
+
+   // Get first byte from packet
+   luaState = luaL_newstate();
+   first = 1;
+   last = 1;
+   lua_pushlightuserdata(luaState, &packet);
+   lua_pushinteger(luaState, first);
+   lua_pushinteger(luaState, last);
+   ASSERT_EQ(1, LuaPacketFunctions::GetPacketBytes(luaState));
+   EXPECT_EQ(1, lua_tonumber(luaState, -1));
+   lua_close(luaState);
+
+   // Get last byte from packet
+   luaState = luaL_newstate();
+   first = 10;
+   last = 10;
+   lua_pushlightuserdata(luaState, &packet);
+   lua_pushinteger(luaState, first);
+   lua_pushinteger(luaState, last);
+   ASSERT_EQ(1, LuaPacketFunctions::GetPacketBytes(luaState));
+   EXPECT_EQ(10, lua_tonumber(luaState, -1));
+   lua_close(luaState);
+
+   // Check first equal to zero
+   luaState = luaL_newstate();
+   first = 0;
+   last = 0;
+   lua_pushlightuserdata(luaState, &packet);
+   lua_pushinteger(luaState, first);
+   lua_pushinteger(luaState, last);
+   ASSERT_EQ(1, LuaPacketFunctions::GetPacketBytes(luaState));
+   EXPECT_EQ(0, lua_tonumber(luaState, -1));
    lua_close(luaState);
 
    // Check first greater than last
@@ -514,7 +520,7 @@ TEST_F(LuaFunctionsTest, GetPacketBytes) {
    lua_pushlightuserdata(luaState, &packet);
    lua_pushinteger(luaState, first);
    lua_pushinteger(luaState, last);
-   LuaPacketFunctions::GetPacketBytes(luaState);
+   ASSERT_EQ(1, LuaPacketFunctions::GetPacketBytes(luaState));
    EXPECT_EQ(0, lua_tonumber(luaState, -1));
    lua_close(luaState);
 
@@ -525,18 +531,29 @@ TEST_F(LuaFunctionsTest, GetPacketBytes) {
    lua_pushlightuserdata(luaState, &packet);
    lua_pushinteger(luaState, first);
    lua_pushinteger(luaState, last);
-   LuaPacketFunctions::GetPacketBytes(luaState);
+   ASSERT_EQ(1, LuaPacketFunctions::GetPacketBytes(luaState));
    EXPECT_EQ(0, lua_tonumber(luaState, -1));
    lua_close(luaState);
 
    // Check past end of byte array
    luaState = luaL_newstate();
-   first = 9;
-   last = 10;
+   first = 10;
+   last = 11;
    lua_pushlightuserdata(luaState, &packet);
    lua_pushinteger(luaState, first);
    lua_pushinteger(luaState, last);
-   LuaPacketFunctions::GetPacketBytes(luaState);
+   ASSERT_EQ(1, LuaPacketFunctions::GetPacketBytes(luaState));
+   EXPECT_EQ(0, lua_tonumber(luaState, -1));
+   lua_close(luaState);
+
+   // Check null packet
+   luaState = luaL_newstate();
+   first = 3;
+   last = 4;
+   lua_pushlightuserdata(luaState, NULL);
+   lua_pushinteger(luaState, first);
+   lua_pushinteger(luaState, last);
+   ASSERT_EQ(1, LuaPacketFunctions::GetPacketBytes(luaState));
    EXPECT_EQ(0, lua_tonumber(luaState, -1));
    lua_close(luaState);
 }
@@ -658,6 +675,35 @@ TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    LuaRuleEngineFunctions::GetDpiMsgSize(luaState);
    EXPECT_EQ(expectedSpaceUsed, lua_tointeger(luaState, -1));
+   lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, SetFlowState) {
+   networkMonitor::DpiMsgLR dpiMsg;
+   string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
+   dpiMsg.set_uuid(testUuid.c_str());
+
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, networkMonitor::DpiMsgLRproto_FlowStateType_MID_FLOW_DETECT);
+   ASSERT_EQ(0, LuaPacketFunctions::SetFlowState(luaState));
+   EXPECT_EQ(networkMonitor::DpiMsgLRproto_FlowStateType_MID_FLOW_DETECT, dpiMsg.flowstate());
+   lua_close(luaState);
+
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, networkMonitor::DpiMsgLRproto_FlowStateType_SYN);
+   ASSERT_EQ(0, LuaPacketFunctions::SetFlowState(luaState));
+   EXPECT_EQ(networkMonitor::DpiMsgLRproto_FlowStateType_SYN, dpiMsg.flowstate());
+   lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, DebugLog) {
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushstring(luaState, "test debug 1 2 3");
+   LuaPacketFunctions::DebugLog(luaState);
    lua_close(luaState);
 }
 
