@@ -1987,7 +1987,6 @@ TEST_F(RuleEngineTest, EmptyLongFieldsTest) {
    tDpiMessage.add_session_idq_proto_ymail2("test9");
    ASSERT_EQ(1, dm.GetSessionField(1, tDpiMessage, 10, results));
    ASSERT_EQ(0, results.size());
-   dm.EmptyLongFields(tDpiMessage);
    tDpiMessage.add_session_idq_proto_ymail2("test10");
    ASSERT_EQ(2, dm.GetSessionField(1, tDpiMessage, 10, results));
    ASSERT_EQ(1, results.size());

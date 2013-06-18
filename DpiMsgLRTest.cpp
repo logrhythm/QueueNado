@@ -710,9 +710,9 @@ TEST_F(DpiMsgLRTests, EmptyLongFields) {
    dm.EmptyLongFields(3, 0);
    EXPECT_EQ(0, dm.access_pointq_proto_gtp_size());
    dm.add_stringq_proto_base("test1");
-   dm.EmptyLongFields(0, 108);
+   dm.EmptyLongFields(0, DpiMsgLRproto::kStringQPROTOBASEFieldNumber+1);
    EXPECT_EQ(1, dm.stringq_proto_base_size());
-   dm.EmptyLongFields(0, 107);
+   dm.EmptyLongFields(0, DpiMsgLRproto::kStringQPROTOBASEFieldNumber);
    EXPECT_EQ(0, dm.stringq_proto_base_size());
 }
 
