@@ -7,6 +7,7 @@
 
 class JSONEncoderTest : public ::testing::Test
 {
+   
 public:
     JSONEncoderTest(){};
 

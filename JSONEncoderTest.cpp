@@ -40,7 +40,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt) {
    testMsg.set_destport(123);
    std::string encodedMessage = encoder.Encode();
    
-   EXPECT_EQ("{\"uuid\": \"ABC123\", \"destport\": 123}",encodedMessage);
+   EXPECT_EQ("{\"destPort\": 123, \"uuid\": \"ABC123\"}",encodedMessage);
 }
 TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt64) {
    networkMonitor::DpiMsgLR testMsg;
@@ -49,9 +49,9 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt64) {
    JSONEncoder encoder(&testMsg);
    testMsg.set_deltatime(12345678900L);
    
-   std::string encodedMessage = encoder.Encode();
+   std::string encodedMessage = encoder.EncodeWithCallback(testMsg.SiemRenaming);
    
-   EXPECT_EQ("{\"uuid\": \"ABC123\", \"deltatime\": 12345678900}",encodedMessage);
+   EXPECT_EQ("{\"deltaTime\": 12345678900, \"uuid\": \"ABC123\"}",encodedMessage);
 }
 TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
    networkMonitor::DpiMsgLR testMsg;
@@ -63,7 +63,19 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
    
    JSONEncoder encoder(&testMsg);
    
-   std::string encodedMessage = encoder.Encode();
+   std::string encodedMessage = encoder.EncodeWithCallback(testMsg.SiemRenaming);
    
-   EXPECT_EQ("{\"uuid\": \"ABC123\", \"accept_encodingq_proto_http\": [\"1\", \"2\", \"3\"]}",encodedMessage);
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"acceptEncoding\": [\"1\", \"2\", \"3\"]}",encodedMessage);
+}
+TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
+ networkMonitor::DpiMsgLR testMsg;
+
+   testMsg.set_uuid("ABC123");
+   testMsg.add_uri_fullq_proto_http("1");
+   JSONEncoder encoder(&testMsg);
+   
+   std::string encodedMessage = encoder.EncodeWithCallback(testMsg.SiemRenaming);
+   
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"url\": [\"1\"]}",encodedMessage);
+  
 }
