@@ -73,6 +73,7 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("GetDeltaTime"));
    ASSERT_TRUE(registered.end() != registered.find("SetFlowState"));
    ASSERT_TRUE(registered.end() != registered.find("DebugLog"));
+   ASSERT_TRUE(registered.end() != registered.find("WarningLog"));
 
    ASSERT_EQ(registered["GetLatestApplication"], LuaRuleEngineFunctions::GetLatestApplication);
    ASSERT_EQ(registered["SetCustomApplication"], LuaRuleEngineFunctions::SetCustomApplication);
@@ -89,6 +90,7 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["GetUuid"], LuaFunctions::GetUuid);
    ASSERT_EQ(registered["SetFlowState"], LuaFunctions::SetFlowState);
    ASSERT_EQ(registered["DebugLog"], LuaFunctions::DebugLog);
+   ASSERT_EQ(registered["WarningLog"], LuaFunctions::WarningLog);
    delete functions;
 }
 
@@ -704,6 +706,14 @@ TEST_F(LuaFunctionsTest, DebugLog) {
    luaState = luaL_newstate();
    lua_pushstring(luaState, "test debug 1 2 3");
    LuaPacketFunctions::DebugLog(luaState);
+   lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, WarningLog) {
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushstring(luaState, "test warning 1 2 3");
+   LuaPacketFunctions::WarningLog(luaState);
    lua_close(luaState);
 }
 
