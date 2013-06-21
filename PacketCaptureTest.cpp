@@ -259,7 +259,7 @@ TEST_F(PacketCaptureTest, StatsWorksEvenWithNullPCap) {
 
 TEST_F(PacketCaptureTest, StatsWorksEvenWithFile) {
    string filename = "FtpUploadLinuxSideCapture.pcapng";
-   PacketCapturePCap packetCapturer(t_clientAddr, t_interface, filename, mConf);
+   PacketCapturePCap packetCapturer(filename, mConf);
    packetCapturer.DisplayStats(t_packetsReceived, t_packetsDropped,
            t_packetsIfDropped, t_totalData);
    EXPECT_EQ(0, t_packetsReceived);
