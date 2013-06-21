@@ -19,6 +19,8 @@ TestTCPIPDirectionlessHash \
 LuaExecuterTest \
 ProcStatsTest \
 JSONEncoderTest \
+transferZeromqTest \
+RESTBuilderTest \
 ThreadContainerTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
@@ -31,6 +33,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libcapture/ \
           -Wl,-R${abs_top_srcdir}/source/libcommand/ \
           -Wl,-R${abs_top_srcdir}/source/libprocess/ \
+          -Wl,-R${abs_top_srcdir}/source/libelasticsearch/ \
           -Wl,-R/usr/local/probe/lib/ \
           -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
@@ -42,6 +45,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libcommand/ \
           -L${abs_top_srcdir}/source/libprocess/ \
           -L${abs_top_srcdir}/source/liblua/ \
+          -L${abs_top_srcdir}/source/libelasticsearch/ \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
@@ -56,6 +60,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libcommand \
          -I${abs_top_srcdir}/source/libprocess \
          -I${abs_top_srcdir}/source/liblua \
+         -I${abs_top_srcdir}/source/libelasticsearch \
          -I/usr/local/probe/include
 
 ZMQTest_LDADD=-lnm -lZMQ -llua -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
@@ -205,15 +210,24 @@ ThreadContainerTest_LDFLAGS=${BASE_LIBS}
 ThreadContainerTest_SOURCES=main.cpp ThreadContainerTest.cpp
 ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
-JSONEncoderTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log  -ljansson
+JSONEncoderTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log  -ljansson -lelasticsearch
 JSONEncoderTest_LDFLAGS=${BASE_LIBS}
 JSONEncoderTest_SOURCES=main.cpp JSONEncoderTest.cpp
 JSONEncoderTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
+transferZeromqTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log  -ljansson
+transferZeromqTest_LDFLAGS=${BASE_LIBS}
+transferZeromqTest_SOURCES=main.cpp transferZeromqTest.cpp
+transferZeromqTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+
+RESTBuilderTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log  -ljansson -lelasticsearch
+RESTBuilderTest_LDFLAGS=${BASE_LIBS}
+RESTBuilderTest_SOURCES=main.cpp RESTBuilderTest.cpp
+RESTBUILDERTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 nmTest_LDADD=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
-             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log  -lluajit-5.1 -llua -ljansson
+             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log  -lluajit-5.1 -llua -ljansson -lelasticsearch
 
 nmTest_LDFLAGS=${BASE_LIBS}
 nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
@@ -246,6 +260,7 @@ nmTest_SOURCES=main.cpp \
  DiskPacketCaptureTest.cpp \
  ZeroMQTests.cpp \
  JSONEncoderTest.cpp \
+ RESTBuilderTest.cpp \
  ThreadContainerTest.cpp
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine

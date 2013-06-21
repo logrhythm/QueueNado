@@ -6,6 +6,7 @@
 #include <time.h>
 #include "BaseConfMsg.pb.h"
 #include <thread>
+#include <google/protobuf/stubs/common.h>
 int main(int argc, char *argv[])
 {
    GOOGLE_PROTOBUF_VERIFY_VERSION;

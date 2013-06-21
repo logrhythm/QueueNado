@@ -25,4 +25,6 @@ chmod 777 ../*.xml
 ./ProcessManagerTest --gtest_output=xml:../ProcessManagerTest.junit.xml
 ./LuaExecuterTest --gtest_output=xml:../LuaExecuterTest.junit.xml
 ./ThreadContainerTest --gtest_output=xml:../ThreadContainerTest.junit.xml
+./RESTBuilderTest --gtest_output=xml:../RESTBuilderTest.junit.xml
+./JSONEncodeTest --gtest_output=xml:../JSONEncodeTest.junit.xml
 
