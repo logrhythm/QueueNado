@@ -67,7 +67,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,0/899,0/567,0/88,123,456,0/333";
    std::string expected;
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeader, 0);
-   expected += ",login=aLogin,domain=aDomain12345,dname=thisname12345,url=this/url.htm,command=RUN|COMMAND|LONGLONGLONGLONG,sender=test1_123456,recipient=test2_123,subject=test3_12345,version=4.0";
+   expected += ",login=aLogin,domain=aDomain12345,dname=thisname12345,command=RUN|COMMAND|LONGLONGLONGLONG,sender=test1_123456,recipient=test2_123,subject=test3_12345,version=4.0,url=this/url.htm";
    EXPECT_EQ(expected, messages[0]);
 
    // Force each extra field to be split between multiple syslog EVT:001 messages.
@@ -88,9 +88,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",dname=thisname12345";
    EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
-   expected += ",url=this/url.htm";
-   EXPECT_EQ(expected, messages[index++]);
+   
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",command=RUN|COMMAND";
    EXPECT_EQ(expected, messages[index++]);
@@ -111,6 +109,9 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",version=4.0";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
+   expected += ",url=this/url.htm";
    EXPECT_EQ(expected, messages[index++]);
 #endif
 }
@@ -1060,7 +1061,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    std::string expected;
 
    expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticData, 0);
-   expected += ",login=aLogin,domain=aDomain1234,dname=thisname1234,url=this/url.htm,command=RUN|DOCMD|LONGLONGLONG|LAST,sender=test1_12345,recipient=test2_12,subject=test3_1234,version=4.0";
+   expected += ",login=aLogin,domain=aDomain1234,dname=thisname1234,command=RUN|DOCMD|LONGLONGLONG|LAST,sender=test1_12345,recipient=test2_12,subject=test3_1234,version=4.0,url=this/url.htm";
    EXPECT_EQ(expected, messages[0]);
 
    expected.clear();
@@ -1087,9 +1088,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
    expected += ",dname=thisname1234";
    EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",url=this/url.htm";
-   EXPECT_EQ(expected, messages[index++]);
+
    expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
    expected += ",command=RUN|DOCMD";
    EXPECT_EQ(expected, messages[index++]);
@@ -1111,7 +1110,10 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
    expected += ",version=4.0";
    EXPECT_EQ(expected, messages[index++]);
-
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",url=this/url.htm";
+   EXPECT_EQ(expected, messages[index++]);
+   
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
