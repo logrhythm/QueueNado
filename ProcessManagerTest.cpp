@@ -6,6 +6,125 @@
 #include "g2logworker.hpp"
 #include "g2log.hpp"
 #include "ProcessReply.pb.h"
+#include <unistd.h>
+
+TEST_F(ProcessManagerTest, WriteAndDeletePid) {
+   MockConf conf;
+   std::stringstream testQueue;
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   MockProcessManager processManager(conf);
+   int pid = getpid();
+   //the mock moves the run dir to be /tmp so this writes a file /tmp/[id].pid
+   EXPECT_TRUE(processManager.WritePid(pid));
+   EXPECT_TRUE(processManager.DeletePid(pid));
+}
+
+TEST_F(ProcessManagerTest, WritePidThenReclaimAndDelete) {
+   MockConf conf;
+   std::stringstream testQueue;
+   protoMsg::ProcessRequest request;
+   request.set_realexecstring("ProcessManagerTest");
+   request.set_keeprunning(true);
+   request.set_path("/fake/path");
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   MockProcessManager processManager(conf);
+   int pid = getpid();
+   //the mock moves the run dir to be /tmp so this writes a file /tmp/[id].pid
+   EXPECT_TRUE(processManager.WritePid(pid));
+   //returns 0 on failure
+   EXPECT_NE(0, processManager.ReclaimPid(request, pid));
+   EXPECT_TRUE(processManager.DeletePid(pid));
+}
+
+TEST_F(ProcessManagerTest, ReclaimNonExistentPid) {
+   MockConf conf;
+   std::stringstream testQueue;
+   protoMsg::ProcessRequest request;
+   request.set_realexecstring("ProcessManagerTest");
+   request.set_keeprunning(true);
+   request.set_path("/fake/path");
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   MockProcessManager processManager(conf);
+   int maxPid = 32768;
+   //default linux can't have pids above 32768
+   EXPECT_EQ(0, processManager.ReclaimPid(request, maxPid + 1));
+}
+
+TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFiles) {
+   MockConf conf;
+   std::stringstream testQueue;
+   protoMsg::ProcessRequest request;
+   request.set_realexecstring("ProcessManagerTest");
+   request.set_keeprunning(true);
+   request.set_path("/fake/path");
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   MockProcessManager processManager(conf);
+   int pid = getpid();
+   //the mock moves the run dir to be /tmp so this writes a file /tmp/[id].pid
+   EXPECT_TRUE(processManager.WritePid(pid));
+   //returns 0 on failure
+   EXPECT_EQ(pid, processManager.GetPidFromFiles(request));
+   EXPECT_TRUE(processManager.DeletePid(pid));
+}
+
+TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFilesWithOtherPidsInDir) {
+   MockConf conf;
+   std::stringstream testQueue;
+   protoMsg::ProcessRequest request;
+   request.set_realexecstring("ProcessManagerTest");
+   request.set_keeprunning(true);
+   request.set_path("/fake/path");
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   MockProcessManager processManager(conf);
+   int pid = getpid();
+
+   //this pid should always exist but not be the process we are looking for
+   int initPid = 1;
+
+   int pidBad = pid + 1;
+   int pidBad2 = pidBad + 1;
+   //the mock moves the run dir to be /tmp so this writes a file /tmp/[id].pid
+   EXPECT_TRUE(processManager.WritePid(pid));
+   EXPECT_TRUE(processManager.WritePid(initPid));
+   EXPECT_TRUE(processManager.WritePid(pidBad));
+   EXPECT_TRUE(processManager.WritePid(pidBad2));
+   //returns 0 on failure
+   EXPECT_EQ(pid, processManager.GetPidFromFiles(request));
+
+   EXPECT_TRUE(processManager.DeletePid(pid));
+   //this pid should always exist so it should delete it.
+   EXPECT_TRUE(processManager.DeletePid(initPid));
+   //GetPidFromFiles should cleanup pids that don't exist but it breaks out
+   //if it hits the pid it's looking for. So there may be stale pids in the dir
+   processManager.DeletePid(pidBad);
+   processManager.DeletePid(pidBad2);
+}
+
+TEST_F(ProcessManagerTest, CheckPidTrue) {
+   MockConf conf;
+   std::stringstream testQueue;
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   MockProcessManager processManager(conf);
+   int pid = getpid();
+   EXPECT_TRUE(processManager.CheckPidExists(pid));
+}
+
+TEST_F(ProcessManagerTest, CheckPidFalse) {
+   MockConf conf;
+   std::stringstream testQueue;
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   MockProcessManager processManager(conf);
+   int maxPid = 32768;
+   LOG(INFO) << "checking for pid that can't exist";
+   EXPECT_FALSE(processManager.CheckPidExists(maxPid + 1));
+}
 
 TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
 #ifdef LR_DEBUG
@@ -127,9 +246,9 @@ TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
    ProcessManager sendManager(conf);
    EXPECT_FALSE(sendManager.Initialize());
    raise(SIGTERM);
-  
+
    testManager.DeInit();
-   
+
 #endif
 }
 
@@ -335,7 +454,7 @@ TEST_F(ProcessManagerTest, StartProcessBadExitCode) {
    protoMsg::ProcessReply reply;
    mockProcessManager.StartDaemon(request, daemonPIDs, requestedDaemons, reply);
    ASSERT_FALSE(reply.success());
-   if(!daemonPIDs.empty()) {
+   if (!daemonPIDs.empty()) {
       //Daemon should fail to start
       ASSERT_FALSE(true);
    }
