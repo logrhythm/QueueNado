@@ -1,6 +1,7 @@
 #include "RESTBuilderTest.h"
 #include "MockBoomStick.h"
 
+#ifdef LR_DEBUG
 TEST_F(RESTBuilderTest, Construct) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
 
@@ -25,6 +26,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
 
    EXPECT_EQ("PUT|/indexName/|{\"settings\":{\"index\":{\"number_of_shards\":3,\"number_of_replicas\":5}}}", command);
    std::string reply;
+   transport.mReturnString = "{\"ok\":true,\"acknowledged\":true}";
    EXPECT_TRUE(sender.Send(command, reply));
    EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
    EXPECT_TRUE(sender.IsOKAndAck(reply));
@@ -61,6 +63,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
 
    EXPECT_EQ("POST|/indexName/_close", command);
    std::string reply;
+   transport.mReturnString = "{\"ok\":true,\"acknowledged\":true}";
    EXPECT_TRUE(sender.Send(command, reply));
    EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
    EXPECT_TRUE(sender.IsOKAndAck(reply));
@@ -125,3 +128,4 @@ TEST_F(RESTBuilderTest, AddDocDeleteDoc) {
    EXPECT_FALSE(sender.Send(command, reply));
    EXPECT_EQ(transport.mReturnString, reply);
 }
+#endif

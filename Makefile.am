@@ -14,6 +14,7 @@ RuleEngineTest \
 StatsAccumulatorTest \
 SendStatsTest \
 ShotgunAlienTests \
+BoomStickTest \
 RifleVampireTests \
 TestTCPIPDirectionlessHash \
 LuaExecuterTest \
@@ -80,6 +81,13 @@ ShotgunAlienTests_LDADD=-lnm -lZMQ -lczmq -llua -llrdpi -lpthread -ldl -lstdc++ 
 ShotgunAlienTests_LDFLAGS=${BASE_LIBS}
 ShotgunAlienTests_SOURCES=main.cpp ShotgunAlienTests.cpp
 ShotgunAlienTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+
+BoomStickTest_LDADD=-lnm -lZMQ -lczmq -llua -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
+              -lzmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata \
+              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson
+BoomStickTest_LDFLAGS=${BASE_LIBS}
+BoomStickTest_SOURCES=main.cpp BoomStickTest.cpp
+BoomStickTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 RifleVampireTests_LDADD=-lnm -lZMQ -lczmq -llua -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
               -lzmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata \
@@ -251,6 +259,7 @@ nmTest_SOURCES=main.cpp \
  RuleEngineTest.cpp \
  SendStatsTest.cpp \
  ShotgunAlienTests.cpp \
+ BoomStickTest.cpp \
  StatsAccumulatorTest.cpp \
  SyslogConfigTest.cpp \
  TestTCPIPDirectionlessHash.cpp \
