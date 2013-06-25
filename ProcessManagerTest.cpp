@@ -9,10 +9,7 @@
 #include <unistd.h>
 
 TEST_F(ProcessManagerTest, WriteAndDeletePid) {
-   MockConf conf;
-   std::stringstream testQueue;
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
+   Conf conf;
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    int pid = getpid();
@@ -22,16 +19,13 @@ TEST_F(ProcessManagerTest, WriteAndDeletePid) {
 }
 
 TEST_F(ProcessManagerTest, WritePidThenReclaimAndDelete) {
-   MockConf conf;
-   std::stringstream testQueue;
+   Conf conf;
+   MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
    request.set_realexecstring("ProcessManagerTest");
    request.set_keeprunning(true);
    request.set_path("/fake/path");
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager processManager(conf);
-   processManager.SetPidDir("/tmp");
    int pid = getpid();
    //the mock moves the run dir to be /tmp so this writes a file /tmp/[id].pid
    EXPECT_TRUE(processManager.WritePid(pid));
@@ -41,32 +35,26 @@ TEST_F(ProcessManagerTest, WritePidThenReclaimAndDelete) {
 }
 
 TEST_F(ProcessManagerTest, ReclaimNonExistentPid) {
-   MockConf conf;
-   std::stringstream testQueue;
+   Conf conf;
+   MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
    request.set_realexecstring("ProcessManagerTest");
    request.set_keeprunning(true);
    request.set_path("/fake/path");
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager processManager(conf);
-   processManager.SetPidDir("/tmp");
    int maxPid = 32768;
    //default linux can't have pids above 32768
    EXPECT_EQ(0, processManager.ReclaimPid(request, maxPid + 1));
 }
 
 TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFiles) {
-   MockConf conf;
-   std::stringstream testQueue;
+   Conf conf;
+   MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
    request.set_realexecstring("ProcessManagerTest");
    request.set_keeprunning(true);
    request.set_path("/fake/path");
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager processManager(conf);
-   processManager.SetPidDir("/tmp");
    int pid = getpid();
    //the mock moves the run dir to be /tmp so this writes a file /tmp/[id].pid
    EXPECT_TRUE(processManager.WritePid(pid));
@@ -76,16 +64,13 @@ TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFiles) {
 }
 
 TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFilesWithOtherPidsInDir) {
-   MockConf conf;
-   std::stringstream testQueue;
+   Conf conf;
+   MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
    request.set_realexecstring("ProcessManagerTest");
    request.set_keeprunning(true);
    request.set_path("/fake/path");
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager processManager(conf);
-   processManager.SetPidDir("/tmp");
    int pid = getpid();
 
    //this pid should always exist but not be the process we are looking for
@@ -111,10 +96,7 @@ TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFilesWithOtherPidsInDir) {
 }
 
 TEST_F(ProcessManagerTest, CheckPidTrue) {
-   MockConf conf;
-   std::stringstream testQueue;
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
+   Conf conf;
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    int pid = getpid();
@@ -122,10 +104,7 @@ TEST_F(ProcessManagerTest, CheckPidTrue) {
 }
 
 TEST_F(ProcessManagerTest, CheckPidFalse) {
-   MockConf conf;
-   std::stringstream testQueue;
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
+   Conf conf;
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    int maxPid = 32768;
