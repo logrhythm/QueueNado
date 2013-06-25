@@ -14,6 +14,7 @@ TEST_F(ProcessManagerTest, WriteAndDeletePid) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    int pid = getpid();
    //the mock moves the run dir to be /tmp so this writes a file /tmp/[id].pid
    EXPECT_TRUE(processManager.WritePid(pid));
@@ -30,6 +31,7 @@ TEST_F(ProcessManagerTest, WritePidThenReclaimAndDelete) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    int pid = getpid();
    //the mock moves the run dir to be /tmp so this writes a file /tmp/[id].pid
    EXPECT_TRUE(processManager.WritePid(pid));
@@ -48,6 +50,7 @@ TEST_F(ProcessManagerTest, ReclaimNonExistentPid) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    int maxPid = 32768;
    //default linux can't have pids above 32768
    EXPECT_EQ(0, processManager.ReclaimPid(request, maxPid + 1));
@@ -63,6 +66,7 @@ TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFiles) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    int pid = getpid();
    //the mock moves the run dir to be /tmp so this writes a file /tmp/[id].pid
    EXPECT_TRUE(processManager.WritePid(pid));
@@ -81,6 +85,7 @@ TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFilesWithOtherPidsInDir) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    int pid = getpid();
 
    //this pid should always exist but not be the process we are looking for
@@ -111,6 +116,7 @@ TEST_F(ProcessManagerTest, CheckPidTrue) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    int pid = getpid();
    EXPECT_TRUE(processManager.CheckPidExists(pid));
 }
@@ -121,6 +127,7 @@ TEST_F(ProcessManagerTest, CheckPidFalse) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager processManager(conf);
+   processManager.SetPidDir("/tmp");
    int maxPid = 32768;
    LOG(INFO) << "checking for pid that can't exist";
    EXPECT_FALSE(processManager.CheckPidExists(maxPid + 1));
