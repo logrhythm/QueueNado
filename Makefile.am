@@ -157,7 +157,7 @@ SysLoggerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PRO
 
 RuleEngineTest_LDADD=-lnm -llua -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lconf \
                     -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system \
-                    -lprotobuf -lyaml-cpp -llib_g2log -ljansson
+                    -lprotobuf -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
 RuleEngineTest_LDFLAGS=${BASE_LIBS}
 RuleEngineTest_SOURCES=main.cpp RuleEngineTest.cpp
 RuleEngineTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
@@ -203,7 +203,7 @@ TestTCPIPDirectionlessHash_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_V
 LuaExecuterTest_LDADD=-lstdc++ -lgtest \
  -lboost_thread -lboost_system -lprotobuf \
  -llib_g2log -lluajit-5.1 -llua -lnm -lZMQ -llrdpi -lstats \
- -lzmq -lczmq   -ljansson
+ -lzmq -lczmq   -ljansson -lelasticsearch
 LuaExecuterTest_LDFLAGS=${BASE_LIBS}
 LuaExecuterTest_SOURCES=main.cpp \
         LuaExecuterTest.cpp \
