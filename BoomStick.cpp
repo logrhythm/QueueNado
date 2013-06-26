@@ -97,7 +97,9 @@ bool BoomStick::ConnectToBinding(void* socket, const std::string& binding) {
  *   true when successful
  */
 bool BoomStick::Initialize() {
-
+   if (mCtx != nullptr) {
+      return true;
+   }
    mCtx = GetNewContext();
    if (mCtx  == nullptr) {
       return false;
