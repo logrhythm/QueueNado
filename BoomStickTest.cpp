@@ -163,4 +163,35 @@ TEST_F(BoomStickTest, MoveAssignment) {
 
    target.EndListendAndRepeat();
 }
+TEST_F(BoomStickTest, Swap) {
+   BoomStick firstObject(mAddress);
+   MockSkelleton target(mAddress);
+
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(firstObject.Initialize());
+
+   target.BeginListenAndRepeat();
+   std::stringstream sS;
+
+   for (int i = 0; i < 100; i++) {
+      sS << "request " << i;
+      std::string reply = firstObject.Send(sS.str());
+      sS << " reply";
+      ASSERT_EQ(sS.str(), reply);
+      sS.str("");
+   }
+
+   BoomStick secondObject("abc123");
+   secondObject.Swap(firstObject);
+   ASSERT_EQ("",firstObject.Send("test"));
+   for (int i = 0; i < 100; i++) {
+      sS << "request " << i;
+      std::string reply = secondObject.Send(sS.str());
+      sS << " reply";
+      ASSERT_EQ(sS.str(), reply);
+      sS.str("");
+   }
+   
+   target.EndListendAndRepeat();
+}
 #endif
