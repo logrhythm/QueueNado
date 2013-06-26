@@ -23,6 +23,7 @@ public:
    LR_VIRTUAL std::string GetAsyncReply(const std::string& uuid) {
       return {};
    }
+   void Swap(BoomStick& other);
 protected:
    LR_VIRTUAL zctx_t* GetNewContext();
    LR_VIRTUAL void* GetNewSocket(zctx_t* ctx);

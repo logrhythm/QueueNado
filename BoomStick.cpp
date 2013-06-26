@@ -1,32 +1,40 @@
 #include "BoomStick.h"
 #include <iostream>
+
 /**
  * Construct with a ZMQ socket binding
  * @param binding
  */
-BoomStick::BoomStick(const std::string& binding) : mBinding(binding), mChamber(NULL), mCtx(NULL) {
+BoomStick::BoomStick(const std::string& binding) : mBinding(binding), mChamber(nullptr), mCtx(nullptr) {
 }
 
 /**
  * Deconstruct
  */
 BoomStick::~BoomStick() {
-   if (mCtx) {
-      zctx_destroy(&mCtx);
-   }
+   zctx_destroy(&mCtx);
 }
+
+/**
+ * Swap internals
+ * @param other
+ */
+void BoomStick::Swap(BoomStick& other) {
+   mBinding = other.mBinding;
+   mChamber = other.mChamber;
+   mCtx = other.mCtx;
+   //   other.mBinding.clear();  Allow it to be initialized again
+   other.mChamber = nullptr;
+   other.mCtx = nullptr;
+}
+
 /**
  * Move constructor
  * @param other
  *   A BoomStick that is presumably setup already
  */
 BoomStick::BoomStick(BoomStick&& other) {
-   mBinding = other.mBinding;
-   mChamber = other.mChamber;
-   mCtx = other.mCtx;
-//   other.mBinding.clear();  Allow it to be initialized again
-   other.mChamber = NULL;
-   other.mCtx = NULL;
+   Swap(other);
 }
 
 /**
@@ -38,17 +46,12 @@ BoomStick::BoomStick(BoomStick&& other) {
  */
 BoomStick& BoomStick::operator=(BoomStick&& other) {
    if (this != &other) {
-      if (mCtx) {
-         zctx_destroy(&mCtx);
-      }
-      mBinding = other.mBinding;
-      mCtx = other.mCtx;
-      mChamber = other.mChamber;
-      other.mCtx = NULL;
-      other.mChamber = NULL;
+      zctx_destroy(&mCtx);
+      Swap(other);
    }
    return *this;
 }
+
 /**
  * Get a brand new ZMQ context
  * @return 
@@ -57,6 +60,7 @@ BoomStick& BoomStick::operator=(BoomStick&& other) {
 zctx_t* BoomStick::GetNewContext() {
    return zctx_new();
 }
+
 /**
  * Open a new socket (DEALER) on the given context
  * @param ctx
@@ -65,11 +69,12 @@ zctx_t* BoomStick::GetNewContext() {
  *   A pointer to a socket
  */
 void* BoomStick::GetNewSocket(zctx_t* ctx) {
-   if (!ctx) {
-      return NULL;
+   if (ctx == nullptr) {
+      return nullptr;
    }
-   return zsocket_new(ctx,ZMQ_DEALER);
+   return zsocket_new(ctx, ZMQ_DEALER);
 }
+
 /**
  * Connect the given socket to the given binding
  * @param socket
@@ -80,11 +85,12 @@ void* BoomStick::GetNewSocket(zctx_t* ctx) {
  *   If connection was successful
  */
 bool BoomStick::ConnectToBinding(void* socket, const std::string& binding) {
-   if (!socket) {
+   if (socket == nullptr) {
       return false;
    }
    return (zsocket_connect(socket, binding.c_str()) >= 0);
 }
+
 /**
  * Initialize the context, socket and connect to the bound address
  * @return 
@@ -93,18 +99,18 @@ bool BoomStick::ConnectToBinding(void* socket, const std::string& binding) {
 bool BoomStick::Initialize() {
 
    mCtx = GetNewContext();
-   if (!mCtx) {
+   if (mCtx  == nullptr) {
       return false;
    }
    mChamber = GetNewSocket(mCtx);
-   if (!mChamber) {
+   if (mChamber == nullptr) {
       zctx_destroy(&mCtx);
 
       return false;
    }
-   if (!ConnectToBinding(mChamber,mBinding)) {
+   if (!ConnectToBinding(mChamber, mBinding)) {
       zctx_destroy(&mCtx);
-      mChamber = NULL;
+      mChamber = nullptr;
       return false;
    }
    return true;
@@ -119,18 +125,24 @@ bool BoomStick::Initialize() {
  *   The reply received
  */
 std::string BoomStick::Send(const std::string& command) {
-   if (!mCtx || !mChamber) {
-      return {};
+   if (mCtx == nullptr || mChamber == nullptr) {
+      return
+      {
+      };
    }
    //std::cout << "sent " << command << std::endl;
    zmsg_t* msg = zmsg_new();
-   zmsg_addstr(msg,command.c_str());
-   if ( zmsg_send(&msg,mChamber) < 0) {
-      return {};
+   zmsg_addstr(msg, command.c_str());
+   if (zmsg_send(&msg, mChamber) < 0) {
+      return
+      {
+      };
    }
    msg = zmsg_recv(mChamber);
    if (!msg) {
-      return {};
+      return
+      {
+      };
    }
    std::string returnString = zmsg_popstr(msg);
    zmsg_destroy(&msg);
