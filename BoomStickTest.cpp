@@ -1,6 +1,7 @@
 
 #include "BoomStickTest.h"
 #include "MockSkelleton.h"
+#include "MockBoomStick.h"
 #include <unordered_set>
 #ifdef LR_DEBUG
 
@@ -66,4 +67,100 @@ TEST_F(BoomStickTest, SingleTargetMultipleShooterSync) {
 
 }
 
+TEST_F(BoomStickTest, InitializeFailsOnBadAddress) {
+   BoomStick failure("abc123");
+
+   EXPECT_FALSE(failure.Initialize());
+
+   EXPECT_EQ("", failure.Send("command"));
+}
+
+TEST_F(BoomStickTest, InitializeFailsNoContext) {
+   MockBoomStick failure(mAddress);
+
+   failure.mFailsGetNewContext = true;
+   EXPECT_FALSE(failure.Initialize());
+
+   EXPECT_EQ("", failure.Send("command"));
+}
+
+TEST_F(BoomStickTest, InitializeFailsNoSocket) {
+   MockBoomStick failure(mAddress);
+
+   failure.mFailseGetNewSocket = true;
+   EXPECT_FALSE(failure.Initialize());
+
+   EXPECT_EQ("", failure.Send("command"));
+}
+
+TEST_F(BoomStickTest, InitializeFailsNoConnect) {
+   MockBoomStick failure(mAddress);
+
+   failure.mFailsConnect = true;
+   EXPECT_FALSE(failure.Initialize());
+
+   EXPECT_EQ("", failure.Send("command"));
+}
+
+TEST_F(BoomStickTest, MoveConstructor) {
+   BoomStick firstObject(mAddress);
+   MockSkelleton target(mAddress);
+
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(firstObject.Initialize());
+
+   target.BeginListenAndRepeat();
+   std::stringstream sS;
+
+   for (int i = 0; i < 100; i++) {
+      sS << "request " << i;
+      std::string reply = firstObject.Send(sS.str());
+      sS << " reply";
+      ASSERT_EQ(sS.str(), reply);
+      sS.str("");
+   }
+
+   BoomStick secondObject(std::move(firstObject));
+
+   for (int i = 0; i < 100; i++) {
+      sS << "request " << i;
+      std::string reply = secondObject.Send(sS.str());
+      sS << " reply";
+      ASSERT_EQ(sS.str(), reply);
+      sS.str("");
+   }
+
+   target.EndListendAndRepeat();
+}
+TEST_F(BoomStickTest, MoveAssignment) {
+   BoomStick firstObject(mAddress);
+   MockSkelleton target(mAddress);
+
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(firstObject.Initialize());
+
+   target.BeginListenAndRepeat();
+   std::stringstream sS;
+
+   for (int i = 0; i < 100; i++) {
+      sS << "request " << i;
+      std::string reply = firstObject.Send(sS.str());
+      sS << " reply";
+      ASSERT_EQ(sS.str(), reply);
+      sS.str("");
+   }
+
+   BoomStick secondObject("abc123");
+   secondObject = std::move(firstObject);
+
+   for (int i = 0; i < 100; i++) {
+      sS << "request " << i;
+      std::string reply = secondObject.Send(sS.str());
+      sS << " reply";
+      ASSERT_EQ(sS.str(), reply);
+      sS.str("");
+   }
+
+   target.EndListendAndRepeat();
+}
 #endif
