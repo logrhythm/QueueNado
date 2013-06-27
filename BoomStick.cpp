@@ -90,7 +90,18 @@ bool BoomStick::ConnectToBinding(void* socket, const std::string& binding) {
    }
    return (zsocket_connect(socket, binding.c_str()) >= 0);
 }
-
+/**
+ * set the binding to something else, de-initialize
+ * @param binding
+ */
+void BoomStick::SetBinding(const std::string& binding) {
+   if (mCtx != nullptr) {
+      zctx_destroy(&mCtx);
+      mCtx = nullptr;
+      mChamber = nullptr;
+   }
+   mBinding = binding;
+}
 /**
  * Initialize the context, socket and connect to the bound address
  * @return 

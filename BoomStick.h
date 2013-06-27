@@ -24,6 +24,7 @@ public:
       return {};
    }
    void Swap(BoomStick& other);
+   void SetBinding(const std::string& binding);
 protected:
    LR_VIRTUAL zctx_t* GetNewContext();
    LR_VIRTUAL void* GetNewSocket(zctx_t* ctx);
