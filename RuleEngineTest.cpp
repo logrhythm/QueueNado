@@ -12,7 +12,20 @@
 #include "luajit-2.0/lua.hpp"
 
 using namespace networkMonitor;
+#ifdef LR_DEBUG
 
+TEST_F(RuleEngineTest, elasticSearchSends) {
+   MockRuleEngine dm(conf, syslogName, syslogOption, syslogFacility, syslogPriority,
+                     true, 0);
+   std::stringstream targetQueue;
+   
+   targetQueue << "ipc:///tmp/ruleEngineTest" << pthread_self();
+   dm.SetElasticSearchTarget(targetQueue.str());
+   ASSERT_FALSE(dm.CanSendToElasticSearch());
+   dm.Start();
+   ASSERT_TRUE(dm.CanSendToElasticSearch());
+}
+#endif
 TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
 #ifdef LR_DEBUG
    MockRuleEngine dm(conf, syslogName, syslogOption,

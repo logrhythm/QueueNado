@@ -572,10 +572,12 @@ TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
    auto registered = ruleEngine.GetPossibleFunctions();
 
 
-   ASSERT_TRUE(registered.end() != registered.find("SendInterFlow"));
-   ASSERT_TRUE(registered.end() != registered.find("SendFinalFlow"));
+   ASSERT_TRUE(registered.end() != registered.find("SendInterFlowToSyslog"));
+   ASSERT_TRUE(registered.end() != registered.find("SendFinalFlowToSyslog"));
+   ASSERT_TRUE(registered.end() != registered.find("CleanInterFlow"));
    ASSERT_TRUE(registered.end() != registered.find("SendAccStat"));
    ASSERT_TRUE(registered.end() != registered.find("GetThreadId"));
+   ASSERT_TRUE(registered.end() != registered.find("SendFlowToSearch"));
 
    ASSERT_TRUE(registered.end() != registered.find("SendStat"));
    ASSERT_EQ(registered["IsIntermediateFlow"], LuaRuleEngineFunctions::IsIntermediateFlow);
@@ -584,10 +586,12 @@ TEST_F(LuaFunctionsTest, RuleEngineFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("GetRawMsgSize"));
    ASSERT_EQ(registered["GetRawMsgSize"], LuaRuleEngineFunctions::GetRawMsgSize);
 
-   ASSERT_EQ(registered["SendInterFlow"], LuaRuleEngineFunctions::SendInterFlow);
-   ASSERT_EQ(registered["SendFinalFlow"], LuaRuleEngineFunctions::SendFinalFlow);
+   ASSERT_EQ(registered["SendInterFlowToSyslog"], LuaRuleEngineFunctions::SendInterFlowToSyslog);
+   ASSERT_EQ(registered["SendFinalFlowToSyslog"], LuaRuleEngineFunctions::SendFinalFlowToSyslog);
+   ASSERT_EQ(registered["CleanInterFlow"], LuaRuleEngineFunctions::CleanInterFlow);
    ASSERT_EQ(registered["SendAccStat"], LuaRuleEngineFunctions::SendAccStat);
    ASSERT_EQ(registered["GetThreadId"], LuaRuleEngineFunctions::GetThreadId);
+   ASSERT_EQ(registered["SendFlowToSearch"], LuaRuleEngineFunctions::SendFlowToSearch);
 
    ASSERT_EQ(registered["SendStat"], LuaRuleEngineFunctions::SendStat);
 
@@ -1067,7 +1071,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushlightuserdata(luaState, &mRuleEngine);
-   LuaRuleEngineFunctions::SendInterFlow(luaState);
+   LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState);
 
    dpiMsg.set_endtime(567);
    dpiMsg.set_sessionlenserver(23456);
@@ -1081,7 +1085,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushlightuserdata(luaState, &mRuleEngine);
-   LuaRuleEngineFunctions::SendInterFlow(luaState);
+   LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState);
 
    //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
    // Did the data show up in the syslog output
@@ -1181,7 +1185,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushlightuserdata(luaState, &mRuleEngine);
-   LuaRuleEngineFunctions::SendFinalFlow(luaState);
+   LuaRuleEngineFunctions::SendFinalFlowToSyslog(luaState);
 
    //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
    // Did the data show up in the syslog output

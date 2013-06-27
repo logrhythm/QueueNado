@@ -129,6 +129,10 @@ namespace networkMonitor {
       void RestartSyslogDaemon() {
          
       }
+      void SetElasticSearchTarget(const std::string& target) {
+         RuleEngine::mElasticSearchTarget = target;
+         RuleEngine::mTransferElasticSearch.SetBinding(target);
+      }
       bool mSiemMode;
       bool mSyslogEnabled;
       unsigned int mMaxLineLength;

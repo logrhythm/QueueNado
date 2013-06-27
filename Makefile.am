@@ -84,7 +84,7 @@ ShotgunAlienTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"
 
 BoomStickTest_LDADD=-lnm -lZMQ -lczmq -llua -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
               -lzmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata \
-              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson
+              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
 BoomStickTest_LDFLAGS=${BASE_LIBS}
 BoomStickTest_SOURCES=main.cpp BoomStickTest.cpp
 BoomStickTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
