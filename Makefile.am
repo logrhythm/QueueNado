@@ -66,7 +66,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
 
 ZMQTest_LDADD=-lnm -lZMQ -llua -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
               -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata \
-              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson
+              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
 ZMQTest_LDFLAGS=${BASE_LIBS}
 ZMQTest_SOURCES=main.cpp \
 	ZeroMQTests.cpp \
@@ -77,7 +77,7 @@ ZMQTest_SOURCES=main.cpp \
 
 ShotgunAlienTests_LDADD=-lnm -lZMQ -lczmq -llua -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
               -lzmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata \
-              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson
+              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
 ShotgunAlienTests_LDFLAGS=${BASE_LIBS}
 ShotgunAlienTests_SOURCES=main.cpp ShotgunAlienTests.cpp
 ShotgunAlienTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
@@ -91,7 +91,7 @@ BoomStickTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PRO
 
 RifleVampireTests_LDADD=-lnm -lZMQ -lczmq -llua -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
               -lzmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata \
-              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson
+              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
 RifleVampireTests_LDFLAGS=${BASE_LIBS}
 RifleVampireTests_SOURCES=main.cpp RifleVampireTests.cpp
 RifleVampireTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
@@ -100,13 +100,13 @@ RifleVampireTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"
 QosmosCodeGeneratorTest_LDADD=-lpthread -ldl -lstdc++ -lgtest -lz -lboost_regex\
 	-lqosmosauto -lnm -lZMQ -lboost_thread -lZMQ -lstats \
 	-lstdc++ -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity \
-	-lboost_system -lboost_thread -lcapture -llua -llrdpi -llib_g2log -ljansson
+	-lboost_system -lboost_thread -lcapture -llua -llrdpi -llib_g2log -ljansson -lelasticsearch
 QosmosCodeGeneratorTest_LDFLAGS=${BASE_LIBS}
 QosmosCodeGeneratorTest_SOURCES=main.cpp QosmosCodeGeneratorTests.cpp
 
 QosmosDpiTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity \
-             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lyaml-cpp -lcapture -lconf -llib_g2log -ljansson
+             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lyaml-cpp -lcapture -lconf -llib_g2log -ljansson -lelasticsearch
 QosmosDpiTest_LDFLAGS=${BASE_LIBS}
 QosmosDpiTest_SOURCES=main.cpp QosmosDpiTest.cpp QosmosPacketAllocatorTests.cpp QosmosProtocolCaptureTest.cpp DiskPacketCaptureTest.cpp 
 
@@ -115,22 +115,22 @@ QosmosDpiTest_SOURCES=main.cpp QosmosDpiTest.cpp QosmosPacketAllocatorTests.cpp 
 PacketCaptureTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest \
                         -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl \
                         -lqmdata -lqmsecurity -lboost_system -lyaml-cpp \
-			-lboost_thread -lboost_system -lcapture -lconf -llib_g2log -ljansson
+			-lboost_thread -lboost_system -lcapture -lconf -llib_g2log -ljansson -lelasticsearch
 PacketCaptureTest_LDFLAGS=${BASE_LIBS}
 PacketCaptureTest_SOURCES=main.cpp PacketCaptureTest.cpp
 
-MsgUuidTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log -ljansson
+MsgUuidTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
 MsgUuidTest_LDFLAGS=${BASE_LIBS}
 MsgUuidTest_SOURCES=main.cpp MsgUuidTest.cpp
 
 SyslogConfigTest_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lconf -llua -llrdpi\
-		       -lqmdata -lqmsecurity -lyaml-cpp -lcapture -llib_g2log -lstats -lZMQ -lboost_thread -lboost_system  -ljansson
+		       -lqmdata -lqmsecurity -lyaml-cpp -lcapture -llib_g2log -lstats -lZMQ -lboost_thread -lboost_system  -ljansson -lelasticsearch
 SyslogConfigTest_LDFLAGS=${BASE_LIBS}
 SyslogConfigTest_SOURCES=main.cpp SyslogConfigTest.cpp
 
 ConfProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols \
  -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf \
- -lstats -lyaml-cpp -lconf -llua -llrdpi -llib_g2log -ljansson
+ -lstats -lyaml-cpp -lconf -llua -llrdpi -llib_g2log -ljansson -lelasticsearch
 ConfProcessorTests_LDFLAGS=${BASE_LIBS}
 ConfProcessorTests_SOURCES=main.cpp \
         ConfProcessorTests.cpp \
@@ -138,7 +138,8 @@ ConfProcessorTests_SOURCES=main.cpp \
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 CommandProcessorTests_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lprotobuf -lstats \
- -lconf -llua -llrdpi -lprocess -llib_g2log -lcommand -lboost_system -ljansson
+ -lconf -llua -llrdpi -lprocess -llib_g2log -lcommand -lboost_system -ljansson \
+ -lelasticsearch
 CommandProcessorTests_LDFLAGS=${BASE_LIBS}
 CommandProcessorTests_SOURCES=main.cpp \
         CommandProcessorTests.cpp \
@@ -149,7 +150,7 @@ CommandProcessorTests_SOURCES=main.cpp \
 CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\" ${INCLUDES}
 
 SysLoggerTest_LDADD=-lnm -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata \
-	            -lqmsecurity -lZMQ -lstats -lyaml-cpp -lboost_thread -lboost_system -llua -llrdpi -llib_g2log -ljansson
+	            -lqmsecurity -lZMQ -lstats -lyaml-cpp -lboost_thread -lboost_system -llua -llrdpi -llib_g2log -ljansson -lelasticsearch
 SysLoggerTest_LDFLAGS=${BASE_LIBS}
 SysLoggerTest_SOURCES=main.cpp SysLoggerTest.cpp
 SysLoggerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
@@ -165,36 +166,36 @@ RuleEngineTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PR
 
 StatsAccumulatorTest_LDADD=-lnm -llua -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lconf \
                     -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system \
-                    -lprotobuf -lyaml-cpp -llib_g2log -ljansson
+                    -lprotobuf -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
 StatsAccumulatorTest_LDFLAGS=${BASE_LIBS}
 StatsAccumulatorTest_SOURCES=main.cpp StatsAccumulatorTest.cpp
 StatsAccumulatorTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
-SendStatsTest_LDADD=-lnm -llua -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf -lyaml-cpp -llib_g2log -ljansson
+SendStatsTest_LDADD=-lnm -llua -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
 SendStatsTest_LDFLAGS=${BASE_LIBS}
 SendStatsTest_SOURCES=main.cpp SendStatsTest.cpp
 SendStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
-ProcStatsTest_LDADD=-lnm -llua -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf -lyaml-cpp -llib_g2log -ljansson
+ProcStatsTest_LDADD=-lnm -llua -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
 ProcStatsTest_LDFLAGS=${BASE_LIBS}
 ProcStatsTest_SOURCES=main.cpp ProcStatsTest.cpp
 ProcStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
-ProcessManagerTest_LDADD=-lnm -llua -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lboost_system -lprotobuf -llib_g2log -lzmq -lczmq -lprocess -ljansson
+ProcessManagerTest_LDADD=-lnm -llua -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lboost_system -lprotobuf -llib_g2log -lzmq -lczmq -lprocess -ljansson -lelasticsearch
 ProcessManagerTest_LDFLAGS=${BASE_LIBS}
 ProcessManagerTest_SOURCES=main.cpp ProcessManagerTest.cpp
 ProcessManagerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
-DpiMsgLRTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log  -ljansson
+DpiMsgLRTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log  -ljansson -lelasticsearch
 DpiMsgLRTest_LDFLAGS=${BASE_LIBS}
 DpiMsgLRTest_SOURCES=main.cpp DpiMsgLRTest.cpp DpiMsgLRPoolTest.cpp
 DpiMsgLRTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
-TestTCPIPDirectionlessHash_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf -lstats -lyaml-cpp -lconf -llrdpi -llib_g2log -lcapture -ljansson
+TestTCPIPDirectionlessHash_LDADD=-lnm -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lprotobuf -lstats -lyaml-cpp -lconf -llrdpi -llib_g2log -lcapture -ljansson -lelasticsearch
 TestTCPIPDirectionlessHash_LDFLAGS=${BASE_LIBS}
 TestTCPIPDirectionlessHash_SOURCES=main.cpp \
         TestTCPIPDirectionlessHash.cpp
@@ -213,7 +214,7 @@ LuaExecuterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  \
 
 ThreadContainerTest_LDADD=-lnm -llua -llrdpi -lstats -lZMQ -lstdc++ -lgtest -lqmengine -lqmprotocols -lconf \
                     -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system \
-                    -lprotobuf -lyaml-cpp -llib_g2log -ljansson
+                    -lprotobuf -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
 ThreadContainerTest_LDFLAGS=${BASE_LIBS}
 ThreadContainerTest_SOURCES=main.cpp ThreadContainerTest.cpp
 ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
@@ -223,7 +224,7 @@ JSONEncoderTest_LDFLAGS=${BASE_LIBS}
 JSONEncoderTest_SOURCES=main.cpp JSONEncoderTest.cpp
 JSONEncoderTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
-transferZeromqTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log  -ljansson
+transferZeromqTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log  -ljansson -lelasticsearch
 transferZeromqTest_LDFLAGS=${BASE_LIBS}
 transferZeromqTest_SOURCES=main.cpp transferZeromqTest.cpp
 transferZeromqTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
