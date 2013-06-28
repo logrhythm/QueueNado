@@ -118,12 +118,13 @@ bool BoomStick::Initialize() {
    mChamber = GetNewSocket(mCtx);
    if (mChamber == nullptr) {
       zctx_destroy(&mCtx);
-
+      mCtx = nullptr;
       return false;
    }
    if (!ConnectToBinding(mChamber, mBinding)) {
       zctx_destroy(&mCtx);
       mChamber = nullptr;
+      mCtx = nullptr;
       return false;
    }
    return true;
@@ -145,17 +146,16 @@ std::string BoomStick::Send(const std::string& command) {
    }
    //std::cout << "sent " << command << std::endl;
    zmsg_t* msg = zmsg_new();
-   zmsg_addstr(msg, command.c_str());
+   if (zmsg_addmem(msg, command.c_str(),command.size()) < 0) { 
+      zmsg_destroy(&msg);
+      return {};
+   }
    if (zmsg_send(&msg, mChamber) < 0) {
-      return
-      {
-      };
+      return {};
    }
    msg = zmsg_recv(mChamber);
    if (!msg) {
-      return
-      {
-      };
+      return {};
    }
    std::string returnString = zmsg_popstr(msg);
    zmsg_destroy(&msg);
