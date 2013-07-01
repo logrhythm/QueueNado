@@ -18,32 +18,9 @@ namespace networkMonitor {
       virtual ~MockDpiMsgLR() {
       }
 
-      uint32_t ConvertArrayToU32(const std::vector<uint8_t>& array) const override {
-         return DpiMsgLR::ConvertArrayToU32(array);
-      }
-
-      uint64_t ConvertArrayToU64(const std::vector<uint8_t>& array, size_t size) const override {
-         return DpiMsgLR::ConvertArrayToU64(array, size);
-      }
-
-      std::string ConvertEtherValToString(uint64_t value) const override {
-         return DpiMsgLR::ConvertEtherValToString(value);
-      }
-
-      std::string ConvertIpValToString(uint32_t value) const override {
-         return DpiMsgLR::ConvertIpValToString(value);
-      }
 
       std::map<unsigned int, std::pair<std::string, std::string> > GetAllFieldsAsStrings() const override {
          return DpiMsgLR::GetAllFieldsAsStrings();
-      }
-
-      unsigned short ReadShortFromString(const char *charbuffer, size_t& index) override {
-         return DpiMsgLR::ReadShortFromString(charbuffer, index);
-      }
-
-      unsigned int ReadUIntFromString(const char *charbuffer, size_t& index) override {
-         return DpiMsgLR::ReadUIntFromString(charbuffer, index);
       }
 
       std::pair<std::string, std::string> GetUuidPair() const override {

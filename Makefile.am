@@ -35,6 +35,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libcommand/ \
           -Wl,-R${abs_top_srcdir}/source/libprocess/ \
           -Wl,-R${abs_top_srcdir}/source/libelasticsearch/ \
+          -Wl,-R${abs_top_srcdir}/source/libtools/ \
           -Wl,-R/usr/local/probe/lib/ \
           -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
@@ -47,6 +48,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libprocess/ \
           -L${abs_top_srcdir}/source/liblua/ \
           -L${abs_top_srcdir}/source/libelasticsearch/ \
+          -L${abs_top_srcdir}/source/libtools/ \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
@@ -62,11 +64,12 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libprocess \
          -I${abs_top_srcdir}/source/liblua \
          -I${abs_top_srcdir}/source/libelasticsearch \
+         -I${abs_top_srcdir}/source/libtools \
          -I/usr/local/probe/include
 
 ZMQTest_LDADD=-lnm -lZMQ -llua -llrdpi -lpthread -ldl -lstdc++ -lgtest -lpcap \
               -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata \
-              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson -lelasticsearch
+              -lqmsecurity -lboost_system -lboost_thread -lstats -lyaml-cpp -llib_g2log -ljansson -lelasticsearch 
 ZMQTest_LDFLAGS=${BASE_LIBS}
 ZMQTest_SOURCES=main.cpp \
 	ZeroMQTests.cpp \
@@ -106,7 +109,7 @@ QosmosCodeGeneratorTest_SOURCES=main.cpp QosmosCodeGeneratorTests.cpp
 
 QosmosDpiTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity \
-             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lyaml-cpp -lcapture -lconf -llib_g2log -ljansson -lelasticsearch
+             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lyaml-cpp -lcapture -lconf -llib_g2log -ljansson -lelasticsearch -ltools
 QosmosDpiTest_LDFLAGS=${BASE_LIBS}
 QosmosDpiTest_SOURCES=main.cpp QosmosDpiTest.cpp QosmosPacketAllocatorTests.cpp QosmosProtocolCaptureTest.cpp DiskPacketCaptureTest.cpp 
 
@@ -189,7 +192,7 @@ ProcessManagerTest_SOURCES=main.cpp ProcessManagerTest.cpp
 ProcessManagerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 
-DpiMsgLRTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log  -ljansson -lelasticsearch
+DpiMsgLRTest_LDADD=-lnm -lZMQ -llua -llrdpi -lstats -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity -lboost_thread -lboost_system -lyaml-cpp -llib_g2log  -ljansson -lelasticsearch -ltools
 DpiMsgLRTest_LDFLAGS=${BASE_LIBS}
 DpiMsgLRTest_SOURCES=main.cpp DpiMsgLRTest.cpp DpiMsgLRPoolTest.cpp
 DpiMsgLRTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"

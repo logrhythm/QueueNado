@@ -150,7 +150,7 @@ TEST_F(DpiMsgLRTests, setPktPathSuccess) {
 
 TEST_F(DpiMsgLRTests, convertArray32) {
 #ifdef LR_DEBUG
-   MockDpiMsgLR mockDpi;
+   Conversion mockDpi;
    vector<unsigned char> array;
    array.push_back(0x1);
    array.push_back(0x2);
@@ -162,7 +162,7 @@ TEST_F(DpiMsgLRTests, convertArray32) {
 
 TEST_F(DpiMsgLRTests, convertArray64) {
 #ifdef LR_DEBUG
-   MockDpiMsgLR mockDpi;
+   Conversion mockDpi;
    vector<unsigned char> array;
    array.push_back(0x1);
    array.push_back(0x2);
@@ -179,7 +179,7 @@ TEST_F(DpiMsgLRTests, convertArray64) {
 
 TEST_F(DpiMsgLRTests, convertArray64One) {
 #ifdef LR_DEBUG
-   MockDpiMsgLR mockDpi;
+   Conversion mockDpi;
    vector<unsigned char> array;
    array.push_back(0x1);
    array.push_back(0x2);
@@ -196,7 +196,7 @@ TEST_F(DpiMsgLRTests, convertArray64One) {
 
 TEST_F(DpiMsgLRTests, convertArray64Zero) {
 #ifdef LR_DEBUG
-   MockDpiMsgLR mockDpi;
+   Conversion mockDpi;
    vector<unsigned char> array;
    array.push_back(0x1);
    array.push_back(0x2);
@@ -213,7 +213,7 @@ TEST_F(DpiMsgLRTests, convertArray64Zero) {
 
 TEST_F(DpiMsgLRTests, convertIpToString) {
 #ifdef LR_DEBUG
-   MockDpiMsgLR mockDpi;
+   Conversion mockDpi;
    vector<unsigned char> array;
    array.push_back(0x1);
    array.push_back(0x2);
@@ -228,7 +228,7 @@ TEST_F(DpiMsgLRTests, convertIpToString) {
 
 TEST_F(DpiMsgLRTests, convertEtherToString) {
 #ifdef LR_DEBUG
-   MockDpiMsgLR mockDpi;
+   Conversion mockDpi;
    vector<unsigned char> array;
    array.push_back(0x1);
    array.push_back(0x2);
@@ -254,7 +254,7 @@ TEST_F(DpiMsgLRTests, ReadShortFromString) {
    charbuffer[8] = 'f';
 
    size_t index = 5;
-   MockDpiMsgLR dm;
+   Conversion dm;
    EXPECT_EQ(0x90af, dm.ReadShortFromString(charbuffer, index));
    EXPECT_EQ(9, index);
 #endif
@@ -272,7 +272,7 @@ TEST_F(DpiMsgLRTests, ReadIPSrcDstSPortDPortProto) {
    charbuffer[22] = '4';
    charbuffer[23] = '1';
 #ifdef LR_DEBUG
-   MockDpiMsgLR dm;
+   Conversion dm;
    tDpiMessage.ReadIPSrcDstSPortDPortProto(charbuffer);
    EXPECT_EQ(0x90af, tDpiMessage.sourceport());
    EXPECT_EQ(0x5b41, tDpiMessage.destport());
@@ -293,7 +293,7 @@ TEST_F(DpiMsgLRTests, ReadUintFromString) {
 
    size_t index = 5;
 #ifdef LR_DEBUG
-   MockDpiMsgLR dm;
+   Conversion dm;
    EXPECT_EQ(0x90af23bc, dm.ReadUIntFromString(charbuffer, index));
    EXPECT_EQ(13, index);
 #endif

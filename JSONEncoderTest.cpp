@@ -54,7 +54,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt64) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_EQ("{\"deltaTime\": 12345678900, \"uuid\": \"ABC123\"}", encodedMessage);
+   EXPECT_EQ("{\"deltaTime\": \"2361/03/22 19:15:00\", \"uuid\": \"ABC123\"}", encodedMessage);
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
