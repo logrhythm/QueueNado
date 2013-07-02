@@ -44,7 +44,17 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt) {
 
    EXPECT_EQ("{\"destPort\": 123, \"uuid\": \"ABC123\"}", encodedMessage);
 }
+TEST_F(JSONEncoderTest, EncodeAMessageWithIpSrcDst) {
+   networkMonitor::DpiMsgLR testMsg;
 
+   testMsg.set_uuid("ABC123");
+   JSONEncoder encoder(&testMsg);
+   testMsg.set_ipsrc(0x11223344);
+   testMsg.set_ipdst(0x55667788);
+   std::string encodedMessage = encoder.Encode();
+
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"ipDst\": \"136.119.102.85\", \"ipSrc\": \"68.51.34.17\"}", encodedMessage);
+}
 TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt64) {
    networkMonitor::DpiMsgLR testMsg;
 
@@ -54,9 +64,31 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt64) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_EQ("{\"deltaTime\": \"2361/03/22 19:15:00\", \"uuid\": \"ABC123\"}", encodedMessage);
+   EXPECT_EQ("{\"deltaTime\": 12345678900, \"uuid\": \"ABC123\"}", encodedMessage);
 }
+TEST_F(JSONEncoderTest, EncodeAMessageWithATimeT) {
+   networkMonitor::DpiMsgLR testMsg;
 
+   testMsg.set_uuid("ABC123");
+   JSONEncoder encoder(&testMsg);
+   testMsg.set_starttime(12345678900L);
+
+   std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
+
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"startTime\": \"2361/03/22 19:15:00\"}", encodedMessage);
+}
+TEST_F(JSONEncoderTest, EncodeAMessageWithEthSrcDst) {
+      networkMonitor::DpiMsgLR testMsg;
+
+   testMsg.set_uuid("ABC123");
+   JSONEncoder encoder(&testMsg);
+   testMsg.set_ethsrc(12345678900L);
+   testMsg.set_ethdst(12345678901L);
+
+   std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
+
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"ethDst\": \"35:1c:dc:df:02:00\", \"ethSrc\": \"34:1c:dc:df:02:00\"}", encodedMessage);
+}
 TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
    networkMonitor::DpiMsgLR testMsg;
 
@@ -69,7 +101,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_EQ("{\"uuid\": \"ABC123\", \"acceptEncoding\": [\"1\", \"2\", \"3\"]}", encodedMessage);
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"Engine_acceptEncoding\": [\"1\", \"2\", \"3\"]}", encodedMessage);
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
@@ -101,25 +133,25 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_EQ("{\"server\": [\"thisname12345\"], "
-           "\"refererServer\": [\"notThisOne\"], "
-           "\"sender\": [\"test1_123456\"], "
-           "\"deltaSessionLenServer\": 567, "
-           "\"login\": [\"aLogin\"], "
-           "\"deltaPackets\": 88, "
+   EXPECT_EQ("{\"deltaPackets\": 88, "
+           "\"Engine_uriFull\": [\"1\"], "
            "\"sessionLenClient\": 899, "
+           "\"Engine_applicationIdEnd\": 1234, "
            "\"uuid\": \"ABC123\", "
-           "\"subject\": [\"test3_12345\"], "
+           "\"Engine_refererServer\": [\"notThisOne\"], "
            "\"packetCount\": 88, "
-           "\"applicationIdEnd\": 1234, "
            "\"sessionLenServer\": 567, "
-           "\"uriFull\": [\"1\"], "
-           "\"method\": [\"RUN\", \"COMMAND\", \"LONGLONGLONGLONG\"], "
+           "\"Engine_server\": [\"thisname12345\"], "
+           "\"Engine_domain\": [\"aDomain12345\"], "
+           "\"deltaSessionLenServer\": 567, "
+           "\"Engine_version\": [\"4.0\"], "
            "\"deltaSessionLenClient\": 899, "
-           "\"receiver\": [\"test2_123\"], "
-           "\"applicationEnd\": [\"test\"], "
-           "\"uri\": [\"not/this/one\"], "
-           "\"version\": [\"4.0\"], "
-           "\"domain\": [\"aDomain12345\"]}", encodedMessage);
+           "\"Engine_applicationEnd\": [\"test\"], "
+           "\"Engine_login\": [\"aLogin\"], "
+           "\"Engine_method\": [\"RUN\", \"COMMAND\", \"LONGLONGLONGLONG\"], "
+           "\"Engine_uri\": [\"not/this/one\"], "
+           "\"Engine_sender\": [\"test1_123456\"], "
+           "\"Engine_receiver\": [\"test2_123\"], "
+           "\"Engine_subject\": [\"test3_12345\"]}", encodedMessage);
 
 }

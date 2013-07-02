@@ -148,117 +148,7 @@ TEST_F(DpiMsgLRTests, setPktPathSuccess) {
    EXPECT_EQ(path, rPath);
 }
 
-TEST_F(DpiMsgLRTests, convertArray32) {
-#ifdef LR_DEBUG
-   Conversion mockDpi;
-   vector<unsigned char> array;
-   array.push_back(0x1);
-   array.push_back(0x2);
-   array.push_back(0x4);
-   array.push_back(0x8);
-   EXPECT_EQ(0x08040201, mockDpi.ConvertArrayToU32(array));
-#endif
-}
 
-TEST_F(DpiMsgLRTests, convertArray64) {
-#ifdef LR_DEBUG
-   Conversion mockDpi;
-   vector<unsigned char> array;
-   array.push_back(0x1);
-   array.push_back(0x2);
-   array.push_back(0x4);
-   array.push_back(0x8);
-   array.push_back(0x10);
-   array.push_back(0x20);
-   array.push_back(0x40);
-   array.push_back(0x80);
-
-   EXPECT_EQ(0x8040201008040201, mockDpi.ConvertArrayToU64(array, 8));
-#endif
-}
-
-TEST_F(DpiMsgLRTests, convertArray64One) {
-#ifdef LR_DEBUG
-   Conversion mockDpi;
-   vector<unsigned char> array;
-   array.push_back(0x1);
-   array.push_back(0x2);
-   array.push_back(0x4);
-   array.push_back(0x8);
-   array.push_back(0x10);
-   array.push_back(0x20);
-   array.push_back(0x40);
-   array.push_back(0x80);
-
-   EXPECT_EQ(0x0000000000000001, mockDpi.ConvertArrayToU64(array, 1));
-#endif
-}
-
-TEST_F(DpiMsgLRTests, convertArray64Zero) {
-#ifdef LR_DEBUG
-   Conversion mockDpi;
-   vector<unsigned char> array;
-   array.push_back(0x1);
-   array.push_back(0x2);
-   array.push_back(0x4);
-   array.push_back(0x8);
-   array.push_back(0x10);
-   array.push_back(0x20);
-   array.push_back(0x40);
-   array.push_back(0x80);
-
-   EXPECT_EQ(0x0000000000000000, mockDpi.ConvertArrayToU64(array, 0));
-#endif
-}
-
-TEST_F(DpiMsgLRTests, convertIpToString) {
-#ifdef LR_DEBUG
-   Conversion mockDpi;
-   vector<unsigned char> array;
-   array.push_back(0x1);
-   array.push_back(0x2);
-   array.push_back(0x4);
-   array.push_back(0x8);
-
-   uint32_t value = mockDpi.ConvertArrayToU32(array);
-   EXPECT_EQ("1.2.4.8", mockDpi.ConvertIpValToString(value));
-
-#endif
-}
-
-TEST_F(DpiMsgLRTests, convertEtherToString) {
-#ifdef LR_DEBUG
-   Conversion mockDpi;
-   vector<unsigned char> array;
-   array.push_back(0x1);
-   array.push_back(0x2);
-   array.push_back(0x4);
-   array.push_back(0x8);
-   array.push_back(0x10);
-   array.push_back(0x20);
-   array.push_back(0x40);
-   array.push_back(0x80);
-
-   uint64_t value = mockDpi.ConvertArrayToU64(array, 6);
-   EXPECT_EQ("01:02:04:08:10:20", mockDpi.ConvertEtherValToString(value));
-#endif
-}
-
-TEST_F(DpiMsgLRTests, ReadShortFromString) {
-#ifdef LR_DEBUG
-   char charbuffer[100];
-   memset(charbuffer, 0, 100);
-   charbuffer[5] = '9';
-   charbuffer[6] = '0';
-   charbuffer[7] = 'a';
-   charbuffer[8] = 'f';
-
-   size_t index = 5;
-   Conversion dm;
-   EXPECT_EQ(0x90af, dm.ReadShortFromString(charbuffer, index));
-   EXPECT_EQ(9, index);
-#endif
-}
 
 TEST_F(DpiMsgLRTests, ReadIPSrcDstSPortDPortProto) {
    char charbuffer[100];
@@ -272,32 +162,12 @@ TEST_F(DpiMsgLRTests, ReadIPSrcDstSPortDPortProto) {
    charbuffer[22] = '4';
    charbuffer[23] = '1';
 #ifdef LR_DEBUG
-   Conversion dm;
    tDpiMessage.ReadIPSrcDstSPortDPortProto(charbuffer);
    EXPECT_EQ(0x90af, tDpiMessage.sourceport());
    EXPECT_EQ(0x5b41, tDpiMessage.destport());
 #endif
 }
 
-TEST_F(DpiMsgLRTests, ReadUintFromString) {
-   char charbuffer[100];
-   memset(charbuffer, 0, 100);
-   charbuffer[5] = '9';
-   charbuffer[6] = '0';
-   charbuffer[7] = 'a';
-   charbuffer[8] = 'f';
-   charbuffer[9] = '2';
-   charbuffer[10] = '3';
-   charbuffer[11] = 'b';
-   charbuffer[12] = 'c';
-
-   size_t index = 5;
-#ifdef LR_DEBUG
-   Conversion dm;
-   EXPECT_EQ(0x90af23bc, dm.ReadUIntFromString(charbuffer, index));
-   EXPECT_EQ(13, index);
-#endif
-}
 
 TEST_F(DpiMsgLRTests, GetSpecialIntegersAsStrings) {
 #ifdef LR_DEBUG
@@ -425,7 +295,7 @@ TEST_F(DpiMsgLRTests, GetDynamicFieldPairs) {
    int chunk = 1234;
    string chunks = std::to_string(chunk);
    tDpiMessage.set_file_chunk_data_offsetq_proto_bittorrent(chunk);
-   expecteds["fileChunkData"] = chunks;
+   expecteds["fileChunkDataOffset"] = chunks;
 
    int filesize = 7890;
    string filesizes = std::to_string(filesize);
@@ -486,7 +356,7 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    int chunk = 1234;
    string chunks = std::to_string(chunk);
    dm.set_file_chunk_data_offsetq_proto_bittorrent(chunk);
-   expecteds["fileChunkData"] = chunks;
+   expecteds["fileChunkDataOffset"] = chunks;
 
    int filesize = 7890;
    string filesizes = std::to_string(filesize);
