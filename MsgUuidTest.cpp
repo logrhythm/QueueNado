@@ -1,6 +1,6 @@
 #include <string>
 #include "MsgUuidTest.h"
-
+#include "MockMsgUuid.h"
 using namespace networkMonitor;
 using namespace std;
 
@@ -35,5 +35,13 @@ TEST_F( MsgUuidTests, MsgUuidGetMsgUuid )
                 || su[19] == 'A'
                 || su[19] == 'B' );
 }
-
+TEST_F( MsgUuidTests, DifferentSeeds) {
+   MockMsgUuid uuid1;
+   MockMsgUuid uuid2;
+   
+   std::string str1 = uuid1.GetMsgUuid();
+   std::string str2 = uuid2.GetMsgUuid();
+   
+   ASSERT_NE(str1,str2);
+}
 
