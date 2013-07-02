@@ -44,6 +44,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt) {
 
    EXPECT_EQ("{\"destPort\": 123, \"uuid\": \"ABC123\"}", encodedMessage);
 }
+
 TEST_F(JSONEncoderTest, EncodeAMessageWithIpSrcDst) {
    networkMonitor::DpiMsgLR testMsg;
 
@@ -55,6 +56,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithIpSrcDst) {
 
    EXPECT_EQ("{\"uuid\": \"ABC123\", \"ipDst\": \"136.119.102.85\", \"ipSrc\": \"68.51.34.17\"}", encodedMessage);
 }
+
 TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt64) {
    networkMonitor::DpiMsgLR testMsg;
 
@@ -66,6 +68,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt64) {
 
    EXPECT_EQ("{\"deltaTime\": 12345678900, \"uuid\": \"ABC123\"}", encodedMessage);
 }
+
 TEST_F(JSONEncoderTest, EncodeAMessageWithATimeT) {
    networkMonitor::DpiMsgLR testMsg;
 
@@ -75,10 +78,11 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithATimeT) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_EQ("{\"uuid\": \"ABC123\", \"startTime\": \"2361/03/22 19:15:00\"}", encodedMessage);
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"startTime\": \"2361/03/21 19:15:00\"}", encodedMessage);
 }
+
 TEST_F(JSONEncoderTest, EncodeAMessageWithEthSrcDst) {
-      networkMonitor::DpiMsgLR testMsg;
+   networkMonitor::DpiMsgLR testMsg;
 
    testMsg.set_uuid("ABC123");
    JSONEncoder encoder(&testMsg);
@@ -89,6 +93,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithEthSrcDst) {
 
    EXPECT_EQ("{\"uuid\": \"ABC123\", \"ethDst\": \"35:1c:dc:df:02:00\", \"ethSrc\": \"34:1c:dc:df:02:00\"}", encodedMessage);
 }
+
 TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
    networkMonitor::DpiMsgLR testMsg;
 
@@ -102,6 +107,24 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
    EXPECT_EQ("{\"uuid\": \"ABC123\", \"Engine_acceptEncoding\": [\"1\", \"2\", \"3\"]}", encodedMessage);
+}
+
+TEST_F(JSONEncoderTest, EncodeAMessageWithSingleBool) {
+   networkMonitor::DpiMsgLR testMsg;
+
+   testMsg.set_uuid("ABC123");
+   testMsg.set_captured(true);
+   JSONEncoder encoder(&testMsg);
+
+   std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
+
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"captured\": true}", encodedMessage);
+   testMsg.set_captured(false);
+   JSONEncoder encoder2(&testMsg);
+
+   encodedMessage = encoder2.EncodeWithCallback(testMsg.CleanupName);
+
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"captured\": false}", encodedMessage);
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
