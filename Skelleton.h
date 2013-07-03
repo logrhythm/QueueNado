@@ -1,6 +1,5 @@
 #pragma once
 #include <zmq.h>
-#include <zlib.h>
 #include <czmq.h>
 
 class Skelleton {
