@@ -41,14 +41,14 @@ public:
 
    zctx_t* GetNewContext() override {
       if (mFailsGetNewContext) {
-         return NULL;
+         return nullptr;
       }
       return BoomStick::GetNewContext();
    }
 
    void* GetNewSocket(zctx_t* ctx) override {
       if (mFailseGetNewSocket) {
-         return NULL;
+         return nullptr;
       }
       return BoomStick::GetNewSocket(ctx);
    }

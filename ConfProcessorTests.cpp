@@ -20,7 +20,6 @@
 #include "VersionMsg.pb.h"
 #include "SyslogConfMsg.pb.h"
 #include "Shotgun.h"
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 #include "QosmosProtocolCapture.h"
 #include <stdio.h>

@@ -1,5 +1,6 @@
 #include "CrowbarHeadcrabTests.h"
-
+#include <czmq.h>
+#include <boost/thread.hpp>
 TEST_F(CrowbarHeadcrabTests, SimpleConstructAndWieldCrowbar) {
 
    Crowbar firstStack(mTarget);

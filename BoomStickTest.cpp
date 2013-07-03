@@ -3,72 +3,69 @@
 #include "MockSkelleton.h"
 #include "MockBoomStick.h"
 #include <unordered_set>
+#include <memory>
 #ifdef LR_DEBUG
+namespace {
+
+   void runIterations(BoomStick& stick,int iterations) {
+      std::stringstream sS;
+      for (int i = 0; i < iterations; i++) {
+         sS << "request " << i;
+         std::string reply = stick.Send(sS.str());
+         sS << " reply";
+         if(sS.str()!= reply) {
+            FAIL();
+         }
+         sS.str("");
+      }
+   }
+}
 
 TEST_F(BoomStickTest, Construct) {
-   BoomStick stick(mAddress);
-   BoomStick* pStick = new BoomStick(mAddress);
-
-   delete pStick;
-
+   BoomStick stick{mAddress};
+   std::unique_ptr<BoomStick> pStick(new BoomStick(mAddress));
 }
 
 TEST_F(BoomStickTest, SingleTargetSingleShooterSync) {
-   BoomStick stick(mAddress);
-   MockSkelleton target(mAddress);
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
 
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
 
    target.BeginListenAndRepeat();
-   std::stringstream sS;
-
-   for (int i = 0; i < 100; i++) {
-      sS << "request " << i;
-      std::string reply = stick.Send(sS.str());
-      sS << " reply";
-      ASSERT_EQ(sS.str(), reply);
-      sS.str("");
-   }
+   
+   runIterations(stick,100);
 
    target.EndListendAndRepeat();
 
 }
 
 void Shooter(int threadId, int repitions, const std::string& address) {
-   BoomStick stick(address);
+   BoomStick stick{address};
    ASSERT_TRUE(stick.Initialize());
-   std::stringstream sS;
-
-   for (int i = 0; i < repitions; i++) {
-      sS << "request " << threadId << " " << i;
-      std::string reply = stick.Send(sS.str());
-      sS << " reply";
-      ASSERT_EQ(sS.str(), reply);
-      sS.str("");
-   }
+   runIterations(stick,100);
 }
 
 TEST_F(BoomStickTest, SingleTargetMultipleShooterSync) {
 
-   MockSkelleton target(mAddress);
+   MockSkelleton target{mAddress};
 
    ASSERT_TRUE(target.Initialize());
-   std::unordered_set<std::thread*> threads;
+   std::unordered_set<std::shared_ptr<std::thread> > threads;
    target.BeginListenAndRepeat();
    for (int i = 0; i < 10; i++) {
-      threads.insert(new std::thread(Shooter, i, 100, mAddress));
+      threads.insert(std::make_shared<std::thread>(Shooter, i, 100, mAddress));
    }
    for (auto thread : threads) {
       thread->join();
-      delete thread;
    }
    target.EndListendAndRepeat();
 
 }
 
 TEST_F(BoomStickTest, InitializeFailsOnBadAddress) {
-   BoomStick failure("abc123");
+   BoomStick failure{"abc123"};
 
    EXPECT_FALSE(failure.Initialize());
 
@@ -76,7 +73,7 @@ TEST_F(BoomStickTest, InitializeFailsOnBadAddress) {
 }
 
 TEST_F(BoomStickTest, InitializeFailsNoContext) {
-   MockBoomStick failure(mAddress);
+   MockBoomStick failure{mAddress};
 
    failure.mFailsGetNewContext = true;
    EXPECT_FALSE(failure.Initialize());
@@ -85,7 +82,7 @@ TEST_F(BoomStickTest, InitializeFailsNoContext) {
 }
 
 TEST_F(BoomStickTest, InitializeFailsNoSocket) {
-   MockBoomStick failure(mAddress);
+   MockBoomStick failure{mAddress};
 
    failure.mFailseGetNewSocket = true;
    EXPECT_FALSE(failure.Initialize());
@@ -94,7 +91,7 @@ TEST_F(BoomStickTest, InitializeFailsNoSocket) {
 }
 
 TEST_F(BoomStickTest, InitializeFailsNoConnect) {
-   MockBoomStick failure(mAddress);
+   MockBoomStick failure{mAddress};
 
    failure.mFailsConnect = true;
    EXPECT_FALSE(failure.Initialize());
@@ -103,95 +100,54 @@ TEST_F(BoomStickTest, InitializeFailsNoConnect) {
 }
 
 TEST_F(BoomStickTest, MoveConstructor) {
-   BoomStick firstObject(mAddress);
-   MockSkelleton target(mAddress);
+   BoomStick firstObject{mAddress};
+   MockSkelleton target{mAddress};
 
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(firstObject.Initialize());
 
    target.BeginListenAndRepeat();
-   std::stringstream sS;
-
-   for (int i = 0; i < 100; i++) {
-      sS << "request " << i;
-      std::string reply = firstObject.Send(sS.str());
-      sS << " reply";
-      ASSERT_EQ(sS.str(), reply);
-      sS.str("");
-   }
+   runIterations(firstObject,100);
 
    BoomStick secondObject(std::move(firstObject));
 
-   for (int i = 0; i < 100; i++) {
-      sS << "request " << i;
-      std::string reply = secondObject.Send(sS.str());
-      sS << " reply";
-      ASSERT_EQ(sS.str(), reply);
-      sS.str("");
-   }
+   runIterations(secondObject,100);
 
    target.EndListendAndRepeat();
 }
+
 TEST_F(BoomStickTest, MoveAssignment) {
-   BoomStick firstObject(mAddress);
-   MockSkelleton target(mAddress);
+   BoomStick firstObject{mAddress};
+   MockSkelleton target{mAddress};
 
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(firstObject.Initialize());
 
    target.BeginListenAndRepeat();
-   std::stringstream sS;
+   runIterations(firstObject,100);
 
-   for (int i = 0; i < 100; i++) {
-      sS << "request " << i;
-      std::string reply = firstObject.Send(sS.str());
-      sS << " reply";
-      ASSERT_EQ(sS.str(), reply);
-      sS.str("");
-   }
-
-   BoomStick secondObject("abc123");
+   BoomStick secondObject{"abc123"};
    secondObject = std::move(firstObject);
-
-   for (int i = 0; i < 100; i++) {
-      sS << "request " << i;
-      std::string reply = secondObject.Send(sS.str());
-      sS << " reply";
-      ASSERT_EQ(sS.str(), reply);
-      sS.str("");
-   }
+   runIterations(secondObject,100);
 
    target.EndListendAndRepeat();
 }
+
 TEST_F(BoomStickTest, Swap) {
-   BoomStick firstObject(mAddress);
-   MockSkelleton target(mAddress);
+   BoomStick firstObject{mAddress};
+   MockSkelleton target{mAddress};
 
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(firstObject.Initialize());
 
    target.BeginListenAndRepeat();
-   std::stringstream sS;
+   runIterations(firstObject,100);
 
-   for (int i = 0; i < 100; i++) {
-      sS << "request " << i;
-      std::string reply = firstObject.Send(sS.str());
-      sS << " reply";
-      ASSERT_EQ(sS.str(), reply);
-      sS.str("");
-   }
-
-   BoomStick secondObject("abc123");
+   BoomStick secondObject{"abc123"};
    secondObject.Swap(firstObject);
-   ASSERT_EQ("",firstObject.Send("test"));
-   for (int i = 0; i < 100; i++) {
-      sS << "request " << i;
-      std::string reply = secondObject.Send(sS.str());
-      sS << " reply";
-      ASSERT_EQ(sS.str(), reply);
-      sS.str("");
-   }
-   
+   ASSERT_EQ("", firstObject.Send("test"));
+   runIterations(secondObject,100);
+
    target.EndListendAndRepeat();
 }
 #endif

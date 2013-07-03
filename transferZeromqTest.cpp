@@ -1,5 +1,4 @@
 #include "transferZeromqTest.h"
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 #include <unordered_set>
 #include <unordered_map>

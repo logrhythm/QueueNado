@@ -1,5 +1,7 @@
 #include "RifleVampireTests.h"
 
+#include <czmq.h>
+#include <boost/thread.hpp>
 std::atomic<int> RifleVampireTests::mShotsDeleted;
 
 void TestDeleteString(void*, void* data) {

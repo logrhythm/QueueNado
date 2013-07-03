@@ -1,5 +1,6 @@
 #include "CZMQToolkitTests.h"
 
+#include <czmq.h>
 TEST_F(CZMQToolkitTests, CalculateHeadersEmptyMessage) {
    CZMQToolkit::GetHash(&t_data, t_header);
    uLong crc = crc32(0L, NULL, 0);

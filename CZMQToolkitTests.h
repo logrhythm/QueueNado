@@ -16,7 +16,8 @@
 #include <set>
 #include "ZeroMQTests.h"
 #include "CZMQToolkit.h"
-
+#include <czmq.h>
+#include <boost/thread.hpp>
 class CZMQToolkitTests : public /*::testing::Test*/ ZeroMQTests {
 public:
 
