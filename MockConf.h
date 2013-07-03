@@ -8,19 +8,40 @@
 #include "Conf.h"
 #include "include/global.h"
 #ifdef LR_DEBUG
+
 class MockConf : public Conf {
 public:
-
-   MockConf() : mQosmosDebug(false), mDpiHalfSessions(0), mQosmos64(100000),
-   mQosmos128(100000), mQosmos256(100000), mQosmos512(100000), mSyslogEnabled(true),
-   mSyslogAgentPort("1234"), mSyslogFacility("local4"), mReportEverything(false),
-   mDpiThreads(3), mPCAPETimeOut(12), mQosmosExpirePerCallback(1),
-   mEnableTCPReAssembly(true), mEnableIPDefragmentation(true),
-   mSiemLogging(false), mPCAPBuffsize(1234), mPacketSendQueueSize(100),
-   mPacketRecvQueueSize(100), mSyslogMaxLineLength(2048), mDPIMsgSendQueueSize(1024),
-   mStatsIntervalSeconds(5), mDPIMsgRecvQueueSize(1024), mSiemDebug(false), mIntermediateFlowEnabled(false),
-   mUnknownCaptureEnabled(false), mPCapCaptureFileLimit(0), mPCapCaptureSizeLimit(0),
-   mPCapCaptureMemoryLimit(0) {
+   
+   MockConf() :
+   mSyslogAgentPort("1234"),
+   mSyslogFacility("local4"),
+   mDPIMsgSendQueueSize(1024),
+   mDPIMsgRecvQueueSize(1024),
+   mQosmosDebug(false),
+   mDpiHalfSessions(0),
+   mQosmos64(100000),
+   mQosmos128(100000),
+   mQosmos256(100000),
+   mQosmos512(100000),
+   mSiemDebug(false),
+   mIntermediateFlowEnabled(false),
+   mUnknownCaptureEnabled(false),
+   mPCapCaptureFileLimit(0),
+   mPCapCaptureSizeLimit(0),
+   mPCapCaptureMemoryLimit(0),
+   mSyslogEnabled(true),
+   mReportEverything(false),
+   mDpiThreads(3),
+   mPCAPETimeOut(12),
+   mQosmosExpirePerCallback(1),
+   mEnableTCPReAssembly(true),
+   mEnableIPDefragmentation(true),
+   mSiemLogging(false),
+   mPCAPBuffsize(1234),
+   mPacketSendQueueSize(100),
+   mPacketRecvQueueSize(100),
+   mSyslogMaxLineLength(2048),
+   mStatsIntervalSeconds(5) {
    }
 
    ~MockConf() {
@@ -29,228 +50,230 @@ public:
    std::string getSyslogAgentIP(void) override {
       return mSyslogAgentIp;
    }
-   std::string mSyslogAgentIp;
 
-   bool getSyslogEnabled(void) override  {
+   bool getSyslogEnabled(void) override {
       return mSyslogEnabled;
    }
-   bool mSyslogEnabled;
 
    std::string getLogDir() const override {
       return mLogDir;
    }
-   std::string mLogDir;
 
-   std::string getSyslogAgentPort(void) override  {
+   std::string getSyslogAgentPort(void) override {
       return mSyslogAgentPort;
    }
-   std::string mSyslogAgentPort;
 
-   std::string getSyslogFacility(void)  override {
+   std::string getSyslogFacility(void) override {
       return mSyslogFacility;
    }
-   std::string mSyslogFacility;
 
-   std::string getSyslogLogName(void)  override {
+   std::string getSyslogLogName(void) override {
       return mSyslogName;
    }
-   std::string mSyslogName;
 
-   std::string getSyslogConfName(void)  override {
+   std::string getSyslogConfName(void) override {
       return mSyslogConfName;
    }
-   std::string mSyslogConfName;
 
-   std::string getConfChangeQueue(void)  override {
+   std::string getConfChangeQueue(void) override {
       return mConfChangeQueue;
    }
-   std::string mConfChangeQueue;
 
-   std::string getDpiRcvrQueue(void)  override {
+   std::string getDpiRcvrQueue(void) override {
       return mDpiRcvrQueue;
    }
-   std::string mDpiRcvrQueue;
 
-   std::string getBroadcastQueue(void) override  {
+   std::string getBroadcastQueue(void) override {
       return mBroadcastQueue;
    }
-   std::string mBroadcastQueue;
 
-   std::string getStatsAccumulatorQueue(void)  override {
+   std::string getStatsAccumulatorQueue(void) override {
       return mStatsAccumulatorQueue;
    }
-   std::string mStatsAccumulatorQueue;
 
-   std::string getSendStatsQueue(void)  override {
+   std::string getSendStatsQueue(void) override {
       return mSendStatsQueue;
    }
-   std::string mSendStatsQueue;
 
-   std::string getPath(void)  override {
+   std::string getPath(void) override {
       return mPath;
    }
-   std::string mPath;
 
-   bool getReportEveythingEnabled(void)  override {
+   bool getReportEveythingEnabled(void) override {
       return mReportEverything;
    }
-   bool mReportEverything;
 
-   unsigned int getDpiThreads() override  {
+   unsigned int getDpiThreads() override {
       return mDpiThreads;
    }
-   unsigned int mDpiThreads;
 
-   unsigned int getPCAPETimeOut()  override {
+   unsigned int getPCAPETimeOut() override {
       return mPCAPETimeOut;
    }
-   unsigned int mPCAPETimeOut;
 
-   unsigned int getQosmosExpirePerCallback()  override {
+   unsigned int getQosmosExpirePerCallback() override {
       return mQosmosExpirePerCallback;
    }
-   unsigned int mQosmosExpirePerCallback;
 
-
-   bool EnableTCPReassembly() override  {
+   bool EnableTCPReassembly() override {
       return mEnableTCPReAssembly;
    }
-   bool mEnableTCPReAssembly;
 
-   bool EnableIPDefragmentation()  override {
+   bool EnableIPDefragmentation() override {
       return mEnableIPDefragmentation;
    }
-   bool mEnableIPDefragmentation;
 
-   bool SiemLogging()  override {
+   bool SiemLogging() override {
       return mSiemLogging;
    }
-   bool mSiemLogging;
 
-   int getPCAPBuffsize() override  {
+   int getPCAPBuffsize() override {
       return mPCAPBuffsize;
    }
-   int mPCAPBuffsize;
 
-   int GetPacketSendQueueSize()  override {
+   int GetPacketSendQueueSize() override {
       return mPacketSendQueueSize;
    }
-   int mPacketSendQueueSize;
 
-   int GetPacketRecvQueueSize()  override {
+   int GetPacketRecvQueueSize() override {
       return mPacketRecvQueueSize;
    }
-   int mPacketRecvQueueSize;
 
-   unsigned int getSyslogMaxLineLength()  override {
+   unsigned int getSyslogMaxLineLength() override {
       return mSyslogMaxLineLength;
    }
-   unsigned int mSyslogMaxLineLength;
 
-   int GetDPIMsgSendQueueSize()  override {
+   int GetDPIMsgSendQueueSize() override {
       return mDPIMsgSendQueueSize;
    }
-   int mDPIMsgSendQueueSize;
 
-   unsigned int getStatsIntervalSeconds()  override {
+   unsigned int getStatsIntervalSeconds() override {
       return mStatsIntervalSeconds;
    }
-   unsigned int mStatsIntervalSeconds;
 
-   int GetDPIMsgRecvQueueSize()  override {
+   int GetDPIMsgRecvQueueSize() override {
       return mDPIMsgRecvQueueSize;
    }
-   int mDPIMsgRecvQueueSize;
 
-   std::string getPCAPInterface()  override {
+   std::string getPCAPInterface() override {
       return mPCAPInterface;
    }
-   std::string mPCAPInterface;
 
-   bool getQosmosDebugModeEnabled(void)  override {
+   bool getQosmosDebugModeEnabled(void) override {
       return mQosmosDebug;
    }
 
-   unsigned int getDpiHalfSessions() override  {
+   unsigned int getDpiHalfSessions() override {
       return mDpiHalfSessions;
    }
 
-   unsigned int getQosmos64BytePool()  override {
+   unsigned int getQosmos64BytePool() override {
       return mQosmos64;
    }
 
-   unsigned int getQosmos128BytePool() override  {
+   unsigned int getQosmos128BytePool() override {
       return mQosmos128;
    }
 
-   unsigned int getQosmos256BytePool()  override {
+   unsigned int getQosmos256BytePool() override {
       return mQosmos256;
    }
 
-   unsigned int getQosmos512BytePool()  override {
+   unsigned int getQosmos512BytePool() override {
       return mQosmos512;
    }
 
-   void InsertFakeQosmosProtocol(const std::string& name)  {
+   void InsertFakeQosmosProtocol(const std::string& name) {
 
       mQosmosProtoEnabled[name] = "false";
       mQosmosProtoLongNames[name] = name;
       mQosmosProtoFamiles[name] = name;
    }
 
-   std::string getCommandQueue() const  override {
+   std::string getCommandQueue() const override {
       if (mCommandQueue.empty()) {
          return Conf::getCommandQueue();
       }
       return mCommandQueue;
    }
 
-   std::string getProccessManagementQueue() const  override {
+   std::string getProccessManagementQueue() const override {
       if (mProcessManagmentQueue.empty()) {
          return Conf::getProccessManagementQueue();
       }
       return mProcessManagmentQueue;
    }
 
-   bool IntermediateFlowEnabled()  override {
+   bool IntermediateFlowEnabled() override {
       return mIntermediateFlowEnabled;
    }
 
-   bool UnknownCaptureEnabled()  override {
+   bool UnknownCaptureEnabled() override {
       return mUnknownCaptureEnabled;
    }
 
-   int GetPcapCaptureFileLimit()  override {
+   size_t GetPcapCaptureFileLimit() override {
       return mPCapCaptureFileLimit;
    }
 
-   int GetPcapCaptureSizeLimit()  override {
+   size_t GetPcapCaptureSizeLimit() override {
       return mPCapCaptureSizeLimit;
    }
-   int GetPcapCaptureMemoryLimit()  override {
+
+   int GetPcapCaptureMemoryLimit() override {
       return mPCapCaptureMemoryLimit;
    }
-   std::string GetPcapCaptureLocation()  override {
+
+   std::string GetPcapCaptureLocation() override {
       return mPCapCaptureLocation;
    }
+
+   bool SiemDebugLogging() {
+      return mSiemDebug;
+   }
+   std::string mSyslogAgentPort;
+   std::string mSyslogFacility;
+   std::string mSyslogName;
+   std::string mSyslogConfName;
+   std::string mSyslogAgentIp;
+   std::string mLogDir;
+   std::string mConfChangeQueue;
+   std::string mDpiRcvrQueue;
+   std::string mBroadcastQueue;
+   std::string mStatsAccumulatorQueue;
+   std::string mSendStatsQueue;
+   std::string mPath;
+   std::string mCommandQueue;
+   std::string mProcessManagmentQueue;
+   std::string mPCapCaptureLocation;
+   std::string mPCAPInterface;
+   int mDPIMsgSendQueueSize;
+   int mDPIMsgRecvQueueSize;
    bool mQosmosDebug;
    unsigned int mDpiHalfSessions;
    unsigned int mQosmos64;
    unsigned int mQosmos128;
    unsigned int mQosmos256;
    unsigned int mQosmos512;
-
-   bool SiemDebugLogging() {
-      return mSiemDebug;
-   }
    bool mSiemDebug;
-   std::string mCommandQueue;
-   std::string mProcessManagmentQueue;
    bool mIntermediateFlowEnabled;
    bool mUnknownCaptureEnabled;
    int mPCapCaptureFileLimit;
    int mPCapCaptureSizeLimit;
-   std::string mPCapCaptureLocation;
    int mPCapCaptureMemoryLimit;
+   bool mSyslogEnabled;
+   bool mReportEverything;
+   unsigned int mDpiThreads;
+   unsigned int mPCAPETimeOut;
+   unsigned int mQosmosExpirePerCallback;
+   bool mEnableTCPReAssembly;
+   bool mEnableIPDefragmentation;
+   bool mSiemLogging;
+   int mPCAPBuffsize;
+   int mPacketSendQueueSize;
+   int mPacketRecvQueueSize;
+   unsigned int mSyslogMaxLineLength;
+   unsigned int mStatsIntervalSeconds;
+
 };
 #endif

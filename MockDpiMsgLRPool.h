@@ -8,7 +8,7 @@ class MockDpiMsgLRPool : public DpiMsgLRPool {
       MockDpiMsgLRPool() {}
       virtual ~MockDpiMsgLRPool() {}
       
-      bool DpiMsgTooBig(networkMonitor::DpiMsgLR* reusedMsg,size_t limit) override {
+      bool DpiMsgTooBig(networkMonitor::DpiMsgLR* reusedMsg,int limit) override {
          return DpiMsgLRPool::DpiMsgTooBig(reusedMsg,limit);  
       }
 };
