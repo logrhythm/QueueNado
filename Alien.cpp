@@ -1,4 +1,5 @@
 #include "Alien.h"
+#include "czmq.h"
 #include "boost/thread.hpp"
 #include "g2log.hpp"
 #include <memory>

@@ -1,6 +1,9 @@
 #include "CZMQToolkit.h"
 #include "g2log.hpp"
-
+#include <zmq.h>
+#include <czmq.h>
+#include <zframe.h>
+#include "boost/thread.hpp"
 /**
  * This function does nothing, is necessary to do a zero copy in ZMQ
  * @param data

@@ -1,4 +1,10 @@
 #include "BoomStick.h"
+#include <czmq.h>
+#include <zctx.h>
+#include <zsocket.h>
+#include <zmsg.h>
+#include <zsocket.h>
+#include <zframe.h>
 #include <iostream>
 
 /**

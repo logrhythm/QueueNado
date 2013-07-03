@@ -1,4 +1,9 @@
 #include "Crowbar.h"
+#include <zmq.h>
+#include <zlib.h>
+#include <czmq.h>
+#include <zframe.h>
+#include "boost/thread.hpp"
 #include "g2log.hpp"
 
 /**

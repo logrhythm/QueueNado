@@ -1,6 +1,5 @@
 #include "ReceivePacketZMQ.h"
 using namespace std;
-using namespace boost;
 
 /**
  * Default constructor

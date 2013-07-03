@@ -1,5 +1,7 @@
 #include "Vampire.h"
+#include "czmq.h"
 #include "g2log.hpp"
+#include <boost/thread.hpp>
 #define _OPEN_SYS
 #include <sys/stat.h>
 

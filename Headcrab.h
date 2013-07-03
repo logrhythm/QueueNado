@@ -6,14 +6,12 @@
 #pragma once
 
 #include <stdint.h>
-#include <zmq.h>
-#include <zlib.h>
-#include <czmq.h>
 #include <map>
 #include <string>
-#include "boost/thread.hpp"
+#include <vector>
 #include "include/global.h"
-
+struct _zctx_t;
+typedef struct _zctx_t zctx_t;
 class Headcrab {
 public:
    explicit Headcrab(const std::string& binding);

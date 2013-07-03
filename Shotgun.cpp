@@ -2,7 +2,7 @@
 #include "g2log.hpp"
 #define _OPEN_SYS
 #include <sys/stat.h>
-
+#include "czmq.h"
 /**
  * Shotgun class is a ZeroMQ Publisher.
  */

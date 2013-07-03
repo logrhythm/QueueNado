@@ -5,17 +5,15 @@
  */
 #pragma once
 #include <stdint.h>
-#include <zmq.h>
-#include <zlib.h>
-#include <czmq.h>
-#include <zframe.h>
+
 #include <map>
 #include <string>
 #include <set>
-#include "boost/thread.hpp"
+#include <vector>
 #include "include/global.h"
 #include "Headcrab.h"
-
+struct _zctx_t;
+typedef struct _zctx_t zctx_t;
 class Crowbar {
 public:
    explicit Crowbar(const std::string& binding);

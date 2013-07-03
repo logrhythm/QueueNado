@@ -7,15 +7,17 @@
 
 #pragma once
 #include <stdint.h>
-#include <zmq.h>
-#include <zlib.h>
-#include <czmq.h>
-#include <zframe.h>
+
 #include <map>
 #include <string>
 #include <set>
-#include "boost/thread.hpp"
 #include "include/global.h"
+#include <zlib.h>
+struct _zctx_t;
+typedef struct _zctx_t zctx_t;
+
+struct _zmsg_t;
+typedef struct _zmsg_t zmsg_t;
 #ifndef ZMQ_KILL_MESSAGE
 #define ZMQ_KILL_MESSAGE 4
 #endif

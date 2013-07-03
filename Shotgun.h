@@ -1,10 +1,11 @@
 #pragma once
 
-#include "czmq.h"
+
 #include <stdlib.h>
 #include <vector>
 #include <string>
-
+struct _zctx_t;
+typedef struct _zctx_t zctx_t;
 class Shotgun {
 public:
    Shotgun();
