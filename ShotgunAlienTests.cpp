@@ -1,7 +1,7 @@
 #include "ShotgunAlienTests.h"
 #include "boost/pointer_cast.hpp"
-#include "boost/thread.hpp"
-
+#include <czmq.h>
+#include <boost/thread.hpp>
 void * ShotgunAlienTests::ShotgunThread(void * arg) {
    ShotgunAmmo* ammo = static_cast<ShotgunAmmo*> (arg);
    printf("shooting %d bullet(s) at %s\n", ammo->count, ammo->location.c_str());

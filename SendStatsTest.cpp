@@ -1,6 +1,7 @@
 #include "SendStatsTest.h"
 #include "MockSendStats.h"
-
+#include <czmq.h>
+#include <boost/thread.hpp>
 TEST_F(SendStatsTest, ConstructAndInitialize) {
    SendStats* pSender = new SendStats();
    delete pSender;
