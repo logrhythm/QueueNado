@@ -3,7 +3,6 @@
 #include "MockConf.h"
 #include <sstream>
 #include <gtest/gtest.h>
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 #include "ProcessReply.pb.h"
 #include <unistd.h>

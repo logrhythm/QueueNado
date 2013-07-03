@@ -6,7 +6,6 @@
 #pragma once
 #include "ConfSlave.h"
 #include "MockConf.h"
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 
 namespace networkMonitor {

@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include "DpiMsgLR.h"
 #include "DpiMsgLRTest.h"
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 
 using namespace networkMonitor;

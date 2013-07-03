@@ -15,6 +15,7 @@
 #include "Headcrab.h"
 #include "Crowbar.h"
 #include "ZeroMQTests.h"
+#include <czmq.h>
 
 class CrowbarHeadcrabTests : public /*::testing::Test*/ ZeroMQTests {
 public:

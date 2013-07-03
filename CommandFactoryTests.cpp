@@ -1,7 +1,6 @@
 #include "CommandFactoryTests.h"
 #include "UpgradeCommand.h"
 #include <g2loglevels.hpp>
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 
 TEST_F(CommandFactoryTests, ConstructNoRegsistered) {

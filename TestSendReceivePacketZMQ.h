@@ -9,7 +9,7 @@
 #include <iostream>
 #include "boost/thread/locks.hpp"
 #include "boost/thread/recursive_mutex.hpp"
-
+#include <czmq.h>
 class PacketReaderThreadConfig {
 public:
 
