@@ -1,5 +1,4 @@
 #include "Shotgun.h"
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 #define _OPEN_SYS
 #include <sys/stat.h>

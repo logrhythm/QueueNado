@@ -1,5 +1,4 @@
 #include "Crowbar.h"
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 
 /**

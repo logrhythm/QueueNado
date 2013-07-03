@@ -1,6 +1,5 @@
 #include "Alien.h"
 #include "boost/thread.hpp"
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 #include <memory>
 
