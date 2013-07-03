@@ -66,7 +66,6 @@ void Shotgun::Fire(const std::string& bullet) {
 void Shotgun::Fire(const std::vector<std::string>& bullets) {
    zframe_t* key = zframe_new("key", 0);
 
-   int rc;
    zmsg_t* msg = zmsg_new();
    zmsg_add(msg, key);
    for (auto it = bullets.begin(); it != bullets.end(); it++) {

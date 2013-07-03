@@ -8,13 +8,14 @@
  * Construct our Rifle which is a push in our ZMQ push pull.
  */
 Rifle::Rifle(const std::string& location) :
-mContext(NULL),
-mChamber(NULL),
-mOwnSocket(true),
 mLocation(location),
 mHwm(500),
+mChamber(NULL),
+mContext(NULL),
 mLinger(10),
-mIOThredCount(1) {
+mIOThredCount(1),
+mOwnSocket(true)
+{
 }
 
 /**
@@ -121,13 +122,13 @@ bool Rifle::Aim() {
  */
 void Rifle::setIpcFilePermissions() {
 
-   mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP 
-                         | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
+   mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP
+           | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
 
    size_t ipcFound = mLocation.find("ipc");
-   if ( ipcFound != std::string::npos ) {
+   if (ipcFound != std::string::npos) {
       size_t tmpFound = mLocation.find("/tmp");
-      if ( tmpFound != std::string::npos ) {
+      if (tmpFound != std::string::npos) {
          std::string ipcFile = mLocation.substr(tmpFound);
          LOG(INFO) << "Rifle set ipc permissions: " << ipcFile;
          chmod(ipcFile.c_str(), mode);
@@ -144,7 +145,7 @@ void Rifle::setIpcFilePermissions() {
  *
  * @return 
  */
-bool Rifle::Fire(const std::string& bullet,const int waitToFire) {
+bool Rifle::Fire(const std::string& bullet, const int waitToFire) {
    //LOG(DEBUG) << "RifleFire";
    if (!mChamber) {
       LOG(WARNING) << "Socket uninitialized!";
@@ -168,11 +169,12 @@ bool Rifle::Fire(const std::string& bullet,const int waitToFire) {
          return false;
       }
    } else {
-//      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
+      //      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
-bool Rifle::FireZeroCopy( std::string* zero, const size_t size, void (*FreeFunction)(void*,void*), const int waitToFire ){
+
+bool Rifle::FireZeroCopy(std::string* zero, const size_t size, void (*FreeFunction)(void*, void*), const int waitToFire) {
    if (!mChamber) {
       LOG(WARNING) << "Socket uninitialized!";
       return false;
@@ -196,10 +198,11 @@ bool Rifle::FireZeroCopy( std::string* zero, const size_t size, void (*FreeFunct
          return false;
       }
    } else {
-//      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
+      //      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
+
 /**
  * Shoot a pointer / message to the Vampires / pull.
  * @param stake
@@ -225,11 +228,11 @@ bool Rifle::FireStake(const void* stake, const int waitToFire) {
          return CZMQToolkit::SendExistingMessage(message, mChamber);
       } else {
 
-         LOG(WARNING) <<  "Error in zmq_pollout in " <<GetBinding()<<": " << zmq_strerror(zmq_errno());
+         LOG(WARNING) << "Error in zmq_pollout in " << GetBinding() << ": " << zmq_strerror(zmq_errno());
          return false;
       }
    } else {
-//      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
+      //      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }
@@ -264,11 +267,11 @@ bool Rifle::FireStakes(const std::vector<std::pair<void*, unsigned int> >
                  stakes.size() * (sizeof (std::pair<void*, unsigned int>)));
          return CZMQToolkit::SendExistingMessage(message, mChamber);
       } else {
-         LOG(WARNING) <<  "Error in zmq_pollout in " <<GetBinding()<<": " << zmq_strerror(zmq_errno());
+         LOG(WARNING) << "Error in zmq_pollout in " << GetBinding() << ": " << zmq_strerror(zmq_errno());
          return false;
       }
    } else {
-//      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
+      //      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
       return false;
    }
 }

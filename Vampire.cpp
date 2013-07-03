@@ -8,10 +8,10 @@
  * Construct our Vampire which is a pull in our ZMQ push pull.
  */
 Vampire::Vampire(const std::string& location) :
-mContext(NULL),
-mBody(NULL),
 mLocation(location),
 mHwm(250),
+mBody(NULL),
+mContext(NULL),
 mLinger(10),
 mIOThredCount(1),
 mOwnSocket(false) {

@@ -331,7 +331,6 @@ bool ZeroMQ<void*>::SendPointer(void* packet) {
    if (!mOwnsContext) {
       return false;
    }
-   void* hint = NULL;
    zmq_msg_t msg;
    zmq_msg_init_size(&msg, sizeof (void*));
    memcpy(zmq_msg_data(&msg), &packet, sizeof (void*));

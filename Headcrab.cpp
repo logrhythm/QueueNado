@@ -10,8 +10,7 @@
  * @param binding
  *   A ZeroMQ binding
  */
-Headcrab::Headcrab(const std::string& binding) : mContext(NULL),
-mBinding(binding), mFace(NULL) {
+Headcrab::Headcrab(const std::string& binding) : mBinding(binding), mContext(NULL), mFace(NULL) {
 
 }
 
