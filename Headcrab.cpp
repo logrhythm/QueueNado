@@ -1,5 +1,9 @@
 #include "Headcrab.h"
-#include "g2logworker.hpp"
+#include <zmq.h>
+#include <zlib.h>
+#include <czmq.h>
+
+#include "boost/thread.hpp"
 #include "g2log.hpp"
 #define _OPEN_SYS
 #include <sys/stat.h>

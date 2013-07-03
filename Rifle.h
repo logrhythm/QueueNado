@@ -1,9 +1,11 @@
 #pragma once
-#include "czmq.h"
+#include <vector>
+#include <string>
 #include "CZMQToolkit.h"
 
 #define SIZE_OF_STAKE_BUNDLE 100
-
+struct _zctx_t;
+typedef struct _zctx_t zctx_t;
 class Rifle {
 public:
    explicit Rifle(const std::string& location);

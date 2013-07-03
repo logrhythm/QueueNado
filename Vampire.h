@@ -1,7 +1,9 @@
 #pragma once
-#include "czmq.h"
+#include <string>
+#include <vector>
 #include "CZMQToolkit.h"
-
+struct _zctx_t;
+typedef struct _zctx_t zctx_t;
 class Vampire {
 public:
    explicit Vampire(const std::string& location);

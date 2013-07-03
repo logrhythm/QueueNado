@@ -1,4 +1,10 @@
 #include "BoomStick.h"
+#include <czmq.h>
+#include <zctx.h>
+#include <zsocket.h>
+#include <zmsg.h>
+#include <zsocket.h>
+#include <zframe.h>
 #include <iostream>
 
 /**
@@ -69,7 +75,7 @@ zctx_t* BoomStick::GetNewContext() {
  *   A pointer to a socket
  */
 void* BoomStick::GetNewSocket(zctx_t* ctx) {
-   if (ctx == nullptr) {
+   if (nullptr == ctx) {
       return nullptr;
    }
    return zsocket_new(ctx, ZMQ_DEALER);
@@ -85,7 +91,7 @@ void* BoomStick::GetNewSocket(zctx_t* ctx) {
  *   If connection was successful
  */
 bool BoomStick::ConnectToBinding(void* socket, const std::string& binding) {
-   if (socket == nullptr) {
+   if (nullptr == socket) {
       return false;
    }
    return (zsocket_connect(socket, binding.c_str()) >= 0);
@@ -95,7 +101,7 @@ bool BoomStick::ConnectToBinding(void* socket, const std::string& binding) {
  * @param binding
  */
 void BoomStick::SetBinding(const std::string& binding) {
-   if (mCtx != nullptr) {
+   if (nullptr != mCtx) {
       zctx_destroy(&mCtx);
       mCtx = nullptr;
       mChamber = nullptr;
@@ -108,15 +114,16 @@ void BoomStick::SetBinding(const std::string& binding) {
  *   true when successful
  */
 bool BoomStick::Initialize() {
-   if (mCtx != nullptr) {
+   if (nullptr != mCtx ) {
       return true;
    }
    mCtx = GetNewContext();
-   if (mCtx  == nullptr) {
+   if (nullptr == mCtx) {
       return false;
    }
-   mChamber = GetNewSocket(mCtx);
-   if (mChamber == nullptr) {
+   mChamber = GetNewSocket(mCtx);  
+   // The memory in this pointer is managed by the context and should not be deleted
+   if (nullptr == mChamber ) {
       zctx_destroy(&mCtx);
       mCtx = nullptr;
       return false;
@@ -139,7 +146,7 @@ bool BoomStick::Initialize() {
  *   The reply received
  */
 std::string BoomStick::Send(const std::string& command) {
-   if (mCtx == nullptr || mChamber == nullptr) {
+   if (nullptr == mCtx || nullptr == mChamber ) {
       return
       {
       };

@@ -1,13 +1,10 @@
 #pragma once
 #include <string>
-#include <czmq.h>
-#include <zctx.h>
-#include <zsocket.h>
-#include <zmsg.h>
-#include <zsocket.h>
-#include <zframe.h>
+
 #include <unordered_map>
 #include "include/global.h"
+struct _zctx_t;
+typedef struct _zctx_t zctx_t;
 class BoomStick {
 public:
    explicit BoomStick(const std::string& binding);

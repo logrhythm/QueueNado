@@ -1,5 +1,5 @@
 #include "Rifle.h"
-#include "g2logworker.hpp"
+#include "czmq.h"
 #include "g2log.hpp"
 #define _OPEN_SYS
 #include <sys/stat.h>
