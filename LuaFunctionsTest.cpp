@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "LuaFunctionsTest.h"
 #include "MockConf.h"
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 #include "MockLuaExecuter.h"
 #include "LuaPacketFunctions.h"

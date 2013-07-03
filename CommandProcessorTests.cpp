@@ -17,7 +17,6 @@
 #include "RebootCommand.h"
 #include "RebootCommandTest.h"
 #include <g2loglevels.hpp>
-#include "g2logworker.hpp"
 #include "g2log.hpp"
 #include "RestartSyslogCommandTest.h"
 #include "NetInterfaceMsg.pb.h"
