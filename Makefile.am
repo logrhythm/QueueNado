@@ -24,6 +24,7 @@ transferZeromqTest \
 RESTBuilderTest \
 ConversionTest \
 DiskPacketCaptureTest \
+DiskCleanupTest \
 ThreadContainerTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
@@ -38,6 +39,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libprocess/ \
           -Wl,-R${abs_top_srcdir}/source/libelasticsearch/ \
           -Wl,-R${abs_top_srcdir}/source/libtools/ \
+          -Wl,-R${abs_top_srcdir}/source/libsystem/ \
           -Wl,-R/usr/local/probe/lib/ \
           -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
@@ -51,6 +53,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/liblua/ \
           -L${abs_top_srcdir}/source/libelasticsearch/ \
           -L${abs_top_srcdir}/source/libtools/ \
+          -L${abs_top_srcdir}/source/libsystem/ \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
@@ -67,12 +70,13 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/liblua \
          -I${abs_top_srcdir}/source/libelasticsearch \
          -I${abs_top_srcdir}/source/libtools \
+         -I${abs_top_srcdir}/source/libsystem \
          -I/usr/local/probe/include
 
 DYNAMIC_LIBS=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log \
-             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools
+             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem
 
 ZMQTest_LDADD=${DYNAMIC_LIBS}
 ZMQTest_LDFLAGS=${BASE_LIBS}
@@ -113,6 +117,11 @@ DiskPacketCaptureTest_LDADD=${DYNAMIC_LIBS}
 DiskPacketCaptureTest_LDFLAGS=${BASE_LIBS}
 DiskPacketCaptureTest_SOURCES=main.cpp \
 DiskPacketCaptureTest.cpp \
+DiskCleanupTest.cpp
+
+DiskCleanupTest_LDADD=${DYNAMIC_LIBS}
+DiskCleanupTest_LDFLAGS=${BASE_LIBS}
+DiskCleanupTest_SOURCES=main.cpp \
 DiskCleanupTest.cpp
 
 PacketCaptureTest_LDADD=${DYNAMIC_LIBS}

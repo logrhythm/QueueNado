@@ -13,13 +13,18 @@ namespace networkMonitor {
    class MockConfSlave : public ConfSlave {
    public:
 
-      MockConfSlave() : mAppClosed(false), mNewConfSeen(false), mNewQosmosSeen(false), mNewSyslogSeen(false), mNewNetInterfaceMsg(false),
+      MockConfSlave() : mAppClosed(false), mNewConfSeen(false),
+      mNewQosmosSeen(false), mNewSyslogSeen(false), mNewNetInterfaceMsg(false),
       mBroadcastQueueName("ipc:///tmp/testconfbroacast.ipc") {
 
       }
 
       Conf GetConf(void) {
-         return mConf;
+         if (mConfLocation.empty()) {
+            return mConf;
+         } else {
+            return ConfSlave::GetConf(mConfLocation);
+         }
       }
 
       void EndApplication() {
@@ -69,6 +74,7 @@ namespace networkMonitor {
       bool mNewSyslogSeen;
       bool mNewNetInterfaceMsg;
       std::string mBroadcastQueueName;
+      std::string mConfLocation;
 #ifdef LR_DEBUG
       MockConf mConf;
 #else

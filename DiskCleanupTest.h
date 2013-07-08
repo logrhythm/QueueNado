@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MockDiskCleanup.h"
-
+#include "MockConfSlave.h"
 #include "gtest/gtest.h"
 #include "boost/lexical_cast.hpp"
 #include <csignal>
@@ -47,6 +47,7 @@ protected:
    size_t t_packetSize;
    timeval t_endTime;
    unsigned int t_totalTransactions;
+   networkMonitor::MockConfSlave mConf;
 private:
 
 };

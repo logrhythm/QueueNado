@@ -5,7 +5,7 @@ chmod 777 .
 chmod 777 ..
 chmod 777 ../source/.libs
 chmod 777 ../source/.libs/*
-touch ../ZMQTest.junit.xml ../PacketCaptureTest.junit.xml ../DpiMsgLRTest.junit.xml ../QosmosCodeGeneratorTest.junit.xml ../QosmosDpiTest.junit.xml ../SysLoggerTest.junit.xml ../SyslogConfigTest.junit.xml ../ConfProcessorTest.junit.xml ../SendStatsTest.junit.xml ../StatsAccumulatorTest.junit.xml ../ShotgunAlienTests.junit.xml ../RifleVampireTests.junit.xml ../TestTCPIPDirectionlessHash.junit.xml ../RuleEngineTest.junit.xml ../CommandProcessorTests.junit.xml ../ProcessManagerTest.junit.xml ../LuaExecuterTest.junit.xml ../ThreadContainerTest.junit.xml ../../RESTBuilderTest.junit.xml ../JSONEncodeTest.junit.xml ../ConversionTest.junit.xml ../DiskPacketCaptureTest.junit.xml
+touch ../ZMQTest.junit.xml ../PacketCaptureTest.junit.xml ../DpiMsgLRTest.junit.xml ../QosmosCodeGeneratorTest.junit.xml ../QosmosDpiTest.junit.xml ../SysLoggerTest.junit.xml ../SyslogConfigTest.junit.xml ../ConfProcessorTest.junit.xml ../SendStatsTest.junit.xml ../StatsAccumulatorTest.junit.xml ../ShotgunAlienTests.junit.xml ../RifleVampireTests.junit.xml ../TestTCPIPDirectionlessHash.junit.xml ../RuleEngineTest.junit.xml ../CommandProcessorTests.junit.xml ../ProcessManagerTest.junit.xml ../LuaExecuterTest.junit.xml ../ThreadContainerTest.junit.xml ../../RESTBuilderTest.junit.xml ../JSONEncodeTest.junit.xml ../ConversionTest.junit.xml ../DiskPacketCaptureTest.junit.xml ../DiskCleanupTest.junit.xml 
 chmod 777 ../*.xml
 ./ZMQTest --gtest_output=xml:../ZMQTest.junit.xml
 ./PacketCaptureTest --gtest_output=xml:../PacketCaptureTest.junit.xml
@@ -29,5 +29,6 @@ chmod 777 ../*.xml
 ./JSONEncodeTest --gtest_output=xml:../JSONEncodeTest.junit.xml
 ./ConversionTest --gtest_output=xml:../ConversionTest.junit.xml
 ./DiskPacketCaptureTest --gtest_output=xml:../DiskPacketCaptureTest.junit.xml
+./DiskCleanupTest --gtest_output=xml:../DiskCleanupTest.junit.xml
 
 

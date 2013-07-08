@@ -4,7 +4,7 @@
 class MockDiskCleanup : public DiskCleanup {
 public:
 
-   MockDiskCleanup(Conf& conf) : DiskCleanup(conf) {
+   MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf) {
    }
 
    virtual ~MockDiskCleanup() {
