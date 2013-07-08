@@ -1,11 +1,11 @@
-#include "DiskPacketCaptureCleanupTest.h"
+#include "DiskCleanupTest.h"
 #include "MockConf.h"
 
-TEST_F(DiskPacketCaptureCleanupTest, TooMuchPCap) {
+TEST_F(DiskCleanupTest, TooMuchPCap) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
       MockConf conf;
-      MockDiskPacketCaptureCleanup capture(conf);
+      MockDiskCleanup capture(conf);
 
       conf.mPCapCaptureLocation = "testLocation";
       conf.mPCapCaptureFileLimit = 10000;
@@ -88,11 +88,11 @@ TEST_F(DiskPacketCaptureCleanupTest, TooMuchPCap) {
 #endif
 }
 
-TEST_F(DiskPacketCaptureCleanupTest, CleanupOldPcapFiles) {
+TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
       MockConf conf;
-      MockDiskPacketCaptureCleanup capture(conf);
+      MockDiskCleanup capture(conf);
       std::atomic<size_t> aDiskUsed;
       std::atomic<size_t> aTotalFiles;
       conf.mPCapCaptureLocation = "testLocation";

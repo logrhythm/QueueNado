@@ -1,16 +1,16 @@
 #pragma once
 
-#include "MockDiskPacketCaptureCleanup.h"
+#include "MockDiskCleanup.h"
 
 #include "gtest/gtest.h"
 #include "boost/lexical_cast.hpp"
 #include <csignal>
 #include <sys/time.h>
 
-class DiskPacketCaptureCleanupTest : public ::testing::Test {
+class DiskCleanupTest : public ::testing::Test {
 public:
 
-   DiskPacketCaptureCleanupTest() {
+   DiskCleanupTest() {
    };
 protected:
 

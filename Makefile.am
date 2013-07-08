@@ -113,7 +113,7 @@ DiskPacketCaptureTest_LDADD=${DYNAMIC_LIBS}
 DiskPacketCaptureTest_LDFLAGS=${BASE_LIBS}
 DiskPacketCaptureTest_SOURCES=main.cpp \
 DiskPacketCaptureTest.cpp \
-DiskPacketCaptureCleanupTest.cpp
+DiskCleanupTest.cpp
 
 PacketCaptureTest_LDADD=${DYNAMIC_LIBS}
 PacketCaptureTest_LDFLAGS=${BASE_LIBS}
