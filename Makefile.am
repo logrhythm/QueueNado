@@ -23,6 +23,7 @@ JSONEncoderTest \
 transferZeromqTest \
 RESTBuilderTest \
 ConversionTest \
+DiskPacketCaptureTest \
 ThreadContainerTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
@@ -103,7 +104,16 @@ QosmosCodeGeneratorTest_SOURCES=main.cpp QosmosCodeGeneratorTests.cpp
 
 QosmosDpiTest_LDADD=${DYNAMIC_LIBS}
 QosmosDpiTest_LDFLAGS=${BASE_LIBS}
-QosmosDpiTest_SOURCES=main.cpp QosmosDpiTest.cpp QosmosPacketAllocatorTests.cpp QosmosProtocolCaptureTest.cpp DiskPacketCaptureTest.cpp 
+QosmosDpiTest_SOURCES=main.cpp \
+QosmosDpiTest.cpp \
+QosmosPacketAllocatorTests.cpp \
+QosmosProtocolCaptureTest.cpp
+
+DiskPacketCaptureTest_LDADD=${DYNAMIC_LIBS}
+DiskPacketCaptureTest_LDFLAGS=${BASE_LIBS}
+DiskPacketCaptureTest_SOURCES=main.cpp \
+DiskPacketCaptureTest.cpp \
+DiskPacketCaptureCleanupTest.cpp
 
 PacketCaptureTest_LDADD=${DYNAMIC_LIBS}
 PacketCaptureTest_LDFLAGS=${BASE_LIBS}
