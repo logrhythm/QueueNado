@@ -1,5 +1,8 @@
 #include "DiskCleanupTest.h"
 #include "MockConf.h"
+#include <future>
+#include <thread>
+#include <atomic>
 
 TEST_F(DiskCleanupTest, TooMuchPCap) {
 #ifdef LR_DEBUG
@@ -167,10 +170,65 @@ TEST_F(DiskCleanupTest, TooMuchSearch) {
 
    MockDiskCleanup diskCleanup(mConf);
 
+   EXPECT_FALSE(diskCleanup.TooMuchSearch(0, 0));
    EXPECT_TRUE(diskCleanup.TooMuchSearch(0, 100));
    EXPECT_TRUE(diskCleanup.TooMuchSearch(14, 100));
    EXPECT_FALSE(diskCleanup.TooMuchSearch(15, 100));
    EXPECT_FALSE(diskCleanup.TooMuchSearch(100, 100));
    EXPECT_FALSE(diskCleanup.TooMuchSearch(1000, 100));
+}
+
+TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
+
+   MockDiskCleanup diskCleanup(mConf);
+   diskCleanup.mFailRemoveSearch = true;
+   diskCleanup.mFailFileSystemInfo = true;
+   std::promise<bool> promisedFinished;
+   auto futureResult = promisedFinished.get_future();
+   std::thread([](std::promise<bool>& finished, MockDiskCleanup & diskCleanup) {
+      size_t free(0);
+      size_t total(100);
+              diskCleanup.CleanupSearch(free, total);
+              finished.set_value(true);
+   }, std::ref(promisedFinished), std::ref(diskCleanup)).detach();
+
+   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
+
+}
+
+TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
+   MockDiskCleanup diskCleanup(mConf);
+   diskCleanup.mFileSystemInfoCountdown = 3;
+   diskCleanup.mFailFileSystemInfo = true;
+   diskCleanup.mSucceedRemoveSearch = true;
+
+   std::promise<bool> promisedFinished;
+   auto futureResult = promisedFinished.get_future();
+   std::thread([](std::promise<bool>& finished, MockDiskCleanup & diskCleanup) {
+      size_t free(0);
+      size_t total(100);
+              diskCleanup.CleanupSearch(free, total);
+      if (free != total) {
+         FAIL();
+      }
+      finished.set_value(true);
+   }, std::ref(promisedFinished), std::ref(diskCleanup)).detach();
+
+   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
+}
+
+TEST_F(DiskCleanupTest, FSMath) {
+   MockDiskCleanup diskCleanup(mConf);
+   diskCleanup.mFleSystemInfo.f_bfree = 100 << B_TO_MB_SHIFT;
+   diskCleanup.mFleSystemInfo.f_frsize = 1024;
+   diskCleanup.mFleSystemInfo.f_blocks = 109 << B_TO_MB_SHIFT;
+   diskCleanup.mFleSystemInfo.f_frsize = 1024;
+   
+   size_t free(0);
+   size_t total(0);
+   
+   diskCleanup.GetFileSystemInfo(free,total);
+   EXPECT_EQ(100,free);
+   EXPECT_EQ(109,total);
 }
 #endif
