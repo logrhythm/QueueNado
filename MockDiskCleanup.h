@@ -41,12 +41,12 @@ public:
       DiskCleanup::ResetConf();
    }
 
-   bool RemoveOldestSearchIndex() override {
+   bool RemoveOldestSearchIndex(ElasticSearch& es) override {
       if (mSucceedRemoveSearch) {
          return true;
       }
       if (!mFailRemoveSearch) {
-         return DiskCleanup::RemoveOldestSearchIndex();
+         return DiskCleanup::RemoveOldestSearchIndex(es);
       }
 
 
@@ -63,16 +63,19 @@ public:
       return;
    }
 
-   void CleanupSearch(size_t& fsFreeGigs, size_t& fsTotalGigs) override {
-      return DiskCleanup::CleanupSearch(fsFreeGigs, fsTotalGigs);
+   void CleanupSearch(size_t& fsFreeGigs, size_t& fsTotalGigs, ElasticSearch& es) override {
+      return DiskCleanup::CleanupSearch(fsFreeGigs, fsTotalGigs,es);
    }
 
-   void GetStatVFS(struct statvfs* fileSystemInfo) {
+   void GetStatVFS(struct statvfs* fileSystemInfo) override {
       if (mRealFilesSystemAccess) {
          DiskCleanup::GetStatVFS(fileSystemInfo);
       } else {
          memcpy(fileSystemInfo, &mFleSystemInfo, sizeof (struct statvfs));
       }
+   }
+   std::string GetOldestIndex(ElasticSearch& es) override {
+      return DiskCleanup::GetOldestIndex(es);
    }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;

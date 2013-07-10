@@ -1,5 +1,6 @@
 #include "DiskCleanupTest.h"
 #include "MockConf.h"
+#include "MockElasticSearch.h"
 #include <future>
 #include <thread>
 #include <atomic>
@@ -180,6 +181,7 @@ TEST_F(DiskCleanupTest, TooMuchSearch) {
 
 TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
 
+
    MockDiskCleanup diskCleanup(mConf);
    diskCleanup.mFailRemoveSearch = true;
    diskCleanup.mFailFileSystemInfo = true;
@@ -188,7 +190,8 @@ TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
    std::thread([](std::promise<bool>& finished, MockDiskCleanup & diskCleanup) {
       size_t free(0);
       size_t total(100);
-              diskCleanup.CleanupSearch(free, total);
+              MockElasticSearch es;
+              diskCleanup.CleanupSearch(free, total, std::ref(es));
               finished.set_value(true);
    }, std::ref(promisedFinished), std::ref(diskCleanup)).detach();
 
@@ -198,6 +201,7 @@ TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
 
 TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
    MockDiskCleanup diskCleanup(mConf);
+
    diskCleanup.mFileSystemInfoCountdown = 3;
    diskCleanup.mFailFileSystemInfo = true;
    diskCleanup.mSucceedRemoveSearch = true;
@@ -207,7 +211,8 @@ TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
    std::thread([](std::promise<bool>& finished, MockDiskCleanup & diskCleanup) {
       size_t free(0);
       size_t total(100);
-              diskCleanup.CleanupSearch(free, total);
+              MockElasticSearch es;
+              diskCleanup.CleanupSearch(free, total, es);
       if (free != total) {
          FAIL();
       }
@@ -217,25 +222,34 @@ TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
    EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
 }
 
+TEST_F(DiskCleanupTest, RemoveGetsTheOldestMatch) {
+   MockDiskCleanup diskCleanup(mConf);
+   MockElasticSearch es;
+   
+   es.mFakeIndexList = true;
+   
+   EXPECT_EQ("network_1999_01_01",diskCleanup.GetOldestIndex(es));
+   
+}
 TEST_F(DiskCleanupTest, FSMath) {
    MockDiskCleanup diskCleanup(mConf);
    diskCleanup.mFleSystemInfo.f_bfree = 100 << B_TO_MB_SHIFT;
    diskCleanup.mFleSystemInfo.f_frsize = 1024;
    diskCleanup.mFleSystemInfo.f_blocks = 109 << B_TO_MB_SHIFT;
    diskCleanup.mFleSystemInfo.f_frsize = 1024;
-   
+
    size_t free(0);
    size_t total(0);
-   
-   diskCleanup.GetFileSystemInfo(free,total);
-   EXPECT_EQ(100,free);
-   EXPECT_EQ(109,total);
-   
+
+   diskCleanup.GetFileSystemInfo(free, total);
+   EXPECT_EQ(100, free);
+   EXPECT_EQ(109, total);
+
    diskCleanup.mRealFilesSystemAccess = true;
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
    diskCleanup.ResetConf();
-   diskCleanup.GetFileSystemInfo(free,total);
-   EXPECT_EQ(0,free);
-   EXPECT_EQ(0,total);
+   diskCleanup.GetFileSystemInfo(free, total);
+   EXPECT_EQ(0, free);
+   EXPECT_EQ(0, total);
 }
 #endif
