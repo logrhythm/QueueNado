@@ -6,7 +6,8 @@ class MockDiskCleanup : public DiskCleanup {
 public:
 
    MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
-   mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false) {
+   mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
+   mRealFilesSystemAccess(false) {
       mFleSystemInfo.f_bfree = 1;
       mFleSystemInfo.f_frsize = 1;
       mFleSystemInfo.f_blocks = 1;
@@ -65,12 +66,18 @@ public:
    void CleanupSearch(size_t& fsFreeGigs, size_t& fsTotalGigs) override {
       return DiskCleanup::CleanupSearch(fsFreeGigs, fsTotalGigs);
    }
+
    void GetStatVFS(struct statvfs* fileSystemInfo) {
-      memcpy(fileSystemInfo,&mFleSystemInfo,sizeof(struct statvfs));
+      if (mRealFilesSystemAccess) {
+         DiskCleanup::GetStatVFS(fileSystemInfo);
+      } else {
+         memcpy(fileSystemInfo, &mFleSystemInfo, sizeof (struct statvfs));
+      }
    }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
    int mFileSystemInfoCountdown;
    bool mSucceedRemoveSearch;
    struct statvfs mFleSystemInfo;
+   bool mRealFilesSystemAccess;
 };

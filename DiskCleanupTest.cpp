@@ -230,5 +230,12 @@ TEST_F(DiskCleanupTest, FSMath) {
    diskCleanup.GetFileSystemInfo(free,total);
    EXPECT_EQ(100,free);
    EXPECT_EQ(109,total);
+   
+   diskCleanup.mRealFilesSystemAccess = true;
+   mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
+   diskCleanup.ResetConf();
+   diskCleanup.GetFileSystemInfo(free,total);
+   EXPECT_EQ(0,free);
+   EXPECT_EQ(0,total);
 }
 #endif
