@@ -3,6 +3,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <thread>
+#include "jansson.h"
 
 void MesageSendThread(int numberOfMessages, int threadNumber, const std::string& binding,
         const std::string& baseMessage, zctx_t* context) {
@@ -57,6 +58,64 @@ void MesageSendThread(int numberOfMessages, int threadNumber, const std::string&
    }
 }
 
+void JSonPrettyPrint(json_t* Object, int indent) {
+   const char* key;
+   json_t* value;
+
+   json_object_foreach(Object, key, value) {
+      for (int i = 0; i < indent; i++) {
+         std::cout << "   ";
+      }
+      std::cout << key << ":";
+      if (json_is_object(value)) {
+         std::cout << std::endl;
+         JSonPrettyPrint(value, indent + 1);
+      } else if (json_is_string(value)) {
+         std::cout << json_string_value(value);
+      } else if (json_is_integer(value)) {
+         std::cout << json_integer_value(value);
+      }
+      std::cout << std::endl;
+   }
+}
+
+TEST_F(transferZeromqTest, GetListOfIndexes) {
+   zctx_t* context = zctx_new();
+   void* socket = zsocket_new(context, ZMQ_DEALER);
+   if (zsocket_connect(socket, "tcp://127.0.0.1:9700") == 0) {
+      zmsg_t* message = zmsg_new();
+      zmsg_addstr(message, "GET|/_status/");
+      zmsg_send(&message, socket);
+      message = zmsg_recv(socket);
+      std::string resultString = zmsg_popstr(message);
+      std::cout << resultString << std::endl;
+      zmsg_destroy(&message);
+      json_error_t error;
+      std::string jsonReturnString = resultString.substr(resultString.find("{"));
+      json_t* decodedMessage = json_loads(jsonReturnString.c_str(), 0, &error);
+      ASSERT_TRUE(decodedMessage != NULL);
+      //JSonPrettyPrint(decodedMessage, 0);
+      const char* key;
+      json_t* value;
+      std::unordered_set<std::string> indexes;
+      json_object_foreach(decodedMessage, key, value) {
+         std::string keyString(key);
+         if (keyString == "indices") {
+            const char* indexName;
+            json_t* indexInfo;
+            
+            json_object_foreach(value, indexName, indexInfo) {
+               indexes.insert(indexName);
+            }
+         }
+      }
+      EXPECT_FALSE(indexes.empty());
+      for (auto name : indexes) {
+         std::cout << name << std::endl;
+      }
+   }
+}
+
 TEST_F(transferZeromqTest, singleIteration) {
    zctx_t* context = zctx_new();
    int iterations = 1;
@@ -91,3 +150,4 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTest) {
    MesageSendThread(iterations, 1, "tcp://127.0.0.1:9700", "this is a single thread", context);
    EndTimedSection();
 }
+
