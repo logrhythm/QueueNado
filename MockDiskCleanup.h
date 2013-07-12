@@ -17,31 +17,31 @@ public:
    virtual ~MockDiskCleanup() {
    }
 
-   void RemoveOldestPCapFiles(const size_t maxToRemove) override {
+   void RemoveOldestPCapFiles(const size_t maxToRemove) {
       DiskCleanup::RemoveOldestPCapFiles(1);
    }
 
-   bool TooMuchPCap(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) override {
+   bool TooMuchPCap(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
       return DiskCleanup::TooMuchPCap(aDiskUsed, aTotalFiles);
    }
 
-   void RecalculatePCapDiskUsed(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) override {
+   void RecalculatePCapDiskUsed(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
       DiskCleanup::RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
    }
 
-   void CleanupOldPcapFiles(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) override {
+   void CleanupOldPcapFiles(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
       DiskCleanup::CleanupOldPcapFiles(aDiskUsed, aTotalFiles);
    }
 
-   bool TooMuchSearch(const size_t& fsFreeGigs, const size_t& fsTotalGigs) override {
+   bool TooMuchSearch(const size_t& fsFreeGigs, const size_t& fsTotalGigs) {
       return DiskCleanup::TooMuchSearch(fsFreeGigs, fsTotalGigs);
    }
 
-   void ResetConf() override {
+   void ResetConf() {
       DiskCleanup::ResetConf();
    }
 
-   bool RemoveOldestSearchIndex(ElasticSearch& es) override {
+   bool RemoveOldestSearchIndex(ElasticSearch& es) {
       if (mSucceedRemoveSearch) {
          return true;
       }
@@ -53,7 +53,7 @@ public:
       return false;
    }
 
-   void GetFileSystemInfo(size_t& fsFreeGigs, size_t& fsTotalGigs) override {
+   void GetFileSystemInfo(size_t& fsFreeGigs, size_t& fsTotalGigs) {
       if (!mFailFileSystemInfo) {
          return DiskCleanup::GetFileSystemInfo(fsFreeGigs, fsTotalGigs);
       }
@@ -63,18 +63,19 @@ public:
       return;
    }
 
-   void CleanupSearch(size_t& fsFreeGigs, size_t& fsTotalGigs, ElasticSearch& es) override {
-      return DiskCleanup::CleanupSearch(fsFreeGigs, fsTotalGigs,es);
+   void CleanupSearch(size_t& fsFreeGigs, size_t& fsTotalGigs, ElasticSearch& es) {
+      return DiskCleanup::CleanupSearch(fsFreeGigs, fsTotalGigs, es);
    }
 
-   void GetStatVFS(struct statvfs* fileSystemInfo) override {
+   void GetStatVFS(struct statvfs* fileSystemInfo) {
       if (mRealFilesSystemAccess) {
          DiskCleanup::GetStatVFS(fileSystemInfo);
       } else {
          memcpy(fileSystemInfo, &mFleSystemInfo, sizeof (struct statvfs));
       }
    }
-   std::string GetOldestIndex(ElasticSearch& es) override {
+
+   std::string GetOldestIndex(ElasticSearch& es) {
       return DiskCleanup::GetOldestIndex(es);
    }
    bool mFailRemoveSearch;
