@@ -16,9 +16,9 @@ using namespace networkMonitor;
 
 TEST_F(RuleEngineTest, elasticSearchSends) {
    MockRuleEngine dm(conf, syslogName, syslogOption, syslogFacility, syslogPriority,
-                     true, 0);
+           true, 0);
    std::stringstream targetQueue;
-   
+
    targetQueue << "ipc:///tmp/ruleEngineTest" << pthread_self();
    dm.SetElasticSearchTarget(targetQueue.str());
    ASSERT_FALSE(dm.CanSendToElasticSearch());
@@ -26,6 +26,7 @@ TEST_F(RuleEngineTest, elasticSearchSends) {
    ASSERT_TRUE(dm.CanSendToElasticSearch());
 }
 #endif
+
 TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
 #ifdef LR_DEBUG
    MockRuleEngine dm(conf, syslogName, syslogOption,
@@ -101,7 +102,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",dname=thisname12345";
    EXPECT_EQ(expected, messages[index++]);
-   
+
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",command=RUN|COMMAND";
    EXPECT_EQ(expected, messages[index++]);
@@ -1126,7 +1127,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
    expected += ",url=this/url.htm";
    EXPECT_EQ(expected, messages[index++]);
-   
+
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
@@ -1505,7 +1506,15 @@ TEST_F(RuleEngineTest, GetDomainField) {
    results.clear();
    tDpiMessage.Clear();
 
+   tDpiMessage.add_caller_domainq_proto_sip("not_sent");
+   ASSERT_EQ(1, dm.GetDomainField(1, tDpiMessage, 0, results));
+   ASSERT_EQ(0, results.size());
+   tDpiMessage.Clear();
 
+   tDpiMessage.add_callee_domainq_proto_sip("not_sent");
+   ASSERT_EQ(1, dm.GetDomainField(1, tDpiMessage, 0, results));
+   ASSERT_EQ(0, results.size());
+   tDpiMessage.Clear();
 #endif
 }
 
