@@ -14,14 +14,14 @@ public:
    virtual ~MockBoomStick() {
    }
 
-   bool Initialize() override {
+   bool Initialize() {
       if (mFailsInit) {
          return false;
       }
       return BoomStick::Initialize();
    }
 
-   std::string Send(const std::string& command) override {
+   std::string Send(const std::string& command) {
       if (mReturnString.empty()) {
          return BoomStick::Send(command);
       } else {
@@ -29,31 +29,31 @@ public:
       }
    }
 
-   bool SendAsync(const std::string& uuid, const std::string& command) override {
+   bool SendAsync(const std::string& uuid, const std::string& command) {
       return false;
    }
 
-   std::string GetAsyncReply(const std::string& uuid) override {
+   std::string GetAsyncReply(const std::string& uuid) {
       return
       {
       };
    }
 
-   zctx_t* GetNewContext() override {
+   zctx_t* GetNewContext() {
       if (mFailsGetNewContext) {
          return nullptr;
       }
       return BoomStick::GetNewContext();
    }
 
-   void* GetNewSocket(zctx_t* ctx) override {
+   void* GetNewSocket(zctx_t* ctx) {
       if (mFailseGetNewSocket) {
          return nullptr;
       }
       return BoomStick::GetNewSocket(ctx);
    }
 
-   bool ConnectToBinding(void* socket, const std::string& binding) override {
+   bool ConnectToBinding(void* socket, const std::string& binding) {
       if (mFailsConnect) {
          return false;
       }
