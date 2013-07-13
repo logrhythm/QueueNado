@@ -467,7 +467,7 @@ TEST_F(QosmosDpiTest, ProcessPacket) {
 //	}
 //}
 
-TEST_F(QosmosDpiTest, EnableAndDisableCapture) {
+TEST_F(QosmosDpiTest, DISABLED_EnableAndDisableCapture) {
    if (geteuid() == 0) {
       //std::cout << "start" << std::endl;
       ASSERT_TRUE(t_pcapInfo.InitializePCapInfo());
