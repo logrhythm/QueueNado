@@ -182,7 +182,7 @@ TEST_F(RESTBuilderTest, GetListOfIndexeNames) {
 
    std::set<std::string> indexes = sender.GetOrderedListOfIndexes(reply);
 
-   EXPECT_EQ(10, indexes.size());
+   ASSERT_EQ(10, indexes.size());
    auto iterator = indexes.begin();
    EXPECT_EQ("kibana-int", *iterator++);
    EXPECT_EQ("network_1999_01_01", *iterator++);

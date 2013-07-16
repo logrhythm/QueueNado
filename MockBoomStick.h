@@ -21,22 +21,12 @@ public:
       return BoomStick::Initialize();
    }
 
-   std::string Send(const std::string& command) {
+   std::string Send(const std::string& command) override {
       if (mReturnString.empty()) {
          return BoomStick::Send(command);
       } else {
          return mReturnString;
       }
-   }
-
-   bool SendAsync(const std::string& uuid, const std::string& command) {
-      return false;
-   }
-
-   std::string GetAsyncReply(const std::string& uuid) {
-      return
-      {
-      };
    }
 
    zctx_t* GetNewContext() {
@@ -60,7 +50,27 @@ public:
       return BoomStick::ConnectToBinding(socket, binding);
    }
 
-
+   void CleanOldPendingData() {
+      return BoomStick::CleanOldPendingData();
+   }
+   /**
+    * Peek into the replies for a given element
+    * @param messageid
+    * @return Empty if it isn't there
+    */
+   std::string GetCachedReply(const MessageIdentifier& messageid)  {
+      std::string messageHash = HashMessageId(messageid);
+      if ( mUnreadReplies.find(messageHash) != mUnreadReplies.end() )  {
+         return mUnreadReplies[messageHash];
+      }
+      return {};
+   }
+   /**
+    * Force Garbage collection
+    */
+   void ForceGC() {
+      mLastGCTime = 0;
+   }
    bool mFailsInit;
    bool mFailsGetNewContext;
    bool mFailseGetNewSocket;
