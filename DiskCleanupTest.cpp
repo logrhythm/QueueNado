@@ -65,7 +65,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup6";
       capture.ResetConf();
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      make1MFileFile = "dd bs=1048576 count=1 if=/dev/zero of=";
+      make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFilelessone";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
@@ -136,7 +136,7 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
       std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
-      make1MFileFile = "dd bs=1048576 count=1 if=/dev/zero of=";
+      make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFilelessone";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
