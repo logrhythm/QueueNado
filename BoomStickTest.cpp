@@ -390,4 +390,9 @@ TEST_F(BoomStickTest, DontSearchSocketForever) {
    
 }
 
+#else 
+
+TEST_F(BoomStickTest, emptyTest) {
+   EXPECT_TRUE(true);
+}
 #endif

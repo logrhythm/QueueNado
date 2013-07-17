@@ -3,7 +3,7 @@
 #include "MockBoomStick.h"
 #include "include/global.h"
 class BoomStick;
-
+#ifdef LR_DEBUG
 class MockElasticSearch : public ElasticSearch {
 public:
 
@@ -63,3 +63,4 @@ public:
    bool mFakeDeleteIndex;
    bool mFakeDeleteValue;
 };
+#endif

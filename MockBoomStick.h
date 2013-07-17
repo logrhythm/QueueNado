@@ -1,6 +1,6 @@
 #pragma once
 #include "BoomStick.h"
-
+#ifdef LR_DEBUG
 
 class MockBoomStick : public BoomStick {
 public:
@@ -77,3 +77,4 @@ public:
    bool mFailsConnect;
    std::string mReturnString;
 };
+#endif

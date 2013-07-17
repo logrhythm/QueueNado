@@ -4,7 +4,6 @@
 #include <unordered_set>
 #include <fstream>
 
-
 #ifdef LR_DEBUG
 
 TEST_F(RESTBuilderTest, Construct) {
@@ -199,5 +198,10 @@ TEST_F(RESTBuilderTest, GetListOfIndexeNames) {
    ASSERT_TRUE(transport.Initialize());
    std::set<std::string> indexes2 = restQuery.GetListOfIndexeNames();
    EXPECT_EQ(indexes, indexes2);
+}
+#else 
+
+TEST_F(RESTBuilderTest, emptyTest) {
+   EXPECT_TRUE(true);
 }
 #endif
