@@ -183,7 +183,7 @@ std::string BoomStick::Send(const std::string& command) {
       };
    }
    std::string returnString;
-   if (!GetAsyncReply(id, returnString)) {
+   if (!GetAsyncReply(id, 100, returnString)) {
       return
       {
       };
@@ -255,7 +255,6 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
       reply = mUnreadReplies[messageHash];
       mUnreadReplies.erase(messageHash);
       mPendingReplies.erase(messageHash);
-      CleanOldPendingData();
       return true;
    }
    return false;
@@ -266,8 +265,8 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
  * @param messageHash
  * @return 
  */
-bool BoomStick::CheckForMessagePending(const std::string& messageHash, std::string& reply) {
-   if (!zsocket_poll(mChamber, 100)) {
+bool BoomStick::CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply) {
+   if (!zsocket_poll(mChamber, msToWait)) {
       reply = "socket timed out";
       LOG(DEBUG) << "Failed to find any new messages on socket while looking for " << messageHash;
       return false;
@@ -293,7 +292,7 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
       zmsg_destroy(&msg);
       return false;
    }
-   
+
    foundId = zmsg_popstr(msg);
    foundReply = zmsg_popstr(msg);
    zmsg_destroy(&msg);
@@ -311,7 +310,7 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
  *   if the pull was successful.  Can timeout and return false.  Error info will 
  * be in the reply return. 
  */
-bool BoomStick::GetAsyncReply(const MessageIdentifier& uuid, std::string& reply) {
+bool BoomStick::GetAsyncReply(const MessageIdentifier& uuid, const unsigned int msToWait, std::string& reply) {
    if (nullptr == mCtx || nullptr == mChamber) {
       reply = "No socket";
       CleanOldPendingData();
@@ -324,16 +323,29 @@ bool BoomStick::GetAsyncReply(const MessageIdentifier& uuid, std::string& reply)
       CleanOldPendingData();
       return false;
    }
-   if (GetReplyFromCache(messageHash, reply)) {
-      return true;
+   bool found = GetReplyFromCache(messageHash, reply);
+   if (!found) {
+      found = GetReplyFromSocket(messageHash, msToWait, reply);
    }
+   CleanOldPendingData();
+   return found;
+}
+
+/**
+ * Check the socket for a specific reply, also fill the cache when other replies 
+ *   are seen
+ * @param messageHash
+ * @param reply
+ *   Either the reply, or when an error occurs an error message
+ * @return 
+ *   If the message was found
+ */
+bool BoomStick::GetReplyFromSocket(const std::string& messageHash, const unsigned int msToWait, std::string& reply) {
    bool found = false;
-   while (!found) {
-      if (!CheckForMessagePending(messageHash, reply)) {
-         break;
-      }
+   reply = "Timed out searching for reply";
+   while (!found && CheckForMessagePending(messageHash, msToWait, reply)) {
       std::string foundId;
-      if (!ReadFromReadySocket(foundId,reply)) {
+      if (!ReadFromReadySocket(foundId, reply)) {
          break;
       }
       if (messageHash == foundId) {
@@ -343,7 +355,6 @@ bool BoomStick::GetAsyncReply(const MessageIdentifier& uuid, std::string& reply)
          mUnreadReplies[foundId] = reply;
       }
    }
-   CleanOldPendingData();
    return found;
 }
 
@@ -360,6 +371,10 @@ void BoomStick::CleanOldPendingData() {
    for (auto pendingSend : mPendingReplies) {
       if (pendingSend.second.second <= now - 5 * MINUTES_TO_SECONDS) {
          hashesToRemove.push_back(pendingSend.first);
+      }
+      if (mUnreadReplies.find(pendingSend.first) == mUnreadReplies.end()) {
+         LOG(DEBUG) << "Found unmatched reply to unknown hash " << pendingSend.first << " :" << mUnreadReplies[pendingSend.first];
+         mUnreadReplies.erase(pendingSend.first);
       }
    }
    for (auto hash : hashesToRemove) {
