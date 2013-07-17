@@ -3,6 +3,7 @@
 #include "g2log.hpp"
 #include <atomic>
 #include <thread>
+#include <memory>
 #ifdef LR_DEBUG
 
 class MockSkelleton : public Skelleton {
@@ -14,7 +15,7 @@ public:
     * @param binding
     *   The binding is stored, but not bound till Initialize is called
     */
-   explicit MockSkelleton(const std::string& binding) : Skelleton(binding), mRepeating(false) {
+   explicit MockSkelleton(const std::string& binding) : Skelleton(binding), mRepeating(false), mRepeaterThread(nullptr) {
    }
 
    /**
@@ -23,6 +24,9 @@ public:
     * in the "real" class. 
     */
    virtual ~MockSkelleton() {
+      if (nullptr == mRepeaterThread) {
+         mRepeaterThread.reset(nullptr);
+      }
    }
 
    /**
@@ -104,7 +108,7 @@ public:
    void BeginListenAndRepeat() {
 
       mRepeating.store(true);
-      mRepeaterThread = new std::thread(&MockSkelleton::RepeatMessages, this);
+      mRepeaterThread.reset(new std::thread(&MockSkelleton::RepeatMessages, this));
    }
 
    /**
@@ -113,15 +117,14 @@ public:
    void EndListendAndRepeat() {
       mRepeating.store(false);
 
-      if (mRepeaterThread) {
+      if (nullptr != mRepeaterThread) {
          mRepeaterThread->join();
-         delete mRepeaterThread;
-         mRepeaterThread = NULL;
+         mRepeaterThread.reset(nullptr);
       }
    }
 private:
    std::atomic<bool> mRepeating;
-   std::thread* mRepeaterThread;
+   std::unique_ptr<std::thread> mRepeaterThread;
 };
 #endif
 

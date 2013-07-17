@@ -4,6 +4,7 @@
 #include "MockBoomStick.h"
 #include <unordered_set>
 #include <memory>
+#include <future>
 #include <unordered_map>
 #ifdef LR_DEBUG
 namespace {
@@ -40,7 +41,7 @@ namespace {
       for (auto id : sentMessages) {
          std::string reply;
          sS << "request " << i++ << " reply";
-         if (!stick.GetAsyncReply(id, reply)) {
+         if (!stick.GetAsyncReply(id, 10, reply)) {
             FAIL();
          }
          if (reply != sS.str()) {
@@ -62,6 +63,8 @@ namespace {
       runAsync(stick, 100);
    }
 }
+
+
 
 TEST_F(BoomStickTest, Construct) {
    BoomStick stick{mAddress};
@@ -154,7 +157,7 @@ TEST_F(BoomStickTest, AsyncDoesnWorkIfUninit) {
    id.first = "foo";
    id.second = time(NULL);
    ASSERT_FALSE(stick.SendAsync(id, "bar"));
-   ASSERT_FALSE(stick.GetAsyncReply(id, reply));
+   ASSERT_FALSE(stick.GetAsyncReply(id, 0, reply));
 }
 
 TEST_F(BoomStickTest, GetAsyncReplyTwice) {
@@ -170,8 +173,8 @@ TEST_F(BoomStickTest, GetAsyncReplyTwice) {
    id.first = "foo";
    id.second = time(NULL);
    ASSERT_TRUE(stick.SendAsync(id, "foo"));
-   ASSERT_TRUE(stick.GetAsyncReply(id, reply));
-   ASSERT_FALSE(stick.GetAsyncReply(id, reply));
+   ASSERT_TRUE(stick.GetAsyncReply(id, 10, reply));
+   ASSERT_FALSE(stick.GetAsyncReply(id, 10,  reply));
 
    target.EndListendAndRepeat();
 }
@@ -186,7 +189,7 @@ TEST_F(BoomStickTest, GetAsyncNoListener) {
    id.first = "foo";
    id.second = time(NULL);
    ASSERT_TRUE(stick.SendAsync(id, "foo"));
-   ASSERT_FALSE(stick.GetAsyncReply(id, reply));
+   ASSERT_FALSE(stick.GetAsyncReply(id, 0, reply));
 
 }
 
@@ -211,7 +214,7 @@ TEST_F(BoomStickTest, CleanupStaleStuff) {
       ASSERT_TRUE(exposedStick.SendAsync(id2, "foo"));
       EXPECT_TRUE(exposedStick.FindPendingId(id));
       EXPECT_TRUE(exposedStick.FindPendingId(id2));
-      EXPECT_TRUE(exposedStick.GetAsyncReply(id2, reply));
+      EXPECT_TRUE(exposedStick.GetAsyncReply(id2, 10, reply));
       reply = exposedStick.GetCachedReply(id);
    }
    EXPECT_TRUE(exposedStick.FindPendingId(id));
@@ -221,7 +224,7 @@ TEST_F(BoomStickTest, CleanupStaleStuff) {
 
    EXPECT_FALSE(exposedStick.FindPendingId(id));
    // We never read the AsyncReply, it was purged in the cleanup
-   EXPECT_FALSE(exposedStick.GetAsyncReply(id, reply));
+   EXPECT_FALSE(exposedStick.GetAsyncReply(id, 0, reply));
 
    target.EndListendAndRepeat();
 }
@@ -362,5 +365,29 @@ TEST_F(BoomStickTest, Swap) {
    target.EndListendAndRepeat();
 }
 
+TEST_F(BoomStickTest, DontSearchSocketForever) {
+   MockBoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   
+   MessageIdentifier id;
+   id.first = "foo";
+   id.second = time(NULL)-(5 * MINUTES_TO_SECONDS);
+   ASSERT_TRUE(stick.SendAsync(id, "foo"));
+   
+   std::promise<bool> promisedFinished;
+   auto futureResult = promisedFinished.get_future();
+   std::thread([](std::promise<bool>& finished, MockBoomStick & stick, MessageIdentifier& id) {
+      std::string reply;
+              EXPECT_FALSE(stick.GetAsyncReply(id, 10, reply));
+              finished.set_value(true);
+   }, std::ref(promisedFinished), std::ref(stick), std::ref(id)).detach();
+
+   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(10+2)) != std::future_status::timeout);
+
+   
+}
 
 #endif
