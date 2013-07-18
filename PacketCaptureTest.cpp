@@ -29,7 +29,7 @@ bool MockPacketCapturePCap::IsDone() {
    return (m_numberCaptured >= m_numberToCapture);
 }
 
-int MockPacketCapturePCap::GetPacketFromPCap(ctb_ppacket& packet, unsigned int& hash) {
+int MockPacketCapturePCap::GetPacketFromPCap(ctb_ppacket& packet) {
    int returnVal = -1;
    if (mFakePCap) {
       if (mFakePCapRetVal > 0) {
@@ -47,7 +47,7 @@ int MockPacketCapturePCap::GetPacketFromPCap(ctb_ppacket& packet, unsigned int& 
          memset(mBogusPacket, 'a', 100);
          memcpy(rawPacket, mBogusPacket, 100);
 
-         hash = mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
+         mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
          delete []rawPacket;
          return 1;
       } else {
@@ -55,7 +55,7 @@ int MockPacketCapturePCap::GetPacketFromPCap(ctb_ppacket& packet, unsigned int& 
       }
 
    }
-   returnVal = PacketCapturePCap::GetPacketFromPCap(packet, hash);
+   returnVal = PacketCapturePCap::GetPacketFromPCap(packet);
    if (returnVal > 0) {
       m_numberCaptured++;
    }
@@ -87,8 +87,7 @@ TEST_F(PacketCaptureTest, ConstructAndInitialize) {
 
       capturer.SetNumberOfPacketToCapture(0);
       ctb_ppacket packet;
-      unsigned int hash(0);
-      ASSERT_EQ(-1, capturer.GetPacketFromPCap(packet, hash));
+      ASSERT_EQ(-1, capturer.GetPacketFromPCap(packet));
       ASSERT_TRUE(capturer.Initialize());
       //zclock_sleep(100);
       capturer.Shutdown(true);
@@ -414,9 +413,8 @@ TEST_F(PacketCaptureTest, PacketCapturePCapClientThread_GetPackets) {
    MockPacketCapturePCapClientThread clientThread(&capturer, receiver.GetZMQ());
 
    ctb_ppacket packet(NULL);
-   unsigned int hash(0);
    capturer.mFakePCap = true;
-   ASSERT_EQ(1, clientThread.GetPacket(packet, hash));
+   ASSERT_EQ(1, clientThread.GetPacket(packet));
    ASSERT_EQ(capturer.mBogusHeader.ts.tv_sec, packet->timestamp.tv_sec);
    ASSERT_EQ(capturer.mBogusHeader.ts.tv_usec, packet->timestamp.tv_usec);
    string rawData;
@@ -426,7 +424,7 @@ TEST_F(PacketCaptureTest, PacketCapturePCapClientThread_GetPackets) {
    free(packet->data);
    free(packet);
    capturer.mFakePCapRetVal = 0;
-   ASSERT_EQ(0, clientThread.GetPacket(packet, hash));
+   ASSERT_EQ(0, clientThread.GetPacket(packet));
 #endif
 
 }
@@ -436,7 +434,6 @@ TEST_F(PacketCaptureTest, FailPackets) {
    PacketCaptureReceiver receiver(t_serverAddr);
    MockPacketCapturePCap capturer(receiver.GetZMQ(), t_interface, mConf);
    ctb_ppacket packet(NULL);
-   unsigned int hash(0);
 
    MockPacketCapturePCapClientThread clientThread(&capturer, receiver.GetZMQ());
    std::vector<std::pair<void*, unsigned int> > packets;
@@ -455,11 +452,11 @@ TEST_F(PacketCaptureTest, FailPackets) {
    memset(mBogusPacket, 'a', 100);
    memcpy(rawPacket, mBogusPacket, 100);
 
-   hash = mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
+   mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
    clientThread.FailPacket(packet);
    EXPECT_TRUE(packet==NULL);
-   hash = mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
-   packets.push_back(make_pair(packet,hash));
+   mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
+   packets.push_back(make_pair(packet,0));
    clientThread.FailPackets(packets);
    EXPECT_TRUE(packets.empty());
    delete []rawPacket;
