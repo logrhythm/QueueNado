@@ -370,9 +370,9 @@ TEST_F(QosmosDpiTest, DynamicConstructAndInitialize) {
 #endif
 TEST_F(QosmosDpiTest, ConstructNoInitialize) {
    ctb_ppacket packetData = NULL;
-   unsigned int hashkey = 0;
    std::vector<Rifle* > sendQueue;
-   EXPECT_FALSE(mNoInitDpiEngine.ProcessPacket(packetData, hashkey, sendQueue));
+   size_t destination;
+   EXPECT_FALSE(mNoInitDpiEngine.ProcessPacket(packetData, sendQueue, destination));
    //EXPECT_EQ(0, mNoInitDpiEngine.GetPacketHash(packetData));
    EXPECT_FALSE(mNoInitDpiEngine.GetMetaDataCapture());
 }
@@ -409,10 +409,10 @@ TEST_F(QosmosDpiTest, ConstructAndInitializeBadly) {
       mConf.mQosmos512 = QOSMOS_TEST_NUM_HALF_SESSIONS;
       t_interface = "";
       ASSERT_FALSE(mNoInitDpiEngine.Initialize(QOSMOS_TEST_PACKET_SIZE, t_interface, mConf));
-      unsigned int hashkey = 0;
       ctb_ppacket packetData = NULL;
       std::vector<Rifle* > sendQueue;
-      EXPECT_FALSE(mNoInitDpiEngine.ProcessPacket(packetData, hashkey, sendQueue));
+      size_t destination;
+      EXPECT_FALSE(mNoInitDpiEngine.ProcessPacket(packetData, sendQueue, destination));
       //EXPECT_EQ(0, mNoInitDpiEngine.GetPacketHash(packetData));
       EXPECT_FALSE(mNoInitDpiEngine.GetMetaDataCapture());
    }
@@ -432,14 +432,15 @@ TEST_F(QosmosDpiTest, ProcessPacket) {
       hdr.caplen = data.size();
       ctb_ppacket packet = NULL;
       //std::cout << "getting packet " << std::endl;
-      unsigned int hash = mPacketAllocator.PopulatePacketData(reinterpret_cast<const uint8_t*> (&data[0]), &hdr, packet);
+      mPacketAllocator.PopulatePacketData(reinterpret_cast<const uint8_t*> (&data[0]), &hdr, packet);
       //std::cout << "process packet " << std::endl;
       std::vector<Rifle* > sendQueue;
       Rifle* serverQueue = new Rifle("ipc:///tmp/qosmosDpiTest.ipc");
       serverQueue->SetOwnSocket(false);
       ASSERT_TRUE(serverQueue->Aim());
       sendQueue.push_back(serverQueue);
-      EXPECT_TRUE(mDpiEngine->ProcessPacket(packet, hash, sendQueue));
+      size_t destination;
+      EXPECT_TRUE(mDpiEngine->ProcessPacket(packet, sendQueue, destination));
       delete serverQueue;
       QosmosDPI::FreePacket(packet);
    }
@@ -505,10 +506,10 @@ TEST_F(QosmosDpiTest, FreeAndSendCalls) {
    hdr.len = data.size();
    hdr.caplen = data.size();
    ctb_ppacket packet = NULL;
-   unsigned int hash = mPacketAllocator.PopulatePacketData(
+   mPacketAllocator.PopulatePacketData(
            reinterpret_cast<const uint8_t*> (&data[0]), &hdr, packet);
    QosmosDPI::EndPacket(packet);
-   hash = mPacketAllocator.PopulatePacketData(
+   mPacketAllocator.PopulatePacketData(
            reinterpret_cast<const uint8_t*> (&data[0]), &hdr, packet);
    QosmosDPI::FreePacket(packet);
 }
