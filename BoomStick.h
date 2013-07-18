@@ -22,6 +22,7 @@ public:
    void Swap(BoomStick& other);
    void SetBinding(const std::string& binding);
    bool FindPendingId(const MessageIdentifier& id) const;
+   zctx_t* GetContext();
 protected:
    LR_VIRTUAL zctx_t* GetNewContext();
    LR_VIRTUAL void* GetNewSocket(zctx_t* ctx);

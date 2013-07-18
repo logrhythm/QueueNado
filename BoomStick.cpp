@@ -25,7 +25,13 @@ BoomStick::BoomStick(const std::string& binding) : mLastGCTime(time(NULL)), mBin
 BoomStick::~BoomStick() {
    zctx_destroy(&mCtx);
 }
-
+/**
+ * Get the context (can be safely shared between threads)
+ * @return 
+ */
+zctx_t* BoomStick::GetContext() {
+   return mCtx;
+}
 /**
  * Swap internals
  * @param other
