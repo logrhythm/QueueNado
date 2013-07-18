@@ -25,6 +25,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    RESTBuilder builder;
    RESTSender sender(transport);
    ElasticSearch restQuery(transport);
+   ASSERT_TRUE(restQuery.Initialize());
    int shards(3);
    int replicas(5);
    std::string command = builder.GetIndexCreation("indexName", shards, replicas);
@@ -72,7 +73,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
    RESTBuilder builder;
    RESTSender sender(transport);
    ElasticSearch restQuery(transport);
-
+   ASSERT_TRUE(restQuery.Initialize());
    int shards(3);
    int replicas(5);
    std::string command = builder.GetIndexClose("indexName");
@@ -122,6 +123,7 @@ TEST_F(RESTBuilderTest, AddDocDeleteDoc) {
    RESTBuilder builder;
    RESTSender sender(transport);
    ElasticSearch es(transport);
+   ASSERT_TRUE(es.Initialize());
    int shards(3);
    int replicas(5);
    std::string command = builder.GetAddDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}");
@@ -195,6 +197,7 @@ TEST_F(RESTBuilderTest, GetListOfIndexeNames) {
    EXPECT_EQ("twitter", *iterator++);
 
    ElasticSearch restQuery(transport);
+   ASSERT_TRUE(restQuery.Initialize());
    ASSERT_TRUE(transport.Initialize());
    std::set<std::string> indexes2 = restQuery.GetListOfIndexeNames();
    EXPECT_EQ(indexes, indexes2);
