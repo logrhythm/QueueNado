@@ -186,7 +186,7 @@ public:
    virtual bool IsDone();
    void SetNumberOfPacketToCapture(unsigned int number);
    unsigned int GetNumberOfPacketsCaptured();
-   int GetPacketFromPCap(ctb_ppacket& packet, unsigned int& hash);
+   int GetPacketFromPCap(ctb_ppacket& packet);
 
    unsigned int m_numberCaptured;
    unsigned int m_numberToCapture;
