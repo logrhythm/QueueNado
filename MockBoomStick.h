@@ -8,7 +8,8 @@ public:
    explicit MockBoomStick(const std::string& binding) : BoomStick(binding), mFailsInit(false),
    mFailsGetNewContext(false),
    mFailseGetNewSocket(false),
-   mFailsConnect(false) {
+   mFailsConnect(false),
+   mReturnSocketEmpty(false) {
    }
 
    virtual ~MockBoomStick() {
@@ -42,7 +43,7 @@ public:
          return BoomStick::GetAsyncReply(uuid,msToWait,reply);
       } else {
          reply = mReturnString;
-         return true;
+         return !mReturnSocketEmpty;
       }
    }
 
@@ -97,5 +98,6 @@ public:
    bool mFailseGetNewSocket;
    bool mFailsConnect;
    std::string mReturnString;
+   bool mReturnSocketEmpty;
 };
 #endif

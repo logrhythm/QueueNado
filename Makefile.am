@@ -22,6 +22,7 @@ ProcStatsTest \
 JSONEncoderTest \
 transferZeromqTest \
 RESTBuilderTest \
+ElasticSearchTest \
 ConversionTest \
 DiskPacketCaptureTest \
 DiskCleanupTest \
@@ -228,6 +229,11 @@ RESTBuilderTest_LDFLAGS=${BASE_LIBS}
 RESTBuilderTest_SOURCES=main.cpp RESTBuilderTest.cpp
 RESTBuilderTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
+ElasticSearchTest_LDADD=${DYNAMIC_LIBS}
+ElasticSearchTest_LDFLAGS=${BASE_LIBS}
+ElasticSearchTest_SOURCES=main.cpp ElasticSearchTest.cpp
+ElasticSearchTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+
 ConversionTest_LDADD=${DYNAMIC_LIBS}
 ConversionTest_LDFLAGS=${BASE_LIBS}
 ConversionTest_SOURCES=main.cpp ConversionTest.cpp
@@ -267,6 +273,7 @@ nmTest_SOURCES=main.cpp \
  ZeroMQTests.cpp \
  JSONEncoderTest.cpp \
  RESTBuilderTest.cpp \
+ ElasticSearchTest.cpp \
  ThreadContainerTest.cpp
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine

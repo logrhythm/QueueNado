@@ -203,6 +203,7 @@ TEST_F(RESTBuilderTest, GetListOfIndexeNames) {
    std::set<std::string> indexes2 = restQuery.GetListOfIndexeNames();
    EXPECT_EQ(indexes, indexes2);
 }
+
 #else 
 
 TEST_F(RESTBuilderTest, emptyTest) {

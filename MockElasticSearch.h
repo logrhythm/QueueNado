@@ -8,7 +8,7 @@ class MockElasticSearch : public ElasticSearch {
 public:
 
    MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport,async), mFakeIndexList(true),
-   mFakeDeleteIndex(true), mFakeDeleteValue(true) {
+   mFakeDeleteIndex(true), mFakeDeleteValue(true), mReplySent(false) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -19,7 +19,18 @@ public:
       mMockListOfIndexes.insert("network_2100_12_31");
       mMockListOfIndexes.insert("twitter");
    }
-
+   MockElasticSearch(BoomStick& transport, bool async) : mMyTransport(""), ElasticSearch(transport,async), mFakeIndexList(true),
+   mFakeDeleteIndex(true), mFakeDeleteValue(true), mReplySent(false) {
+      mMockListOfIndexes.insert("kibana-int");
+      mMockListOfIndexes.insert("network_1999_01_01");
+      mMockListOfIndexes.insert("network_2012_12_31");
+      mMockListOfIndexes.insert("network_2013_01_01");
+      mMockListOfIndexes.insert("network_2013_07_04");
+      mMockListOfIndexes.insert("network_2013_12_31");
+      mMockListOfIndexes.insert("network_2014_01_01");
+      mMockListOfIndexes.insert("network_2100_12_31");
+      mMockListOfIndexes.insert("twitter");
+   }
    virtual ~MockElasticSearch() {
 
    }
@@ -57,10 +68,15 @@ public:
    LR_VIRTUAL bool DeleteDoc(const std::string& indexName, const std::string& indexType, const std::string& id) {
       ElasticSearch::DeleteDoc(indexName, indexType, id);
    }
+   void ZSocketSend(void* socket, const std::string& reply) {
+      ElasticSearch::ZSocketSend(socket,reply);
+      mReplySent = true;
+   }
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;
    bool mFakeDeleteIndex;
    bool mFakeDeleteValue;
+   bool mReplySent;
 };
 #endif
