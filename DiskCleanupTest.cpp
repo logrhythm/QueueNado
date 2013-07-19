@@ -225,12 +225,13 @@ TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
 TEST_F(DiskCleanupTest, RemoveGetsTheOldestMatch) {
    MockDiskCleanup diskCleanup(mConf);
    MockElasticSearch es(false);
-   
+
    es.mFakeIndexList = true;
-   
-   EXPECT_EQ("network_1999_01_01",diskCleanup.GetOldestIndex(es));
-   
+
+   EXPECT_EQ("network_1999_01_01", diskCleanup.GetOldestIndex(es));
+
 }
+
 TEST_F(DiskCleanupTest, FSMath) {
    MockDiskCleanup diskCleanup(mConf);
    diskCleanup.mFleSystemInfo.f_bfree = 100 << B_TO_MB_SHIFT;
@@ -251,5 +252,20 @@ TEST_F(DiskCleanupTest, FSMath) {
    diskCleanup.GetFileSystemInfo(free, total);
    EXPECT_EQ(0, free);
    EXPECT_EQ(0, total);
+}
+
+TEST_F(DiskCleanupTest, DontDeleteTheLastIndex) {
+   MockDiskCleanup diskCleanup(mConf);
+   MockElasticSearch es(false);
+   es.mMockListOfIndexes.clear();
+   es.mFakeIndexList = true;
+   std::string oldestIndex = diskCleanup.GetOldestIndex(es);
+   EXPECT_EQ("", oldestIndex);
+   es.mMockListOfIndexes.insert("network_12345");
+   oldestIndex = diskCleanup.GetOldestIndex(es);
+   EXPECT_EQ("", oldestIndex);
+   es.mMockListOfIndexes.insert("network_12346");
+   oldestIndex = diskCleanup.GetOldestIndex(es);
+   EXPECT_EQ("network_12345", oldestIndex);
 }
 #endif
