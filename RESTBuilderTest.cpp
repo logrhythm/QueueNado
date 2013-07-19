@@ -24,7 +24,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
    RESTSender sender(transport);
-   ElasticSearch restQuery(transport);
+   ElasticSearch restQuery(transport,false);
    ASSERT_TRUE(restQuery.Initialize());
    int shards(3);
    int replicas(5);
@@ -72,7 +72,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
    RESTSender sender(transport);
-   ElasticSearch restQuery(transport);
+   ElasticSearch restQuery(transport,false);
    ASSERT_TRUE(restQuery.Initialize());
    int shards(3);
    int replicas(5);
@@ -122,7 +122,7 @@ TEST_F(RESTBuilderTest, AddDocDeleteDoc) {
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
    RESTSender sender(transport);
-   ElasticSearch es(transport);
+   ElasticSearch es(transport,true);
    ASSERT_TRUE(es.Initialize());
    int shards(3);
    int replicas(5);
@@ -196,7 +196,7 @@ TEST_F(RESTBuilderTest, GetListOfIndexeNames) {
    EXPECT_EQ("network_2100_12_31", *iterator++);
    EXPECT_EQ("twitter", *iterator++);
 
-   ElasticSearch restQuery(transport);
+   ElasticSearch restQuery(transport,false);
    ASSERT_TRUE(restQuery.Initialize());
    ASSERT_TRUE(transport.Initialize());
    std::set<std::string> indexes2 = restQuery.GetListOfIndexeNames();
