@@ -7,7 +7,7 @@ class BoomStick;
 class MockElasticSearch : public ElasticSearch {
 public:
 
-   MockElasticSearch() : mMyTransport(""), ElasticSearch(mMyTransport), mFakeIndexList(true),
+   MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport,async), mFakeIndexList(true),
    mFakeDeleteIndex(true), mFakeDeleteValue(true) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");

@@ -190,7 +190,7 @@ TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
    std::thread([](std::promise<bool>& finished, MockDiskCleanup & diskCleanup) {
       size_t free(0);
       size_t total(100);
-              MockElasticSearch es;
+              MockElasticSearch es(false);
               diskCleanup.CleanupSearch(free, total, std::ref(es));
               finished.set_value(true);
    }, std::ref(promisedFinished), std::ref(diskCleanup)).detach();
@@ -211,7 +211,7 @@ TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
    std::thread([](std::promise<bool>& finished, MockDiskCleanup & diskCleanup) {
       size_t free(0);
       size_t total(100);
-              MockElasticSearch es;
+              MockElasticSearch es(false);
               diskCleanup.CleanupSearch(free, total, es);
       if (free != total) {
          FAIL();
@@ -224,7 +224,7 @@ TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
 
 TEST_F(DiskCleanupTest, RemoveGetsTheOldestMatch) {
    MockDiskCleanup diskCleanup(mConf);
-   MockElasticSearch es;
+   MockElasticSearch es(false);
    
    es.mFakeIndexList = true;
    
