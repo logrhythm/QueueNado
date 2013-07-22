@@ -175,6 +175,9 @@ TEST_F(PacketCaptureTest, GetStatsFailure) {
    if (geteuid() == 0) {
       MockPacketCapturePCap capturer(t_clientAddr, t_interface, mConf);
       capturer.mFailGetStats = true;
+      capturer.mPsRecv = 10;
+      capturer.mPsDrop = 1;
+      capturer.mPsIfDrop = 2;
       int I, dont, care;
       size_t atall;
       capturer.SetNumberOfPacketToCapture(100);
@@ -186,7 +189,35 @@ TEST_F(PacketCaptureTest, GetStatsFailure) {
       capturer.Shutdown(true);
    }
 #endif
+}
 
+TEST_F(PacketCaptureTest, TimeToReportInterfaceStats) {
+#ifdef LR_DEBUG
+   if (geteuid() == 0) {
+      MockPacketCapturePCap capturer(t_clientAddr, t_interface, mConf);
+      struct timeval tv = { 5, 0 };
+      EXPECT_TRUE(capturer.InterfaceStatsTime(tv));
+      tv.tv_sec = 10;
+      tv.tv_usec = 111111;
+      EXPECT_TRUE(capturer.InterfaceStatsTime(tv));
+      tv.tv_sec = 15;
+      tv.tv_usec = 111110;
+      EXPECT_FALSE(capturer.InterfaceStatsTime(tv));
+      tv.tv_sec = 15;
+      tv.tv_usec = 111111;
+      EXPECT_TRUE(capturer.InterfaceStatsTime(tv));
+
+      // Negative time test
+      tv.tv_sec = 12;
+      tv.tv_usec = 222222;
+      EXPECT_FALSE(capturer.InterfaceStatsTime(tv));
+      tv.tv_sec = 17;
+      tv.tv_usec = 222222;
+      EXPECT_TRUE(capturer.InterfaceStatsTime(tv));
+
+      capturer.Shutdown(true);
+   }
+#endif
 }
 
 TEST_F(PacketCaptureTest, GetSomethingFromTheInterfaceSendOverExisting) {
@@ -198,12 +229,28 @@ TEST_F(PacketCaptureTest, GetSomethingFromTheInterfaceSendOverExisting) {
 
       ASSERT_TRUE(capturer.Initialize());
 
+      capturer.mFailGetStats = false;
+      capturer.mPsRecv = 10;
+      capturer.mPsDrop = 1;
+      capturer.mPsIfDrop = 2;
+
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
               t_packetsIfDropped, t_totalData);
-      //cout << "4" << endl;
-      //zclock_sleep(100);
+      EXPECT_EQ(9, t_packetsReceived); // mPsRecv - mPsDrop
+      EXPECT_EQ(1, t_packetsDropped);
+      EXPECT_EQ(2, t_packetsIfDropped);
+
+      capturer.mPsRecv = 20;
+      capturer.mPsDrop = 2;
+      capturer.mPsIfDrop = 4;
+
+      capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
+              t_packetsIfDropped, t_totalData);
+      EXPECT_EQ(18, t_packetsReceived); // mPsRecv - mPsDrop
+      EXPECT_EQ(2, t_packetsDropped);
+      EXPECT_EQ(4, t_packetsIfDropped);
+
       capturer.Shutdown(true);
-      //cout << "5" << endl;
    }
 #endif
 }
