@@ -187,13 +187,13 @@ TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
    diskCleanup.mFailFileSystemInfo = true;
    std::promise<bool> promisedFinished;
    auto futureResult = promisedFinished.get_future();
-   std::thread([](std::promise<bool>& finished, MockDiskCleanup & diskCleanup) {
+   std::thread([](std::promise<bool> finished, MockDiskCleanup & diskCleanup) {
       size_t free(0);
       size_t total(100);
               MockElasticSearch es(false);
               diskCleanup.CleanupSearch(free, total, std::ref(es));
               finished.set_value(true);
-   }, std::ref(promisedFinished), std::ref(diskCleanup)).detach();
+   }, std::move(promisedFinished), std::ref(diskCleanup)).detach();
 
    EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
 
@@ -208,7 +208,7 @@ TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
 
    std::promise<bool> promisedFinished;
    auto futureResult = promisedFinished.get_future();
-   std::thread([](std::promise<bool>& finished, MockDiskCleanup & diskCleanup) {
+   std::thread([](std::promise<bool> finished, MockDiskCleanup & diskCleanup) {
       size_t free(0);
       size_t total(100);
               MockElasticSearch es(false);
@@ -217,7 +217,7 @@ TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
          FAIL();
       }
       finished.set_value(true);
-   }, std::ref(promisedFinished), std::ref(diskCleanup)).detach();
+   }, std::move(promisedFinished), std::ref(diskCleanup)).detach();
 
    EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
 }

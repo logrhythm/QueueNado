@@ -42,7 +42,7 @@ TEST_F(ElasticSearchTest, AsynchrnousCannotDoOtherStuff) {
 
 TEST_F(ElasticSearchTest, ReplyNotReadyIsFalseBadIsTrue) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   ElasticSearch es(transport, true);
+   ElasticSearchSocket es(transport, true);
 
    MessageIdentifier id;
    std::string reply;
@@ -67,23 +67,23 @@ TEST_F(ElasticSearchTest, SyncSendsReplies) {
    ASSERT_TRUE(es.Initialize());
    es.mFakeIndexList = false;
    std::set<std::string> indexList = es.GetListOfIndexeNames();
-   EXPECT_TRUE(es.mReplySent);
-   es.mReplySent = false;
+   EXPECT_TRUE(es.ReplySent());
+   es.ReplySet(false);
 
    transport.mReturnString = "{\"ok\":true,\"acknowledged\":true}";
    EXPECT_TRUE(es.CreateIndex("foo", 1, 1));
-   EXPECT_TRUE(es.mReplySent);
-   es.mReplySent = false;
+   EXPECT_TRUE(es.ReplySent());
+   es.ReplySet(false);
    es.mFakeDeleteIndex = false;
    EXPECT_TRUE(es.DeleteIndex("foo"));
-   EXPECT_TRUE(es.mReplySent);
-   es.mReplySent = false;
+   EXPECT_TRUE(es.ReplySent());
+   es.ReplySet(false);
    EXPECT_TRUE(es.IndexClose("foo"));
-   EXPECT_TRUE(es.mReplySent);
-   es.mReplySent = false;
+   EXPECT_TRUE(es.ReplySent());
+   es.ReplySet(false);
    EXPECT_TRUE(es.IndexOpen("foo"));
-   EXPECT_TRUE(es.mReplySent);
-   es.mReplySent = false;
+   EXPECT_TRUE(es.ReplySent());
+   es.ReplySet(false);
 
 }
 
@@ -95,9 +95,9 @@ TEST_F(ElasticSearchTest, AsyncDoesnotSendReplies) {
 
    ASSERT_TRUE(es.Initialize());
    EXPECT_TRUE(es.AddDoc("foo", "bar", "baz", "fuz"));
-   EXPECT_FALSE(es.mReplySent);
+   EXPECT_FALSE(es.ReplySent());
    EXPECT_TRUE(es.DeleteDoc("foo", "bar", "baz"));
-   EXPECT_FALSE(es.mReplySent);
+   EXPECT_FALSE(es.ReplySent());
 }
 
 #else
