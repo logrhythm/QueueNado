@@ -75,6 +75,9 @@ public:
    mFailActivatePCapHandle(false),
    mRealIsDone(false),
    mFailGetStats(false),
+   mPsRecv(0),
+   mPsDrop(0),
+   mPsIfDrop(0),
    mFakePutEvent(false),
    mFakePutEventTriggered(false),
    mFakePCap(false),
@@ -92,6 +95,9 @@ public:
    mFailActivatePCapHandle(false),
    mRealIsDone(false),
    mFailGetStats(false),
+   mPsRecv(0),
+   mPsDrop(0),
+   mPsIfDrop(0),
    mFakePutEvent(false),
    mFakePutEventTriggered(false),
    mFakePCap(false),
@@ -109,6 +115,9 @@ public:
    mFailActivatePCapHandle(false),
    mRealIsDone(false),
    mFailGetStats(false),
+   mPsRecv(0),
+   mPsDrop(0),
+   mPsIfDrop(0),
    mFakePutEvent(false),
    mFakePutEventTriggered(false),
    mFakePCap(false),
@@ -172,8 +181,12 @@ public:
    int GetStats(struct pcap_stat* ps) {
       if (mFailGetStats) {
          return -1;
+      } else {
+         ps->ps_recv = mPsRecv;
+         ps->ps_drop = mPsDrop;
+         ps->ps_ifdrop = mPsIfDrop;
+         return 0;
       }
-      return PacketCapturePCap::GetStats(ps);
    }
 
    void PutEvent() {
@@ -199,6 +212,9 @@ public:
    bool mWarnActivatePCapHandle;
    bool mRealIsDone;
    bool mFailGetStats;
+   int mPsRecv;
+   int mPsDrop;
+   int mPsIfDrop;
    bool mFakePutEvent;
    bool mFakePutEventTriggered;
    bool mFakePCap;
