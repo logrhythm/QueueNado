@@ -2,6 +2,7 @@
 #include "g2log.hpp"
 #include <unordered_set>
 #include <unordered_map>
+#include "ElasticSearch.h"
 #include <thread>
 #include "jansson.h"
 
@@ -74,9 +75,33 @@ void JSonPrettyPrint(json_t* Object, int indent) {
          std::cout << json_string_value(value);
       } else if (json_is_integer(value)) {
          std::cout << json_integer_value(value);
+      } else if (json_is_array(value)) {
+         for (int i = 0; i < json_array_size(value); i++) {
+            std::cout << std::endl;
+            JSonPrettyPrint(json_array_get(value, i), indent + 1);
+         }
       }
       std::cout << std::endl;
    }
+}
+
+TEST_F(transferZeromqTest, FileSystemInfoTest) {
+   RESTBuilder builder;
+   BoomStick transport("tcp://127.0.0.1:9700");
+   RESTSender sender(transport);
+   
+   ASSERT_TRUE(transport.Initialize());
+
+   std::string resultString;
+   sender.Send(builder.GetDiskInfo(), resultString);
+
+   json_error_t error;
+   std::string jsonReturnString = resultString.substr(resultString.find("{"));
+   json_t* decodedMessage = json_loads(jsonReturnString.c_str(), 0, &error);
+   ASSERT_TRUE(decodedMessage != NULL);
+   //JSonPrettyPrint(decodedMessage, 0);
+
+   DiskInformation diskInfo = sender.GetDiskInformation(resultString);
 }
 
 TEST_F(transferZeromqTest, GetListOfIndexes) {
@@ -88,7 +113,7 @@ TEST_F(transferZeromqTest, GetListOfIndexes) {
       zmsg_send(&message, socket);
       message = zmsg_recv(socket);
       std::string resultString = zmsg_popstr(message);
-      std::cout << resultString << std::endl;
+      //std::cout << resultString << std::endl;
       zmsg_destroy(&message);
       json_error_t error;
       std::string jsonReturnString = resultString.substr(resultString.find("{"));
@@ -98,12 +123,13 @@ TEST_F(transferZeromqTest, GetListOfIndexes) {
       const char* key;
       json_t* value;
       std::unordered_set<std::string> indexes;
+
       json_object_foreach(decodedMessage, key, value) {
          std::string keyString(key);
          if (keyString == "indices") {
             const char* indexName;
             json_t* indexInfo;
-            
+
             json_object_foreach(value, indexName, indexInfo) {
                indexes.insert(indexName);
             }
