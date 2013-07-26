@@ -226,7 +226,7 @@ transferZeromqTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\
 
 RESTBuilderTest_LDADD=${DYNAMIC_LIBS}
 RESTBuilderTest_LDFLAGS=${BASE_LIBS}
-RESTBuilderTest_SOURCES=main.cpp RESTBuilderTest.cpp
+RESTBuilderTest_SOURCES=main.cpp RESTBuilderTest.cpp RESTSenderTest.cpp
 RESTBuilderTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 ElasticSearchTest_LDADD=${DYNAMIC_LIBS}
