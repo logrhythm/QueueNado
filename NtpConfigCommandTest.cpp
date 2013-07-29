@@ -5,17 +5,13 @@
 #include "ProcessManager.h"
 #include "MockProcessManagerCommand.h"
 #include "MockConf.h"
-
 #include "NtpMsg.pb.h"
 
 #include <memory>
 namespace {
 struct MockNtpConfigCommand : public NtpConfigCommand {
-  bool mSuccess;
-  
   MockNtpConfigCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager) 
-      : NtpConfigCommand(request, processManager), 
-      mSuccess(true)  
+      : NtpConfigCommand(request, processManager)
   {   }
   
   ~MockNtpConfigCommand(){}
@@ -39,7 +35,7 @@ TEST_F(NtpConfigCommandTest, InValidCommand)
   ASSERT_FALSE(reply.success());
 }
 
-TEST_F(NtpConfigCommandTest, NotActive__ValidCmd) 
+TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd) 
 {
   protoMsg::Ntp ntp;
   ntp.set_active(false);
@@ -49,7 +45,7 @@ TEST_F(NtpConfigCommandTest, NotActive__ValidCmd)
   ASSERT_TRUE(reply.success());
 }
 
-TEST_F(NtpConfigCommandTest, ActiveWithNoServer__InValidCmd) 
+TEST_F(NtpConfigCommandTest, EnableNTPWithNoServer__ExpectingInvalidCmd) 
 {
   protoMsg::Ntp ntp;
   ntp.set_active(true);
@@ -59,7 +55,7 @@ TEST_F(NtpConfigCommandTest, ActiveWithNoServer__InValidCmd)
   ASSERT_FALSE(reply.success());
 }
 
-TEST_F(NtpConfigCommandTest, ActiveWithMasterServer__ValidCmd) 
+TEST_F(NtpConfigCommandTest, EnableNTPWithMasterServer__ExpectingValidCmd) 
 {
   protoMsg::Ntp ntp;
   ntp.set_active(true);
@@ -70,7 +66,7 @@ TEST_F(NtpConfigCommandTest, ActiveWithMasterServer__ValidCmd)
   ASSERT_TRUE(reply.success());
 }
 
-TEST_F(NtpConfigCommandTest, ActiveWithMasterAndServer__ValidCmd) 
+TEST_F(NtpConfigCommandTest, EnableNTPWithMasterAndServer__ExpectingValidCmd) 
 {
   protoMsg::Ntp ntp;
   ntp.set_active(true);
@@ -81,3 +77,31 @@ TEST_F(NtpConfigCommandTest, ActiveWithMasterAndServer__ValidCmd)
   auto reply = doIt.Execute(conf);
   ASSERT_TRUE(reply.success());
 }
+
+TEST_F(NtpConfigCommandTest, MultipleEnableCmds__ExpectingValidCmd) 
+{
+  protoMsg::Ntp ntp;
+  ntp.set_active(true);
+  ntp.set_master_server("10.128.64.251");
+  ntp.set_backup_server("10.128.64.252");
+  cmd.set_stringargone(ntp.SerializeAsString());
+  MockNtpConfigCommand doIt(cmd, autoManagedManager);
+  for (int i = 0; i < 10; ++i) {
+    auto reply = doIt.Execute(conf);
+    ASSERT_TRUE(reply.success());
+  }
+}
+
+
+TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd) 
+{
+  protoMsg::Ntp ntp;
+  ntp.set_active(false);
+  cmd.set_stringargone(ntp.SerializeAsString());
+  MockNtpConfigCommand doIt(cmd, autoManagedManager);
+  for (int i = 0; i < 10; ++i) {
+    auto reply = doIt.Execute(conf);
+    ASSERT_TRUE(reply.success());
+  }
+}
+
