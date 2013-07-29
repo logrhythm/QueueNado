@@ -12,20 +12,306 @@
 #include "luajit-2.0/lua.hpp"
 
 using namespace networkMonitor;
+
+TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
 #ifdef LR_DEBUG
+   MockRuleEngine dm(conf, syslogName, syslogOption,
+           syslogFacility, syslogPriority, true, 0);
+   IndexedFieldPairs results;
+   dm.GetSiemRequiredFieldPairs(tDpiMessage, results);
+   ASSERT_EQ(19, results.size());
+   EXPECT_EQ("UUID", results[SIEM_FIELD_UUID].first);
+   EXPECT_EQ("sip", results[SIEM_FIELD_SIP].first);
+   EXPECT_EQ("dip", results[SIEM_FIELD_DIP].first);
+   EXPECT_EQ("sport", results[SIEM_FIELD_SPORT].first);
+   EXPECT_EQ("dport", results[SIEM_FIELD_DPORT].first);
+   EXPECT_EQ("smac", results[SIEM_FIELD_SMAC].first);
+   EXPECT_EQ("dmac", results[SIEM_FIELD_DMAC].first);
+   EXPECT_EQ("protnum", results[SIEM_FIELD_PROTONUM].first);
+   EXPECT_EQ("process", results[SIEM_FIELD_PROCESS].first);
+   EXPECT_EQ("bytesin", results[SIEM_FIELD_BYTES_IN].first);
+   EXPECT_EQ("deltabytesin", results[SIEM_FIELD_DELTA_BYTES_IN].first);
+   EXPECT_EQ("bytesout", results[SIEM_FIELD_BYTES_OUT].first);
+   EXPECT_EQ("deltabytesout", results[SIEM_FIELD_DELTA_BYTES_OUT ].first);
+   EXPECT_EQ("packetsin", results[SIEM_FIELD_PACKETS_IN].first);
+   EXPECT_EQ("deltapacketsin", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
+   EXPECT_EQ("timestart", results[SIEM_FIELD_TIME_START].first);
+   EXPECT_EQ("timeend", results[SIEM_FIELD_TIME_END].first);
+   EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
+   EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
 
-TEST_F(RuleEngineTest, elasticSearchSends) {
-   MockRuleEngine dm(conf, syslogName, syslogOption, syslogFacility, syslogPriority,
-           true, 0);
-   std::stringstream targetQueue;
+   EXPECT_EQ(UNKNOWN_UUID, results[SIEM_FIELD_UUID].second);
+   EXPECT_EQ("0.0.0.0", results[SIEM_FIELD_SIP].second);
+   EXPECT_EQ("0.0.0.0", results[SIEM_FIELD_DIP].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_SPORT].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_DPORT].second);
+   EXPECT_EQ("00:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
+   EXPECT_EQ("00:00:00:00:00:00", results[SIEM_FIELD_DMAC].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_PROTONUM].second);
+   EXPECT_EQ("1007", results[SIEM_FIELD_PROCESS].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_BYTES_IN].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_DELTA_BYTES_IN].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_BYTES_OUT].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_DELTA_BYTES_OUT].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_PACKETS_IN].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_DELTA_PACKETS_IN].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_TIME_DELTA].second);
+   EXPECT_EQ("0", results[SIEM_FIELD_TIME_TOTAL].second);
 
-   targetQueue << "ipc:///tmp/ruleEngineTest" << pthread_self();
-   dm.SetElasticSearchTarget(targetQueue.str());
-   ASSERT_FALSE(dm.CanSendToElasticSearch());
-   dm.Start();
-   ASSERT_TRUE(dm.CanSendToElasticSearch());
-}
+   tDpiMessage.set_uuid("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_ethdst(123);
+   tDpiMessage.set_ethsrc(124);
+   tDpiMessage.set_ipdst(125);
+   tDpiMessage.set_ipsrc(126);
+   tDpiMessage.set_sourceport(127);
+   tDpiMessage.set_destport(128);
+   tDpiMessage.set_protoid(129);
+   tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
+   tDpiMessage.set_application_id_endq_proto_base(1234);
+   tDpiMessage.set_sessionlenserver(567);
+   tDpiMessage.set_deltasessionlenserver(456);
+   tDpiMessage.set_sessionlenclient(89);
+   tDpiMessage.set_deltasessionlenclient(78);
+   tDpiMessage.set_packetcount(88);
+   tDpiMessage.set_deltapackets(44);
+   tDpiMessage.add_loginq_proto_0zz0("dontSeeMee");
+   tDpiMessage.set_starttime(1234);
+   tDpiMessage.set_endtime(5678);
+   tDpiMessage.set_deltatime(4444);
+   dm.GetSiemRequiredFieldPairs(tDpiMessage, results);
+   ASSERT_EQ(19, results.size());
+   EXPECT_EQ("UUID", results[SIEM_FIELD_UUID].first);
+   EXPECT_EQ("sip", results[SIEM_FIELD_SIP].first);
+   EXPECT_EQ("dip", results[SIEM_FIELD_DIP].first);
+   EXPECT_EQ("sport", results[SIEM_FIELD_SPORT].first);
+   EXPECT_EQ("dport", results[SIEM_FIELD_DPORT].first);
+   EXPECT_EQ("smac", results[SIEM_FIELD_SMAC].first);
+   EXPECT_EQ("dmac", results[SIEM_FIELD_DMAC].first);
+   EXPECT_EQ("protnum", results[SIEM_FIELD_PROTONUM].first);
+   EXPECT_EQ("process", results[SIEM_FIELD_PROCESS].first);
+   EXPECT_EQ("bytesin", results[SIEM_FIELD_BYTES_IN].first);
+   EXPECT_EQ("deltabytesin", results[SIEM_FIELD_DELTA_BYTES_IN].first);
+   EXPECT_EQ("bytesout", results[SIEM_FIELD_BYTES_OUT].first);
+   EXPECT_EQ("deltabytesout", results[SIEM_FIELD_DELTA_BYTES_OUT ].first);
+   EXPECT_EQ("packetsin", results[SIEM_FIELD_PACKETS_IN].first);
+   EXPECT_EQ("deltapacketsin", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
+   EXPECT_EQ("timestart", results[SIEM_FIELD_TIME_START].first);
+   EXPECT_EQ("timeend", results[SIEM_FIELD_TIME_END].first);
+   EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
+   EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
+   EXPECT_EQ("126.0.0.0", results[2].second);
+   EXPECT_EQ("125.0.0.0", results[SIEM_FIELD_DIP].second);
+   EXPECT_EQ("127", results[SIEM_FIELD_SPORT].second);
+   EXPECT_EQ("128", results[SIEM_FIELD_DPORT].second);
+   EXPECT_EQ("550e8400-e29b-41d4-a716-446655440000", results[SIEM_FIELD_UUID].second);
+   EXPECT_EQ("7c:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
+   EXPECT_EQ("7c:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
+   EXPECT_EQ("7b:00:00:00:00:00", results[SIEM_FIELD_DMAC].second);
+   EXPECT_EQ("129", results[SIEM_FIELD_PROTONUM].second);
+   EXPECT_EQ("26", results[SIEM_FIELD_PROCESS].second);
+   EXPECT_EQ("89", results[SIEM_FIELD_BYTES_IN].second);
+   EXPECT_EQ("78", results[SIEM_FIELD_DELTA_BYTES_IN].second);
+   EXPECT_EQ("567", results[SIEM_FIELD_BYTES_OUT].second);
+   EXPECT_EQ("456", results[SIEM_FIELD_DELTA_BYTES_OUT].second);
+   EXPECT_EQ("88", results[SIEM_FIELD_PACKETS_IN].second);
+   EXPECT_EQ("44", results[SIEM_FIELD_DELTA_PACKETS_IN].second);
+   EXPECT_EQ("1234", results[SIEM_FIELD_TIME_START].second);
+   EXPECT_EQ("5678", results[SIEM_FIELD_TIME_END].second);
+   EXPECT_EQ("4444", results[SIEM_FIELD_TIME_DELTA].second);
+   EXPECT_EQ("4444", results[SIEM_FIELD_TIME_TOTAL].second);
 #endif
+}
+
+TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
+#if defined(LR_DEBUG)
+   MockRuleEngine dm(conf, syslogName, syslogOption,
+           syslogFacility, syslogPriority, true, 0);
+   map<unsigned int, pair <string, string> > dataPairs;
+   vector<string> messages;
+
+   dm.mSiemMode = true;
+   dm.mSiemDebugMode = true;
+   tDpiMessage.set_uuid("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_ethdst(123);
+   tDpiMessage.set_ethsrc(124);
+   tDpiMessage.set_ipdst(125);
+   tDpiMessage.set_ipsrc(126);
+   tDpiMessage.set_sourceport(127);
+   tDpiMessage.set_destport(128);
+   tDpiMessage.set_protoid(129);
+   tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
+   tDpiMessage.set_application_id_endq_proto_base(1234);
+   tDpiMessage.set_sessionlenserver(567);
+   tDpiMessage.set_deltasessionlenserver(567);
+   tDpiMessage.set_sessionlenclient(89);
+   tDpiMessage.set_deltasessionlenclient(89);
+   tDpiMessage.set_packetcount(88);
+   tDpiMessage.set_deltapackets(88);
+   tDpiMessage.add_loginq_proto_aim("aLogin");
+   tDpiMessage.add_domainq_proto_smb("aDomain1234");
+   tDpiMessage.add_uri_fullq_proto_http("this/url.htm");
+   tDpiMessage.add_uriq_proto_http("not/this/one");
+   tDpiMessage.add_serverq_proto_http("thisname1234");
+   tDpiMessage.add_referer_serverq_proto_http("notThisOne");
+   // Notice the delimter character '|' placed before LAST.  This forces the
+   // application to split the string before the delimiter.
+   tDpiMessage.add_methodq_proto_ftp("RUN");
+   tDpiMessage.add_methodq_proto_ftp("DOCMD");
+   tDpiMessage.add_methodq_proto_ftp("LONGLONGLONG");
+   tDpiMessage.add_methodq_proto_ftp("LAST");
+   tDpiMessage.add_senderq_proto_smtp("test1_12345");
+   tDpiMessage.add_receiverq_proto_smtp("test2_12");
+   tDpiMessage.add_subjectq_proto_smtp("test3_1234");
+   tDpiMessage.add_versionq_proto_http("4.0");
+   tDpiMessage.set_starttime(123);
+   tDpiMessage.set_endtime(456);
+   tDpiMessage.set_deltatime(333);
+   dm.SetMaxSize(512 + 8 + 36 + 4);
+   messages = dm.GetSiemSyslogMessage(tDpiMessage);
+   //   for (int i = 0; i < messages.size(); i++) {
+   //      std::cout << messages[i] << std::endl;
+   //   }
+   ASSERT_EQ(2, messages.size());
+   std::string expectedEvent1 = "EVT:001 550e8400-e29b-41d4-a716-446655440000:";
+   std::string expectedEvent2 = "EVT:002 550e8400-e29b-41d4-a716-446655440000:";
+   std::string expectedStaticData = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,26,89/89,567/567,88/88,123,456,333/333";
+   std::string expectedStaticZeroDeltas = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,26,0/89,0/567,0/88,123,456,0/333";
+   std::string expected;
+
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticData, 0);
+   expected += ",login=aLogin,domain=aDomain1234,dname=thisname1234,command=RUN|DOCMD|LONGLONGLONG|LAST,sender=test1_12345,recipient=test2_12,subject=test3_1234,version=4.0,url=this/url.htm,process=_CHAOSnet";
+   EXPECT_EQ(expected, messages[0]);
+
+   expected.clear();
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, 1);
+   expected += ",applicationEnd=_CHAOSnet,applicationIdEnd=1234,login=aLogin,method=RUN|DOCMD|LONGLONGLONG|LAST,server=thisname1234,refererServer=notThisOne,uri=not/this/one,uriFull=this/url.htm,version=4.0,domain=aDomain1234,sender=test1_12345,receiver=test2_12,subject=test3_1234";
+   EXPECT_EQ(expected, messages[1]);
+
+   messages.clear();
+   dm.SetMaxSize(167); // Number of chars in SIEM static data, plus first field ",login=aLogin"
+   messages = dm.GetSiemSyslogMessage(tDpiMessage);
+   //   for (int i = 0; i < messages.size(); i++) {
+   //      std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
+   //   }
+   ASSERT_EQ(37, messages.size());
+   unsigned int index = 0;
+
+   expected.clear();
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticData, index);
+   expected += ",login=aLogin";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",domain=aDomain1234";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",dname=thisname1234";
+   EXPECT_EQ(expected, messages[index++]);
+
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",command=RUN|DOCMD";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",command=LONGLONGLO";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",command=NG|LAST";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",sender=test1_12345";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",recipient=test2_12";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",subject=test3_1234";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",version=4.0";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",url=this/url.htm";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",process=_CHAOSnet";
+   EXPECT_EQ(expected, messages[index++]);
+
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",applicationEnd=_CH";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",applicationEnd=AOS";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",applicationEnd=net";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",applicationIdEnd=1";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",applicationIdEnd=2";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",applicationIdEnd=3";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",applicationIdEnd=4";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",login=aLogin";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",method=RUN|DOCMD";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",method=LONGLONGLON";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",method=G|LAST";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",server=thisname123";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",server=4";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",refererServer=notT";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",refererServer=hisO";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",refererServer=ne";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",uri=not/this/one";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",uriFull=this/url.h";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",uriFull=tm";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",version=4.0";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",domain=aDomain1234";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",sender=test1_12345";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",receiver=test2_12";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",subject=test3_1234";
+   EXPECT_EQ(expected, messages[index++]);
+
+#endif
+}
 
 TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
 #ifdef LR_DEBUG
@@ -44,7 +330,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    tDpiMessage.set_sourceport(127);
    tDpiMessage.set_destport(128);
    tDpiMessage.set_protoid(129);
-   tDpiMessage.add_application_endq_proto_base("test");
+   tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
    tDpiMessage.set_sessionlenserver(567);
    tDpiMessage.set_deltasessionlenserver(567);
@@ -68,7 +354,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    tDpiMessage.set_starttime(123);
    tDpiMessage.set_endtime(456);
    tDpiMessage.set_deltatime(333);
-   int expectedMsgSize(337); // exact size of message with data as defined above
+   int expectedMsgSize(353); // exact size of message with data as defined above
    dm.SetMaxSize(expectedMsgSize);
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
    //  for (int i = 0; i < messages.size(); i++) {
@@ -77,21 +363,21 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    ASSERT_EQ(1, messages.size());
    ASSERT_EQ(expectedMsgSize, messages[0].size());
    std::string expectedEvent = "EVT:001 550e8400-e29b-41d4-a716-446655440000:";
-   std::string expectedHeader = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,899/899,567/567,88/88,123,456,333/333";
-   std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,0/899,0/567,0/88,123,456,0/333";
+   std::string expectedHeader = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,26,899/899,567/567,88/88,123,456,333/333";
+   std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,26,0/899,0/567,0/88,123,456,0/333";
    std::string expected;
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeader, 0);
-   expected += ",login=aLogin,domain=aDomain12345,dname=thisname12345,command=RUN|COMMAND|LONGLONGLONGLONG,sender=test1_123456,recipient=test2_123,subject=test3_12345,version=4.0,url=this/url.htm";
+   expected += ",login=aLogin,domain=aDomain12345,dname=thisname12345,command=RUN|COMMAND|LONGLONGLONGLONG,sender=test1_123456,recipient=test2_123,subject=test3_12345,version=4.0,url=this/url.htm,process=_CHAOSnet";
    EXPECT_EQ(expected, messages[0]);
 
    // Force each extra field to be split between multiple syslog EVT:001 messages.
    messages.clear();
-   dm.SetMaxSize(171); // Number of chars in SIEM static data, plus first field ",login=aLogin"
+   dm.SetMaxSize(169); // Number of chars in SIEM static data, plus first field ",login=aLogin"
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
    //   for (int i = 0; i < messages.size(); i++) {
    //      std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
    //   }
-   ASSERT_EQ(11, messages.size());
+   ASSERT_EQ(12, messages.size());
    unsigned int index = 0;
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeader, index);
    expected += ",login=aLogin";
@@ -127,8 +413,25 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",url=this/url.htm";
    EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
+   expected += ",process=_CHAOSnet";
+   EXPECT_EQ(expected, messages[index++]);
 #endif
 }
+#ifdef LR_DEBUG
+
+TEST_F(RuleEngineTest, elasticSearchSends) {
+   MockRuleEngine dm(conf, syslogName, syslogOption, syslogFacility, syslogPriority,
+           true, 0);
+   std::stringstream targetQueue;
+
+   targetQueue << "ipc:///tmp/ruleEngineTest" << pthread_self();
+   dm.SetElasticSearchTarget(targetQueue.str());
+   ASSERT_FALSE(dm.CanSendToElasticSearch());
+   dm.Start();
+   ASSERT_TRUE(dm.CanSendToElasticSearch());
+}
+#endif
 
 TEST_F(RuleEngineTest, testConstructor) {
 #ifdef LR_DEBUG
@@ -1018,190 +1321,6 @@ TEST_F(RuleEngineTest, getSyslogMessagesSplitDataTest) {
 #endif
 }
 
-TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
-#if defined(LR_DEBUG)
-   MockRuleEngine dm(conf, syslogName, syslogOption,
-           syslogFacility, syslogPriority, true, 0);
-   map<unsigned int, pair <string, string> > dataPairs;
-   vector<string> messages;
-
-   dm.mSiemMode = true;
-   dm.mSiemDebugMode = true;
-   tDpiMessage.set_uuid("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_ethdst(123);
-   tDpiMessage.set_ethsrc(124);
-   tDpiMessage.set_ipdst(125);
-   tDpiMessage.set_ipsrc(126);
-   tDpiMessage.set_sourceport(127);
-   tDpiMessage.set_destport(128);
-   tDpiMessage.set_protoid(129);
-   tDpiMessage.add_application_endq_proto_base("test");
-   tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_sessionlenserver(567);
-   tDpiMessage.set_deltasessionlenserver(567);
-   tDpiMessage.set_sessionlenclient(89);
-   tDpiMessage.set_deltasessionlenclient(89);
-   tDpiMessage.set_packetcount(88);
-   tDpiMessage.set_deltapackets(88);
-   tDpiMessage.add_loginq_proto_aim("aLogin");
-   tDpiMessage.add_domainq_proto_smb("aDomain1234");
-   tDpiMessage.add_uri_fullq_proto_http("this/url.htm");
-   tDpiMessage.add_uriq_proto_http("not/this/one");
-   tDpiMessage.add_serverq_proto_http("thisname1234");
-   tDpiMessage.add_referer_serverq_proto_http("notThisOne");
-   // Notice the delimter character '|' placed before LAST.  This forces the
-   // application to split the string before the delimiter.
-   tDpiMessage.add_methodq_proto_ftp("RUN");
-   tDpiMessage.add_methodq_proto_ftp("DOCMD");
-   tDpiMessage.add_methodq_proto_ftp("LONGLONGLONG");
-   tDpiMessage.add_methodq_proto_ftp("LAST");
-   tDpiMessage.add_senderq_proto_smtp("test1_12345");
-   tDpiMessage.add_receiverq_proto_smtp("test2_12");
-   tDpiMessage.add_subjectq_proto_smtp("test3_1234");
-   tDpiMessage.add_versionq_proto_http("4.0");
-   tDpiMessage.set_starttime(123);
-   tDpiMessage.set_endtime(456);
-   tDpiMessage.set_deltatime(333);
-   dm.SetMaxSize(512 + 8 + 36 + 4);
-   messages = dm.GetSiemSyslogMessage(tDpiMessage);
-   //   for (int i = 0; i < messages.size(); i++) {
-   //      std::cout << messages[i] << std::endl;
-   //   }
-   ASSERT_EQ(2, messages.size());
-   std::string expectedEvent1 = "EVT:001 550e8400-e29b-41d4-a716-446655440000:";
-   std::string expectedEvent2 = "EVT:002 550e8400-e29b-41d4-a716-446655440000:";
-   std::string expectedStaticData = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,89/89,567/567,88/88,123,456,333/333";
-   std::string expectedStaticZeroDeltas = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,test,0/89,0/567,0/88,123,456,0/333";
-   std::string expected;
-
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticData, 0);
-   expected += ",login=aLogin,domain=aDomain1234,dname=thisname1234,command=RUN|DOCMD|LONGLONGLONG|LAST,sender=test1_12345,recipient=test2_12,subject=test3_1234,version=4.0,url=this/url.htm";
-   EXPECT_EQ(expected, messages[0]);
-
-   expected.clear();
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, 1);
-   expected += ",applicationEnd=test,applicationIdEnd=1234,login=aLogin,method=RUN|DOCMD|LONGLONGLONG|LAST,server=thisname1234,refererServer=notThisOne,uri=not/this/one,uriFull=this/url.htm,version=4.0,domain=aDomain1234,sender=test1_12345,receiver=test2_12,subject=test3_1234";
-   EXPECT_EQ(expected, messages[1]);
-
-   messages.clear();
-   dm.SetMaxSize(169); // Number of chars in SIEM static data, plus first field ",login=aLogin"
-   messages = dm.GetSiemSyslogMessage(tDpiMessage);
-   //   for (int i = 0; i < messages.size(); i++) {
-   //      std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
-   //   }
-   ASSERT_EQ(35, messages.size());
-   unsigned int index = 0;
-
-   expected.clear();
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticData, index);
-   expected += ",login=aLogin";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",domain=aDomain1234";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",dname=thisname1234";
-   EXPECT_EQ(expected, messages[index++]);
-
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",command=RUN|DOCMD";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",command=LONGLONGLO";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",command=NG|LAST";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",sender=test1_12345";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",recipient=test2_12";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",subject=test3_1234";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",version=4.0";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",url=this/url.htm";
-   EXPECT_EQ(expected, messages[index++]);
-
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationEnd=tes";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationEnd=t";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationIdEnd=1";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationIdEnd=2";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationIdEnd=3";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationIdEnd=4";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",login=aLogin";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",method=RUN|DOCMD";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",method=LONGLONGLON";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",method=G|LAST";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",server=thisname123";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",server=4";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",refererServer=notT";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",refererServer=hisO";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",refererServer=ne";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",uri=not/this/one";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",uriFull=this/url.h";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",uriFull=tm";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",version=4.0";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",domain=aDomain1234";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",sender=test1_12345";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",receiver=test2_12";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",subject=test3_1234";
-   EXPECT_EQ(expected, messages[index++]);
-#endif
-}
-
 TEST_F(RuleEngineTest, CrazyData) {
 #if defined(LR_DEBUG)
    MockRuleEngine dm(conf, syslogName, syslogOption,
@@ -1295,115 +1414,6 @@ TEST_F(RuleEngineTest, getNextDataPair) {
    ASSERT_EQ(", test=me", dm.GetNextDataPair(i));
 #endif
 
-}
-
-TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
-#ifdef LR_DEBUG
-   MockRuleEngine dm(conf, syslogName, syslogOption,
-           syslogFacility, syslogPriority, true, 0);
-   IndexedFieldPairs results;
-   dm.GetSiemRequiredFieldPairs(tDpiMessage, results);
-   ASSERT_EQ(19, results.size());
-   EXPECT_EQ("UUID", results[SIEM_FIELD_UUID].first);
-   EXPECT_EQ("sip", results[SIEM_FIELD_SIP].first);
-   EXPECT_EQ("dip", results[SIEM_FIELD_DIP].first);
-   EXPECT_EQ("sport", results[SIEM_FIELD_SPORT].first);
-   EXPECT_EQ("dport", results[SIEM_FIELD_DPORT].first);
-   EXPECT_EQ("smac", results[SIEM_FIELD_SMAC].first);
-   EXPECT_EQ("dmac", results[SIEM_FIELD_DMAC].first);
-   EXPECT_EQ("protnum", results[SIEM_FIELD_PROTONUM].first);
-   EXPECT_EQ("process", results[SIEM_FIELD_PROCESS].first);
-   EXPECT_EQ("bytesin", results[SIEM_FIELD_BYTES_IN].first);
-   EXPECT_EQ("deltabytesin", results[SIEM_FIELD_DELTA_BYTES_IN].first);
-   EXPECT_EQ("bytesout", results[SIEM_FIELD_BYTES_OUT].first);
-   EXPECT_EQ("deltabytesout", results[SIEM_FIELD_DELTA_BYTES_OUT ].first);
-   EXPECT_EQ("packetsin", results[SIEM_FIELD_PACKETS_IN].first);
-   EXPECT_EQ("deltapacketsin", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
-   EXPECT_EQ("timestart", results[SIEM_FIELD_TIME_START].first);
-   EXPECT_EQ("timeend", results[SIEM_FIELD_TIME_END].first);
-   EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
-   EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
-
-   EXPECT_EQ(UNKNOWN_UUID, results[SIEM_FIELD_UUID].second);
-   EXPECT_EQ("0.0.0.0", results[SIEM_FIELD_SIP].second);
-   EXPECT_EQ("0.0.0.0", results[SIEM_FIELD_DIP].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_SPORT].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_DPORT].second);
-   EXPECT_EQ("00:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
-   EXPECT_EQ("00:00:00:00:00:00", results[SIEM_FIELD_DMAC].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_PROTONUM].second);
-   EXPECT_EQ("unknown", results[SIEM_FIELD_PROCESS].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_BYTES_IN].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_DELTA_BYTES_IN].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_BYTES_OUT].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_DELTA_BYTES_OUT].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_PACKETS_IN].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_DELTA_PACKETS_IN].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_TIME_DELTA].second);
-   EXPECT_EQ("0", results[SIEM_FIELD_TIME_TOTAL].second);
-
-   tDpiMessage.set_uuid("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_ethdst(123);
-   tDpiMessage.set_ethsrc(124);
-   tDpiMessage.set_ipdst(125);
-   tDpiMessage.set_ipsrc(126);
-   tDpiMessage.set_sourceport(127);
-   tDpiMessage.set_destport(128);
-   tDpiMessage.set_protoid(129);
-   tDpiMessage.add_application_endq_proto_base("test");
-   tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_sessionlenserver(567);
-   tDpiMessage.set_deltasessionlenserver(456);
-   tDpiMessage.set_sessionlenclient(89);
-   tDpiMessage.set_deltasessionlenclient(78);
-   tDpiMessage.set_packetcount(88);
-   tDpiMessage.set_deltapackets(44);
-   tDpiMessage.add_loginq_proto_0zz0("dontSeeMee");
-   tDpiMessage.set_starttime(1234);
-   tDpiMessage.set_endtime(5678);
-   tDpiMessage.set_deltatime(4444);
-   dm.GetSiemRequiredFieldPairs(tDpiMessage, results);
-   ASSERT_EQ(19, results.size());
-   EXPECT_EQ("UUID", results[SIEM_FIELD_UUID].first);
-   EXPECT_EQ("sip", results[SIEM_FIELD_SIP].first);
-   EXPECT_EQ("dip", results[SIEM_FIELD_DIP].first);
-   EXPECT_EQ("sport", results[SIEM_FIELD_SPORT].first);
-   EXPECT_EQ("dport", results[SIEM_FIELD_DPORT].first);
-   EXPECT_EQ("smac", results[SIEM_FIELD_SMAC].first);
-   EXPECT_EQ("dmac", results[SIEM_FIELD_DMAC].first);
-   EXPECT_EQ("protnum", results[SIEM_FIELD_PROTONUM].first);
-   EXPECT_EQ("process", results[SIEM_FIELD_PROCESS].first);
-   EXPECT_EQ("bytesin", results[SIEM_FIELD_BYTES_IN].first);
-   EXPECT_EQ("deltabytesin", results[SIEM_FIELD_DELTA_BYTES_IN].first);
-   EXPECT_EQ("bytesout", results[SIEM_FIELD_BYTES_OUT].first);
-   EXPECT_EQ("deltabytesout", results[SIEM_FIELD_DELTA_BYTES_OUT ].first);
-   EXPECT_EQ("packetsin", results[SIEM_FIELD_PACKETS_IN].first);
-   EXPECT_EQ("deltapacketsin", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
-   EXPECT_EQ("timestart", results[SIEM_FIELD_TIME_START].first);
-   EXPECT_EQ("timeend", results[SIEM_FIELD_TIME_END].first);
-   EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
-   EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
-   EXPECT_EQ("126.0.0.0", results[2].second);
-   EXPECT_EQ("125.0.0.0", results[SIEM_FIELD_DIP].second);
-   EXPECT_EQ("127", results[SIEM_FIELD_SPORT].second);
-   EXPECT_EQ("128", results[SIEM_FIELD_DPORT].second);
-   EXPECT_EQ("550e8400-e29b-41d4-a716-446655440000", results[SIEM_FIELD_UUID].second);
-   EXPECT_EQ("7c:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
-   EXPECT_EQ("7c:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
-   EXPECT_EQ("7b:00:00:00:00:00", results[SIEM_FIELD_DMAC].second);
-   EXPECT_EQ("129", results[SIEM_FIELD_PROTONUM].second);
-   EXPECT_EQ("test", results[SIEM_FIELD_PROCESS].second);
-   EXPECT_EQ("89", results[SIEM_FIELD_BYTES_IN].second);
-   EXPECT_EQ("78", results[SIEM_FIELD_DELTA_BYTES_IN].second);
-   EXPECT_EQ("567", results[SIEM_FIELD_BYTES_OUT].second);
-   EXPECT_EQ("456", results[SIEM_FIELD_DELTA_BYTES_OUT].second);
-   EXPECT_EQ("88", results[SIEM_FIELD_PACKETS_IN].second);
-   EXPECT_EQ("44", results[SIEM_FIELD_DELTA_PACKETS_IN].second);
-   EXPECT_EQ("1234", results[SIEM_FIELD_TIME_START].second);
-   EXPECT_EQ("5678", results[SIEM_FIELD_TIME_END].second);
-   EXPECT_EQ("4444", results[SIEM_FIELD_TIME_DELTA].second);
-   EXPECT_EQ("4444", results[SIEM_FIELD_TIME_TOTAL].second);
-#endif
 }
 
 TEST_F(RuleEngineTest, GetLoginField) {
