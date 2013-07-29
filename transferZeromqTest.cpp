@@ -5,6 +5,7 @@
 #include "ElasticSearch.h"
 #include "MockBoomStick.h"
 #include <thread>
+#include <memory>
 #include "jansson.h"
 
 namespace {
@@ -16,7 +17,7 @@ namespace {
       void* socket = zsocket_new(context, ZMQ_DEALER);
       std::string resultString;
       if (zsocket_connect(socket, binding.c_str()) == 0) {
-         std::stringstream testStream;
+         std::ostringstream testStream;
          testStream << "tweet" << threadNumber;
          std::string type = testStream.str();
          testStream.str("");
@@ -45,7 +46,7 @@ namespace {
                ASSERT_TRUE(resultString.find(type) != std::string::npos);
                size_t idLocation = resultString.find("id\":\"") + 5;
                ASSERT_TRUE(idLocation != std::string::npos);
-               int id = atoi(resultString.substr(idLocation, resultString.find("\"", idLocation)).c_str());
+               size_t id = std::stoi(resultString.substr(idLocation, resultString.find("\"", idLocation)));
                //std::cout << resultString << std::endl;
                //std::cout << id << resultString.substr(idLocation,resultString.find("\"",idLocation)) << std::endl;
                ids.erase(id);
@@ -73,7 +74,7 @@ namespace {
       MessageSend(numberOfMessages, threadNumber, binding, baseMessage, context, dataSent, recordsSent);
    }
 
-   void JSonPrettyPrint(json_t* Object, int indent) {
+   void JSonPrettyPrint(json_t* Object, unsigned int indent) {
       const char* key;
       json_t* value;
 
@@ -116,7 +117,7 @@ namespace {
       RESTSender sender(transport);
       auto diskInfo = GetDiskInfo();
       std::vector<std::string> clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfo);
-      for (auto hostName : clusterNames) {
+      for (const auto& hostName : clusterNames) {
          std::cout << hostName << " : " << std::endl;
          std::cout << sender.GetDiskReads(hostName, diskInfo) << " reads" << std::endl;
          std::cout << sender.GetDiskWrites(hostName, diskInfo) << " writes" << std::endl;
@@ -181,16 +182,15 @@ TEST_F(transferZeromqTest, multipleThreads) {
    int threadcount = 10;
    SetExpectedTime(iterations*threadcount, 60, 1, 4000L);
    StartTimedSection();
-   std::unordered_map<int, std::thread*> threads;
+   std::unordered_map<int, std::unique_ptr<std::thread> > threads;
    for (int i = 0; i < threadcount; i++) {
       size_t dataSent;
       size_t recordsSent;
-      threads[i] = new std::thread(MesageSendThread, iterations, i, "tcp://127.0.0.1:9700",
-              "this is a multiple-thread", context);
+      threads[i].reset(new std::thread(MesageSendThread, iterations, i, "tcp://127.0.0.1:9700",
+              "this is a multiple-thread", context));
    }
    for (int i = 0; i < threadcount; i++) {
       threads[i]->join();
-      delete threads[i];
    }
    EndTimedSection();
 }
@@ -217,7 +217,7 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTest) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
    RESTSender sender(transport);
    std::vector<std::string> clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfoPre);
-   for (auto hostName : clusterNames) {
+   for (const auto& hostName : clusterNames) {
       std::cout << hostName << " : " << std::endl;
       std::cout << (sender.GetDiskReads(hostName, diskInfoPost) - sender.GetDiskReads(hostName, diskInfoPre)) << " reads" << std::endl;
       std::cout << (sender.GetDiskWrites(hostName, diskInfoPost) - sender.GetDiskWrites(hostName, diskInfoPre)) << " writes" << std::endl;
@@ -236,7 +236,7 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTest) {
    std::cout << dataSent << " total bytes sent " << std::endl;
    diskInfoPost = GetDiskInfo();
    clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfoPre);
-   for (auto hostName : clusterNames) {
+   for (const auto& hostName : clusterNames) {
       std::cout << hostName << " : " << std::endl;
       std::cout << (sender.GetDiskReads(hostName, diskInfoPost) - sender.GetDiskReads(hostName, diskInfoPre)) << " reads" << std::endl;
       std::cout << (sender.GetDiskWrites(hostName, diskInfoPost) - sender.GetDiskWrites(hostName, diskInfoPre)) << " writes" << std::endl;

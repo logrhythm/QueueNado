@@ -71,7 +71,7 @@ TEST_F(RESTSenderTest, GetSpecificDiskInfo) {
    RESTSender sender(transport);
    EXPECT_EQ("589.8gb", sender.GetDiskWriteSize(clusterName, info));
    EXPECT_EQ("106.1gb", sender.GetDiskReadSize(clusterName, info));
-   EXPECT_EQ("/dev/mapper/vg_robert2-lv_home", sender.GetDiskDev(clusterName, info));
+   EXPECT_EQ("/dev/mapper/vg_robert2-lv_home", sender.GetDiskDevice(clusterName, info));
    EXPECT_EQ("21.9gb", sender.GetDiskFree(clusterName, info));
    EXPECT_EQ("18.3gb", sender.GetDiskAvailable(clusterName, info));
    EXPECT_EQ("0.2", sender.GetDiskQueue(clusterName, info));
@@ -79,7 +79,7 @@ TEST_F(RESTSenderTest, GetSpecificDiskInfo) {
    EXPECT_EQ("/home", sender.GetDiskMount(clusterName, info));
    EXPECT_EQ("/usr/local/probe/db/elasticsearch/data/logrhythm/nodes/0", sender.GetDiskPath(clusterName, info));
    EXPECT_EQ(2533055, sender.GetDiskReads(clusterName, info));
-   EXPECT_EQ(19653607424, sender.GetDiskAvalInBytes(clusterName, info));
+   EXPECT_EQ(19653607424, sender.GetDiskAvailableInBytes(clusterName, info));
    EXPECT_EQ(113932321792, sender.GetDiskReadSizeInBytes(clusterName, info));
    EXPECT_EQ(633309597696, sender.GetDiskWriteSizeInBytes(clusterName, info));
    EXPECT_EQ(155087317, sender.GetDiskWrites(clusterName, info));
@@ -88,7 +88,7 @@ TEST_F(RESTSenderTest, GetSpecificDiskInfo) {
    clusterName = "bar";
    EXPECT_EQ("", sender.GetDiskWriteSize(clusterName, info));
    EXPECT_EQ("", sender.GetDiskReadSize(clusterName, info));
-   EXPECT_EQ("", sender.GetDiskDev(clusterName, info));
+   EXPECT_EQ("", sender.GetDiskDevice(clusterName, info));
    EXPECT_EQ("", sender.GetDiskFree(clusterName, info));
    EXPECT_EQ("", sender.GetDiskAvailable(clusterName, info));
    EXPECT_EQ("", sender.GetDiskQueue(clusterName, info));
@@ -96,7 +96,7 @@ TEST_F(RESTSenderTest, GetSpecificDiskInfo) {
    EXPECT_EQ("", sender.GetDiskMount(clusterName, info));
    EXPECT_EQ("", sender.GetDiskPath(clusterName, info));
    EXPECT_EQ(0, sender.GetDiskReads(clusterName, info));
-   EXPECT_EQ(0, sender.GetDiskAvalInBytes(clusterName, info));
+   EXPECT_EQ(0, sender.GetDiskAvailableInBytes(clusterName, info));
    EXPECT_EQ(0, sender.GetDiskReadSizeInBytes(clusterName, info));
    EXPECT_EQ(0, sender.GetDiskWriteSizeInBytes(clusterName, info));
    EXPECT_EQ(0, sender.GetDiskWrites(clusterName, info));
