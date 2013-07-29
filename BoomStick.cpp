@@ -376,7 +376,7 @@ bool BoomStick::GetReplyFromSocket(const std::string& messageHash, const unsigne
 void BoomStick::CleanOldPendingData() {
    const auto unreadSize = mUnreadReplies.size();
    const auto pendingSize = mPendingReplies.size();
-   LOG_IF(DEBUG, (pendingSize >= 500)) << "sizes mUnreadReplies: " << unreadSize << " mPendingReplies: " << pendingSize;
+   LOG_IF(WARNING, (pendingSize >= 500)) << "sizes mUnreadReplies: " << unreadSize << " mPendingReplies: " << pendingSize;
    CleanUnreadReplies();
    CleanPendingReplies();
 }
