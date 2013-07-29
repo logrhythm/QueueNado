@@ -74,7 +74,6 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("DebugLog"));
    ASSERT_TRUE(registered.end() != registered.find("WarningLog"));
    ASSERT_TRUE(registered.end() != registered.find("SetChildFlowNum"));
-   ASSERT_TRUE(registered.end() != registered.find("SetTotalSessionLen"));
 
    ASSERT_EQ(registered["GetLatestApplication"], LuaRuleEngineFunctions::GetLatestApplication);
    ASSERT_EQ(registered["SetCustomApplication"], LuaRuleEngineFunctions::SetCustomApplication);
@@ -93,7 +92,6 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["DebugLog"], LuaFunctions::DebugLog);
    ASSERT_EQ(registered["WarningLog"], LuaFunctions::WarningLog);
    ASSERT_EQ(registered["SetChildFlowNum"], LuaRuleEngineFunctions::SetChildFlowNum);
-   ASSERT_EQ(registered["SetTotalSessionLen"], LuaRuleEngineFunctions::SetTotalSessionLen);
    delete functions;
 }
 
@@ -737,22 +735,6 @@ TEST_F(LuaFunctionsTest, StaticCallSetChildFlowNum) {
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetChildFlowNum(luaState));
    EXPECT_TRUE(dpiMsg.has_childflownum());
    EXPECT_EQ(expectedChildFlowNum, dpiMsg.childflownum());
-   lua_close(luaState);
-}
-
-TEST_F(LuaFunctionsTest, StaticCallSetTotalSessionLen) {
-   DpiMsgLR dpiMsg;
-   lua_State *luaState;
-   luaState = luaL_newstate();
-
-   EXPECT_FALSE(dpiMsg.has_totalsessionlen());
-   // Expect known value when set
-   uint64_t expectedTotalSessionLen(999);
-   lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushnumber(luaState, expectedTotalSessionLen);
-   ASSERT_EQ(0, LuaRuleEngineFunctions::SetTotalSessionLen(luaState));
-   EXPECT_TRUE(dpiMsg.has_totalsessionlen());
-   EXPECT_EQ(expectedTotalSessionLen, dpiMsg.totalsessionlen());
    lua_close(luaState);
 }
 
