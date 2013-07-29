@@ -298,9 +298,13 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
       zmsg_destroy(&msg);
       return false;
    }
-
-   foundId = zmsg_popstr(msg);
-   foundReply = zmsg_popstr(msg);
+   char* msgChar;
+   msgChar = zmsg_popstr(msg);
+   foundId = msgChar;
+   free(msgChar);
+   msgChar = zmsg_popstr(msg);
+   foundReply = msgChar;
+   free(msgChar);
    zmsg_destroy(&msg);
    return true;
 }
