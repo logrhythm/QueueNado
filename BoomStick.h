@@ -30,6 +30,8 @@ protected:
    LR_VIRTUAL std::string HashMessageId(const MessageIdentifier& messageid) const;
    LR_VIRTUAL bool FindPendingHash(const std::string& hash) const;
    LR_VIRTUAL void CleanOldPendingData();
+   LR_VIRTUAL void CleanPendingReplies();
+   LR_VIRTUAL void CleanUnreadReplies();
    LR_VIRTUAL bool GetReplyFromSocket(const std::string& messageHash, const unsigned int msToWait, std::string& reply);
    bool GetReplyFromCache(const std::string& messageHash, std::string& reply);
    bool CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply);

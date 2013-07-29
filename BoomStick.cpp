@@ -25,6 +25,7 @@ BoomStick::BoomStick(const std::string& binding) : mLastGCTime(time(NULL)), mBin
 BoomStick::~BoomStick() {
    zctx_destroy(&mCtx);
 }
+
 /**
  * Get the context (can be safely shared between threads)
  * @return 
@@ -32,6 +33,7 @@ BoomStick::~BoomStick() {
 zctx_t* BoomStick::GetContext() {
    return mCtx;
 }
+
 /**
  * Swap internals
  * @param other
@@ -368,6 +370,17 @@ bool BoomStick::GetReplyFromSocket(const std::string& messageHash, const unsigne
  * Clean up pending sends/replies that are older than 5 minutes 
  */
 void BoomStick::CleanOldPendingData() {
+   const auto unreadSize = mUnreadReplies.size();
+   const auto pendingSize = mPendingReplies.size();
+   LOG_IF(DEBUG, (pendingSize >= 500)) << "sizes mUnreadReplies: " << unreadSize << " mPendingReplies: " << pendingSize;
+   CleanUnreadReplies();
+   CleanPendingReplies();
+}
+
+/**
+ * Cleanup pending replies that have exceeded our timeout.
+ */
+void BoomStick::CleanPendingReplies() {
    time_t now = time(NULL);
    if (now < mLastGCTime + 5 * MINUTES_TO_SECONDS) {
       return;
@@ -378,16 +391,32 @@ void BoomStick::CleanOldPendingData() {
       if (pendingSend.second.second <= now - 5 * MINUTES_TO_SECONDS) {
          hashesToRemove.push_back(pendingSend.first);
       }
-      if (mUnreadReplies.find(pendingSend.first) == mUnreadReplies.end()) {
-         LOG(DEBUG) << "Found unmatched reply to unknown hash " << pendingSend.first << " :" << mUnreadReplies[pendingSend.first];
-         mUnreadReplies.erase(pendingSend.first);
-      }
    }
+
    for (auto hash : hashesToRemove) {
       mPendingReplies.erase(hash);
       if (mUnreadReplies.find(hash) != mUnreadReplies.end()) {
-         LOG(DEBUG) << "Discarding unread reply for " << hash << ": " << mUnreadReplies[hash];
+         LOG(DEBUG) << "Discarding unread reply for " << hash;
          mUnreadReplies.erase(hash);
       }
+   }
+}
+
+/**
+ * Cleanup unread replies that don't exist in pending.
+ */
+void BoomStick::CleanUnreadReplies() {
+   std::vector<std::string> hashesToRemove;
+   //check all unread replies and remove any that don't exist in pending.
+   for (auto unreadReply : mUnreadReplies) {
+      if (mPendingReplies.find(unreadReply.first) == mPendingReplies.end()) {
+         LOG(WARNING) << "Found unmatched reply to unknown hash " << unreadReply.first;
+         hashesToRemove.push_back(unreadReply.first);
+      }
+   }
+
+   for (auto hash : hashesToRemove) {
+      LOG(INFO) << "Discarding reply that doesn't exist in pending " << hash;
+      mUnreadReplies.erase(hash);
    }
 }
