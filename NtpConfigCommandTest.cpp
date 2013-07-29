@@ -6,7 +6,7 @@
 #include "MockProcessManagerCommand.h"
 #include "MockConf.h"
 #include "NtpMsg.pb.h"
-
+#include <sys/prctl.h>
 #include <memory>
 namespace {
 struct MockNtpConfigCommand : public NtpConfigCommand {
@@ -43,6 +43,12 @@ TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd)
   MockNtpConfigCommand doIt(cmd, autoManagedManager);
   auto reply = doIt.Execute(conf);
   ASSERT_TRUE(reply.success());
+    
+  auto cmd = autoManagedManager->getRunCommand();  
+  auto cmdArgs = autoManagedManager->getRunArgs();
+  ASSERT_EQ(cmd, std::string("/etc/init.d/ntpd"));
+  ASSERT_EQ(cmdArgs, std::string("stop"));
+    
 }
 
 TEST_F(NtpConfigCommandTest, EnableNTPWithNoServer__ExpectingInvalidCmd) 
@@ -64,6 +70,12 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithMasterServer__ExpectingValidCmd)
   MockNtpConfigCommand doIt(cmd, autoManagedManager);
   auto reply = doIt.Execute(conf);
   ASSERT_TRUE(reply.success());
+  
+  auto cmd = autoManagedManager->getRunCommand();  
+  auto cmdArgs = autoManagedManager->getRunArgs();
+  ASSERT_EQ(cmd, std::string("/etc/init.d/ntpd"));
+  ASSERT_EQ(cmdArgs, std::string("start"));
+ 
 }
 
 TEST_F(NtpConfigCommandTest, EnableNTPWithMasterAndServer__ExpectingValidCmd) 
@@ -105,3 +117,18 @@ TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd)
   }
 }
 
+
+TEST_F(NtpConfigCommandTest, DISABLED_Execv__EnableNTP) 
+{
+  char* const realArgs[]= {"ntpd", "start", NULL};
+  char *environ[] = {NULL};  
+  ASSERT_EQ(0, execve("/etc/init.d/ntpd", realArgs, environ));
+}
+
+
+TEST_F(NtpConfigCommandTest, DISABLED_Execv__DisableNTP) 
+{
+  char* const realArgs[]= {"ntpd", "stop", NULL};
+  char *environ[] = {NULL};  
+  ASSERT_EQ(0, execve("/etc/init.d/ntpd", realArgs, environ));
+}

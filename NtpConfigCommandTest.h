@@ -4,6 +4,7 @@
 #include <czmq.h>
 
 #include "MockProcessManagerCommand.h"
+//#include "ProcessManager.h"
 #include "MockConf.h"
 #include "CommandRequest.pb.h"
 
@@ -19,8 +20,8 @@ protected:
       autoManagedManager = new MockProcessManagerCommand(conf);
       cmd.set_type(protoMsg::CommandRequest_CommandType_NTP_CONFIG);
     };
-    virtual void TearDown() {}
-
+   virtual void TearDown() {}  
+    
   const MockConf conf;
   MockProcessManagerCommand* autoManagedManager;
   protoMsg::CommandRequest cmd;  
