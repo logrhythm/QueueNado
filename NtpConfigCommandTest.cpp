@@ -98,10 +98,8 @@ TEST_F(NtpConfigCommandTest, MultipleEnableCmds__ExpectingValidCmd)
   ntp.set_backup_server("10.128.64.252");
   cmd.set_stringargone(ntp.SerializeAsString());
   MockNtpConfigCommand doIt(cmd, autoManagedManager);
-  for (int i = 0; i < 10; ++i) {
-    auto reply = doIt.Execute(conf);
-    ASSERT_TRUE(reply.success());
-  }
+  auto reply = doIt.Execute(conf);
+  ASSERT_TRUE(reply.success());
 }
 
 
@@ -110,7 +108,7 @@ TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd)
   protoMsg::Ntp ntp;
   ntp.set_active(false);
   cmd.set_stringargone(ntp.SerializeAsString());
-  MockNtpConfigCommand doIt(cmd, autoManagedManager);
+  MockNtpConfigCommand doIt(cmd, autoManagedManager); 
   for (int i = 0; i < 10; ++i) {
     auto reply = doIt.Execute(conf);
     ASSERT_TRUE(reply.success());

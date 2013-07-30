@@ -4,7 +4,7 @@
 #include <czmq.h>
 
 #include "MockProcessManagerCommand.h"
-//#include "ProcessManager.h"
+#include "ProcessManager.h"
 #include "MockConf.h"
 #include "CommandRequest.pb.h"
 
