@@ -10,4 +10,7 @@ public:
       mCommandFactory.UnregisterCommand(type);
       mCommandFactory.RegisterCommand(type,callback);
    }
+   CommandFactory::CreationCallback CheckRegistration(const protoMsg::CommandRequest_CommandType type) {
+      return mCommandFactory.GetCommandCallback(type);
+   }
 };

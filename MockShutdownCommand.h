@@ -1,23 +1,17 @@
-/* 
- * File:   RebootCommandTest.h
- * Author: vrecan
- *
- * Created on April 3, 2013, 10:51 AM
- */
+
 
 #pragma once
 
-#include "RebootCommandTest.h"
-#include "Command.h"
+#include "ShutdownCommand.h"
 
-class RebootCommandTest : public RebootCommand {
+class MockShutdownCommand : public ShutdownCommand {
 public:
-   using RebootCommand::DoTheReboot;
+   using ShutdownCommand::DoTheShutdown;
 
-   RebootCommandTest(const protoMsg::CommandRequest& request, ProcessManager* processManager) : RebootCommand(request, processManager) {
+   MockShutdownCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager) : ShutdownCommand(request, processManager) {
    }
 
-   virtual ~RebootCommandTest() {
+   virtual ~MockShutdownCommand() {
    }
 
 
