@@ -16,6 +16,7 @@
 #include "QosmosDpiTest.h"
 #include "RebootCommand.h"
 #include "RebootCommandTest.h"
+#include "MockShutdownCommand.h"
 #include <g2loglevels.hpp>
 #include "g2log.hpp"
 #include "RestartSyslogCommandTest.h"
@@ -435,6 +436,28 @@ TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
    RebootCommandTest reboot = RebootCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply reply = reboot.Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_TRUE(reply.success());
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+#endif
+}
+
+TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
+#ifdef LR_DEBUG
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
+   MockShutdownCommand reboot = MockShutdownCommand(cmd, processManager);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = reboot.Execute(conf);
