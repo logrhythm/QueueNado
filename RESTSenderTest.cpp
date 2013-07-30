@@ -2,6 +2,7 @@
 #include "MockBoomStick.h"
 #include <algorithm>
 
+#ifdef LR_DEBUG
 TEST_F(RESTSenderTest, GetListOfClusterNames) {
    DiskInformation info;
    SingleDiskInfo singleInfo;
@@ -104,3 +105,8 @@ TEST_F(RESTSenderTest, GetSpecificDiskInfo) {
    EXPECT_EQ(0, sender.GetDiskTotalInBytes(clusterName, info));
 }
 
+#else
+TEST_F(RESTSenderTest, emptyTest) {
+   EXPECT_TRUE(true);
+}
+#endif
