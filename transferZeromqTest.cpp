@@ -198,7 +198,7 @@ TEST_F(transferZeromqTest, multipleThreads) {
    }
    EndTimedSection();
 }
-
+#ifdef LR_DEBUG
 TEST_F(transferZeromqTest, SingleThreadSpeedTest) {
 
    auto diskInfoPre = GetDiskInfo();
@@ -354,3 +354,4 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTestBigData) {
    }
    
 }
+#endif
