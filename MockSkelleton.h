@@ -75,7 +75,9 @@ public:
                envelopes.push_back(zmsg_pop(msg));
             }
             // Last one is the actual message
-            std::string reply = zmsg_popstr(msg);
+            char* msgChar = zmsg_popstr(msg);
+            std::string reply = msgChar;
+            free(msgChar);
             reply += " reply";
             /* We are responsible for cleaning the message up, pop has removed those
              *  frame references.

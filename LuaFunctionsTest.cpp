@@ -73,6 +73,7 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("SetFlowState"));
    ASSERT_TRUE(registered.end() != registered.find("DebugLog"));
    ASSERT_TRUE(registered.end() != registered.find("WarningLog"));
+   ASSERT_TRUE(registered.end() != registered.find("SetChildFlowNum"));
 
    ASSERT_EQ(registered["GetLatestApplication"], LuaRuleEngineFunctions::GetLatestApplication);
    ASSERT_EQ(registered["SetCustomApplication"], LuaRuleEngineFunctions::SetCustomApplication);
@@ -90,6 +91,7 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["SetFlowState"], LuaFunctions::SetFlowState);
    ASSERT_EQ(registered["DebugLog"], LuaFunctions::DebugLog);
    ASSERT_EQ(registered["WarningLog"], LuaFunctions::WarningLog);
+   ASSERT_EQ(registered["SetChildFlowNum"], LuaRuleEngineFunctions::SetChildFlowNum);
    delete functions;
 }
 
@@ -678,7 +680,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
    lua_State *luaState;
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetDpiMsgSize(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetDpiMsgSize(luaState));
    EXPECT_EQ(expectedSpaceUsed, lua_tointeger(luaState, -1));
    lua_close(luaState);
 }
@@ -720,6 +722,22 @@ TEST_F(LuaFunctionsTest, WarningLog) {
    lua_close(luaState);
 }
 
+TEST_F(LuaFunctionsTest, StaticCallSetChildFlowNum) {
+   DpiMsgLR dpiMsg;
+   lua_State *luaState;
+   luaState = luaL_newstate();
+
+   EXPECT_FALSE(dpiMsg.has_childflownum());
+   // Expect known value when set
+   int expectedChildFlowNum(1);
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   lua_pushinteger(luaState, expectedChildFlowNum);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SetChildFlowNum(luaState));
+   EXPECT_TRUE(dpiMsg.has_childflownum());
+   EXPECT_EQ(expectedChildFlowNum, dpiMsg.childflownum());
+   lua_close(luaState);
+}
+
 TEST_F(LuaFunctionsTest, StaticCallIsIntermediateFlow) {
    DpiMsgLR dpiMsg;
    lua_State *luaState;
@@ -727,19 +745,19 @@ TEST_F(LuaFunctionsTest, StaticCallIsIntermediateFlow) {
 
    // Value not set, expect false
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::IsIntermediateFlow(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::IsIntermediateFlow(luaState));
    EXPECT_FALSE(lua_toboolean(luaState, -1));
 
    // Value set to FINAL, expect false
    dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::IsIntermediateFlow(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::IsIntermediateFlow(luaState));
    EXPECT_FALSE(lua_toboolean(luaState, -1));
 
    // Value set to INTERMEDIATE, expect true
    dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::IsIntermediateFlow(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::IsIntermediateFlow(luaState));
    EXPECT_TRUE(lua_toboolean(luaState, -1));
    lua_close(luaState);
 }
@@ -751,19 +769,19 @@ TEST_F(LuaFunctionsTest, StaticCallIsIntermediateFinalFlow) {
 
    // Value not set, expect false
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::IsIntermediateFinalFlow(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::IsIntermediateFinalFlow(luaState));
    EXPECT_FALSE(lua_toboolean(luaState, -1));
 
    // Value set to FINAL, expect false
    dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::IsIntermediateFinalFlow(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::IsIntermediateFinalFlow(luaState));
    EXPECT_FALSE(lua_toboolean(luaState, -1));
 
    // Value set to INTERMEDIATE_FINAL, expect true
    dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::IsIntermediateFinalFlow(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::IsIntermediateFinalFlow(luaState));
    EXPECT_TRUE(lua_toboolean(luaState, -1));
    lua_close(luaState);
 }
@@ -776,14 +794,14 @@ TEST_F(LuaFunctionsTest, StaticCallGetUuid) {
    // Value not set, UUID is required field, initialized to ""
    std::string unknownUuid(UNKNOWN_UUID);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetUuid(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetUuid(luaState));
    EXPECT_EQ(unknownUuid, lua_tostring(luaState, -1));
 
    // Expect known value when set
    std::string knownUuid("5a36f34b-d8e0-47d4-8712-1daccda18c48");
    dpiMsg.set_uuid(knownUuid);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetUuid(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetUuid(luaState));
    EXPECT_EQ(knownUuid, lua_tostring(luaState, -1));
    lua_close(luaState);
 }
@@ -795,14 +813,14 @@ TEST_F(LuaFunctionsTest, StaticCallGetPacketCount) {
 
    // Value not set, expect 0
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetPacketCount(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetPacketCount(luaState));
    EXPECT_EQ(0, lua_tointeger(luaState, -1));
 
    // Expect known value when set
    int expectedPactetCount(236);
    dpiMsg.set_packetcount(expectedPactetCount);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetPacketCount(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetPacketCount(luaState));
    EXPECT_EQ(expectedPactetCount, lua_tointeger(luaState, -1));
    lua_close(luaState);
 }
@@ -816,7 +834,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaPackets) {
    int expectedDeltaPackets(221);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaPackets);
-   LuaRuleEngineFunctions::SetDeltaPackets(luaState);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaPackets(luaState));
    EXPECT_EQ(expectedDeltaPackets, dpiMsg.deltapackets());
    lua_close(luaState);
 }
@@ -828,14 +846,14 @@ TEST_F(LuaFunctionsTest, StaticCallGetSessionLenServer) {
 
    // Value not set, expect 0
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetSessionLenServer(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionLenServer(luaState));
    EXPECT_EQ(0, lua_tointeger(luaState, -1));
 
    // Expect known value when set
    int expectedSessionLenServer(99425);
    dpiMsg.set_sessionlenserver(expectedSessionLenServer);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetSessionLenServer(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionLenServer(luaState));
    EXPECT_EQ(expectedSessionLenServer, lua_tointeger(luaState, -1));
    lua_close(luaState);
 }
@@ -849,7 +867,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaSessionLenServer) {
    int expectedDeltaSessionLenServer(10254);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaSessionLenServer);
-   LuaRuleEngineFunctions::SetDeltaSessionLenServer(luaState);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaSessionLenServer(luaState));
    EXPECT_EQ(expectedDeltaSessionLenServer, dpiMsg.deltasessionlenserver());
    lua_close(luaState);
 }
@@ -861,14 +879,14 @@ TEST_F(LuaFunctionsTest, StaticCallGetSessionLenClient) {
 
    // Value not set, expect 0
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetSessionLenClient(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionLenClient(luaState));
    EXPECT_EQ(0, lua_tointeger(luaState, -1));
 
    // Expect known value when set
    int expectedSessionLenClient(21553);
    dpiMsg.set_sessionlenclient(expectedSessionLenClient);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetSessionLenClient(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionLenClient(luaState));
    EXPECT_EQ(expectedSessionLenClient, lua_tointeger(luaState, -1));
    lua_close(luaState);
 }
@@ -882,7 +900,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaSessionLenClient) {
    int expectedDeltaSessionLenClient(4521);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaSessionLenClient);
-   LuaRuleEngineFunctions::SetDeltaSessionLenClient(luaState);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaSessionLenClient(luaState));
    EXPECT_EQ(expectedDeltaSessionLenClient, dpiMsg.deltasessionlenclient());
    lua_close(luaState);
 }
@@ -897,7 +915,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetLatestApplication) {
    dpiMsg.add_application_endq_proto_base("google");
 
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetLatestApplication(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetLatestApplication(luaState));
    std::string result = lua_tostring(luaState, -1);
    LOG(DEBUG) << "EXP: google got: " << result;
    EXPECT_EQ("google", result);
@@ -910,7 +928,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetCustomApplication) {
    luaState1 = luaL_newstate();
    lua_pushlightuserdata(luaState1, &dpiMsg);
    lua_pushstring(luaState1, "custom_app_1");
-   LuaRuleEngineFunctions::SetCustomApplication(luaState1);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SetCustomApplication(luaState1));
    EXPECT_EQ(1, dpiMsg.customapplication_size());
    EXPECT_EQ("custom_app_1", dpiMsg.customapplication(0));
    lua_close(luaState1);
@@ -919,7 +937,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetCustomApplication) {
    luaState2 = luaL_newstate();
    lua_pushlightuserdata(luaState2, &dpiMsg);
    lua_pushstring(luaState2, "custom_app_1");
-   LuaRuleEngineFunctions::SetCustomApplication(luaState2);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SetCustomApplication(luaState2));
    EXPECT_EQ(1, dpiMsg.customapplication_size());
    EXPECT_EQ("custom_app_1", dpiMsg.customapplication(0));
    lua_close(luaState2);
@@ -928,7 +946,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetCustomApplication) {
    luaState3 = luaL_newstate();
    lua_pushlightuserdata(luaState3, &dpiMsg);
    lua_pushstring(luaState3, "custom_app_2");
-   LuaRuleEngineFunctions::SetCustomApplication(luaState3);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SetCustomApplication(luaState3));
    EXPECT_EQ(2, dpiMsg.customapplication_size());
    EXPECT_EQ("custom_app_1", dpiMsg.customapplication(0));
    EXPECT_EQ("custom_app_2", dpiMsg.customapplication(1));
@@ -942,14 +960,14 @@ TEST_F(LuaFunctionsTest, StaticCallGetStartTime) {
 
    // Value not set, expect 0
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetStartTime(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetStartTime(luaState));
    EXPECT_EQ(0, lua_tointeger(luaState, -1));
 
    // Expect known value when set
    int expectedStartTime(1367606483);
    dpiMsg.set_starttime(expectedStartTime);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetStartTime(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetStartTime(luaState));
    EXPECT_EQ(expectedStartTime, lua_tointeger(luaState, -1));
    lua_close(luaState);
 }
@@ -961,14 +979,14 @@ TEST_F(LuaFunctionsTest, StaticCallGetEndTime) {
 
    // Value not set, expect 0
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetEndTime(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetEndTime(luaState));
    EXPECT_EQ(0, lua_tointeger(luaState, -1));
 
    // Expect known value when set
    int expectedEndTime(1367606583);
    dpiMsg.set_endtime(expectedEndTime);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   LuaRuleEngineFunctions::GetEndTime(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetEndTime(luaState));
    EXPECT_EQ(expectedEndTime, lua_tointeger(luaState, -1));
    lua_close(luaState);
 }
@@ -982,7 +1000,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaTime) {
    int expectedDeltaTime(632);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaTime);
-   LuaRuleEngineFunctions::SetDeltaTime(luaState);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaTime(luaState));
    EXPECT_EQ(expectedDeltaTime, dpiMsg.deltatime());
    lua_close(luaState);
 }
@@ -1070,7 +1088,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushlightuserdata(luaState, &mRuleEngine);
-   LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState));
 
    dpiMsg.set_endtime(567);
    dpiMsg.set_sessionlenserver(23456);
@@ -1084,7 +1102,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushlightuserdata(luaState, &mRuleEngine);
-   LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState));
 
    //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
    // Did the data show up in the syslog output
@@ -1184,7 +1202,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushlightuserdata(luaState, &mRuleEngine);
-   LuaRuleEngineFunctions::SendFinalFlowToSyslog(luaState);
+   ASSERT_EQ(0, LuaRuleEngineFunctions::SendFinalFlowToSyslog(luaState));
 
    //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
    // Did the data show up in the syslog output
@@ -1206,7 +1224,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetThreadId) {
 
    // Expect the threadId to be 5 as initialized.
    lua_pushlightuserdata(luaState, &mre);
-   LuaRuleEngineFunctions::GetThreadId(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetThreadId(luaState));
    EXPECT_EQ(expectedThreadId, lua_tointeger(luaState, -1));
    lua_close(luaState);
 #endif
@@ -1221,7 +1239,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetRawMsgSize) {
 
    // Expect the raw message size to match the initialized value of 0
    lua_pushlightuserdata(luaState, &mre);
-   LuaRuleEngineFunctions::GetRawMsgSize(luaState);
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetRawMsgSize(luaState));
    EXPECT_EQ(0, lua_tointeger(luaState, -1));
    lua_close(luaState);
 #endif

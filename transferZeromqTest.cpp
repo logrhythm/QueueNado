@@ -40,7 +40,9 @@ namespace {
             }
             for (int i = 0; i < 1000 && recieved < numberOfMessages; i++) {
                zmsg_t* message = zmsg_recv(socket);
-               resultString = zmsg_popstr(message);
+               char* msgChar = zmsg_popstr(message);
+               resultString = msgChar;
+               free(msgChar);
 
                ASSERT_TRUE(resultString.find("\"ok\":true") != std::string::npos);
                ASSERT_TRUE(resultString.find(type) != std::string::npos);
@@ -137,8 +139,10 @@ TEST_F(transferZeromqTest, GetListOfIndexes) {
       zmsg_addstr(message, "GET|/_status/");
       zmsg_send(&message, socket);
       message = zmsg_recv(socket);
-      std::string resultString = zmsg_popstr(message);
-      //std::cout << resultString << std::endl;
+      char* msgChar = zmsg_popstr(message);
+      std::string resultString = msgChar;
+      free(msgChar);
+      std::cout << resultString << std::endl;
       zmsg_destroy(&message);
       json_error_t error;
       std::string jsonReturnString = resultString.substr(resultString.find("{"));
