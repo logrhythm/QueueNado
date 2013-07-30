@@ -165,7 +165,7 @@ TEST_F(transferZeromqTest, GetListOfIndexes) {
          }
       }
       EXPECT_FALSE(indexes.empty());
-      for (auto name : indexes) {
+      for (const auto& name : indexes) {
          std::cout << name << std::endl;
       }
    }
@@ -273,7 +273,7 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTestMedium) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
    RESTSender sender(transport);
    std::vector<std::string> clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfoPre);
-   for (auto hostName : clusterNames) {
+   for (const auto& hostName : clusterNames) {
       std::cout << hostName << " : " << std::endl;
       std::cout << (sender.GetDiskReads(hostName, diskInfoPost) - sender.GetDiskReads(hostName, diskInfoPre)) << " reads" << std::endl;
       std::cout << (sender.GetDiskWrites(hostName, diskInfoPost) - sender.GetDiskWrites(hostName, diskInfoPre)) << " writes" << std::endl;
@@ -292,7 +292,7 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTestMedium) {
    std::cout << dataSent << " total bytes sent " << std::endl;
    diskInfoPost = GetDiskInfo();
    clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfoPre);
-   for (auto hostName : clusterNames) {
+   for (const auto& hostName : clusterNames) {
       std::cout << hostName << " : " << std::endl;
       std::cout << (sender.GetDiskReads(hostName, diskInfoPost) - sender.GetDiskReads(hostName, diskInfoPre)) << " reads" << std::endl;
       std::cout << (sender.GetDiskWrites(hostName, diskInfoPost) - sender.GetDiskWrites(hostName, diskInfoPre)) << " writes" << std::endl;
@@ -326,7 +326,7 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTestBigData) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
    RESTSender sender(transport);
    std::vector<std::string> clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfoPre);
-   for (auto hostName : clusterNames) {
+   for (const auto& hostName : clusterNames) {
       std::cout << hostName << " : " << std::endl;
       std::cout << (sender.GetDiskReads(hostName, diskInfoPost) - sender.GetDiskReads(hostName, diskInfoPre)) << " reads" << std::endl;
       std::cout << (sender.GetDiskWrites(hostName, diskInfoPost) - sender.GetDiskWrites(hostName, diskInfoPre)) << " writes" << std::endl;
@@ -344,7 +344,7 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTestBigData) {
    std::cout << dataSent << " total bytes sent " << std::endl;
    diskInfoPost = GetDiskInfo();
    clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfoPre);
-   for (auto hostName : clusterNames) {
+   for (const auto& hostName : clusterNames) {
       std::cout << hostName << " : " << std::endl;
       std::cout << (sender.GetDiskReads(hostName, diskInfoPost) - sender.GetDiskReads(hostName, diskInfoPre)) << " reads" << std::endl;
       std::cout << (sender.GetDiskWrites(hostName, diskInfoPost) - sender.GetDiskWrites(hostName, diskInfoPre)) << " writes" << std::endl;
