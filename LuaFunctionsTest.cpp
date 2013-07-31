@@ -1059,7 +1059,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
-   dpiMsg.add_application_endq_proto_base("dummy");
+   dpiMsg.add_application_endq_proto_base("unknown");
    dpiMsg.set_sessionlenserver(12345);
    dpiMsg.set_sessionlenclient(6789);
    dpiMsg.set_packetcount(99);
@@ -1109,10 +1109,10 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    ASSERT_EQ(2, sysLogOutput.size());
    EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:003 "));
    EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,567/6789,234/12345,33/99,123,456,222/333"));
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,1007,567/6789,234/12345,33/99,123,456,222/333"));
    EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:003 "));
    EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,1101/7890,11111/23456,25/124,123,567,111/444"));
+   EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,1007,1101/7890,11111/23456,25/124,123,567,111/444"));
    lua_close(luaState);
 #endif
 }
@@ -1171,7 +1171,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
    dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
-   dpiMsg.add_application_endq_proto_base("dummy");
+   dpiMsg.add_application_endq_proto_base("unknown");
    dpiMsg.set_sessionlenserver(12345);
    dpiMsg.set_deltasessionlenserver(12345);
    dpiMsg.set_sessionlenclient(6789);
@@ -1209,7 +1209,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
    ASSERT_EQ(1, sysLogOutput.size());
    EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
    EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789/6789,12345/12345,99/99,123,456,333/333"));
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,1007,6789/6789,12345/12345,99/99,123,456,333/333"));
    lua_close(luaState);
 #endif
 }
