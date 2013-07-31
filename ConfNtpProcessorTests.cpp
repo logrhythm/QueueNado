@@ -61,7 +61,7 @@ TEST_F(ConfProcessorTests, ConfNtp_ReadFile) {
 namespace {
 
   struct MockConfNtp : public ConfNtp {
-    const std::string mContent;
+    std::string mContent;
 
     explicit MockConfNtp(const std::string content) : ConfNtp(), mContent(content) {
       ReadNtpConfFromFile();
@@ -71,6 +71,11 @@ namespace {
       LOG(INFO) << "content is: " << mContent;
       return mContent;
     }
+    
+    void WriteServersToFile(const std::string& content) override {
+      mContent = content;
+    }
+    
   };
 
   const std::string contentOK = {"driftfile /var/lib/ntp/drift \n" \
@@ -90,11 +95,20 @@ namespace {
         "includefile /etc/ntp/crypto/pw\n" \
         "keys /etc/ntp/keys\n"};
   
-    const std::string contentWithNoServers = {"driftfile /var/lib/ntp/drift \n" \
+      const std::string contentCommentedOutServers = {"driftfile /var/lib/ntp/drift \n" \
         "restrict 127.0.0.1\n" \
         "restrict -6 ::1\n" \
         "#server 10.128.64.251\n" \
         "# server 10.128.64.252\n" \
+        "server\n" \
+        "server \n" \
+        "server # \n" \
+        "includefile /etc/ntp/crypto/pw\n" \
+        "keys /etc/ntp/keys\n"};
+      
+    const std::string contentWithNoServers = {"driftfile /var/lib/ntp/drift \n" \
+        "restrict 127.0.0.1\n" \
+        "restrict -6 ::1\n" \
         "server\n" \
         "server \n" \
         "server # \n" \
@@ -115,9 +129,47 @@ TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFileWithCommentedOutBackup) {
 }
 
 TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFileWithNoServers) {
-  MockConfNtp conf(contentWithNoServers);
+  MockConfNtp conf(contentCommentedOutServers);
   std::string empty;
   ASSERT_EQ(empty, conf.GetMasterServer());
   ASSERT_EQ(empty, conf.GetBackupServer()); 
 }
 
+TEST_F(ConfProcessorTests, ConfNtp_WriteToFile) {  
+  MockConfNtp conf(contentWithNoServers);
+  std::string master = {"10.128.64.251"};
+  std::string backup = {"10.128.64.252"};
+ 
+  ASSERT_EQ(conf.mContent.find(master), std::string::npos);
+  conf.UpdateMasterServer(master);
+  ASSERT_EQ(conf.GetMasterServer(), master);
+  ASSERT_NE(conf.mContent.find(master), std::string::npos);
+  
+  ASSERT_NE(conf.GetBackupServer(), backup);
+  ASSERT_EQ(conf.mContent.find(backup), std::string::npos);
+  conf.UpdateBackupServer(backup);
+  ASSERT_EQ(conf.GetBackupServer(), backup);  
+  ASSERT_NE(conf.mContent.find(backup), std::string::npos);
+}
+
+
+TEST_F(ConfProcessorTests, ConfNtp_ProtoBufUpdateTriggerWriteToFile) {  
+  MockConfNtp conf(contentWithNoServers);
+  std::string master = {"10.128.64.251"};
+  std::string backup = {"10.128.64.252"};
+ 
+  ASSERT_EQ(conf.mContent.find(master), std::string::npos);
+  ASSERT_EQ(conf.mContent.find(backup), std::string::npos);
+  
+  protoMsg::Ntp msg;
+  msg.set_active(true);
+  msg.set_master_server(master);
+  msg.set_backup_server(backup);
+  conf.UpdateProtoMsg(msg);
+ 
+  
+  ASSERT_EQ(conf.GetMasterServer(), master);
+  ASSERT_NE(conf.mContent.find(master), std::string::npos);
+  ASSERT_EQ(conf.GetBackupServer(), backup);  
+  ASSERT_NE(conf.mContent.find(backup), std::string::npos);
+}
