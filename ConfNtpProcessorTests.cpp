@@ -10,11 +10,33 @@ TEST_F(ConfProcessorTests, ConfNtp_Initialize) {
   ASSERT_EQ("/etc/ntp.conf", conf.GetNtpPath());
 }
 
+TEST_F(ConfProcessorTests, ConfNtp_InitializeWithProto) {
+  protoMsg::Ntp msg;
+  msg.set_active(true);
+  msg.set_master_server("127.0.0.1");
+  
+  ::google::protobuf::Message* base = &msg;
+  ConfNtp conf(*base);
+  ASSERT_TRUE(conf.GetEnabled());
+  ASSERT_EQ(conf.GetMasterServer(), "127.0.0.1");
+  ASSERT_TRUE(conf.GetBackupServer().empty());
+  
+  // Verify it works round-trip
+  std::unique_ptr<protoMsg::Ntp> msg2(conf.getProtoMsg());
+  ASSERT_TRUE(msg2->active());
+  ASSERT_EQ(msg2->master_server(), "127.0.0.1");
+  ASSERT_TRUE(msg2->backup_server().empty());
+  
+}
+
+
 TEST_F(ConfProcessorTests, ConfNtp) {
   ConfNtp conf;
   ASSERT_EQ("conf/nm.yaml.Interface", conf.GetPath());
   ASSERT_EQ("/etc/ntp.conf", conf.GetNtpPath());
 }
+
+
 
 
 namespace {
@@ -98,3 +120,4 @@ TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFileWithNoServers) {
   ASSERT_EQ(empty, conf.GetMasterServer());
   ASSERT_EQ(empty, conf.GetBackupServer()); 
 }
+

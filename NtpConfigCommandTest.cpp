@@ -130,3 +130,4 @@ TEST_F(NtpConfigCommandTest, DISABLED_Execv__DisableNTP)
   char *environ[] = {NULL};  
   ASSERT_EQ(0, execve("/etc/init.d/ntpd", realArgs, environ));
 }
+
