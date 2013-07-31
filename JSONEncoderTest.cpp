@@ -105,7 +105,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_EQ("{\"uuid\": \"ABC123\", \"_acceptEncoding\": [\"1\", \"2\", \"3\"]}", encodedMessage);
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"#acceptEncoding\": [\"1\", \"2\", \"3\"]}", encodedMessage);
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithSingleBool) {
@@ -155,25 +155,15 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_EQ("{\"deltaPackets\": 88, "
-           "\"sessionLenClient\": 899, "
-           "\"_refererServer\": [\"notThisOne\"], "
-           "\"uuid\": \"ABC123\", "
-           "\"_server\": [\"thisname12345\"], "
-           "\"packetCount\": 88, "
-           "\"_version\": [\"4.0\"], "
-           "\"sessionLenServer\": 567, "
-           "\"_method\": [\"RUN\", \"COMMAND\", \"LONGLONGLONGLONG\"], "
-           "\"deltaSessionLenServer\": 567, "
-           "\"_receiver\": [\"test2_123\"], "
-           "\"_login\": [\"aLogin\"], "
-           "\"deltaSessionLenClient\": 899, "
-           "\"_applicationEnd\": [\"test\"], "
-           "\"_applicationIdEnd\": 1234, "
-           "\"_sender\": [\"test1_123456\"], "
-           "\"_uri\": [\"not/this/one\"], "
-           "\"_uriFull\": [\"1\"], "
-           "\"_domain\": [\"aDomain12345\"], "
-           "\"_subject\": [\"test3_12345\"]}", encodedMessage);
+   EXPECT_EQ("{\"#server\": [\"thisname12345\"], \"#sender\": [\"test1_123456\"]"
+      ", \"deltaPackets\": 88, \"#uri\": [\"not/this/one\"]"
+      ", \"sessionLenClient\": 899, \"#refererServer\": [\"notThisOne\"]"
+      ", \"#receiver\": [\"test2_123\"], \"#method\": [\"RUN\", \"COMMAND\","
+      " \"LONGLONGLONGLONG\"], \"uuid\": \"ABC123\", \"packetCount\": 88,"
+      " \"sessionLenServer\": 567, \"deltaSessionLenServer\": 567,"
+      " \"deltaSessionLenClient\": 899, \"#subject\": [\"test3_12345\"],"
+      " \"#applicationEnd\": [\"test\"], \"#applicationIdEnd\": 1234,"
+      " \"#login\": [\"aLogin\"], \"#uriFull\": [\"1\"], \"#version\":"
+      " [\"4.0\"], \"#domain\": [\"aDomain12345\"]}", encodedMessage);
 
 }
