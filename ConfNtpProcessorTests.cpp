@@ -81,7 +81,7 @@ namespace {
       return mContent;
     }
     
-    void WriteServersToFile(const std::string& content) override {
+    void WriteFileContent(const std::string& content) override {
       mContent = content;
     }
     
