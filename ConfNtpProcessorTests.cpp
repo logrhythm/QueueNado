@@ -13,7 +13,7 @@ using namespace networkMonitor;
 
 TEST_F(ConfProcessorTests, ConfNtp_Initialize) {
   ConfNtp conf;
-  ASSERT_EQ("conf/nm.yaml.Interface", conf.GetPath());
+  ASSERT_EQ("conf/nm.yaml.NtpIgnore", conf.GetPath());
   ASSERT_EQ("/etc/ntp.conf", conf.GetNtpPath());
 }
 
@@ -37,15 +37,6 @@ TEST_F(ConfProcessorTests, ConfNtp_InitializeWithProto) {
   ASSERT_TRUE(msg2->backup_server().empty());
   
 }
-
-
-TEST_F(ConfProcessorTests, ConfNtp) {
-  ConfNtp conf;
-  ASSERT_EQ("conf/nm.yaml.Interface", conf.GetPath());
-  ASSERT_EQ("/etc/ntp.conf", conf.GetNtpPath());
-}
-
-
 
 
 namespace {
