@@ -1,8 +1,15 @@
 
 #include "ConfProcessorTests.h"
 #include "ConfNtp.h"
+#include "ConfMaster.h"
+#include "ConfSlave.h"
+#include "MockConfMaster.h"
+#include "MockConfSlave.h"
 #include "NtpMsg.pb.h"
 #include <g2log.hpp>
+
+using namespace std;
+using namespace networkMonitor;
 
 TEST_F(ConfProcessorTests, ConfNtp_Initialize) {
   ConfNtp conf;
@@ -14,12 +21,14 @@ TEST_F(ConfProcessorTests, ConfNtp_InitializeWithProto) {
   protoMsg::Ntp msg;
   msg.set_active(true);
   msg.set_master_server("127.0.0.1");
+  msg.set_backup_server("");
   
   ::google::protobuf::Message* base = &msg;
   ConfNtp conf(*base);
   ASSERT_TRUE(conf.GetEnabled());
   ASSERT_EQ(conf.GetMasterServer(), "127.0.0.1");
-  ASSERT_TRUE(conf.GetBackupServer().empty());
+  std::string emtpy;
+  ASSERT_EQ(conf.GetBackupServer(), emtpy);
   
   // Verify it works round-trip
   std::unique_ptr<protoMsg::Ntp> msg2(conf.getProtoMsg());
@@ -172,4 +181,83 @@ TEST_F(ConfProcessorTests, ConfNtp_ProtoBufUpdateTriggerWriteToFile) {
   ASSERT_NE(conf.mContent.find(master), std::string::npos);
   ASSERT_EQ(conf.GetBackupServer(), backup);  
   ASSERT_NE(conf.mContent.find(backup), std::string::npos);
+}
+
+
+TEST_F(ConfProcessorTests, NtpMessagePassedBetweenMasterAndSlave) {
+#if defined(LR_DEBUG)
+   ConfMaster& confThread = ConfMaster::Instance();
+   confThread.Stop();
+   confThread.SetPath(mWriteLocation);
+   confThread.Start();
+   Conf conf(confThread.GetConf());
+   MockConfSlave testSlave;
+   testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   testSlave.Start();
+   sleep(1);
+
+   EXPECT_FALSE(testSlave.mNewNtpMsg);
+   protoMsg::ConfType updateType;
+   updateType.set_type(protoMsg::ConfType_Type_NTP);
+   updateType.set_direction(protoMsg::ConfType_Direction_SENDING);
+   protoMsg::Ntp confMsg;
+   confMsg.set_active(true);
+   confMsg.set_master_server("10.128.64.251");
+   std::vector<std::string> encodedMessage;
+
+   encodedMessage.push_back(updateType.SerializeAsString());
+   encodedMessage.push_back(confMsg.SerializeAsString());
+   Crowbar confSender(conf.getConfChangeQueue());
+   EXPECT_TRUE(confSender.Wield());
+   EXPECT_TRUE(confSender.Flurry(encodedMessage));
+   EXPECT_TRUE(confSender.BlockForKill(encodedMessage));
+   EXPECT_EQ(2, encodedMessage.size());
+   int sleepCount = 1;
+   while (!testSlave.mNewNtpMsg && sleepCount <= 20) {
+      sleep(1);
+      sleepCount++;
+   }
+   EXPECT_TRUE(testSlave.mNewNtpMsg);
+   testSlave.Stop();
+   confThread.Stop();
+#endif
+}
+
+
+
+TEST_F(ConfProcessorTests, TestReconcileNewNtpConf) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   ConfNtp conf;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_NTP);
+   master.UpdateCachedMessage(conf);
+
+   std::string serializedConf = master.SerializeCachedConfig(configTypeMessage);
+   EXPECT_FALSE(serializedConf.empty());
+   std::string message = master.SerializeCachedConfig(configTypeMessage);
+
+   EXPECT_FALSE(master.ReconcileNewAbstractConf(configTypeMessage, conf, message));
+   master.Start();
+
+   ConfNtp conf2(mWriteLocation);
+   protoMsg::Ntp ntpMsg;
+   EXPECT_TRUE(ntpMsg.ParseFromString(serializedConf));
+   conf2.updateFields(ntpMsg);
+
+   EXPECT_TRUE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
+   master.Stop();
+   EXPECT_FALSE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
+   master.Start();
+   EXPECT_TRUE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
+   configTypeMessage.set_type(::protoMsg::ConfType_Type_RESTART);
+   EXPECT_FALSE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
+   configTypeMessage.set_type(::protoMsg::ConfType_Type_APP_VERSION);
+   EXPECT_FALSE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
+   message = "abc123";
+   EXPECT_FALSE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
+
+   master.Stop();
+#endif
 }

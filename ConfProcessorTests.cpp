@@ -418,7 +418,7 @@ TEST_F(ConfProcessorTests, TestReconcileNewInterfaceConf) {
    EXPECT_FALSE(serializedConf.empty());
    std::string message = master.SerializeCachedConfig(configTypeMessage);
 
-   EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf, message));
+   EXPECT_FALSE(master.ReconcileNewAbstractConf(configTypeMessage, conf, message));
    master.Start();
 
    ConfNetInterface conf2(mWriteLocation);
@@ -426,17 +426,17 @@ TEST_F(ConfProcessorTests, TestReconcileNewInterfaceConf) {
    EXPECT_TRUE(interfaceMsg.ParseFromString(serializedConf));
    conf2.updateFields(interfaceMsg);
 
-   EXPECT_TRUE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   EXPECT_TRUE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
    master.Stop();
-   EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   EXPECT_FALSE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
    master.Start();
-   EXPECT_TRUE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   EXPECT_TRUE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
    configTypeMessage.set_type(::protoMsg::ConfType_Type_RESTART);
-   EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   EXPECT_FALSE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
    configTypeMessage.set_type(::protoMsg::ConfType_Type_APP_VERSION);
-   EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   EXPECT_FALSE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
    message = "abc123";
-   EXPECT_FALSE(master.ReconcileNewConf(configTypeMessage, conf2, message));
+   EXPECT_FALSE(master.ReconcileNewAbstractConf(configTypeMessage, conf2, message));
 
    master.Stop();
 #endif
