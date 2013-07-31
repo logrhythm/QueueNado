@@ -6,6 +6,22 @@
 using namespace networkMonitor;
 using namespace std;
 
+TEST_F(DpiMsgLRTests, ParsePathTest) {
+   DpiMsgLR dm;
+
+   EXPECT_EQ("", dm.GetClassificationPath());
+   dm.add_applicationq_proto_base("test");
+   EXPECT_EQ("/test", dm.GetClassificationPath());
+//   dm.add_applicationq_proto_base("test");
+//   EXPECT_EQ("/test", dm.GetClassificationPath());
+   dm.add_applicationq_proto_base("bar");
+   EXPECT_EQ("/test/bar", dm.GetClassificationPath());
+   dm.add_applicationq_proto_base("test");
+   EXPECT_EQ("/test/bar/test", dm.GetClassificationPath());
+//   dm.add_applicationq_proto_base("bar");
+//   EXPECT_EQ("/test/bar", dm.GetClassificationPath());
+}
+
 TEST_F(DpiMsgLRTests, setUuidSuccess) {
    // Set the Unique ID
    string uuid("01234567-89ab-cdef-0123456789abcdef");
@@ -147,8 +163,6 @@ TEST_F(DpiMsgLRTests, setPktPathSuccess) {
    EXPECT_EQ(path, rPath);
 }
 
-
-
 TEST_F(DpiMsgLRTests, ReadIPSrcDstSPortDPortProto) {
    char charbuffer[100];
    memset(charbuffer, 0, 100);
@@ -166,7 +180,6 @@ TEST_F(DpiMsgLRTests, ReadIPSrcDstSPortDPortProto) {
    EXPECT_EQ(0x5b41, tDpiMessage.destport());
 #endif
 }
-
 
 TEST_F(DpiMsgLRTests, GetSpecialIntegersAsStrings) {
 #ifdef LR_DEBUG
@@ -579,7 +592,7 @@ TEST_F(DpiMsgLRTests, EmptyLongFields) {
    dm.EmptyLongFields(3, 0);
    EXPECT_EQ(0, dm.access_pointq_proto_gtp_size());
    dm.add_devq_proto_base("test1");
-   dm.EmptyLongFields(0, DpiMsgLRproto::kDevQPROTOBASEFieldNumber+1);
+   dm.EmptyLongFields(0, DpiMsgLRproto::kDevQPROTOBASEFieldNumber + 1);
    EXPECT_EQ(1, dm.devq_proto_base_size());
    dm.EmptyLongFields(0, DpiMsgLRproto::kDevQPROTOBASEFieldNumber);
    EXPECT_EQ(0, dm.devq_proto_base_size());

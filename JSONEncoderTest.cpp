@@ -105,7 +105,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_EQ("{\"uuid\": \"ABC123\", \"Engine_acceptEncoding\": [\"1\", \"2\", \"3\"]}", encodedMessage);
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"#acceptEncoding\": [\"1\", \"2\", \"3\"]}", encodedMessage);
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithSingleBool) {
@@ -155,25 +155,15 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_EQ("{\"deltaPackets\": 88, "
-           "\"Engine_uriFull\": [\"1\"], "
-           "\"sessionLenClient\": 899, "
-           "\"Engine_applicationIdEnd\": 1234, "
-           "\"uuid\": \"ABC123\", "
-           "\"Engine_refererServer\": [\"notThisOne\"], "
-           "\"packetCount\": 88, "
-           "\"sessionLenServer\": 567, "
-           "\"Engine_server\": [\"thisname12345\"], "
-           "\"Engine_domain\": [\"aDomain12345\"], "
-           "\"deltaSessionLenServer\": 567, "
-           "\"Engine_version\": [\"4.0\"], "
-           "\"deltaSessionLenClient\": 899, "
-           "\"Engine_applicationEnd\": [\"test\"], "
-           "\"Engine_login\": [\"aLogin\"], "
-           "\"Engine_method\": [\"RUN\", \"COMMAND\", \"LONGLONGLONGLONG\"], "
-           "\"Engine_uri\": [\"not/this/one\"], "
-           "\"Engine_sender\": [\"test1_123456\"], "
-           "\"Engine_receiver\": [\"test2_123\"], "
-           "\"Engine_subject\": [\"test3_12345\"]}", encodedMessage);
+   EXPECT_EQ("{\"#server\": [\"thisname12345\"], \"#sender\": [\"test1_123456\"]"
+      ", \"deltaPackets\": 88, \"#uri\": [\"not/this/one\"]"
+      ", \"sessionLenClient\": 899, \"#refererServer\": [\"notThisOne\"]"
+      ", \"#receiver\": [\"test2_123\"], \"#method\": [\"RUN\", \"COMMAND\","
+      " \"LONGLONGLONGLONG\"], \"uuid\": \"ABC123\", \"packetCount\": 88,"
+      " \"sessionLenServer\": 567, \"deltaSessionLenServer\": 567,"
+      " \"deltaSessionLenClient\": 899, \"#subject\": [\"test3_12345\"],"
+      " \"#applicationEnd\": [\"test\"], \"#applicationIdEnd\": 1234,"
+      " \"#login\": [\"aLogin\"], \"#uriFull\": [\"1\"], \"#version\":"
+      " [\"4.0\"], \"#domain\": [\"aDomain12345\"]}", encodedMessage);
 
 }
