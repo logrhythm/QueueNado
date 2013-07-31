@@ -488,7 +488,19 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
    ASSERT_FALSE(exception);
 #endif
 }
-
+//
+//TEST_F(CommandProcessorTests, ShutdownSystem) {
+//#ifdef LR_DEBUG
+//   protoMsg::CommandRequest cmd;
+//   const MockConf conf;
+//   cmd.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
+//   ProcessManager* manager = new ProcessManager(conf);
+//   ASSERT_TRUE(manager->Initialize());
+//   MockShutdownCommand command(cmd,manager);
+//   command.DoTheShutdown();
+//   
+//#endif
+//}
 TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
 #ifdef LR_DEBUG
    const MockConf conf;
