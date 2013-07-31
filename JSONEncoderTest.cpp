@@ -105,7 +105,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_EQ("{\"uuid\": \"ABC123\", \"Engine_acceptEncoding\": [\"1\", \"2\", \"3\"]}", encodedMessage);
+   EXPECT_EQ("{\"uuid\": \"ABC123\", \"_acceptEncoding\": [\"1\", \"2\", \"3\"]}", encodedMessage);
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithSingleBool) {
@@ -156,24 +156,24 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
    EXPECT_EQ("{\"deltaPackets\": 88, "
-           "\"Engine_uriFull\": [\"1\"], "
            "\"sessionLenClient\": 899, "
-           "\"Engine_applicationIdEnd\": 1234, "
+           "\"_refererServer\": [\"notThisOne\"], "
            "\"uuid\": \"ABC123\", "
-           "\"Engine_refererServer\": [\"notThisOne\"], "
+           "\"_server\": [\"thisname12345\"], "
            "\"packetCount\": 88, "
+           "\"_version\": [\"4.0\"], "
            "\"sessionLenServer\": 567, "
-           "\"Engine_server\": [\"thisname12345\"], "
-           "\"Engine_domain\": [\"aDomain12345\"], "
+           "\"_method\": [\"RUN\", \"COMMAND\", \"LONGLONGLONGLONG\"], "
            "\"deltaSessionLenServer\": 567, "
-           "\"Engine_version\": [\"4.0\"], "
+           "\"_receiver\": [\"test2_123\"], "
+           "\"_login\": [\"aLogin\"], "
            "\"deltaSessionLenClient\": 899, "
-           "\"Engine_applicationEnd\": [\"test\"], "
-           "\"Engine_login\": [\"aLogin\"], "
-           "\"Engine_method\": [\"RUN\", \"COMMAND\", \"LONGLONGLONGLONG\"], "
-           "\"Engine_uri\": [\"not/this/one\"], "
-           "\"Engine_sender\": [\"test1_123456\"], "
-           "\"Engine_receiver\": [\"test2_123\"], "
-           "\"Engine_subject\": [\"test3_12345\"]}", encodedMessage);
+           "\"_applicationEnd\": [\"test\"], "
+           "\"_applicationIdEnd\": 1234, "
+           "\"_sender\": [\"test1_123456\"], "
+           "\"_uri\": [\"not/this/one\"], "
+           "\"_uriFull\": [\"1\"], "
+           "\"_domain\": [\"aDomain12345\"], "
+           "\"_subject\": [\"test3_12345\"]}", encodedMessage);
 
 }
