@@ -115,6 +115,20 @@ TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd)
   }
 }
 
+TEST_F(NtpConfigCommandTest, RealEnableServer__ExpectingFileChange) 
+{
+  protoMsg::Ntp ntp;
+  ntp.set_active(true);
+  ntp.set_master_server("10.128.64.251");
+  cmd.set_stringargone(ntp.SerializeAsString());
+  MockNtpConfigCommand doIt(cmd, new ProcessManager(conf)); //autoManagedManager); 
+  auto reply = doIt.Execute(conf);
+  ASSERT_TRUE(reply.success());
+}
+
+
+
+
 
 TEST_F(NtpConfigCommandTest, DISABLED_Execv__EnableNTP) 
 {
