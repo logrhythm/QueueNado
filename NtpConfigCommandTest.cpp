@@ -115,7 +115,7 @@ TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd)
   }
 }
 
-TEST_F(NtpConfigCommandTest, RealEnableServer__ExpectingFileChange) 
+TEST_F(NtpConfigCommandTest, DISABLED_RealEnableServer__ExpectingFileChange) 
 {
   protoMsg::Ntp ntp;
   ntp.set_active(true);
