@@ -15,6 +15,7 @@
 #include "CommandFailedException.h"
 #include "QosmosDpiTest.h"
 #include "RebootCommand.h"
+#include "NtpConfigCommand.h"
 #include "RebootCommandTest.h"
 #include "MockShutdownCommand.h"
 #include <g2loglevels.hpp>
@@ -52,9 +53,10 @@ TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
    EXPECT_EQ(RestartSyslogCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART));
    EXPECT_EQ(RebootCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_REBOOT));
    EXPECT_EQ(NetworkConfigCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG));
+   EXPECT_EQ(NtpConfigCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NTP_CONFIG));
    EXPECT_EQ(ShutdownCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN));
 
-   raise(SIGTERM);
+   raise(SIGTERM); 
 #endif
 }
 TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
