@@ -135,25 +135,9 @@ TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFileWithNoServers) {
    ASSERT_EQ(empty, conf.GetMasterServer());
    ASSERT_EQ(empty, conf.GetBackupServer());
 }
+ 
 
-TEST_F(ConfProcessorTests, ConfNtp_WriteToFile) {
-   MockConfNtp conf(contentWithNoServers);
-   std::string master = {"10.128.64.251"};
-   std::string backup = {"10.128.64.252"};
-
-   ASSERT_EQ(conf.mContent.find(master), std::string::npos);
-   conf.UpdateMasterServer(master);
-   ASSERT_EQ(conf.GetMasterServer(), master);
-   ASSERT_NE(conf.mContent.find(master), std::string::npos);
-
-   ASSERT_NE(conf.GetBackupServer(), backup);
-   ASSERT_EQ(conf.mContent.find(backup), std::string::npos);
-   conf.UpdateBackupServer(backup);
-   ASSERT_EQ(conf.GetBackupServer(), backup);
-   ASSERT_NE(conf.mContent.find(backup), std::string::npos);
-}
-
-TEST_F(ConfProcessorTests, ConfNtp_ProtoBufUpdateTriggerWriteToFile) {
+TEST_F(ConfProcessorTests, ConfNtp_WProtoBufUpdateTriggerWriteToFile) {
    MockConfNtp conf(contentWithNoServers);
    std::string master = {"10.128.64.251"};
    std::string backup = {"10.128.64.252"};
