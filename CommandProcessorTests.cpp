@@ -16,6 +16,7 @@
 #include "QosmosDpiTest.h"
 #include "RebootCommand.h"
 #include "RebootCommandTest.h"
+#include "MockShutdownCommand.h"
 #include <g2loglevels.hpp>
 #include "g2log.hpp"
 #include "RestartSyslogCommandTest.h"
@@ -40,7 +41,22 @@ TEST_F(CommandProcessorTests, ConstructAndInitialize) {
    raise(SIGTERM);
 #endif
 }
+TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   conf.mCommandQueue = "tcp://127.0.0.1:";
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+   MockCommandProcessor testProcessor(conf);
+   EXPECT_TRUE(testProcessor.Initialize());
+   EXPECT_EQ(UpgradeCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_UPGRADE));
+   EXPECT_EQ(RestartSyslogCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART));
+   EXPECT_EQ(RebootCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_REBOOT));
+   EXPECT_EQ(NetworkConfigCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG));
+   EXPECT_EQ(ShutdownCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN));
 
+   raise(SIGTERM);
+#endif
+}
 TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
 #ifdef LR_DEBUG
    MockConf conf;
@@ -440,6 +456,8 @@ TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
       protoMsg::CommandReply reply = reboot.Execute(conf);
       LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
       ASSERT_TRUE(reply.success());
+      EXPECT_TRUE(processManager->mRunCommand == "/sbin/init");
+      EXPECT_TRUE(processManager->mRunArgs == " 6");
    } catch (...) {
       exception = true;
    }
@@ -447,6 +465,42 @@ TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
 #endif
 }
 
+TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
+#ifdef LR_DEBUG
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("Success!");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
+   MockShutdownCommand shutdown = MockShutdownCommand(cmd, processManager);
+   bool exception = false;
+   try {
+      protoMsg::CommandReply reply = shutdown.Execute(conf);
+      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
+      ASSERT_TRUE(reply.success());
+      EXPECT_TRUE(processManager->mRunCommand == "/sbin/init");
+      EXPECT_TRUE(processManager->mRunArgs == " 0");
+   } catch (...) {
+      exception = true;
+   }
+   ASSERT_FALSE(exception);
+#endif
+}
+//
+//TEST_F(CommandProcessorTests, ShutdownSystem) {
+//#ifdef LR_DEBUG
+//   protoMsg::CommandRequest cmd;
+//   const MockConf conf;
+//   cmd.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
+//   ProcessManager* manager = new ProcessManager(conf);
+//   ASSERT_TRUE(manager->Initialize());
+//   MockShutdownCommand command(cmd,manager);
+//   command.DoTheShutdown();
+//   
+//#endif
+//}
 TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
 #ifdef LR_DEBUG
    const MockConf conf;

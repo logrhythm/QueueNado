@@ -1,5 +1,5 @@
 /* 
- * File:   UpgradeCommandTest.h
+ * File:   RebootCommandTest.h
  * Author: vrecan
  *
  * Created on April 3, 2013, 10:51 AM
