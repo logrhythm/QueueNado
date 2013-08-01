@@ -171,15 +171,17 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
 TEST_F(JSONEncoderTest, encodesQuickSearchFields) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_uuid("ABC123");
+   testMsg.set_sessionid("ABC123");
    testMsg.add_application_endq_proto_base("test");
    testMsg.add_application_endq_proto_base("unknown");
    testMsg.add_applicationq_proto_base("test");
    testMsg.add_applicationq_proto_base("unknown");
-   testMsg.set_sessionlenserver(567);
-   testMsg.set_deltasessionlenserver(67);
-   testMsg.set_sessionlenclient(899);
-   testMsg.set_deltasessionlenclient(99);
+   testMsg.set_bytesserver(567);
+   testMsg.set_bytesserverdelta(67);
+   testMsg.set_bytesclient(899);
+   testMsg.set_bytesclientdelta(99);
+   testMsg.set_timeupdate(1000999);
+   testMsg.set_timestart(1000000);
 
    JSONEncoder encoder(&testMsg);
 
