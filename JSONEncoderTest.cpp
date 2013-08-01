@@ -25,7 +25,7 @@ TEST_F(JSONEncoderTest, EncodeAnEmptyMessage) {
 TEST_F(JSONEncoderTest, EncodeAMessageWithAString) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_uuid("ABC123");
+   testMsg.set_sessionid("ABC123");
    JSONEncoder encoder(&testMsg);
 
    std::string encodedMessage = encoder.Encode();
@@ -36,9 +36,9 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithAString) {
 TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_uuid("ABC123");
+   testMsg.set_sessionid("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_destport(123);
+   testMsg.set_portdest(123);
    std::string encodedMessage = encoder.Encode();
 
    EXPECT_EQ("{\"destPort\": 123, \"uuid\": \"ABC123\"}", encodedMessage);
@@ -47,10 +47,10 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt) {
 TEST_F(JSONEncoderTest, EncodeAMessageWithIpSrcDst) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_uuid("ABC123");
+   testMsg.set_sessionid("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_ipsrc(0x11223344);
-   testMsg.set_ipdst(0x55667788);
+   testMsg.set_ipsource(0x11223344);
+   testMsg.set_ipdest(0x55667788);
    std::string encodedMessage = encoder.Encode();
 
    EXPECT_EQ("{\"uuid\": \"ABC123\", \"ipDst\": \"136.119.102.85\", \"ipSrc\": \"68.51.34.17\"}", encodedMessage);
@@ -59,9 +59,9 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithIpSrcDst) {
 TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt64) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_uuid("ABC123");
+   testMsg.set_sessionid("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_deltatime(12345678900L);
+   testMsg.set_timedelta(12345678900L);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
@@ -71,9 +71,9 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt64) {
 TEST_F(JSONEncoderTest, EncodeAMessageWithATimeT) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_uuid("ABC123");
+   testMsg.set_sessionid("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_starttime(12345678900L);
+   testMsg.set_timestart(12345678900L);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
@@ -83,10 +83,10 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithATimeT) {
 TEST_F(JSONEncoderTest, EncodeAMessageWithEthSrcDst) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_uuid("ABC123");
+   testMsg.set_sessionid("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_ethsrc(12345678900L);
-   testMsg.set_ethdst(12345678901L);
+   testMsg.set_ethsource(12345678900L);
+   testMsg.set_ethdest(12345678901L);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
@@ -96,7 +96,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithEthSrcDst) {
 TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_uuid("ABC123");
+   testMsg.set_sessionid("ABC123");
    testMsg.add_accept_encodingq_proto_http("1");
    testMsg.add_accept_encodingq_proto_http("2");
    testMsg.add_accept_encodingq_proto_http("3");
@@ -111,7 +111,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
 TEST_F(JSONEncoderTest, EncodeAMessageWithSingleBool) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_uuid("ABC123");
+   testMsg.set_sessionid("ABC123");
    testMsg.set_captured(true);
    JSONEncoder encoder(&testMsg);
 
@@ -129,16 +129,16 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithSingleBool) {
 TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_uuid("ABC123");
+   testMsg.set_sessionid("ABC123");
    testMsg.add_uri_fullq_proto_http("1");
    testMsg.add_application_endq_proto_base("test");
    testMsg.set_application_id_endq_proto_base(1234);
-   testMsg.set_sessionlenserver(567);
-   testMsg.set_deltasessionlenserver(567);
-   testMsg.set_sessionlenclient(899);
-   testMsg.set_deltasessionlenclient(899);
-   testMsg.set_packetcount(88);
-   testMsg.set_deltapackets(88);
+   testMsg.set_bytesserver(567);
+   testMsg.set_bytesserverdelta(567);
+   testMsg.set_bytesclient(899);
+   testMsg.set_bytesclientdelta(899);
+   testMsg.set_packettotal(88);
+   testMsg.set_packetsdelta(88);
    testMsg.add_loginq_proto_aim("aLogin");
    testMsg.add_domainq_proto_smb("aDomain12345");
    testMsg.add_uriq_proto_http("not/this/one");
