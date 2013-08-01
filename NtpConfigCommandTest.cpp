@@ -6,20 +6,10 @@
 #include "MockProcessManagerCommand.h"
 #include "MockConf.h"
 #include "NtpMsg.pb.h"
+#include "MockNtpConfigCommand.h"
 #include <sys/prctl.h>
 #include <memory>
-namespace {
 
-   struct MockNtpConfigCommand : public NtpConfigCommand {
-
-      MockNtpConfigCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager)
-      : NtpConfigCommand(request, processManager) {
-      }
-
-      ~MockNtpConfigCommand() {
-      }
-   };
-}
 
 TEST_F(NtpConfigCommandTest, DoesItCompileAndLink) {
    MockNtpConfigCommand doIt(cmd, autoManagedManager);

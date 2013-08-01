@@ -5,6 +5,8 @@
 #include "ConfSlave.h"
 #include "MockConfMaster.h"
 #include "MockConfSlave.h"
+#include "MockConfNtpToReadFile.h"
+#include "MockConfNtp.h"
 #include "NtpMsg.pb.h"
 #include <g2log.hpp>
 
@@ -39,19 +41,6 @@ TEST_F(ConfProcessorTests, ConfNtp_InitializeWithProto) {
 }
 
 
-namespace {
-
-   struct MockConfNtpToReadFile : public ConfNtp {
-
-      MockConfNtpToReadFile() : ConfNtp() {
-      }
-
-      std::string GetFileContent() override {
-         return ConfNtp::GetFileContent();
-      }
-   };
-}
-
 TEST_F(ConfProcessorTests, ConfNtp_ReadFile) {
    MockConfNtpToReadFile conf;
    auto content = conf.GetFileContent();
@@ -59,26 +48,6 @@ TEST_F(ConfProcessorTests, ConfNtp_ReadFile) {
 }
 
 namespace {
-
-   struct MockConfNtp : public ConfNtp {
-      std::string mContent;
-
-      explicit MockConfNtp(const std::string content) : ConfNtp(), mContent(content) {
-         ReadNtpConfFromFile();
-      }
-   protected:
-
-      std::string GetFileContent() override {
-         LOG(INFO) << "content is: " << mContent;
-         return mContent;
-      }
-
-      void WriteFileContent(const std::string& content) override {
-         mContent = content;
-      }
-
-   };
-
    const std::string contentOK = {"driftfile /var/lib/ntp/drift \n" \
         "restrict 127.0.0.1\n" \
         "restrict -6 ::1\n" \

@@ -155,6 +155,9 @@ CommandProcessorTests_SOURCES=main.cpp \
         NetworkConfigCommandTest.h  \
         NtpConfigCommandTest.cpp \
         NtpConfigCommandTest.h \
+        MockNtpConfigCommand.h \
+        MockConfNtpToReadFile.h \
+        MockConfNtp.h \
 	MockProcessManagerCommand.h
 CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\" ${INCLUDES}
 
