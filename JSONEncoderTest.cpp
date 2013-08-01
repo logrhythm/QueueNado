@@ -156,14 +156,45 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
    EXPECT_EQ("{\"#server\": [\"thisname12345\"], \"#sender\": [\"test1_123456\"]"
-      ", \"deltaPackets\": 88, \"#uri\": [\"not/this/one\"]"
-      ", \"sessionLenClient\": 899, \"#refererServer\": [\"notThisOne\"]"
-      ", \"#receiver\": [\"test2_123\"], \"#method\": [\"RUN\", \"COMMAND\","
-      " \"LONGLONGLONGLONG\"], \"uuid\": \"ABC123\", \"packetCount\": 88,"
-      " \"sessionLenServer\": 567, \"deltaSessionLenServer\": 567,"
-      " \"deltaSessionLenClient\": 899, \"#subject\": [\"test3_12345\"],"
-      " \"#applicationEnd\": [\"test\"], \"#applicationIdEnd\": 1234,"
-      " \"#login\": [\"aLogin\"], \"#uriFull\": [\"1\"], \"#version\":"
-      " [\"4.0\"], \"#domain\": [\"aDomain12345\"]}", encodedMessage);
+           ", \"deltaPackets\": 88, \"#uri\": [\"not/this/one\"]"
+           ", \"sessionLenClient\": 899, \"#refererServer\": [\"notThisOne\"]"
+           ", \"#receiver\": [\"test2_123\"], \"#method\": [\"RUN\", \"COMMAND\","
+           " \"LONGLONGLONGLONG\"], \"uuid\": \"ABC123\", \"packetCount\": 88,"
+           " \"sessionLenServer\": 567, \"deltaSessionLenServer\": 567,"
+           " \"deltaSessionLenClient\": 899, \"#subject\": [\"test3_12345\"],"
+           " \"#applicationEnd\": [\"test\"], \"#applicationIdEnd\": 1234,"
+           " \"#login\": [\"aLogin\"], \"#uriFull\": [\"1\"], \"#version\":"
+           " [\"4.0\"], \"#domain\": [\"aDomain12345\"]}", encodedMessage);
 
+}
+
+TEST_F(JSONEncoderTest, encodesQuickSearchFields) {
+   networkMonitor::DpiMsgLR testMsg;
+
+   testMsg.set_uuid("ABC123");
+   testMsg.add_application_endq_proto_base("test");
+   testMsg.add_application_endq_proto_base("unknown");
+   testMsg.add_applicationq_proto_base("test");
+   testMsg.add_applicationq_proto_base("unknown");
+   testMsg.set_sessionlenserver(567);
+   testMsg.set_deltasessionlenserver(67);
+   testMsg.set_sessionlenclient(899);
+   testMsg.set_deltasessionlenclient(99);
+
+   JSONEncoder encoder(&testMsg);
+
+   std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
+
+   EXPECT_EQ("{\"sessionLenClient\": 899, \"uuid\": \"ABC123\", "
+           "\"#application\": [\"test\", \"unknown\"], \"sessionLenServer\": 567, "
+           "\"deltaSessionLenServer\": 67, \"deltaSessionLenClient\": 99, "
+           "\"#applicationEnd\": [\"test\", \"unknown\"]}", encodedMessage);
+   testMsg.UpdateQuickSearchFields();
+   encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
+
+   EXPECT_EQ("{\"sessionLenClient\": 899, \"applicationPath\": \"/test/unknown\", "
+           "\"application\": \"unknown\", \"uuid\": \"ABC123\", \"#application\": [\"test\", "
+           "\"unknown\"], \"sessionLenServer\": 567, \"deltaSessionLenServer\": 67, "
+           "\"deltaSessionLenClient\": 99, \"bytesTotal\": 1466, \"bytesTotalDelta\": 166, "
+           "\"#applicationEnd\": [\"test\", \"unknown\"]}", encodedMessage);
 }
