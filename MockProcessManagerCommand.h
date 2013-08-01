@@ -57,11 +57,12 @@ public:
    virtual ~MockProcessManagerCommand() {
    }
 
-private:
+
    int mReturnCode;
    bool mInit;
    bool mSuccess;
    std::string mResult;
    std::string mRunCommand;
    std::string mRunArgs;
+   private:
 };

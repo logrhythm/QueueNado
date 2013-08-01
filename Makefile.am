@@ -151,6 +151,7 @@ CommandProcessorTests_SOURCES=main.cpp \
         CommandProcessorTests.cpp \
         CommandFactoryTests.cpp \
         UpgradeCommandTest.h  \
+        ShutdownCommandTest.cpp  \
         NetworkConfigCommandTest.h  \
         NtpConfigCommandTest.cpp \
         NtpConfigCommandTest.h \
