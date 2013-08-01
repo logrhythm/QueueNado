@@ -26,7 +26,8 @@ ElasticSearchTest \
 ConversionTest \
 DiskPacketCaptureTest \
 DiskCleanupTest \
-ThreadContainerTest
+ThreadContainerTest \ 
+ToolsTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/ \
@@ -221,6 +222,11 @@ ThreadContainerTest_LDFLAGS=${BASE_LIBS}
 ThreadContainerTest_SOURCES=main.cpp ThreadContainerTest.cpp
 ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
+ToolsTest_LDADD=${DYNAMIC_LIBS}
+ToolsTest_LDFLAGS=${BASE_LIBS}
+ToolsTest_SOURCES=main.cpp ToolsTest.cpp
+ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+
 JSONEncoderTest_LDADD=${DYNAMIC_LIBS}
 JSONEncoderTest_LDFLAGS=${BASE_LIBS}
 JSONEncoderTest_SOURCES=main.cpp JSONEncoderTest.cpp
@@ -281,6 +287,7 @@ nmTest_SOURCES=main.cpp \
  JSONEncoderTest.cpp \
  RESTBuilderTest.cpp \
  ElasticSearchTest.cpp \
- ThreadContainerTest.cpp
+ ThreadContainerTest.cpp \
+ ToolsTest.cpp
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine
