@@ -26,7 +26,7 @@ ElasticSearchTest \
 ConversionTest \
 DiskPacketCaptureTest \
 DiskCleanupTest \
-ThreadContainerTest \ 
+ThreadContainerTest \
 ToolsTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
@@ -142,7 +142,7 @@ ConfProcessorTests_LDADD=${DYNAMIC_LIBS}
 ConfProcessorTests_LDFLAGS=${BASE_LIBS}
 ConfProcessorTests_SOURCES=main.cpp \
         ConfProcessorTests.cpp \
-	QosmosConfTest.cpp \ 
+	QosmosConfTest.cpp \
 	ConfNtpProcessorTests.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
@@ -224,7 +224,7 @@ ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=
 
 ToolsTest_LDADD=${DYNAMIC_LIBS}
 ToolsTest_LDFLAGS=${BASE_LIBS}
-ToolsTest_SOURCES=main.cpp ToolsTest.cpp
+ToolsTest_SOURCES=main.cpp ToolsMakeUnique.cpp
 ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 JSONEncoderTest_LDADD=${DYNAMIC_LIBS}
@@ -288,6 +288,6 @@ nmTest_SOURCES=main.cpp \
  RESTBuilderTest.cpp \
  ElasticSearchTest.cpp \
  ThreadContainerTest.cpp \
- ToolsTest.cpp
+ ToolsMakeUnique.cpp
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine
