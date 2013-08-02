@@ -34,8 +34,8 @@ TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd) {
 
    auto cmd = autoManagedManager->getRunCommand();
    auto cmdArgs = autoManagedManager->getRunArgs();
-   ASSERT_EQ(cmd, std::string("/etc/init.d/ntpd"));
-   ASSERT_EQ(cmdArgs, std::string("stop"));
+   ASSERT_EQ(cmd, std::string("service"));
+   ASSERT_EQ(cmdArgs, std::string("ntpd stop"));
 
 }
 
@@ -59,8 +59,8 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithMasterServer__ExpectingValidCmd) {
 
    auto cmd = autoManagedManager->getRunCommand();
    auto cmdArgs = autoManagedManager->getRunArgs();
-   ASSERT_EQ(cmd, std::string("/etc/init.d/ntpd"));
-   ASSERT_EQ(cmdArgs, std::string("start"));
+   ASSERT_EQ(cmd, std::string("service"));
+   ASSERT_EQ(cmdArgs, std::string("ntpd restart"));
 
 }
 
@@ -95,12 +95,14 @@ TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd) {
       auto reply = doIt.Execute(conf);
       ASSERT_TRUE(reply.success());
    }
-}
+} 
 
-TEST_F(NtpConfigCommandTest, DISABLED_RealEnableServer__ExpectingFileChange) {
+// Example run:
+//sudo service ntpd stop; sudo service ntpd status; sudo ./test/CommandProcessorTests --gtest_filter=*Real*;sudo service ntpd statu
+TEST_F(NtpConfigCommandTest, DISABLED_Real__Start__ExpectingFileChange) {
    protoMsg::Ntp ntp;
    ntp.set_active(true);
-   ntp.set_master_server("10.128.64.251");
+   ntp.set_master_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
    MockNtpConfigCommand doIt(cmd, new ProcessManager(conf)); //autoManagedManager); 
    auto reply = doIt.Execute(conf);
@@ -108,13 +110,13 @@ TEST_F(NtpConfigCommandTest, DISABLED_RealEnableServer__ExpectingFileChange) {
 }
 
 TEST_F(NtpConfigCommandTest, DISABLED_Execv__EnableNTP) {
-   char* const realArgs[] = {"ntpd", "start", NULL};
+   char* const realArgs[] = {"service", "ntpd restart", NULL};
    char *environ[] = {NULL};
    ASSERT_EQ(0, execve("/etc/init.d/ntpd", realArgs, environ));
 }
 
 TEST_F(NtpConfigCommandTest, DISABLED_Execv__DisableNTP) {
-   char* const realArgs[] = {"ntpd", "stop", NULL};
+   char* const realArgs[] = {"service", "ntpd stop", NULL};
    char *environ[] = {NULL};
    ASSERT_EQ(0, execve("/etc/init.d/ntpd", realArgs, environ));
 }
