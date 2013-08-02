@@ -191,7 +191,7 @@ TEST_F(LuaFunctionsTest, GetLatestStringFromDpi) {
 
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushstring(luaState, "uuid");
+   lua_pushstring(luaState, "sessionid");
    EXPECT_EQ(1, LuaFunctions::GetLatestStringFromDpi(luaState));
    result = lua_tostring(luaState, -1);
    EXPECT_EQ("uuid", result);
@@ -215,7 +215,7 @@ TEST_F(LuaFunctionsTest, LuaGetFullListFromDpi) {
 
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushstring(luaState, "uuid");
+   lua_pushstring(luaState, "sessionid");
    EXPECT_EQ(1, LuaFunctions::GetFullStringFromDpi(luaState));
    result = lua_tostring(luaState, -1);
    EXPECT_EQ("uuid", result);
@@ -318,7 +318,7 @@ TEST_F(LuaFunctionsTest, GetListOfStrings) {
       fields.push_back(lua_tostring(luaState, i + 1));
    }
    ASSERT_EQ(2, fields.size());
-   EXPECT_NE(fields.end(), std::find(fields.begin(), fields.end(), "uuid"));
+   EXPECT_NE(fields.end(), std::find(fields.begin(), fields.end(), "sessionid"));
    EXPECT_NE(fields.end(), std::find(fields.begin(), fields.end(), "accept_encodingq_proto_http"));
    lua_close(luaState);
 
