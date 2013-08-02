@@ -34,10 +34,10 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("bytesout", results[SIEM_FIELD_BYTES_OUT].first);
    EXPECT_EQ("deltabytesout", results[SIEM_FIELD_DELTA_BYTES_OUT ].first);
    EXPECT_EQ("packetsin", results[SIEM_FIELD_PACKETS_IN].first);
-   EXPECT_EQ("packetsdeltain", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
+   EXPECT_EQ("deltapacketsin", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
    EXPECT_EQ("timestart", results[SIEM_FIELD_TIME_START].first);
-   EXPECT_EQ("timeupdate", results[SIEM_FIELD_TIME_END].first);
-   EXPECT_EQ("timedelta", results[SIEM_FIELD_TIME_DELTA].first);
+   EXPECT_EQ("timeend", results[SIEM_FIELD_TIME_END].first);
+   EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
    EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
 
    EXPECT_EQ(UNKNOWN_UUID, results[SIEM_FIELD_UUID].second);
@@ -94,10 +94,10 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("bytesout", results[SIEM_FIELD_BYTES_OUT].first);
    EXPECT_EQ("deltabytesout", results[SIEM_FIELD_DELTA_BYTES_OUT ].first);
    EXPECT_EQ("packetsin", results[SIEM_FIELD_PACKETS_IN].first);
-   EXPECT_EQ("packetsdeltain", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
+   EXPECT_EQ("deltapacketsin", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
    EXPECT_EQ("timestart", results[SIEM_FIELD_TIME_START].first);
-   EXPECT_EQ("timeupdate", results[SIEM_FIELD_TIME_END].first);
-   EXPECT_EQ("timedelta", results[SIEM_FIELD_TIME_DELTA].first);
+   EXPECT_EQ("timeend", results[SIEM_FIELD_TIME_END].first);
+   EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
    EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
    EXPECT_EQ("126.0.0.0", results[2].second);
    EXPECT_EQ("125.0.0.0", results[SIEM_FIELD_DIP].second);
