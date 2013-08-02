@@ -27,14 +27,14 @@ TEST_F(ToolsTest, ArrayOfIntMakeUnique_ExpectingCompile) {
    ASSERT_EQ(simpleArrayPtr[2], 3);
 }
 
-//TEST_F(ToolsTest, ArrayMakeUnique) {
-//   bool alive1 = false;
-//   bool alive2 = false;
-//   {
-//      auto simpleArrayPtr = std2::make_unique<Simple[]>({alive1}, {alive2});
-//      ASSERT_TRUE(alive1);
-//      ASSERT_TRUE(alive2);
-//   }
-//   ASSERT_FALSE(alive1);
-//   ASSERT_FALSE(alive2);
-//}
+TEST_F(ToolsTest, ArrayMakeUnique) {
+   bool alive1 = false;
+   bool alive2 = false;
+   {
+      auto simpleArrayPtr = std2::make_unique<Simple[]>(alive1, alive2);
+      ASSERT_TRUE(alive1);
+      ASSERT_TRUE(alive2);
+   }
+   ASSERT_FALSE(alive1);
+   ASSERT_FALSE(alive2);
+}

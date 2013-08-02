@@ -224,7 +224,7 @@ ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=
 
 ToolsTest_LDADD=${DYNAMIC_LIBS}
 ToolsTest_LDFLAGS=${BASE_LIBS}
-ToolsTest_SOURCES=main.cpp ToolsMakeUnique.cpp
+ToolsTest_SOURCES=main.cpp ToolsMakeUnique.cpp ToolsStringFix.cpp
 ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 JSONEncoderTest_LDADD=${DYNAMIC_LIBS}
@@ -288,6 +288,7 @@ nmTest_SOURCES=main.cpp \
  RESTBuilderTest.cpp \
  ElasticSearchTest.cpp \
  ThreadContainerTest.cpp \
- ToolsMakeUnique.cpp
+ ToolsMakeUnique.cpp \
+ ToolsStringFix.cpp
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine

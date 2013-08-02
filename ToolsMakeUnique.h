@@ -10,7 +10,7 @@
 
 struct Simple {
    bool& alive;
-   explicit Simple(bool& flag) : alive(flag) {  alive = true;  }
+   Simple(bool& flag) : alive(flag) {  alive = true;  }
    ~Simple() {  alive = false; }
 };
 
