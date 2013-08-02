@@ -40,7 +40,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
    EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
 
-   EXPECT_EQ(UNKNOWN_UUID, results[SIEM_FIELD_UUID].second);
+   EXPECT_EQ(UNKNOWN_SESSIONID, results[SIEM_FIELD_UUID].second);
    EXPECT_EQ("0.0.0.0", results[SIEM_FIELD_SIP].second);
    EXPECT_EQ("0.0.0.0", results[SIEM_FIELD_DIP].second);
    EXPECT_EQ("0", results[SIEM_FIELD_SPORT].second);

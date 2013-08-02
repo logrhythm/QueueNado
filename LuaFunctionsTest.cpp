@@ -87,7 +87,7 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["GetEndTime"], LuaRuleEngineFunctions::GetEndTime);
    ASSERT_EQ(registered["SetDeltaTime"], LuaRuleEngineFunctions::SetDeltaTime);
    ASSERT_EQ(registered["GetDeltaTime"], LuaRuleEngineFunctions::GetDeltaTime);
-   ASSERT_EQ(registered["GetUuid"], LuaFunctions::GetUuid);
+   ASSERT_EQ(registered["GetUuid"], LuaFunctions::GetSessionId);
    ASSERT_EQ(registered["SetFlowState"], LuaFunctions::SetFlowState);
    ASSERT_EQ(registered["DebugLog"], LuaFunctions::DebugLog);
    ASSERT_EQ(registered["WarningLog"], LuaFunctions::WarningLog);
@@ -792,16 +792,16 @@ TEST_F(LuaFunctionsTest, StaticCallGetUuid) {
    luaState = luaL_newstate();
 
    // Value not set, UUID is required field, initialized to ""
-   std::string unknownUuid(UNKNOWN_UUID);
+   std::string unknownUuid(UNKNOWN_SESSIONID);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   ASSERT_EQ(1, LuaRuleEngineFunctions::GetUuid(luaState));
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionId(luaState));
    EXPECT_EQ(unknownUuid, lua_tostring(luaState, -1));
 
    // Expect known value when set
    std::string knownUuid("5a36f34b-d8e0-47d4-8712-1daccda18c48");
    dpiMsg.set_sessionid(knownUuid);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   ASSERT_EQ(1, LuaRuleEngineFunctions::GetUuid(luaState));
+   ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionId(luaState));
    EXPECT_EQ(knownUuid, lua_tostring(luaState, -1));
    lua_close(luaState);
 }
