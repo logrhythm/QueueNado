@@ -15,7 +15,7 @@ using namespace networkMonitor;
 
 TEST_F(ConfProcessorTests, ConfNtp_Initialize) {
    ConfNtp conf;
-   ASSERT_EQ("conf/nm.yaml.NtpIgnore", conf.GetPath());
+   ASSERT_EQ("", conf.GetPath());
    ASSERT_EQ("/etc/ntp.conf", conf.GetNtpPath());
 }
 
@@ -41,7 +41,7 @@ TEST_F(ConfProcessorTests, ConfNtp_InitializeWithProto) {
 }
 
 
-TEST_F(ConfProcessorTests, ConfNtp_ReadFile) {
+TEST_F(ConfProcessorTests, DISABLED_REALREAD_ConfNtp_ReadFile) {
    MockConfNtpToReadFile conf;
    auto content = conf.GetFileContent();
    ASSERT_FALSE(content.empty());
