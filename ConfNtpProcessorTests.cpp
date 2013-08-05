@@ -48,7 +48,7 @@ TEST_F(ConfProcessorTests, DISABLED_REALREAD_ConfNtp_ReadFile) {
 }
 
 namespace {
-   const std::string contentOK = {"driftfile /var/lib/ntp/drift \n" \
+   static const std::string contentOK = {"driftfile /var/lib/ntp/drift \n" \
         "restrict 127.0.0.1\n" \
         "restrict -6 ::1\n" \
         "server 10.128.64.251\n" \
@@ -57,7 +57,7 @@ namespace {
         "keys /etc/ntp/keys\n"};
 
 
-   const std::string contentWithNoBackup = {"driftfile /var/lib/ntp/drift \n" \
+   static const std::string contentWithNoBackup = {"driftfile /var/lib/ntp/drift \n" \
         "restrict 127.0.0.1\n" \
         "restrict -6 ::1\n" \
         "server 10.128.64.251\n" \
@@ -65,7 +65,7 @@ namespace {
         "includefile /etc/ntp/crypto/pw\n" \
         "keys /etc/ntp/keys\n"};
 
-   const std::string contentCommentedOutServers = {"driftfile /var/lib/ntp/drift \n" \
+   static const std::string contentCommentedOutServers = {"driftfile /var/lib/ntp/drift \n" \
         "restrict 127.0.0.1\n" \
         "restrict -6 ::1\n" \
         "#server 10.128.64.251\n" \
@@ -76,7 +76,7 @@ namespace {
         "includefile /etc/ntp/crypto/pw\n" \
         "keys /etc/ntp/keys\n"};
 
-   const std::string contentWithNoServers = {"driftfile /var/lib/ntp/drift \n" \
+   static const std::string contentWithNoServers = {"driftfile /var/lib/ntp/drift \n" \
         "restrict 127.0.0.1\n" \
         "restrict -6 ::1\n" \
         "server\n" \
@@ -92,6 +92,8 @@ TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFile) {
    ASSERT_EQ("10.128.64.252", conf.GetBackupServer());
 }
 
+//only run these tests in debug because they require mocks.
+#ifdef LR_DEBUG
 TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFileWithCommentedOutBackup) {
    MockConfNtp conf(contentWithNoBackup);
    ASSERT_EQ("10.128.64.251", conf.GetMasterServer());
@@ -104,7 +106,6 @@ TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFileWithNoServers) {
    ASSERT_EQ(empty, conf.GetMasterServer());
    ASSERT_EQ(empty, conf.GetBackupServer());
 }
- 
 
 TEST_F(ConfProcessorTests, ConfNtp_WProtoBufUpdateTriggerWriteToFile) {
    MockConfNtp conf(contentWithNoServers);
@@ -126,6 +127,7 @@ TEST_F(ConfProcessorTests, ConfNtp_WProtoBufUpdateTriggerWriteToFile) {
    ASSERT_EQ(conf.GetBackupServer(), backup);
    ASSERT_NE(conf.mContent.find(backup), std::string::npos);
 }
+#endif 
 
 TEST_F(ConfProcessorTests, NtpMessagePassedBetweenMasterAndSlave) {
 #if defined(LR_DEBUG)

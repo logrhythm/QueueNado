@@ -10,7 +10,7 @@
 
 struct MockConfNtpToReadFile : public ConfNtp {
    MockConfNtpToReadFile() : ConfNtp() {}
-   std::string GetFileContent() override {   return ConfNtp::GetFileContent();   }
+   std::string GetFileContent() LR_OVERRIDE {   return ConfNtp::GetFileContent();   }
 };
 
 

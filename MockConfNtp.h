@@ -18,12 +18,12 @@ struct MockConfNtp : public ConfNtp {
    }
    
 protected:
-   std::string GetFileContent() override {
+   std::string GetFileContent() LR_OVERRIDE {
       LOG(INFO) << "content is: " << mContent;
       return mContent;
    }
 
-   void WriteFileContent(const std::string& content) override { 
+   void WriteFileContent(const std::string& content) LR_OVERRIDE { 
       mContent = content; 
    }
 };
