@@ -40,6 +40,10 @@ namespace networkMonitor {
       bool ProcessInterfaceConfigRequest(AbstractConf& conf, const std::string& msg ) {
          return ConfMaster::ProcessInterfaceConfigRequest(conf, msg);
       }
+      
+     bool ProcessNtpRequest(AbstractConf& conf, const std::string& msg ) {
+         return ConfMaster::ProcessNtpRequest(conf, msg);
+      }
 
       bool IsRestartRequest(const protoMsg::ConfType& configTypeMessage) {
          return ConfMaster::IsRestartRequest(configTypeMessage);
@@ -62,9 +66,9 @@ namespace networkMonitor {
          return ConfMaster::ReconcileNewConf(configTypeMessage, conf, message);
       }
       
-      bool ReconcileNewConf(const protoMsg::ConfType& configTypeMessage, AbstractConf& conf,
+      bool ReconcileNewAbstractConf(const protoMsg::ConfType& configTypeMessage, AbstractConf& conf,
               const std::string& message) {
-         return ConfMaster::ReconcileNewConf(configTypeMessage, conf, message);
+         return ConfMaster::ReconcileNewAbstractConf(configTypeMessage, conf, message);
       } 
 
       void SetConfLocation(const std::string& path) {

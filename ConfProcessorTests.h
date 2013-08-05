@@ -21,6 +21,7 @@ protected:
     std::string mWriteInterfaceLocation;
     std::string mTestConf;
     std::string mTestInterfaceConf;
+    std::string mTestNtpConf;
 
     virtual void SetUp() {
         int pid = getpid();

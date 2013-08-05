@@ -26,7 +26,8 @@ ElasticSearchTest \
 ConversionTest \
 DiskPacketCaptureTest \
 DiskCleanupTest \
-ThreadContainerTest
+ThreadContainerTest \
+ToolsTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/ \
@@ -141,7 +142,8 @@ ConfProcessorTests_LDADD=${DYNAMIC_LIBS}
 ConfProcessorTests_LDFLAGS=${BASE_LIBS}
 ConfProcessorTests_SOURCES=main.cpp \
         ConfProcessorTests.cpp \
-	QosmosConfTest.cpp
+	QosmosConfTest.cpp \
+	ConfNtpProcessorTests.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 CommandProcessorTests_LDADD=${DYNAMIC_LIBS}
@@ -152,6 +154,11 @@ CommandProcessorTests_SOURCES=main.cpp \
         UpgradeCommandTest.h  \
         ShutdownCommandTest.cpp  \
         NetworkConfigCommandTest.h  \
+        NtpConfigCommandTest.cpp \
+        NtpConfigCommandTest.h \
+        MockNtpConfigCommand.h \
+        MockConfNtpToReadFile.h \
+        MockConfNtp.h \
 	MockProcessManagerCommand.h
 CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\" ${INCLUDES}
 
@@ -215,6 +222,11 @@ ThreadContainerTest_LDFLAGS=${BASE_LIBS}
 ThreadContainerTest_SOURCES=main.cpp ThreadContainerTest.cpp
 ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
+ToolsTest_LDADD=${DYNAMIC_LIBS}
+ToolsTest_LDFLAGS=${BASE_LIBS}
+ToolsTest_SOURCES=main.cpp ToolsTestMakeUnique.cpp ToolsTestStringFix.cpp
+ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+
 JSONEncoderTest_LDADD=${DYNAMIC_LIBS}
 JSONEncoderTest_LDFLAGS=${BASE_LIBS}
 JSONEncoderTest_SOURCES=main.cpp JSONEncoderTest.cpp
@@ -275,6 +287,8 @@ nmTest_SOURCES=main.cpp \
  JSONEncoderTest.cpp \
  RESTBuilderTest.cpp \
  ElasticSearchTest.cpp \
- ThreadContainerTest.cpp
+ ThreadContainerTest.cpp \
+ ToolsTestMakeUnique.cpp \
+ ToolsTestStringFix.cpp
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine
