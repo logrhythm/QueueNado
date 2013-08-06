@@ -86,14 +86,15 @@ namespace {
         "keys /etc/ntp/keys\n"};
 }//anonymous
 
+//only run these tests in debug because they require mocks.
+#ifdef LR_DEBUG
 TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFile) {
    MockConfNtp conf(contentOK);
    ASSERT_EQ("10.128.64.251", conf.GetMasterServer());
    ASSERT_EQ("10.128.64.252", conf.GetBackupServer());
 }
 
-//only run these tests in debug because they require mocks.
-#ifdef LR_DEBUG
+
 TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFileWithCommentedOutBackup) {
    MockConfNtp conf(contentWithNoBackup);
    ASSERT_EQ("10.128.64.251", conf.GetMasterServer());
