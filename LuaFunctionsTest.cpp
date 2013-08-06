@@ -367,7 +367,8 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    ASSERT_TRUE(registered.end() != registered.find("WriteAllCapturedPackets"));
    ASSERT_TRUE(registered.end() != registered.find("CleanupCapturedPackets"));
    ASSERT_TRUE(registered.end() != registered.find("GetPacketBytes"));
-
+   ASSERT_TRUE(registered.end() != registered.find("SetMessageDebug"));
+   ASSERT_EQ(registered["SetMessageDebug"], LuaPacketFunctions::SetMessageDebug);
 
    ASSERT_EQ(registered["SessionAge"], LuaPacketFunctions::SessionAge);
    ASSERT_EQ(registered["EndOfFlow"], LuaPacketFunctions::DataNull);
@@ -379,8 +380,8 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
 
    delete functions;
 }
-#endif
 
+#endif
 TEST_F(LuaFunctionsTest, SessionAge) {
    networkMonitor::DpiMsgLR dpiMsg;
 
@@ -435,7 +436,7 @@ TEST_F(LuaFunctionsTest, DpiMsgClassification) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    LuaPacketFunctions::DpiMsgClassification(luaState);
    std::string classification(lua_tostring(luaState, -1));
-   EXPECT_EQ("unknown", classification);
+   EXPECT_EQ(EMPTY, classification);
    lua_close(luaState);
    luaState = luaL_newstate();
    dpiMsg.add_applicationq_proto_base("test1");
