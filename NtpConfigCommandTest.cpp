@@ -29,7 +29,7 @@ TEST_F(NtpConfigCommandTest, InValidCommand) {
 
 TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd) {
    protoMsg::Ntp ntp;
-   ntp.set_active(false);
+   ntp.set_master_server(""); // only the master needs to be defined
    cmd.set_stringargone(ntp.SerializeAsString());
    MockNtpConfigCommand doIt(cmd, autoManagedManager);
    auto reply = doIt.Execute(conf);
@@ -38,13 +38,12 @@ TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd) {
    auto cmd = autoManagedManager->getRunCommand();
    auto cmdArgs = autoManagedManager->getRunArgs();
    ASSERT_EQ(cmd, std::string("service"));
-   ASSERT_EQ(cmdArgs, std::string("ntpd stop"));
+   ASSERT_EQ(cmdArgs, std::string("ntpd restart"));
 
 }
 
 TEST_F(NtpConfigCommandTest, EnableNTPWithNoServer__ExpectingInvalidCmd) {
    protoMsg::Ntp ntp;
-   ntp.set_active(true);
    cmd.set_stringargone(ntp.SerializeAsString());
    MockNtpConfigCommand doIt(cmd, autoManagedManager);
    auto reply = doIt.Execute(conf);
@@ -53,7 +52,6 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithNoServer__ExpectingInvalidCmd) {
 
 TEST_F(NtpConfigCommandTest, EnableNTPWithMasterServer__ExpectingValidCmd) {
    protoMsg::Ntp ntp;
-   ntp.set_active(true);
    ntp.set_master_server("10.128.64.251");
    cmd.set_stringargone(ntp.SerializeAsString());
    MockNtpConfigCommand doIt(cmd, autoManagedManager);
@@ -69,7 +67,6 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithMasterServer__ExpectingValidCmd) {
 
 TEST_F(NtpConfigCommandTest, EnableNTPWithMasterAndServer__ExpectingValidCmd) {
    protoMsg::Ntp ntp;
-   ntp.set_active(true);
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
@@ -80,7 +77,6 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithMasterAndServer__ExpectingValidCmd) {
 
 TEST_F(NtpConfigCommandTest, MultipleEnableCmds__ExpectingValidCmd) {
    protoMsg::Ntp ntp;
-   ntp.set_active(true);
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
@@ -91,7 +87,8 @@ TEST_F(NtpConfigCommandTest, MultipleEnableCmds__ExpectingValidCmd) {
 
 TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd) {
    protoMsg::Ntp ntp;
-   ntp.set_active(false);
+   ntp.set_master_server("");
+   ntp.set_backup_server("");
    cmd.set_stringargone(ntp.SerializeAsString());
    MockNtpConfigCommand doIt(cmd, autoManagedManager);
    for (int i = 0; i < 10; ++i) {
@@ -117,7 +114,7 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
    protoMsg::CommandRequest requestMsg;
    requestMsg.set_type(protoMsg::CommandRequest_CommandType_NTP_CONFIG);   
    protoMsg::Ntp ntp;
-   ntp.set_active(false);
+   ntp.set_master_server("");
    requestMsg.set_stringargone(ntp.SerializeAsString());
    sender.Swing(requestMsg.SerializeAsString());
    std::string reply;
@@ -135,7 +132,6 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
 //sudo service ntpd stop; sudo service ntpd status; sudo ./test/CommandProcessorTests --gtest_filter=*Real*;sudo service ntpd statu
 TEST_F(NtpConfigCommandTest, DISABLED_Real__Start__ExpectingFileChange) {
    protoMsg::Ntp ntp;
-   ntp.set_active(true);
    ntp.set_master_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
    MockNtpConfigCommand doIt(cmd, new ProcessManager(conf)); //autoManagedManager); 

@@ -21,20 +21,17 @@ TEST_F(ConfProcessorTests, ConfNtp_Initialize) {
 
 TEST_F(ConfProcessorTests, ConfNtp_InitializeWithProto) {
    protoMsg::Ntp msg;
-   msg.set_active(true);
    msg.set_master_server("127.0.0.1");
    msg.set_backup_server("");
 
    ::google::protobuf::Message* base = &msg;
    ConfNtp conf(*base);
-   ASSERT_TRUE(conf.GetEnabled());
    ASSERT_EQ(conf.GetMasterServer(), "127.0.0.1");
    std::string emtpy;
    ASSERT_EQ(conf.GetBackupServer(), emtpy);
 
    // Verify it works round-trip
    std::unique_ptr<protoMsg::Ntp> msg2(conf.getProtoMsg());
-   ASSERT_TRUE(msg2->active());
    ASSERT_EQ(msg2->master_server(), "127.0.0.1");
    ASSERT_TRUE(msg2->backup_server().empty());
 
@@ -117,7 +114,6 @@ TEST_F(ConfProcessorTests, ConfNtp_WProtoBufUpdateTriggerWriteToFile) {
    ASSERT_EQ(conf.mContent.find(backup), std::string::npos);
 
    protoMsg::Ntp msg;
-   msg.set_active(true);
    msg.set_master_server(master);
    msg.set_backup_server(backup);
    conf.UpdateProtoMsg(msg);
@@ -147,7 +143,6 @@ TEST_F(ConfProcessorTests, NtpMessagePassedBetweenMasterAndSlave) {
    updateType.set_type(protoMsg::ConfType_Type_NTP);
    updateType.set_direction(protoMsg::ConfType_Direction_SENDING);
    protoMsg::Ntp confMsg;
-   confMsg.set_active(true);
    confMsg.set_master_server("10.128.64.251");
    std::vector<std::string> encodedMessage;
 
