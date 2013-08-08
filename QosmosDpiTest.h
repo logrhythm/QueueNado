@@ -19,7 +19,7 @@ public:
    ExposedQosmosDPI(networkMonitor::ConfMaster& confMaster) :
    QosmosDPI(confMaster), mProcessResult(true), mHashResult(1), mFailInitUafc(false), mFailProtoEnableAll(false), mFailSetFtpMaxPayload(
    false), mFailEnableTCPReassembly(false), mFailSetSMBMinPayload(
-   false), mFailAcquireDevice(false) {
+   false), mFailAcquireDevice(false), mTimeSinceEpoch(0) {
    }
 
    bool GetMetaDataCapture() {
@@ -87,6 +87,22 @@ public:
    virtual void ProtoDisableAll() {
       QosmosDPI::ProtoDisableAll();
    }
+
+   void SetEpochTime(std::time_t t) {
+      mTimeSinceEpoch = t;
+   }
+
+   std::time_t GetSecondsSinceEpoch() {
+      if (mTimeSinceEpoch != 0) {
+         return mTimeSinceEpoch;
+      }
+      return QosmosDPI::GetSecondsSinceEpoch();
+   }
+
+   bool IsTimeToReportStats() {
+      return QosmosDPI::IsTimeToReportStats();
+   }
+
    bool mProcessResult;
    int mHashResult;
    bool mFailInitUafc;
@@ -95,7 +111,7 @@ public:
    bool mFailEnableTCPReassembly;
    bool mFailSetSMBMinPayload;
    bool mFailAcquireDevice;
-
+   std::time_t mTimeSinceEpoch;
 };
 
 

@@ -50,9 +50,9 @@ protected:
    }
    std::string t_clientAddr;
    std::string t_serverAddr;
-   int t_packetsReceived;
-   int t_packetsDropped;
-   int t_packetsIfDropped;
+   size_t t_packetsReceived;
+   size_t t_packetsDropped;
+   size_t t_packetsIfDropped;
    size_t t_totalData;
    PCapInfo t_pcapInfo;
    networkMonitor::MockConfMaster mConf;
