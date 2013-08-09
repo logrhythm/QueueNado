@@ -249,7 +249,7 @@ TEST_F(DpiMsgLRTests, GetIpDstPair) {
 }
 
 TEST_F(DpiMsgLRTests, GetPktPathPair) {
-   EXPECT_EQ("unknown", tDpiMessage.GetPktPathPair().second);
+   EXPECT_EQ(EMPTY, tDpiMessage.GetPktPathPair().second);
    string path = "foo.bar";
    tDpiMessage.set_pktpath(path);
    EXPECT_EQ("Path", tDpiMessage.GetPktPathPair().first);
@@ -557,7 +557,7 @@ TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoEmpty) {
    DpiMsgLR dm;
    std::string lastStr;
    lastStr = dm.GetLatestApplicationFromProto();
-   ASSERT_EQ("unknown", lastStr);
+   ASSERT_EQ(EMPTY, lastStr);
 }
 
 TEST_F(DpiMsgLRTests, CountUpRepeats) {
