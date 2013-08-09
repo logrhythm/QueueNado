@@ -178,8 +178,7 @@ TEST_F(PacketCaptureTest, GetStatsFailure) {
       capturer.mPsRecv = 10;
       capturer.mPsDrop = 1;
       capturer.mPsIfDrop = 2;
-      int I, dont, care;
-      size_t atall;
+      size_t I, dont, care, atall;
       capturer.SetNumberOfPacketToCapture(100);
       ASSERT_TRUE(capturer.Initialize());
       capturer.DisplayStats(I, dont, care, atall);
@@ -485,7 +484,9 @@ TEST_F(PacketCaptureTest, FailPackets) {
    MockPacketCapturePCapClientThread clientThread(&capturer, receiver.GetZMQ());
    std::vector<std::pair<void*, unsigned int> > packets;
    clientThread.FailPackets(packets);
+   EXPECT_EQ(0, clientThread.GetInternalFailedPacketCount());
    clientThread.FailPacket(packet);
+   EXPECT_EQ(1, clientThread.GetInternalFailedPacketCount());
    uint8_t* rawPacket;
    struct pcap_pkthdr *phdr;
    phdr = &mBogusHeader;
@@ -499,12 +500,16 @@ TEST_F(PacketCaptureTest, FailPackets) {
    memset(mBogusPacket, 'a', 100);
    memcpy(rawPacket, mBogusPacket, 100);
 
+   clientThread.ResetInternalFailedPacketCount();
+   EXPECT_EQ(0, clientThread.GetInternalFailedPacketCount());
    mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
    clientThread.FailPacket(packet);
    EXPECT_TRUE(packet==NULL);
+   EXPECT_EQ(1, clientThread.GetInternalFailedPacketCount());
    mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
    packets.push_back(make_pair(packet,0));
    clientThread.FailPackets(packets);
    EXPECT_TRUE(packets.empty());
+   EXPECT_EQ(2, clientThread.GetInternalFailedPacketCount());
    delete []rawPacket;
 }

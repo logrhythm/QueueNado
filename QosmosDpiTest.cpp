@@ -513,3 +513,18 @@ TEST_F(QosmosDpiTest, FreeAndSendCalls) {
            reinterpret_cast<const uint8_t*> (&data[0]), &hdr, packet);
    QosmosDPI::FreePacket(packet);
 }
+
+TEST_F(QosmosDpiTest, IsTimeToReportStatsTest) {
+#ifdef LR_DEBUG
+   ExposedQosmosDPI dpiEngine(mConfMaster);
+   dpiEngine.SetEpochTime(10);
+   EXPECT_TRUE(dpiEngine.IsTimeToReportStats());
+   EXPECT_FALSE(dpiEngine.IsTimeToReportStats());
+   dpiEngine.SetEpochTime(11);
+   EXPECT_TRUE(dpiEngine.IsTimeToReportStats());
+   dpiEngine.SetEpochTime(9); // Time reset to earlier time.
+   EXPECT_FALSE(dpiEngine.IsTimeToReportStats());
+   dpiEngine.SetEpochTime(10);
+   EXPECT_TRUE(dpiEngine.IsTimeToReportStats());
+#endif
+}
