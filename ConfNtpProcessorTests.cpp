@@ -49,7 +49,15 @@ namespace {
         "restrict 127.0.0.1\n" \
         "restrict -6 ::1\n" \
         "server 10.128.64.251\n" \
-        "server 10.128.64.252\n" \
+        "server 10.128.64.252#\t\n" \
+        "includefile /etc/ntp/crypto/pw\n" \
+        "keys /etc/ntp/keys\n"};
+   
+      static const std::string contentOKLongName = {"driftfile /var/lib/ntp/drift \n" \
+        "restrict 127.0.0.1\n" \
+        "restrict -6 ::1\n" \
+        "server 1234.567.8910.11.12.13.14.15.16.17.18.19.20 \n" \
+        "server 0.centos.pool.ntp.whatever.org\n" \
         "includefile /etc/ntp/crypto/pw\n" \
         "keys /etc/ntp/keys\n"};
 
@@ -57,7 +65,7 @@ namespace {
    static const std::string contentWithNoBackup = {"driftfile /var/lib/ntp/drift \n" \
         "restrict 127.0.0.1\n" \
         "restrict -6 ::1\n" \
-        "server 10.128.64.251\n" \
+        "server 10.128.64.251 \n" \
         "# server 10.128.64.252\n" \
         "includefile /etc/ntp/crypto/pw\n" \
         "keys /etc/ntp/keys\n"};
@@ -91,6 +99,11 @@ TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFile) {
    ASSERT_EQ("10.128.64.252", conf.GetBackupServer());
 }
 
+TEST_F(ConfProcessorTests, ConfNtp_ReadLongNamesFromFile) {
+   MockConfNtp conf(contentOKLongName);
+   ASSERT_EQ("1234.567.8910.11.12.13.14.15.16.17.18.19.20", conf.GetMasterServer());
+   ASSERT_EQ("0.centos.pool.ntp.whatever.org", conf.GetBackupServer());
+}
 
 TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFileWithCommentedOutBackup) {
    MockConfNtp conf(contentWithNoBackup);
