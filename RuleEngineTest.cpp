@@ -48,7 +48,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("00:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
    EXPECT_EQ("00:00:00:00:00:00", results[SIEM_FIELD_DMAC].second);
    EXPECT_EQ("0", results[SIEM_FIELD_PROTONUM].second);
-   EXPECT_EQ("1007", results[SIEM_FIELD_PROCESS].second);
+   EXPECT_EQ("", results[SIEM_FIELD_PROCESS].second);  // when we have a "none" field this should change
    EXPECT_EQ("0", results[SIEM_FIELD_BYTES_IN].second);
    EXPECT_EQ("0", results[SIEM_FIELD_DELTA_BYTES_IN].second);
    EXPECT_EQ("0", results[SIEM_FIELD_BYTES_OUT].second);
