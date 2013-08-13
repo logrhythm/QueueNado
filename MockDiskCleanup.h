@@ -17,8 +17,8 @@ public:
    virtual ~MockDiskCleanup() {
    }
 
-   void RemoveOldestPCapFiles(const size_t maxToRemove) {
-      DiskCleanup::RemoveOldestPCapFiles(1);
+   void RemoveOldestPCapFiles(const size_t maxToRemove, ElasticSearch& es) {
+      DiskCleanup::RemoveOldestPCapFiles(1,es);
    }
 
    bool TooMuchPCap(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
@@ -29,8 +29,8 @@ public:
       DiskCleanup::RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
    }
 
-   void CleanupOldPcapFiles(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
-      DiskCleanup::CleanupOldPcapFiles(aDiskUsed, aTotalFiles);
+   void CleanupOldPcapFiles(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles, ElasticSearch& es) {
+      DiskCleanup::CleanupOldPcapFiles(aDiskUsed, aTotalFiles, es);
    }
 
    bool TooMuchSearch(const size_t& fsFreeGigs, const size_t& fsTotalGigs) {

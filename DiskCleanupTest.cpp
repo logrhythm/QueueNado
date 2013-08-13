@@ -9,7 +9,7 @@
 TEST_F(DiskCleanupTest, TooMuchPCap) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
-
+      MockElasticSearch es(false);
       MockDiskCleanup capture(mConf);
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
@@ -77,19 +77,19 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
-      capture.RemoveOldestPCapFiles(1);
+      capture.RemoveOldestPCapFiles(1,es);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup8";
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      capture.RemoveOldestPCapFiles(1);
+      capture.RemoveOldestPCapFiles(1,es);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      capture.RemoveOldestPCapFiles(1);
+      capture.RemoveOldestPCapFiles(1,es);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
@@ -105,6 +105,7 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
 
+      MockElasticSearch es(false);
       MockDiskCleanup capture(mConf);
       std::atomic<size_t> aDiskUsed(0);
       std::atomic<size_t> aTotalFiles(0);
@@ -146,17 +147,17 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       capture.ResetConf();
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      capture.CleanupOldPcapFiles(aDiskUsed, aTotalFiles);
+      capture.CleanupOldPcapFiles(aDiskUsed, aTotalFiles,es);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup8";
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      capture.CleanupOldPcapFiles(aDiskUsed, aTotalFiles);
+      capture.CleanupOldPcapFiles(aDiskUsed, aTotalFiles,es);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      capture.CleanupOldPcapFiles(aDiskUsed, aTotalFiles);
+      capture.CleanupOldPcapFiles(aDiskUsed, aTotalFiles,es);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
       makeADir = "";
