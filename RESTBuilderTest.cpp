@@ -6,6 +6,92 @@
 
 #ifdef LR_DEBUG
 
+TEST_F(RESTBuilderTest, ConstructAQuery) {
+   RESTBuilder builder;
+   
+   std::string command = builder.RunQueryOnAllIndicies("indexType", "foo:bar");
+
+   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar", command);
+
+   
+}
+TEST_F(RESTBuilderTest, ConstructAIdQuery) {
+   RESTBuilder builder;
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   RESTSender sender(transport);
+   
+   std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
+
+   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar|{ \"fields\" : [] }", command);
+
+   transport.mReturnString = "{\"took\":10,\"timed_out\":false,\"_shards\":{\"total\":50,"
+           "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
+           "\"hits\":[{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_2\",\"_score\":12.653517},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_3\",\"_score\":12.650981},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_4\",\"_score\":12.650732},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
+   std::string reply;
+   ASSERT_TRUE(sender.Send(command,reply));
+   std::vector<std::string> ids = sender.GetDocIds(reply);
+   ASSERT_EQ(4,ids.size());
+   for (auto id : ids) {
+      EXPECT_NE(std::string::npos,id.find("8f8411f5-899a-445a-8421-210157db0512"));
+   }
+   
+   ElasticSearch restQuery(transport,false);
+   std::vector<std::string> idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
+   EXPECT_EQ(ids,idsFromESObject);
+}
+TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
+   RESTBuilder builder;
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   RESTSender sender(transport);
+   
+   std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
+
+   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar|{ \"fields\" : [] }", command);
+
+   transport.mReturnString = "{\"took\":8,\"timed_out\":false,\"_shards\":"
+           "{\"total\":50,\"successful\":50,\"failed\":0},\"hits\":{\"total\":0,\"max_score\":null,\"hits\":[]}}";
+   std::string reply;
+   ASSERT_TRUE(sender.Send(command,reply));
+   std::vector<std::string> ids = sender.GetDocIds(reply);
+   ASSERT_EQ(0,ids.size());
+
+   ElasticSearch restQuery(transport,false);
+   std::vector<std::string> idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
+   EXPECT_EQ(ids,idsFromESObject);
+}
+TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
+   RESTBuilder builder;
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   RESTSender sender(transport);
+   
+   std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
+
+   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar|{ \"fields\" : [] }", command);
+
+   transport.mReturnString = "{\"took\":10,\"timed_out\":true,\"_shards\":{\"total\":50,"
+           "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
+           "\"hits\":[{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_2\",\"_score\":12.653517},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_3\",\"_score\":12.650981},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_4\",\"_score\":12.650732},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
+   std::string reply;
+   ASSERT_FALSE(sender.Send(command,reply));
+
+   ElasticSearch restQuery(transport,false);
+   std::vector<std::string> idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
+   ASSERT_EQ(0,idsFromESObject.size());
+}
 TEST_F(RESTBuilderTest, Construct) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
 
