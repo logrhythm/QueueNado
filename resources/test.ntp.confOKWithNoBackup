@@ -1,0 +1,6 @@
+restrict 127.0.0.1
+restrict -6 ::1
+server 10.128.64.251
+# server 10.128.64.252
+includefile /etc/ntp/crypto/pw
+keys /etc/ntp/keys

@@ -45,50 +45,11 @@ TEST_F(ConfProcessorTests, DISABLED_REALREAD_ConfNtp_ReadFile) {
 }
 
 namespace {
-   static const std::string contentOK = {"driftfile /var/lib/ntp/drift \n" \
-        "restrict 127.0.0.1\n" \
-        "restrict -6 ::1\n" \
-        "server 10.128.64.251\n" \
-        "server 10.128.64.252#\t\n" \
-        "includefile /etc/ntp/crypto/pw\n" \
-        "keys /etc/ntp/keys\n"};
-   
-      static const std::string contentOKLongName = {"driftfile /var/lib/ntp/drift \n" \
-        "restrict 127.0.0.1\n" \
-        "restrict -6 ::1\n" \
-        "server 1234.567.8910.11.12.13.14.15.16.17.18.19.20 \n" \
-        "server 0.centos.pool.ntp.whatever.org\n" \
-        "includefile /etc/ntp/crypto/pw\n" \
-        "keys /etc/ntp/keys\n"};
-
-
-   static const std::string contentWithNoBackup = {"driftfile /var/lib/ntp/drift \n" \
-        "restrict 127.0.0.1\n" \
-        "restrict -6 ::1\n" \
-        "server 10.128.64.251 \n" \
-        "# server 10.128.64.252\n" \
-        "includefile /etc/ntp/crypto/pw\n" \
-        "keys /etc/ntp/keys\n"};
-
-   static const std::string contentCommentedOutServers = {"driftfile /var/lib/ntp/drift \n" \
-        "restrict 127.0.0.1\n" \
-        "restrict -6 ::1\n" \
-        "#server 10.128.64.251\n" \
-        "# server 10.128.64.252\n" \
-        "server\n" \
-        "server \n" \
-        "server # \n" \
-        "includefile /etc/ntp/crypto/pw\n" \
-        "keys /etc/ntp/keys\n"};
-
-   static const std::string contentWithNoServers = {"driftfile /var/lib/ntp/drift \n" \
-        "restrict 127.0.0.1\n" \
-        "restrict -6 ::1\n" \
-        "server\n" \
-        "server \n" \
-        "server # \n" \
-        "includefile /etc/ntp/crypto/pw\n" \
-        "keys /etc/ntp/keys\n"};
+   const std::string contentOK = {"resources/test.ntp.confContentOK"};
+   const std::string contentOKLongName = {"resources/test.ntp.confOKLongName"};
+   const std::string contentWithNoBackup = {"resources/test.ntp.confOKWithNoBackup"};
+   const std::string contentCommentedOutServers = {"resources/test.ntp.confCommentedOutServers"};
+   const std::string contentWithNoServers = {"resources/dtest.ntp.confNoServers"};
 }//anonymous
 
 //only run these tests in debug because they require mocks.
