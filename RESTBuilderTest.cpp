@@ -8,18 +8,19 @@
 
 TEST_F(RESTBuilderTest, ConstructAQuery) {
    RESTBuilder builder;
-   
+
    std::string command = builder.RunQueryOnAllIndicies("indexType", "foo:bar");
 
    EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar", command);
 
-   
+
 }
+
 TEST_F(RESTBuilderTest, ConstructAIdQuery) {
    RESTBuilder builder;
    MockBoomStick transport("tcp://127.0.0.1:9700");
    RESTSender sender(transport);
-   
+
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
    EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar|{ \"fields\" : [] }", command);
@@ -35,22 +36,24 @@ TEST_F(RESTBuilderTest, ConstructAIdQuery) {
            "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
    std::string reply;
-   ASSERT_TRUE(sender.Send(command,reply));
+   ASSERT_TRUE(sender.Send(command, reply));
    std::vector<std::pair<std::string, std::string> > ids = sender.GetDocIds(reply);
-   ASSERT_EQ(4,ids.size());
+   ASSERT_EQ(4, ids.size());
    for (auto id : ids) {
-      EXPECT_NE(std::string::npos,id.first.find("8f8411f5-899a-445a-8421-210157db0512"));
+      EXPECT_NE(std::string::npos, id.first.find("8f8411f5-899a-445a-8421-210157db0512"));
    }
-   
-   ElasticSearch restQuery(transport,false);
-   std::vector<std::pair<std::string, std::string> > idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
-   EXPECT_EQ(ids,idsFromESObject);
+
+   ElasticSearch restQuery(transport, false);
+   std::vector<std::pair<std::string, std::string> > idsFromESObject;
+   EXPECT_TRUE(restQuery.RunQueryGetIds("indexType", "foo:bar", idsFromESObject));
+   EXPECT_EQ(ids, idsFromESObject);
 }
+
 TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
    RESTBuilder builder;
    MockBoomStick transport("tcp://127.0.0.1:9700");
    RESTSender sender(transport);
-   
+
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
    EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar|{ \"fields\" : [] }", command);
@@ -58,19 +61,21 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
    transport.mReturnString = "{\"took\":8,\"timed_out\":false,\"_shards\":"
            "{\"total\":50,\"successful\":50,\"failed\":0},\"hits\":{\"total\":0,\"max_score\":null,\"hits\":[]}}";
    std::string reply;
-   ASSERT_TRUE(sender.Send(command,reply));
+   ASSERT_TRUE(sender.Send(command, reply));
    std::vector<std::pair<std::string, std::string> > ids = sender.GetDocIds(reply);
-   ASSERT_EQ(0,ids.size());
+   ASSERT_EQ(0, ids.size());
 
-   ElasticSearch restQuery(transport,false);
-   std::vector<std::pair<std::string, std::string> > idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
-   EXPECT_EQ(ids,idsFromESObject);
+   ElasticSearch restQuery(transport, false);
+   std::vector<std::pair<std::string, std::string> > idsFromESObject;
+   EXPECT_TRUE(restQuery.RunQueryGetIds("indexType", "foo:bar", idsFromESObject));
+   EXPECT_EQ(ids, idsFromESObject);
 }
+
 TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
    RESTBuilder builder;
    MockBoomStick transport("tcp://127.0.0.1:9700");
    RESTSender sender(transport);
-   
+
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
    EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar|{ \"fields\" : [] }", command);
@@ -86,12 +91,14 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
            "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
    std::string reply;
-   ASSERT_FALSE(sender.Send(command,reply));
+   ASSERT_FALSE(sender.Send(command, reply));
 
-   ElasticSearch restQuery(transport,false);
-   std::vector<std::pair<std::string, std::string> > idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
-   ASSERT_EQ(0,idsFromESObject.size());
+   ElasticSearch restQuery(transport, false);
+   std::vector<std::pair<std::string, std::string> > idsFromESObject;
+   EXPECT_TRUE(restQuery.RunQueryGetIds("indexType", "foo:bar", idsFromESObject));
+   ASSERT_EQ(0, idsFromESObject.size());
 }
+
 TEST_F(RESTBuilderTest, Construct) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
 
@@ -110,7 +117,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
    RESTSender sender(transport);
-   ElasticSearch restQuery(transport2,false);
+   ElasticSearch restQuery(transport2, false);
    ASSERT_TRUE(restQuery.Initialize());
    int shards(3);
    int replicas(5);
@@ -158,7 +165,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
    RESTSender sender(transport);
-   ElasticSearch restQuery(transport2,false);
+   ElasticSearch restQuery(transport2, false);
    ASSERT_TRUE(restQuery.Initialize());
    int shards(3);
    int replicas(5);
@@ -208,7 +215,7 @@ TEST_F(RESTBuilderTest, AddDocDeleteDoc) {
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
    RESTSender sender(transport);
-   ElasticSearch es(transport2,true);
+   ElasticSearch es(transport2, true);
    ASSERT_TRUE(es.Initialize());
    int shards(3);
    int replicas(5);
@@ -265,7 +272,7 @@ TEST_F(RESTBuilderTest, GetListOfIndexeNames) {
    goodResult >> transport.mReturnString;
    goodResult.close();
    ASSERT_FALSE(transport.mReturnString.empty());
-   
+
    EXPECT_TRUE(sender.Send(command, reply));
 
    std::set<std::string> indexes = sender.GetOrderedListOfIndexes(reply);
@@ -283,7 +290,7 @@ TEST_F(RESTBuilderTest, GetListOfIndexeNames) {
    EXPECT_EQ("network_2100_12_31", *iterator++);
    EXPECT_EQ("twitter", *iterator++);
 
-   ElasticSearch restQuery(transport2,false);
+   ElasticSearch restQuery(transport2, false);
    transport2.mReturnString = transport.mReturnString;
    ASSERT_TRUE(restQuery.Initialize());
    std::set<std::string> indexes2 = restQuery.GetListOfIndexeNames();

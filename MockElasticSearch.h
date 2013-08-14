@@ -92,12 +92,14 @@ public:
    void ReplySet(const bool set) {
       mSocketClass->mReplySent = set;
    }
-   std::vector<std::pair<std::string, std::string> > 
-         RunQueryGetIds(const std::string& indexType, const std::string& query) {
+   
+   bool RunQueryGetIds(const std::string& indexType, const std::string& query, 
+         std::vector<std::pair<std::string, std::string> > & matches) {
       if (mQueryIdResults.empty()) {
-         return ElasticSearch::RunQueryGetIds(indexType,query);
+         return ElasticSearch::RunQueryGetIds(indexType,query,matches);
       }
-      return mQueryIdResults;
+      matches = mQueryIdResults;
+      return true;
    }
    
    MockBoomStick mMyTransport;
