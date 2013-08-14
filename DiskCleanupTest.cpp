@@ -9,6 +9,8 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
       MockElasticSearch es(false);
+      es.mUpdateDocAlwaysPasses = true;
+      es.RunQueryGetIdsAlwaysPasses = true;
       MockDiskCleanup capture(mConf);
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
@@ -91,6 +93,8 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
    if (geteuid() == 0) {
 
       MockElasticSearch es(false);
+      es.mUpdateDocAlwaysPasses = true;
+      es.RunQueryGetIdsAlwaysPasses = true;
       MockDiskCleanup capture(mConf);
       std::atomic<size_t> aDiskUsed(0);
       std::atomic<size_t> aTotalFiles(0);
@@ -156,12 +160,12 @@ TEST_F(DiskCleanupTest, ESFailuresCannotRemoveFiles) {
       std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      es.mFailAddDoc = true;
+      es.mFailUpdateDoc = true;
       es.mQueryIdResults.push_back(std::make_pair("smalFile","index_1973-11-29"));
       EXPECT_EQ(1,capture.RemoveOldestPCapFiles(1, es));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      es.mFailAddDoc = false;
+      es.mFailUpdateDoc = false;
       EXPECT_EQ(0,capture.RemoveOldestPCapFiles(1, es));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
@@ -170,11 +174,11 @@ TEST_F(DiskCleanupTest, ESFailuresCannotRemoveFiles) {
       std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      es.mFailAddDoc = true;
+      es.mFailUpdateDoc = true;
       capture.CleanupOldPcapFiles(aDiskUsed, aTotalFiles, es);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      es.mFailAddDoc = false;
+      es.mFailUpdateDoc = false;
       capture.CleanupOldPcapFiles(aDiskUsed, aTotalFiles, es);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));

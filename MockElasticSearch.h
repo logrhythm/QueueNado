@@ -10,7 +10,7 @@ class MockElasticSearch : public ElasticSearch {
 public:
 
    MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport, async), mFakeIndexList(true),
-   mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailAddDoc(false), mAddDocAlwaysPasses(true) {
+   mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true),RunQueryGetIdsAlwaysPasses(false) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -26,7 +26,7 @@ public:
    }
 
    MockElasticSearch(BoomStick& transport, bool async) : mMyTransport(""), ElasticSearch(transport, async), mFakeIndexList(true),
-   mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailAddDoc(false), mAddDocAlwaysPasses(true) {
+   mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true), RunQueryGetIdsAlwaysPasses(false) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -72,15 +72,17 @@ public:
    }
 
    LR_VIRTUAL bool AddDoc(const std::string& indexName, const std::string& indexType, const std::string& id, const std::string& jsonData) {
-      if (mFailAddDoc) {
-         return false;
-      }
-      if (mAddDocAlwaysPasses) { 
-         return true;
-      }
       ElasticSearch::AddDoc(indexName, indexType, id, jsonData);
    }
-
+   LR_VIRTUAL bool UpdateDoc(const std::string& indexName, const std::string& indexType, const std::string& id, const std::string& jsonData) {
+      if (mFailUpdateDoc) {
+         return false;
+      }
+      if (mUpdateDocAlwaysPasses) { 
+         return true;
+      }
+      ElasticSearch::UpdateDoc(indexName, indexType, id, jsonData);
+   }
    LR_VIRTUAL bool DeleteDoc(const std::string& indexName, const std::string& indexType, const std::string& id) {
       ElasticSearch::DeleteDoc(indexName, indexType, id);
    }
@@ -95,6 +97,9 @@ public:
    
    bool RunQueryGetIds(const std::string& indexType, const std::string& query, 
          std::vector<std::pair<std::string, std::string> > & matches) {
+      if (RunQueryGetIdsAlwaysPasses) {
+         return true;
+      }
       if (mQueryIdResults.empty()) {
          return ElasticSearch::RunQueryGetIds(indexType,query,matches);
       }
@@ -108,8 +113,9 @@ public:
    bool mFakeDeleteIndex;
    bool mFakeDeleteValue;
    MockElasticSearchSocket* mSocketClass;
-   bool mFailAddDoc;
-   bool mAddDocAlwaysPasses;
+   bool mFailUpdateDoc;
+   bool mUpdateDocAlwaysPasses;
+   bool RunQueryGetIdsAlwaysPasses;
    std::vector<std::pair<std::string, std::string> > mQueryIdResults;
 
 };
