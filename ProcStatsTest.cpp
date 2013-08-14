@@ -20,8 +20,11 @@ TEST_F(ProcStatsTest, UpdateDoesSomething) {
    procStats.SetStatFile("resources/stat.2");
    procStats.Update();
    EXPECT_NE(0, procStats.GetUserPercent());
-   //EXPECT_NE(0, mProcStats.GetIOWaitPercent());
+   EXPECT_EQ(11319, procStats.GetUserPercent()); // 11.319% i.e.    0.113199 * 100.000
+
    EXPECT_NE(0, procStats.GetSystemPercent());
+   EXPECT_EQ(900, procStats.GetSystemPercent()); // 0.9% i.e. 0.009004 * 100.000
+   
 #endif
 }
 
