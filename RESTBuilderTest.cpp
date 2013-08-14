@@ -95,7 +95,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
 
    ElasticSearch restQuery(transport, false);
    std::vector<std::pair<std::string, std::string> > idsFromESObject;
-   EXPECT_TRUE(restQuery.RunQueryGetIds("indexType", "foo:bar", idsFromESObject));
+   EXPECT_FALSE(restQuery.RunQueryGetIds("indexType", "foo:bar", idsFromESObject));
    ASSERT_EQ(0, idsFromESObject.size());
 }
 
@@ -209,7 +209,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
    EXPECT_EQ(transport.mReturnString, reply);
 }
 
-TEST_F(RESTBuilderTest, AddDocDeleteDoc) {
+TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
    MockBoomStick transport2("tcp://127.0.0.1:9700");
    ASSERT_TRUE(transport.Initialize());
@@ -220,7 +220,7 @@ TEST_F(RESTBuilderTest, AddDocDeleteDoc) {
    int shards(3);
    int replicas(5);
    std::string command = builder.GetAddDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}");
-
+   
    EXPECT_EQ("PUT|/indexName/typeName/abc_123|{\"test\":\"data\"}", command);
    std::string reply;
    transport.mReturnString = "{\"ok\":true,\"_index\":\"indexName\",\"_type\":\"typeName\",\"_id\":\"abc_123\",\"_version\":1}";
@@ -235,7 +235,10 @@ TEST_F(RESTBuilderTest, AddDocDeleteDoc) {
    EXPECT_EQ(transport.mReturnString, reply);
    EXPECT_TRUE(es.AddDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
    transport.mReturnString.clear();
-
+   
+   command = builder.GetUpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}");
+   EXPECT_EQ("POST|/indexName/typeName/abc_123/_update|{ \"doc\":{\"test\":\"data\"}}", command);
+   
    command = builder.GetDeleteDoc("indexName", "typeName", "abc_123");
 
    EXPECT_EQ("DELETE|/indexName/typeName/abc_123", command);
