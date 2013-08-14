@@ -238,6 +238,15 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    
    command = builder.GetUpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}");
    EXPECT_EQ("POST|/indexName/typeName/abc_123/_update|{ \"doc\":{\"test\":\"data\"}}", command);
+   transport.mReturnString = "{\"ok\":true,\"_index\":\"indexName\",\"_type\":\"typeName\","
+           "\"_id\":\"abc_123\",\"_version\":3}";
+   EXPECT_TRUE(sender.Send(command, reply));
+   EXPECT_EQ(transport.mReturnString, reply);
+   EXPECT_TRUE(es.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
+   transport.mReturnString = "{\"error\":\"DocumentMissingException[[indexName][4] [typeName][abc_123]: document missing]\",\"status\":404}";
+   EXPECT_FALSE(sender.Send(command, reply));
+   EXPECT_EQ(transport.mReturnString, reply);
+   EXPECT_FALSE(es.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
    
    command = builder.GetDeleteDoc("indexName", "typeName", "abc_123");
 
