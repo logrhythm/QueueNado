@@ -36,14 +36,14 @@ TEST_F(RESTBuilderTest, ConstructAIdQuery) {
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
    std::string reply;
    ASSERT_TRUE(sender.Send(command,reply));
-   std::vector<std::string> ids = sender.GetDocIds(reply);
+   std::vector<std::pair<std::string, std::string> > ids = sender.GetDocIds(reply);
    ASSERT_EQ(4,ids.size());
    for (auto id : ids) {
-      EXPECT_NE(std::string::npos,id.find("8f8411f5-899a-445a-8421-210157db0512"));
+      EXPECT_NE(std::string::npos,id.first.find("8f8411f5-899a-445a-8421-210157db0512"));
    }
    
    ElasticSearch restQuery(transport,false);
-   std::vector<std::string> idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
+   std::vector<std::pair<std::string, std::string> > idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
    EXPECT_EQ(ids,idsFromESObject);
 }
 TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
@@ -59,11 +59,11 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
            "{\"total\":50,\"successful\":50,\"failed\":0},\"hits\":{\"total\":0,\"max_score\":null,\"hits\":[]}}";
    std::string reply;
    ASSERT_TRUE(sender.Send(command,reply));
-   std::vector<std::string> ids = sender.GetDocIds(reply);
+   std::vector<std::pair<std::string, std::string> > ids = sender.GetDocIds(reply);
    ASSERT_EQ(0,ids.size());
 
    ElasticSearch restQuery(transport,false);
-   std::vector<std::string> idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
+   std::vector<std::pair<std::string, std::string> > idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
    EXPECT_EQ(ids,idsFromESObject);
 }
 TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
@@ -89,7 +89,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
    ASSERT_FALSE(sender.Send(command,reply));
 
    ElasticSearch restQuery(transport,false);
-   std::vector<std::string> idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
+   std::vector<std::pair<std::string, std::string> > idsFromESObject = restQuery.RunQueryGetIds("indexType", "foo:bar");
    ASSERT_EQ(0,idsFromESObject.size());
 }
 TEST_F(RESTBuilderTest, Construct) {

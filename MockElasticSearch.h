@@ -10,7 +10,7 @@ class MockElasticSearch : public ElasticSearch {
 public:
 
    MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport, async), mFakeIndexList(true),
-   mFakeDeleteIndex(true), mFakeDeleteValue(true) {
+   mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailAddDoc(false), mAddDocAlwaysPasses(true) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -26,7 +26,7 @@ public:
    }
 
    MockElasticSearch(BoomStick& transport, bool async) : mMyTransport(""), ElasticSearch(transport, async), mFakeIndexList(true),
-   mFakeDeleteIndex(true), mFakeDeleteValue(true) {
+   mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailAddDoc(false), mAddDocAlwaysPasses(true) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -72,6 +72,12 @@ public:
    }
 
    LR_VIRTUAL bool AddDoc(const std::string& indexName, const std::string& indexType, const std::string& id, const std::string& jsonData) {
+      if (mFailAddDoc) {
+         return false;
+      }
+      if (mAddDocAlwaysPasses) { 
+         return true;
+      }
       ElasticSearch::AddDoc(indexName, indexType, id, jsonData);
    }
 
@@ -86,12 +92,23 @@ public:
    void ReplySet(const bool set) {
       mSocketClass->mReplySent = set;
    }
+   std::vector<std::pair<std::string, std::string> > 
+         RunQueryGetIds(const std::string& indexType, const std::string& query) {
+      if (mQueryIdResults.empty()) {
+         return ElasticSearch::RunQueryGetIds(indexType,query);
+      }
+      return mQueryIdResults;
+   }
+   
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;
    bool mFakeDeleteIndex;
    bool mFakeDeleteValue;
    MockElasticSearchSocket* mSocketClass;
+   bool mFailAddDoc;
+   bool mAddDocAlwaysPasses;
+   std::vector<std::pair<std::string, std::string> > mQueryIdResults;
 
 };
 #endif
