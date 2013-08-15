@@ -217,6 +217,8 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    RESTSender sender(transport);
    ElasticSearch es(transport2, true);
    ASSERT_TRUE(es.Initialize());
+   ElasticSearch esSync(transport, false);
+   ASSERT_TRUE(esSync.Initialize());
    int shards(3);
    int replicas(5);
    std::string command = builder.GetAddDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}");
@@ -242,11 +244,11 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
            "\"_id\":\"abc_123\",\"_version\":3}";
    EXPECT_TRUE(sender.Send(command, reply));
    EXPECT_EQ(transport.mReturnString, reply);
-   EXPECT_TRUE(es.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
+   EXPECT_TRUE(esSync.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
    transport.mReturnString = "{\"error\":\"DocumentMissingException[[indexName][4] [typeName][abc_123]: document missing]\",\"status\":404}";
    EXPECT_FALSE(sender.Send(command, reply));
    EXPECT_EQ(transport.mReturnString, reply);
-   EXPECT_FALSE(es.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
+   EXPECT_FALSE(esSync.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
    
    command = builder.GetDeleteDoc("indexName", "typeName", "abc_123");
 

@@ -21,7 +21,7 @@ public:
       mMockListOfIndexes.insert("network_2100_12_31");
       mMockListOfIndexes.insert("twitter");
       delete std::get<1>(*mWorkerArgs);
-      mSocketClass = new MockElasticSearchSocket(mTransport, mAsynchronous);
+      mSocketClass = new MockElasticSearchSocket(mTransport, IsAsynchronous());
       std::get<1>(*mWorkerArgs) = mSocketClass;
    }
 
@@ -37,7 +37,7 @@ public:
       mMockListOfIndexes.insert("network_2100_12_31");
       mMockListOfIndexes.insert("twitter");
       delete std::get<1>(*mWorkerArgs);
-      mSocketClass = new MockElasticSearchSocket(mTransport, mAsynchronous);
+      mSocketClass = new MockElasticSearchSocket(mTransport, IsAsynchronous());
       std::get<1>(*mWorkerArgs) = mSocketClass;
    }
 

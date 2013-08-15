@@ -15,17 +15,13 @@ TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
    
    ASSERT_FALSE(filename.empty());
    EXPECT_EQ("testuuid|testapp|128.138.240.1|127.0.0.1|1973-11-29-21:33:09",filename);
-   std::string uuid;
-   std::string app;
-   std::string sourceIP;
-   std::string destIP;
-   std::time_t updateTime(0);
-   ASSERT_TRUE(capture.ParseFilename(filename,uuid,app,sourceIP,destIP,updateTime));
-   EXPECT_EQ("testuuid",uuid);
-   EXPECT_EQ("testapp",app);
-   EXPECT_EQ("128.138.240.1",sourceIP);
-   EXPECT_EQ("127.0.0.1",destIP);
-   EXPECT_EQ(123456789,updateTime);
+   DiskPacketCapture::PacketCaptureFileDetails fileDetails;
+   ASSERT_TRUE(capture.ParseFilename(filename,fileDetails));
+   EXPECT_EQ("testuuid",fileDetails.sessionId);
+   EXPECT_EQ("testapp",fileDetails.appName);
+   EXPECT_EQ("128.138.240.1",fileDetails.sourceIP);
+   EXPECT_EQ("127.0.0.1",fileDetails.destIP);
+   EXPECT_EQ(123456789,fileDetails.time);
 }
 #endif
 TEST_F(DiskPacketCaptureTest, Construct) {
