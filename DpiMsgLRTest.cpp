@@ -18,7 +18,7 @@ TEST_F(DpiMsgLRTests, GetESDocId) {
    DpiMsgLR dm;
    dm.set_sessionid("TESTTEST");
    EXPECT_EQ("TESTTEST", dm.GetESDocId());
-   dm.set_childflownum(1234);
+   dm.set_childflownumber(1234);
    EXPECT_EQ("TESTTEST_1234", dm.GetESDocId());
 }
 
