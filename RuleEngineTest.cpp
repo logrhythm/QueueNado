@@ -76,7 +76,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    tDpiMessage.set_packetsdelta(44);
    tDpiMessage.add_loginq_proto_0zz0("dontSeeMee");
    tDpiMessage.set_timestart(1234);
-   tDpiMessage.set_timeupdate(5678);
+   tDpiMessage.set_timeupdated(5678);
    tDpiMessage.set_timedelta(4444);
    dm.GetSiemRequiredFieldPairs(tDpiMessage, results);
    ASSERT_EQ(19, results.size());
@@ -164,7 +164,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    tDpiMessage.add_subjectq_proto_smtp("test3_1234");
    tDpiMessage.add_versionq_proto_http("4.0");
    tDpiMessage.set_timestart(123);
-   tDpiMessage.set_timeupdate(456);
+   tDpiMessage.set_timeupdated(456);
    tDpiMessage.set_timedelta(333);
    dm.SetMaxSize(512 + 8 + 36 + 4);
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
@@ -352,7 +352,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    tDpiMessage.add_subjectq_proto_smtp("test3_12345");
    tDpiMessage.add_versionq_proto_http("4.0");
    tDpiMessage.set_timestart(123);
-   tDpiMessage.set_timeupdate(456);
+   tDpiMessage.set_timeupdated(456);
    tDpiMessage.set_timedelta(333);
    int expectedMsgSize(353); // exact size of message with data as defined above
    dm.SetMaxSize(expectedMsgSize);
@@ -675,7 +675,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
       msg.add_filename_encodingq_proto_aim_transfer("notitFile");
       msg.add_directoryq_proto_smb("aPath");
       msg.set_timestart(123);
-      msg.set_timeupdate(456);
+      msg.set_timeupdated(456);
       msg.set_sessionidq_proto_ymsg(2345);
       string dataToSend;
       msg.GetBuffer(dataToSend);
@@ -808,7 +808,7 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       msg.add_filename_encodingq_proto_aim_transfer("notitFile");
       msg.add_directoryq_proto_smb("aPath");
       msg.set_timestart(123);
-      msg.set_timeupdate(456); // delta = 333
+      msg.set_timeupdated(456); // delta = 333
       msg.set_sessionidq_proto_ymsg(2345);
       string dataToSend;
       msg.GetBuffer(dataToSend);
@@ -817,7 +817,7 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       msg.set_bytesserver(23456); // delta = 11111
       msg.set_bytesclient(7900); // delta = 1111
       msg.set_packettotal(210); // delta = 111
-      msg.set_timeupdate(567); // delta = 111
+      msg.set_timeupdated(567); // delta = 111
       dataToSend.clear();
       msg.GetBuffer(dataToSend);
       sendQueue.SendData(dataToSend);
@@ -826,7 +826,7 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       msg.set_bytesserver(45678); // delta = 22222
       msg.set_bytesclient(10122); // delta = 2222
       msg.set_packettotal(432); // delta = 222
-      msg.set_timeupdate(789); // delta = 222
+      msg.set_timeupdated(789); // delta = 222
       dataToSend.clear();
       msg.GetBuffer(dataToSend);
       sendQueue.SendData(dataToSend);
@@ -951,7 +951,7 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
       msg.add_filename_encodingq_proto_aim_transfer("notitFile");
       msg.add_directoryq_proto_smb("aPath");
       msg.set_timestart(123);
-      msg.set_timeupdate(456); // delta = 333
+      msg.set_timeupdated(456); // delta = 333
       msg.set_sessionidq_proto_ymsg(2345);
 
       msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
@@ -1080,7 +1080,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       msg.add_filename_encodingq_proto_aim_transfer("notitFile");
       msg.add_directoryq_proto_smb("aPath");
       msg.set_timestart(123);
-      msg.set_timeupdate(456);
+      msg.set_timeupdated(456);
       msg.set_sessionidq_proto_ymsg(2345);
       string dataToSend;
       msg.GetBuffer(dataToSend);

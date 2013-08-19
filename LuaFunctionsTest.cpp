@@ -393,7 +393,7 @@ TEST_F(LuaFunctionsTest, SessionAge) {
    EXPECT_FALSE(lua_toboolean(luaState, -1));
    lua_close(luaState);
    luaState = luaL_newstate();
-   dpiMsg.set_timeupdate(std::time(NULL));
+   dpiMsg.set_timeupdated(std::time(NULL));
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, 999);
    LuaPacketFunctions::SessionAge(luaState);
@@ -401,13 +401,13 @@ TEST_F(LuaFunctionsTest, SessionAge) {
    lua_close(luaState);
    luaState = luaL_newstate();
    time_t pasttime = std::time(NULL) - 11;
-   dpiMsg.set_timeupdate(pasttime);
+   dpiMsg.set_timeupdated(pasttime);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, 10);
    LuaPacketFunctions::SessionAge(luaState);
    EXPECT_TRUE(lua_toboolean(luaState, -1));
    EXPECT_TRUE(dpiMsg.flowtype() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
-   EXPECT_NE(pasttime, dpiMsg.timeupdate());
+   EXPECT_NE(pasttime, dpiMsg.timeupdated());
    lua_close(luaState);
 }
 
@@ -674,7 +674,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
    dpiMsg.add_filename_encodingq_proto_aim_transfer("notitFile");
    dpiMsg.add_directoryq_proto_smb("aPath");
    dpiMsg.set_timestart(123);
-   dpiMsg.set_timeupdate(456);
+   dpiMsg.set_timeupdated(456);
    dpiMsg.set_timedelta(333);
    dpiMsg.set_sessionidq_proto_ymsg(2345);
    int expectedSpaceUsed = dpiMsg.SpaceUsed();
@@ -728,14 +728,14 @@ TEST_F(LuaFunctionsTest, StaticCallSetChildFlowNum) {
    lua_State *luaState;
    luaState = luaL_newstate();
 
-   EXPECT_FALSE(dpiMsg.has_childflownum());
+   EXPECT_FALSE(dpiMsg.has_childflownumber());
    // Expect known value when set
    int expectedChildFlowNum(1);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedChildFlowNum);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetChildFlowNum(luaState));
-   EXPECT_TRUE(dpiMsg.has_childflownum());
-   EXPECT_EQ(expectedChildFlowNum, dpiMsg.childflownum());
+   EXPECT_TRUE(dpiMsg.has_childflownumber());
+   EXPECT_EQ(expectedChildFlowNum, dpiMsg.childflownumber());
    lua_close(luaState);
 }
 
@@ -985,7 +985,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetEndTime) {
 
    // Expect known value when set
    int expectedEndTime(1367606583);
-   dpiMsg.set_timeupdate(expectedEndTime);
+   dpiMsg.set_timeupdated(expectedEndTime);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetEndTime(luaState));
    EXPECT_EQ(expectedEndTime, lua_tointeger(luaState, -1));
@@ -1079,7 +1079,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    dpiMsg.add_filename_encodingq_proto_aim_transfer("notitFile");
    dpiMsg.add_directoryq_proto_smb("aPath");
    dpiMsg.set_timestart(123);
-   dpiMsg.set_timeupdate(456);
+   dpiMsg.set_timeupdated(456);
    dpiMsg.set_timedelta(222);
    dpiMsg.set_bytesclientdelta(567);
    dpiMsg.set_bytesserverdelta(234);
@@ -1091,7 +1091,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    lua_pushlightuserdata(luaState, &mRuleEngine);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState));
 
-   dpiMsg.set_timeupdate(567);
+   dpiMsg.set_timeupdated(567);
    dpiMsg.set_bytesserver(23456);
    dpiMsg.set_bytesclient(7890);
    dpiMsg.set_packettotal(124);
@@ -1195,7 +1195,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
    dpiMsg.add_filename_encodingq_proto_aim_transfer("notitFile");
    dpiMsg.add_directoryq_proto_smb("aPath");
    dpiMsg.set_timestart(123);
-   dpiMsg.set_timeupdate(456);
+   dpiMsg.set_timeupdated(456);
    dpiMsg.set_timedelta(333);
    dpiMsg.set_sessionidq_proto_ymsg(2345);
 
