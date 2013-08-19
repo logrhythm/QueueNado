@@ -1,8 +1,28 @@
 #include "ProcStatsTest.h"
 #include "MockProcStats.h"
+#include "ProcSystemCPU.h"
+#include "FileIO.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp> 
 #include <sys/syscall.h> 
+
+
+TEST_F(ProcStatsTest, VerifyTestResources) {
+   auto stat_1 = FileIO::ReadAsciiFileContent({"resources/stat.1"});
+   auto stat_2 = FileIO::ReadAsciiFileContent({"resources/stat.2"});
+   auto error = FileIO::ReadAsciiFileContent({"resources/not_existing_file.stat.1"});
+
+   EXPECT_FALSE(stat_1.HasFailed());
+   EXPECT_FALSE(stat_2.HasFailed());
+   EXPECT_TRUE(error.HasFailed());
+}
+
+TEST_F(ProcStatsTest, ReadValidCPUStatFile) {
+   auto jiffies = ProcSystemCPU::GetCpuSnapshot({"resources/stat.1"});
+   EXPECT_EQ(jiffies.size(), 8);
+   jiffies = ProcSystemCPU::GetCpuSnapshot({"resources/stat.2"});
+   EXPECT_EQ(jiffies.size(), 8);
+}
 
 TEST_F(ProcStatsTest, ConstructSingleton) {
    if (geteuid() == 0) {
