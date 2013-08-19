@@ -95,7 +95,7 @@ TEST_F(ProcStatsTest, ProcStatsFromFile) {
 #ifdef LR_DEBUG
    MockProcStats procStats;
    procStats.SetStatFile("resources/stat.1");
-   ASSERT_TRUE(procStats.UpdateSystemCPU());
+   ASSERT_TRUE(procStats.UpdateSystemCPU().size() > 0);
 
 #endif
 }
@@ -103,7 +103,7 @@ TEST_F(ProcStatsTest, ProcStatsFromFileNotExist) {
 #ifdef LR_DEBUG
    MockProcStats procStats;
    procStats.SetStatFile("resources/FILE_NOT_FOUND");
-   ASSERT_FALSE(procStats.UpdateSystemCPU());
+   ASSERT_FALSE(procStats.UpdateSystemCPU().size() > 0);
 
 #endif
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ProcStats.h"
+#include "include/global.h"
 
 class MockProcStats : public ProcStats {
 public:
@@ -9,7 +10,7 @@ public:
    bool UpdateMemStats() {
       return ProcStats::UpdateMemStats();
    }
-   bool UpdateSystemCPU() {
+   std::vector<CpuJiffies> UpdateSystemCPU() {
       return ProcStats::UpdateSystemCPU();
    }
    void SetMemFile(const std::string& memFile) {
