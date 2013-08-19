@@ -1,11 +1,16 @@
 #pragma once
 
 #include "ProcStats.h"
+#include "ProcSystemCpu.h"
 #include "include/global.h"
 
 class MockProcStats : public ProcStats {
+   bool mPseudoTask; 
+   bool mPseudoThreadPid;
+   pid_t mPseudoPid;
+   std::string mPseudoProcTaskFileName;
 public:
-   MockProcStats() {}
+   MockProcStats(): mPseudoTask(false), mPseudoThreadPid(false) {}
    ~MockProcStats() {}
    bool UpdateMemStats() {
       return ProcStats::UpdateMemStats();
@@ -19,6 +24,37 @@ public:
    void SetStatFile(const std::string& statFile) {
       mProcStatName = statFile;
    }
+   
+   void SetTaskPseudoFile(const std::string& taskStatFile) {
+      if (!taskStatFile.empty()) {
+         mPseudoTask = true;
+         mPseudoProcTaskFileName = taskStatFile;
+      } else {
+         mPseudoTask = false;
+      }
+   }
+   
+   ThreadJiffies GetCurrentThreadJiffies(const pid_t threadId) {
+      if (mPseudoTask) {
+         return ProcSystemCpu::GetThreadCpuSnapshot(mPseudoProcTaskFileName);
+      } 
+      return ProcStats::GetCurrentThreadJiffies(threadId);
+   }
+   
+   void SetPseudoThreadPid(pid_t pid) {
+      mPseudoThreadPid = true;
+      mPseudoPid = pid;
+   }
+   
+   pid_t GetThreadID()  {
+      if(mPseudoThreadPid) {
+         return mPseudoPid;
+      }
+      
+      return ProcStats::GetThreadID();
+   }
+   
+     
 private:
          
 };
