@@ -5,6 +5,7 @@
 #include "gtest/gtest.h"
 #include "boost/lexical_cast.hpp"
 #include <csignal>
+#include <sstream>
 #include <sys/time.h>
 
 class DiskCleanupTest : public ::testing::Test {
@@ -15,11 +16,24 @@ public:
 protected:
 
    virtual void SetUp() {
+      
+      testDir << "/tmp/TooMuchPcap";
 
+      std::string makeADir;
+      makeADir = "rm -rf ";
+      makeADir += testDir.str();
+      system(makeADir.c_str());
+
+      makeADir = "mkdir -p ";
+      makeADir += testDir.str();
+      system(makeADir.c_str());
    };
 
    virtual void TearDown() {
-
+      std::string makeADir = "";
+      makeADir = "rm -rf ";
+      makeADir += testDir.str();
+      ASSERT_EQ(0, system(makeADir.c_str()));
    };
 
    void StartTimedSection(const double expectedTimePerTransaction, const unsigned int totalTransactions) {
@@ -48,6 +62,7 @@ protected:
    timeval t_endTime;
    unsigned int t_totalTransactions;
    networkMonitor::MockConfSlave mConf;
+   std::stringstream testDir;
 private:
 
 };

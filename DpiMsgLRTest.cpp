@@ -6,20 +6,36 @@
 using namespace networkMonitor;
 using namespace std;
 
+TEST_F(DpiMsgLRTests, GetESIndexName) {
+   DpiMsgLR dm;
+   dm.set_sessionid("TESTTEST");
+   EXPECT_EQ("",dm.GetESIndexName());
+   dm.set_timestart(123456789);
+   EXPECT_EQ("network_1973_11_29",dm.GetESIndexName());
+}
+
+TEST_F(DpiMsgLRTests, GetESDocId) {
+   DpiMsgLR dm;
+   dm.set_sessionid("TESTTEST");
+   EXPECT_EQ("TESTTEST", dm.GetESDocId());
+   dm.set_childflownum(1234);
+   EXPECT_EQ("TESTTEST_1234", dm.GetESDocId());
+}
+
 TEST_F(DpiMsgLRTests, ParsePathTest) {
    DpiMsgLR dm;
 
    EXPECT_EQ("", dm.GetClassificationPath());
    dm.add_applicationq_proto_base("test");
    EXPECT_EQ("/test", dm.GetClassificationPath());
-//   dm.add_applicationq_proto_base("test");
-//   EXPECT_EQ("/test", dm.GetClassificationPath());
+   //   dm.add_applicationq_proto_base("test");
+   //   EXPECT_EQ("/test", dm.GetClassificationPath());
    dm.add_applicationq_proto_base("bar");
    EXPECT_EQ("/test/bar", dm.GetClassificationPath());
    dm.add_applicationq_proto_base("test");
    EXPECT_EQ("/test/bar/test", dm.GetClassificationPath());
-//   dm.add_applicationq_proto_base("bar");
-//   EXPECT_EQ("/test/bar", dm.GetClassificationPath());
+   //   dm.add_applicationq_proto_base("bar");
+   //   EXPECT_EQ("/test/bar", dm.GetClassificationPath());
 }
 
 TEST_F(DpiMsgLRTests, setUuidSuccess) {

@@ -23,12 +23,16 @@ public:
       DiskPacketCapture::RemoveFromRunningPackets(tid, uuid);
    }
 
- 
-
-   std::string BuildFilename( const std::string& uuid,
+    std::string BuildFilename( const std::string& uuid,
            const std::string& appName, const std::string sourceIP,
            const std::string destIP, const std::time_t time) {
       return DiskPacketCapture::BuildFilename( uuid, appName, sourceIP, destIP, time);
+   }
+
+   std::string BuildFilenameWithPath( const std::string& uuid,
+           const std::string& appName, const std::string sourceIP,
+           const std::string destIP, const std::time_t time) {
+      return DiskPacketCapture::BuildFilenameWithPath( uuid, appName, sourceIP, destIP, time);
    }
 
    int NewTotalMemory(const size_t memoryAddedIfSaved) {

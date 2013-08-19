@@ -6,6 +6,24 @@
 #include <thread>
 #include <future>
 
+#ifdef LR_DEBUG
+TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
+   MockConf conf;
+   MockDiskPacketCapture capture(conf);
+   
+   std::string filename = capture.BuildFilename("testuuid","testapp","128.138.240.1","127.0.0.1",123456789);
+   
+   ASSERT_FALSE(filename.empty());
+   EXPECT_EQ("testuuid|testapp|128.138.240.1|127.0.0.1|1973-11-29-21:33:09",filename);
+   DiskPacketCapture::PacketCaptureFileDetails fileDetails;
+   ASSERT_TRUE(capture.ParseFilename(filename,fileDetails));
+   EXPECT_EQ("testuuid",fileDetails.sessionId);
+   EXPECT_EQ("testapp",fileDetails.appName);
+   EXPECT_EQ("128.138.240.1",fileDetails.sourceIP);
+   EXPECT_EQ("127.0.0.1",fileDetails.destIP);
+   EXPECT_EQ(123456789,fileDetails.time);
+}
+#endif
 TEST_F(DiskPacketCaptureTest, Construct) {
 #ifdef LR_DEBUG
    MockConf conf;
@@ -83,7 +101,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
    
    conf.mPCapCaptureLocation = "testLocation";
    std::time_t time = 123456789;
-   std::string fileName = capture.BuildFilename("TestUUID", "TestAppName", "24.24.24.24", "255.255.255.255", time);
+   std::string fileName = capture.BuildFilenameWithPath("TestUUID", "TestAppName", "24.24.24.24", "255.255.255.255", time);
    ASSERT_EQ("testLocation/TestUUID|TestAppName|24.24.24.24|255.255.255.255|1973-11-29-21:33:09", fileName);
 #endif
 }
