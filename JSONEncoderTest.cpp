@@ -201,7 +201,7 @@ TEST_F(JSONEncoderTest, encodesQuickSearchFields) {
    testMsg.set_bytesserverdelta(67);
    testMsg.set_bytesclient(899);
    testMsg.set_bytesclientdelta(99);
-   testMsg.set_timeupdate(1000999);
+   testMsg.set_timeupdated(1000999);
    testMsg.set_timestart(1000000);
 
    JSONEncoder encoder(&testMsg);
