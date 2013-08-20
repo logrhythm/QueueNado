@@ -6,7 +6,7 @@
 class MockDiskPacketCapture : public DiskPacketCapture {
 public:
 
-   MockDiskPacketCapture(Conf& conf) : DiskPacketCapture(conf) {
+   MockDiskPacketCapture(Conf& conf) : DiskPacketCapture(conf), mPassFlush(false), mFailFlush(false) {
    }
 
    virtual ~MockDiskPacketCapture() {
@@ -17,7 +17,11 @@ public:
    void GetRunningPackets(const std::string& uuid, std::pair<InMemoryPacketBuffer*, size_t>*& sessionInfo) {
       DiskPacketCapture::GetRunningPackets(uuid,sessionInfo);
    }
-
+   
+   bool WriteSavedSessionToDisk(const std::string& sessionId) {
+      mFilesWritten.push_back(sessionId);
+      return DiskPacketCapture::WriteSavedSessionToDisk(sessionId);
+   }
 
    void RemoveFromRunningPackets(const pthread_t tid,const std::string& uuid) {
       DiskPacketCapture::RemoveFromRunningPackets(tid, uuid);
@@ -39,5 +43,17 @@ public:
       return DiskPacketCapture::CurrentMemoryForFlow(uuid);
    }
  
+   bool FlushABigSession() {
+      if (mFailFlush) {
+         return false;
+      }
+      if (mPassFlush) {
+         return true;
+      }
+      return DiskPacketCapture::FlushABigSession();
+   }
+   bool mFailFlush;
+   bool mPassFlush;
+   std::vector<std::string> mFilesWritten;
 };
 

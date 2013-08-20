@@ -125,10 +125,6 @@ TEST_F(DiskPacketCaptureTest, Initialize) {
 #endif 
 }
 
-
-
-
-
 TEST_F(DiskPacketCaptureTest, MemoryLimits) {
 #ifdef LR_DEBUG
    MockConf conf;
@@ -174,6 +170,7 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
 
    conf.mPCapCaptureMemoryLimit = 2;
    p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
+   capture.mFailFlush = true;
    capture.SavePacket(&dpiMsg, &packet);
    EXPECT_EQ(2, capture.NewTotalMemory(0));
    EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
@@ -185,6 +182,62 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
    capture.RemoveDataFromRunningPackets("FlowOne");
    EXPECT_EQ(0, capture.NewTotalMemory(0));
    EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+
+   makeADir = "rm -rf ";
+   makeADir += testDir.str();
+   ASSERT_EQ(0, system(makeADir.c_str()));
+   ASSERT_FALSE(capture.Initialize());
+#endif
+}
+
+TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   MockDiskPacketCapture capture(conf);
+   conf.mPCapCaptureLocation = "testLocation";
+   conf.mPCapCaptureFileLimit = 10000;
+   conf.mPCapCaptureSizeLimit = 10000;
+   conf.mPCapCaptureMemoryLimit = 10;
+   std::stringstream testDir;
+   testDir << "/tmp/TooMuchPcap." << pthread_self();
+
+   conf.mPCapCaptureLocation = testDir.str();
+
+   std::string makeADir = "mkdir -p ";
+   makeADir += testDir.str();
+
+   ASSERT_EQ(0, system(makeADir.c_str()));
+   ASSERT_TRUE(capture.Initialize());
+
+   EXPECT_EQ(0, capture.NewTotalMemory(0));
+   EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
+   struct upacket packet;
+   ctb_pkt p;
+   packet.p = &p;
+   unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
+   p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
+   p.data = data;
+   networkMonitor::DpiMsgLR dpiMsg;
+   dpiMsg.set_sessionid("FlowOne");
+   capture.SavePacket(&dpiMsg, &packet);
+   p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr) - sizeof (struct pcap_pkthdr) - 1;
+   capture.SavePacket(&dpiMsg, &packet);
+   p.len = 1;
+   dpiMsg.set_sessionid("FlowTwo");
+   capture.SavePacket(&dpiMsg, &packet);
+   EXPECT_EQ(2, capture.NewTotalMemory(0));
+   EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
+   EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
+
+   conf.mPCapCaptureMemoryLimit = 2;
+   p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
+   capture.mFailFlush = false;
+   capture.SavePacket(&dpiMsg, &packet);
+   ASSERT_EQ(1,capture.mFilesWritten.size());
+   EXPECT_EQ("FlowOne",*capture.mFilesWritten.begin());
+   EXPECT_EQ(1, capture.NewTotalMemory(0));
+   EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+   EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowTwo"));
 
    makeADir = "rm -rf ";
    makeADir += testDir.str();
