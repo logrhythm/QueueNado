@@ -68,20 +68,27 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup7";
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-
-      capture.RemoveOldestPCapFiles(1, es);
+      size_t filesRemoved;
+      size_t spaceSaved;
+      capture.RemoveOldestPCapFiles(1, es, filesRemoved, spaceSaved);
+      EXPECT_EQ(1, filesRemoved);
+      EXPECT_EQ(0, spaceSaved);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup8";
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      capture.RemoveOldestPCapFiles(1, es);
+      capture.RemoveOldestPCapFiles(1, es, filesRemoved, spaceSaved);
+      EXPECT_EQ(1, filesRemoved);
+      EXPECT_EQ(1048576, spaceSaved);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      capture.RemoveOldestPCapFiles(1, es);
+      capture.RemoveOldestPCapFiles(1, es, filesRemoved, spaceSaved);
+      EXPECT_EQ(1, filesRemoved);
+      EXPECT_EQ(1048575, spaceSaved);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
@@ -108,19 +115,19 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
 
       std::string makeSmallFile = "touch ";
       makeSmallFile += testDir.str();
-      makeSmallFile += "/smallFile\\|bbbb\\|cccc\\|dddd\\|1973-11-29-21:33:09";
+      makeSmallFile += "/smallFile";
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
       std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
       make1MFileFile += testDir.str();
-      make1MFileFile += "/1MFile\\|bbbb\\|cccc\\|dddd\\|1973-11-29-21:33:09";
+      make1MFileFile += "/1MFile";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
       std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of=";
       make1MFileFile += testDir.str();
-      make1MFileFile += "/1MFilelessone\\|bbbb\\|cccc\\|dddd\\|1973-11-29-21:33:09";
+      make1MFileFile += "/1MFilelessone";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
       std::this_thread::sleep_for(std::chrono::seconds(1));
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup7";
@@ -162,15 +169,21 @@ TEST_F(DiskCleanupTest, ESFailuresCannotRemoveFiles) {
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       es.mFailUpdateDoc = true;
-      es.mQueryIdResults.push_back(std::make_pair("smalFile","index_1973-11-29"));
-      EXPECT_EQ(1,capture.RemoveOldestPCapFiles(1, es));
+      es.mQueryIdResults.push_back(std::make_pair("smalFile", "index_1973-11-29"));
+      size_t filesRemoved;
+      size_t spaceSaved;
+      EXPECT_EQ(1, capture.RemoveOldestPCapFiles(1, es,filesRemoved,spaceSaved));
+      EXPECT_EQ(0,filesRemoved);
+      EXPECT_EQ(0, spaceSaved);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       es.mFailUpdateDoc = false;
-      EXPECT_EQ(0,capture.RemoveOldestPCapFiles(1, es));
+      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es,filesRemoved,spaceSaved));
+            EXPECT_EQ(1,filesRemoved);
+      EXPECT_EQ(0, spaceSaved);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      
+
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
       std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
