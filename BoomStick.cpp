@@ -228,7 +228,7 @@ bool BoomStick::SendAsync(const MessageIdentifier& uuid, const std::string& comm
    }
    std::string messageHash = HashMessageId(uuid);
    if (FindPendingHash(messageHash)) {
-      LOG(DEBUG) << "Attempted to re-send " << messageHash;
+      //LOG(DEBUG) << "Attempted to re-send " << messageHash;
       return false;
    }
    zmsg_t* msg = zmsg_new();
