@@ -22,6 +22,7 @@
 #include "g2log.hpp"
 #include "RestartSyslogCommandTest.h"
 #include "NetInterfaceMsg.pb.h"
+#include "ShutdownMsg.pb.h"
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
@@ -490,6 +491,43 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
    ASSERT_FALSE(exception);
 #endif
 }
+
+#if 0
+//
+// Do not EVER execute this test unless you KNOW what will happen.
+// This test WILL SHUTDOWN YOUR COMPUTER!!!
+TEST_F(CommandProcessorTests, DISABLED__REAL__SHUTDOWN) {   
+   MockConf conf;
+   conf.mCommandQueue = "tcp://127.0.0.1:";
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);   
+   MockCommandProcessor testProcessor(conf);
+   EXPECT_TRUE(testProcessor.Initialize());
+     
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN, MockShutdownCommand::Construct);
+   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+   Crowbar sender(conf.getCommandQueue());
+   ASSERT_TRUE(sender.Wield());
+   protoMsg::CommandRequest requestMsg;
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);   
+   
+   protoMsg::ShutdownMsg shutdown;
+   shutdown.set_now(true);
+   requestMsg.set_stringargone(shutdown.SerializeAsString());
+   sender.Swing(requestMsg.SerializeAsString());
+   std::string reply;
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   protoMsg::CommandReply replyMsg;
+   replyMsg.ParseFromString(reply);
+   EXPECT_TRUE(replyMsg.success());
+   
+   // on purpose removed the ';' below to create a compile failure
+   // if you really want to run this test then fix that.
+   raise(SIGTERM)  
+}
+#endif
+
+
 //
 //TEST_F(CommandProcessorTests, ShutdownSystem) {
 //#ifdef LR_DEBUG
@@ -503,6 +541,10 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
 //   
 //#endif
 //}
+
+
+
+
 TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
 #ifdef LR_DEBUG
    const MockConf conf;
