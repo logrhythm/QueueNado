@@ -29,8 +29,12 @@ public:
       DiskCleanup::RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
    }
 
-   void CleanupOldPcapFiles(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles, ElasticSearch& es) {
-      DiskCleanup::CleanupOldPcapFiles(aDiskUsed, aTotalFiles, es);
+   void CleanupOldPcapFiles(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
+        std::time_t& currentTime,std::atomic<size_t>& aDiskUsed,
+        std::atomic<size_t>& aTotalFiles,
+        const size_t fsFreeGigs,
+        const size_t fsTotalGigs) {
+      DiskCleanup::CleanupOldPcapFiles(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, fsFreeGigs, fsTotalGigs);
    }
 
    bool TooMuchSearch(const size_t& fsFreeGigs, const size_t& fsTotalGigs) {
@@ -63,8 +67,12 @@ public:
       return;
    }
 
-   void CleanupSearch(size_t& fsFreeGigs, size_t& fsTotalGigs, ElasticSearch& es) {
-      return DiskCleanup::CleanupSearch(fsFreeGigs, fsTotalGigs, es);
+   void CleanupSearch(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
+        std::time_t& currentTime, const std::atomic<size_t>& aDiskUsed,
+        const std::atomic<size_t>& aTotalFiles,
+        size_t& fsFreeGigs,
+        size_t& fsTotalGigs) {
+      return DiskCleanup::CleanupSearch(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles,fsFreeGigs,fsTotalGigs);
    }
 
    void GetStatVFS(struct statvfs* fileSystemInfo) {
