@@ -560,9 +560,6 @@ TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoMultipleProtocols) {
 
 
 TEST_F(DpiMsgLRTests, VerifyGetApplicationNameFromList) {
-   //::google::protobuf::RepeatedPtrField<std::string> list;
-   const std::string test = {"hello"};
-   //list.Set(0, test);
    MockDpiMsgLR dm;
    dm.add_application_endq_proto_base("google");
    dm.add_applicationq_proto_base("yahoo");
@@ -576,8 +573,6 @@ TEST_F(DpiMsgLRTests, VerifyGetApplicationNameFromList) {
 }
 
 TEST_F(DpiMsgLRTests, GetUnknownApplicationNameFromList) {
-   const std::string test = {"hello"};
-   //list.Set(0, test);
    MockDpiMsgLR dm;
    dm.add_application_endq_proto_base("tcp");
    dm.add_application_endq_proto_base("unknown");
@@ -588,8 +583,6 @@ TEST_F(DpiMsgLRTests, GetUnknownApplicationNameFromList) {
 }
 
 TEST_F(DpiMsgLRTests, GetKnownApplicationNameFromList) {
-   const std::string test = {"hello"};
-   //list.Set(0, test);
    MockDpiMsgLR dm;
    dm.add_application_endq_proto_base("tcp");
    dm.add_application_endq_proto_base("gtalk");
@@ -602,8 +595,6 @@ TEST_F(DpiMsgLRTests, GetKnownApplicationNameFromList) {
 }
 
 TEST_F(DpiMsgLRTests, GetXApplicationNameFromList) {
-   const std::string test = {"hello"};
-   
    std::vector<std::string> unknownInclusiveList {{"base"}, {"ip"}, {"udp"}, {"tcp"}};
    for(auto& protocol: unknownInclusiveList) {
       MockDpiMsgLR dm;
