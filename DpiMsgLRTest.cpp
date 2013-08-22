@@ -6,11 +6,22 @@
 using namespace networkMonitor;
 using namespace std;
 
+TEST_F(DpiMsgLRTests, SetTimeUpdated) {
+   DpiMsgLR dm;
+   
+   dm.SetTimeUpdated(123456789);
+   EXPECT_FALSE(dm.has_timelast());
+   EXPECT_EQ(123456789,dm.timeupdated());
+   dm.SetTimeUpdated(123);
+   ASSERT_TRUE(dm.has_timelast());
+   EXPECT_EQ(123456789,dm.timelast());
+   EXPECT_EQ(123,dm.timeupdated());
+}
 TEST_F(DpiMsgLRTests, GetESIndexName) {
    DpiMsgLR dm;
    dm.set_sessionid("TESTTEST");
    EXPECT_EQ("",dm.GetESIndexName());
-   dm.set_timestart(123456789);
+   dm.set_timeupdated(123456789);
    EXPECT_EQ("network_1973_11_29",dm.GetESIndexName());
 }
 
