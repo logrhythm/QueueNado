@@ -23,6 +23,16 @@ TEST_F(RESTSenderTest, GetListOfClusterNames) {
    EXPECT_TRUE(std::find(names.begin(), names.end(), findme) != names.end());
 }
 
+TEST_F(RESTSenderTest, BadReqeust) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   RESTSender sender(transport);
+   std::string reply = "400|BAD_REQUEST|{\"error\":\"SearchPhaseExecutionException\"}";
+   EXPECT_TRUE(sender.BadReqeust(reply));
+   reply = "200|OK|{}";
+   EXPECT_FALSE(sender.BadReqeust(reply));
+   
+}
+
 TEST_F(RESTSenderTest, GetSingleDiskInfo) {
    DiskInformation info;
    SingleDiskInfo singleInfo;
