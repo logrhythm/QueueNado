@@ -1,10 +1,10 @@
 #include "ProcStatsTest.h"
 #include "MockProcStats.h"
-#include "ProcSystemCpu.h"
 #include "FileIO.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp> 
 #include <sys/syscall.h> 
+#include <g2log.hpp>
 
 
 TEST_F(ProcStatsTest, ConstructSingleton) {
@@ -19,9 +19,9 @@ TEST_F(ProcStatsTest, ConstructSingleton) {
 
 TEST_F(ProcStatsTest, VerifyTestResources) {
 #ifdef LR_DEBUG
-   auto stat_1 = FileIO::ReadAsciiFileContent({"resources/stat.1"});
-   auto stat_2 = FileIO::ReadAsciiFileContent({"resources/stat.2"});
-   auto error = FileIO::ReadAsciiFileContent({"resources/not_existing_file.stat.1"});
+   auto stat_1 = FileIO::ReadAsciiFileContent("resources/stat.1");
+   auto stat_2 = FileIO::ReadAsciiFileContent("resources/stat.2");
+   auto error = FileIO::ReadAsciiFileContent("resources/not_existing_file.stat.1");
 
    EXPECT_FALSE(stat_1.HasFailed());
    EXPECT_FALSE(stat_2.HasFailed());
@@ -31,11 +31,41 @@ TEST_F(ProcStatsTest, VerifyTestResources) {
 
 TEST_F(ProcStatsTest, ReadValidCPUStatFile) {
 #ifdef LR_DEBUG
-   auto jiffies = ProcSystemCpu::GetCpuSnapshot({"resources/stat.1"});
-   EXPECT_EQ(jiffies.size(), 9);
-   jiffies = ProcSystemCpu::GetCpuSnapshot({"resources/stat.2"});
-   EXPECT_EQ(jiffies.size(), 9);
+   CpuJiffies jiffies("resources/stat.1");
+   EXPECT_EQ(jiffies.numberOfCores, 8);
+   EXPECT_TRUE(jiffies.success);
+   
+   CpuJiffies jiffies_2("resources/stat.2");
+   EXPECT_EQ(jiffies_2.numberOfCores, 8);
+   EXPECT_EQ(jiffies_2.success, jiffies.success);
 #endif    
+}
+
+TEST_F(ProcStatsTest, CpuJiffiesInitialization) {
+#ifdef LR_DEBUG
+   CpuJiffies jiffies;
+   EXPECT_EQ(jiffies.Sum(), 0);
+   EXPECT_TRUE(jiffies.success);
+#endif    
+}
+
+TEST_F(ProcStatsTest, CpuJiffiesCopies) {
+   CpuJiffies cpuSystem("resources/stat100.1");
+   CpuJiffies cpuCopy = cpuSystem;
+   EXPECT_EQ(cpuCopy.Sum(), cpuSystem.Sum());
+   EXPECT_EQ(cpuCopy.numberOfCores, cpuSystem.numberOfCores);
+   EXPECT_EQ(cpuCopy.success, cpuSystem.success);   
+}
+
+
+TEST_F(ProcStatsTest, ThreadJiffiesCopies) {   
+   ThreadJiffies cpuThread("resources/task.stat100.2");
+   ThreadJiffies copy = cpuThread;
+   
+   EXPECT_EQ(cpuThread.processName, copy.processName);
+   EXPECT_EQ(cpuThread.userTime, copy.userTime);
+   EXPECT_EQ(cpuThread.systemTime, copy.systemTime); 
+   EXPECT_EQ(cpuThread.success, copy.success); 
 }
 
 
@@ -44,14 +74,15 @@ TEST_F(ProcStatsTest, ReadValidCPUStatFile) {
 // See also test below: VerifyThreadCpuCalculationsOnSystem
 TEST_F(ProcStatsTest, VerifyThreadCpuCalculationsOldStyle) {
 #ifdef LR_DEBUG
-   auto cpuThread1 = ProcSystemCpu::GetThreadCpuSnapshot({"resources/task.stat100.1"});
-   auto cpuSystem1 = ProcSystemCpu::GetCpuSnapshot({"resources/stat100.1"});
+   ThreadJiffies cpuThread1("resources/task.stat100.1");
+   CpuJiffies cpuSystem1("resources/stat100.1");
 
-   auto cpuThread2 = ProcSystemCpu::GetThreadCpuSnapshot({"resources/task.stat100.2"});
-   auto cpuSystem2 = ProcSystemCpu::GetCpuSnapshot({"resources/stat100.2"});
+   ThreadJiffies cpuThread2("resources/task.stat100.2");
+   CpuJiffies cpuSystem2("resources/stat100.2");
 
    float threadDiff = cpuThread2.userTime - cpuThread1.userTime + cpuThread2.systemTime - cpuThread1.systemTime;
-   float deltaJiffies = ProcSystemCpu::CpuJiffiesDelta(cpuSystem2[0], cpuSystem1[0]); // i.e. old was ignoring the actual core
+   float deltaJiffies = CpuJiffies::Delta(cpuSystem2, cpuSystem1); // i.e. old was ignoring the actual core
+   EXPECT_TRUE(deltaJiffies > 0);
    
    // it is not "right" to calculate with 'times number of cores' but it gives
    // a rough estimation which should correspond to the real test below
@@ -64,28 +95,26 @@ TEST_F(ProcStatsTest, VerifyThreadCpuCalculationsOldStyle) {
    
 TEST_F(ProcStatsTest, VerifyThreadCpuCalculationsOnSystem) {
 #ifdef LR_DEBUG
-   auto cpuThread1 = ProcSystemCpu::GetThreadCpuSnapshot({"resources/task.stat100.1"});
-   auto cpuSystem1 = ProcSystemCpu::GetCpuSnapshot({"resources/stat100.1"});
+   ThreadJiffies cpuThread1("resources/task.stat100.1");
+   CpuJiffies cpuSystem1("resources/stat100.1");
    
-   auto cpuThread2 = ProcSystemCpu::GetThreadCpuSnapshot({"resources/task.stat100.2"});
-   auto cpuSystem2 = ProcSystemCpu::GetCpuSnapshot({"resources/stat100.2"});
+   ThreadJiffies cpuThread2("resources/task.stat100.2");
+   CpuJiffies cpuSystem2("resources/stat100.2");
    
    // verify that for the specific test the core is on : 1
    const size_t coreID = 1; 
    
-   EXPECT_EQ(cpuThread1.core, cpuThread2.core);
-   EXPECT_EQ(cpuThread1.core, coreID);  
+   EXPECT_EQ(cpuThread1.processName, cpuThread2.processName);
+   EXPECT_TRUE(cpuThread1.success == cpuThread2.success);
    
-   EXPECT_EQ(cpuSystem1.size(), cpuSystem2.size());
-   EXPECT_EQ(cpuSystem1.size(), 17); // 16 cores + summary of all
-   size_t coreIndex = coreID+1; // the core+1 (the summary comes first)
-   EXPECT_EQ(cpuSystem1[coreIndex].core, cpuSystem2[coreIndex].core);
-   EXPECT_EQ(cpuSystem1[coreIndex].core, coreID);
+   EXPECT_EQ(cpuSystem1.numberOfCores, cpuSystem2.numberOfCores);
+   EXPECT_EQ(cpuSystem1.numberOfCores, 16); // 16 cores, ref the files
    
    // Calculate actual CPU usage
-   auto deltaSystemJiffies = ProcSystemCpu::CpuJiffiesDelta(cpuSystem2[coreIndex], cpuSystem1[coreIndex]);
+   auto numberOfCores = cpuSystem2.numberOfCores;
+   auto deltaSystemJiffies = CpuJiffies::Delta(cpuSystem2, cpuSystem1);
    auto deltaThreadJiffies = cpuThread2.userTime-cpuThread1.userTime + cpuThread2.systemTime-  cpuThread1.systemTime;
-   auto usageInPercentUnits = 100* deltaThreadJiffies/deltaSystemJiffies;
+   auto usageInPercentUnits = numberOfCores * 100* deltaThreadJiffies/deltaSystemJiffies;
    EXPECT_EQ(100, usageInPercentUnits); // ref test above: "VerifyThreadCpuCalculationsOldStyle"
 #endif  
 }
@@ -113,8 +142,8 @@ TEST_F(ProcStatsTest, VerifyCompleteThreadCpuCalculations) {
    auto myRegistration = registeredThreads.find({"looping_0"}); 
    ASSERT_NE(registeredThreads.end(), myRegistration);
     
-   auto userPercent = procStats.GetThreadUserPercent(myRegistration->second);
-   auto systemPercent = procStats.GetThreadSystemPercent(myRegistration->second);
+   size_t userPercent = procStats.GetThreadUserPercent(myRegistration->second);
+   size_t systemPercent = procStats.GetThreadSystemPercent(myRegistration->second);
 
    EXPECT_NE(0, userPercent);
    size_t fullUtlization = 1 * 100000; // i.e. 100% modified for www and protobuffer sending
@@ -211,7 +240,7 @@ TEST_F(ProcStatsTest, ProcStatsFromFile) {
 #ifdef LR_DEBUG
    MockProcStats procStats;
    procStats.SetStatFile("resources/stat.1");
-   ASSERT_TRUE(procStats.UpdateSystemCPU().size() > 0);
+   ASSERT_TRUE(procStats.UpdateSystemCPU().success);
 
 #endif
 }
@@ -219,7 +248,7 @@ TEST_F(ProcStatsTest, ProcStatsFromFileNotExist) {
 #ifdef LR_DEBUG
    MockProcStats procStats;
    procStats.SetStatFile("resources/FILE_NOT_FOUND");
-   ASSERT_FALSE(procStats.UpdateSystemCPU().size() > 0);
+   ASSERT_FALSE(procStats.UpdateSystemCPU().success);
 
 #endif
 }

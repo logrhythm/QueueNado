@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ProcStats.h"
-#include "ProcSystemCpu.h"
 #include "include/global.h"
 
 class MockProcStats : public ProcStats {
@@ -15,7 +14,7 @@ public:
    bool UpdateMemStats() {
       return ProcStats::UpdateMemStats();
    }
-   std::vector<CpuJiffies> UpdateSystemCPU() {
+   CpuJiffies UpdateSystemCPU() {
       return ProcStats::UpdateSystemCPU();
    }
    void SetMemFile(const std::string& memFile) {
@@ -36,7 +35,7 @@ public:
    
    ThreadJiffies GetCurrentThreadJiffies(const pid_t threadId) {
       if (mPseudoTask) {
-         return ProcSystemCpu::GetThreadCpuSnapshot(mPseudoProcTaskFileName);
+         return ThreadJiffies(mPseudoProcTaskFileName);
       } 
       return ProcStats::GetCurrentThreadJiffies(threadId);
    }
