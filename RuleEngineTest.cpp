@@ -32,7 +32,7 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
    EXPECT_FALSE(dm.mEsMessage.latestupdate());
    dm.mSentUpdate = false;
 
-   aMessage.set_timelast(123);
+   aMessage.set_timeprevious(123);
    aMessage.set_childflownumber(201);
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_TRUE(dm.mSentUpdate);

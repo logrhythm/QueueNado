@@ -10,11 +10,11 @@ TEST_F(DpiMsgLRTests, SetTimeUpdated) {
    DpiMsgLR dm;
    
    dm.SetTimeUpdated(123456789);
-   EXPECT_FALSE(dm.has_timelast());
+   EXPECT_FALSE(dm.has_timeprevious());
    EXPECT_EQ(123456789,dm.timeupdated());
    dm.SetTimeUpdated(123);
-   ASSERT_TRUE(dm.has_timelast());
-   EXPECT_EQ(123456789,dm.timelast());
+   ASSERT_TRUE(dm.has_timeprevious());
+   EXPECT_EQ(123456789,dm.timeprevious());
    EXPECT_EQ(123,dm.timeupdated());
 }
 TEST_F(DpiMsgLRTests, GetESIndexName) {
