@@ -478,13 +478,14 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
    MockShutdownCommand shutdown = MockShutdownCommand(cmd, processManager);
+   MockShutdownCommand::callRealShutdownCommand = true;
    bool exception = false;
    try {
       protoMsg::CommandReply reply = shutdown.Execute(conf);
       LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
       ASSERT_TRUE(reply.success());
-      EXPECT_TRUE(processManager->mRunCommand == "/sbin/init");
-      EXPECT_TRUE(processManager->mRunArgs == " 0");
+      EXPECT_EQ(processManager->mRunCommand,"/sbin/init");
+      EXPECT_EQ(processManager->mRunArgs," 0");
    } catch (...) {
       exception = true;
    }
@@ -492,18 +493,27 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
 #endif
 }
 
-#if 0
 //
-// Do not EVER execute this test unless you KNOW what will happen.
-// This test WILL SHUTDOWN YOUR COMPUTER!!!
-TEST_F(CommandProcessorTests, DISABLED__REAL__SHUTDOWN) {   
+//  The Mock Shutdown sets a flag if the DoTheShutdown gets triggered. 
+//  As long as the Mock is not tampered with and the ChangeRegistration below is in order
+//  this test will NOT shutdown your PC, only fake it. 
+//
+//  If you tamper with the details mentioned, all bets are OFF!
+//
+TEST_F(CommandProcessorTests, PseudoShutdown) {  
+   #ifdef LR_DEBUG
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
    conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);   
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
-     
-   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN, MockShutdownCommand::Construct);
+
+   // NEVER CHANGE the LINE below. If it is set to true your PC will shut down
+   MockShutdownCommand::callRealShutdownCommand = false;
+   MockShutdownCommand::wasShutdownCalled = false; 
+   
+  
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN, MockShutdownCommand::FatalAndDangerousConstruct);
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
    Crowbar sender(conf.getCommandQueue());
    ASSERT_TRUE(sender.Wield());
@@ -520,12 +530,11 @@ TEST_F(CommandProcessorTests, DISABLED__REAL__SHUTDOWN) {
    protoMsg::CommandReply replyMsg;
    replyMsg.ParseFromString(reply);
    EXPECT_TRUE(replyMsg.success());
-   
-   // on purpose removed the ';' below to create a compile failure
-   // if you really want to run this test then fix that.
-   raise(SIGTERM)  
-}
+   EXPECT_TRUE(MockShutdownCommand::wasShutdownCalled);
+   raise(SIGTERM);  
 #endif
+}
+
 
 
 //
