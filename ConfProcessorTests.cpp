@@ -18,6 +18,7 @@
 #include "MockConfMaster.h"
 #include "RestartMsg.pb.h"
 #include "VersionMsg.pb.h"
+#include "ShutdownMsg.pb.h"
 #include "SyslogConfMsg.pb.h"
 #include "Shotgun.h"
 #include "g2log.hpp"
@@ -1630,6 +1631,85 @@ TEST_F(ConfProcessorTests, testWriteQosmosToFile) {
    }
 
 
+}
+
+TEST_F(ConfProcessorTests, testConfSlaveWithConfTypeShutdownSuccess) {
+#ifdef LR_DEBUG
+   MockConfSlave slave;
+
+   std::vector<std::string> message;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SHUTDOWN);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+
+   message.push_back(configTypeMessage.SerializeAsString());
+   protoMsg::ShutdownMsg shutdown;
+   shutdown.set_now(true);
+   message.push_back(shutdown.SerializeAsString());
+
+   EXPECT_FALSE(slave.ProcessMessage(message));
+   EXPECT_TRUE(slave.mShutDownConfReceived);
+#endif
+}
+
+TEST_F(ConfProcessorTests, testConfSlaveWithConfTypeShutdownFailure) {
+#ifdef LR_DEBUG
+   MockConfSlave slave;
+
+   std::vector<std::string> message;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SHUTDOWN);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+
+   message.push_back(configTypeMessage.SerializeAsString());
+   protoMsg::ShutdownMsg shutdown;
+   message.push_back(shutdown.SerializeAsString());
+
+   EXPECT_FALSE(slave.ProcessMessage(message));
+   EXPECT_FALSE(slave.mShutDownConfReceived);
+#endif
+}
+
+TEST_F(ConfProcessorTests, testConfSlaveWithConfTypeShutdownSuccessOk) {
+#ifdef LR_DEBUG
+   MockConfSlave slave;
+
+   std::vector<std::string> message;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SHUTDOWN);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+
+   message.push_back(configTypeMessage.SerializeAsString());
+   protoMsg::ShutdownMsg shutdown;
+   shutdown.set_now(true); // shutdown ON
+   message.push_back(shutdown.SerializeAsString());
+
+   // Test successful value with shutdown:false
+   EXPECT_FALSE(slave.ProcessMessage(message));
+   EXPECT_TRUE(slave.mShutDownConfReceived);
+   EXPECT_TRUE(slave.mShutDownConfValue);
+#endif
+}
+
+TEST_F(ConfProcessorTests, testConfSlaveWithConfTypeShutdownSuccessFalse) {
+#ifdef LR_DEBUG
+   MockConfSlave slave;
+
+   std::vector<std::string> message;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SHUTDOWN);
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+
+   message.push_back(configTypeMessage.SerializeAsString());
+   protoMsg::ShutdownMsg shutdown;
+   shutdown.set_now(false); // shutdown OFF 
+   message.push_back(shutdown.SerializeAsString());
+
+   // Test successful value with shutdown:false
+   EXPECT_FALSE(slave.ProcessMessage(message));
+   EXPECT_TRUE(slave.mShutDownConfReceived);
+   EXPECT_FALSE(slave.mShutDownConfValue);
+#endif
 }
 
 TEST_F(ConfProcessorTests, testConfSlaveRestart) {
