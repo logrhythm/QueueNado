@@ -262,6 +262,29 @@ TEST_F(ConfProcessorTests, TestIsRestartRequest) {
 #endif
 }
 
+TEST_F(ConfProcessorTests, TestIsShutdownRequest) {
+#ifdef LR_DEBUG
+   MockConfMaster master;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SHUTDOWN);
+   EXPECT_EQ(configTypeMessage.type(), protoMsg::ConfType_Type_SHUTDOWN);
+   EXPECT_TRUE(master.IsShutdownRequest(configTypeMessage));
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_RECEIVING);
+   EXPECT_TRUE(master.IsShutdownRequest(configTypeMessage));
+   
+   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
+   EXPECT_FALSE(master.IsShutdownRequest(configTypeMessage));
+   configTypeMessage.set_type(protoMsg::ConfType_Type_QOSMOS);
+   EXPECT_FALSE(master.IsShutdownRequest(configTypeMessage));
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
+   EXPECT_FALSE(master.IsShutdownRequest(configTypeMessage));
+   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
+   EXPECT_FALSE(master.IsShutdownRequest(configTypeMessage));
+#endif
+}
+
+
 TEST_F(ConfProcessorTests, TestUpdateBaseCachedMessages) {
 #ifdef LR_DEBUG
    MockConfMaster master;
@@ -354,6 +377,12 @@ TEST_F(ConfProcessorTests, TestSerializeCachedConfig) {
    EXPECT_FALSE(serializedConf.empty());
    protoMsg::QosmosConf qConf;
    EXPECT_TRUE(qConf.ParseFromString(serializedConf));
+   
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SHUTDOWN);
+   EXPECT_FALSE(serializedConf.empty());
+   protoMsg::ShutdownMsg shutdownConf;
+   EXPECT_TRUE(shutdownConf.ParseFromString(serializedConf));
+   
 
    configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
    EXPECT_FALSE(serializedConf.empty());
