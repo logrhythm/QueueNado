@@ -1,11 +1,12 @@
 #include "EthInfoTest.h"
-#include "MockEthInfo.h"
+
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <memory>
 
 
 #ifdef LR_DEBUG
+#include "MockEthInfo.h"
 TEST_F(EthInfoTest, ConstructAndInitialize) {
    EthInfo ethInfo;
    std::unique_ptr<EthInfo> pEthInfo(new EthInfo);
