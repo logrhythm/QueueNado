@@ -1,10 +1,18 @@
 
 #include "DiskPacketCaptureTest.h"
-#include "MockConf.h"
+
 #include "dpi/modules/upacket.h"
 #include "pcap/pcap.h"
 #include <thread>
 #include <future>
+
+#ifdef LR_DEBUG
+#include "MockConf.h"
+#include "MockDiskPacketCapture.h"
+#else
+#include "Conf.h"
+#include "DiskPacketCapture.h"
+#endif
 
 #ifdef LR_DEBUG
 TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
