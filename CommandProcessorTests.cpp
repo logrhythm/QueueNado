@@ -507,7 +507,7 @@ TEST_F(CommandProcessorTests, PseudoShutdown) {
    conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);   
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
-
+   LOG(INFO) << "Executing Real command with real Processor but with Mocked Shutdown function";
    // NEVER CHANGE the LINE below. If it is set to true your PC will shut down
    MockShutdownCommand::callRealShutdownCommand = false;
    MockShutdownCommand::wasShutdownCalled = false; 
