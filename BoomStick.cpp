@@ -276,7 +276,7 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
 bool BoomStick::CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply) {
    if (!zsocket_poll(mChamber, msToWait)) {
       reply = "socket timed out";
-      LOG(DEBUG) << "Failed to find any new messages on socket while looking for " << messageHash;
+      LOG(DEBUG) << "Failed to find any new messages on socket while looking for a message";
       return false;
    }
    return true;
@@ -330,7 +330,7 @@ bool BoomStick::GetAsyncReply(const MessageIdentifier& uuid, const unsigned int 
    }
    std::string messageHash = HashMessageId(uuid);
    if (!FindPendingHash(messageHash)) {
-      LOG(WARNING) << "Tried to get a reply for " << uuid.first << " more than once";
+      LOG(WARNING) << "Tried to get a reply for a message more than once";
       reply = "ID is not pending";
       CleanOldPendingData();
       return false;
