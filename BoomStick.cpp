@@ -420,8 +420,10 @@ void BoomStick::CleanUnreadReplies() {
       }
    }
 
+   int count = 0;
    for (auto hash : hashesToRemove) {
-      LOG(INFO) << "Discarding reply that doesn't exist in pending " << hash;
+      count++;
       mUnreadReplies.erase(hash);
    }
+   LOG_IF(INFO, (count > 0)) << "Deleted " << count << " replies that no longer exist in pending";
 }
