@@ -22,10 +22,26 @@ TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
    std::string filename = capture.BuildFilename("testuuid");
    
    ASSERT_FALSE(filename.empty());
-   EXPECT_EQ("testuuid",filename);
+   EXPECT_EQ("161122fd-6681-42a3-b953-48beb5247172",filename);
    DiskPacketCapture::PacketCaptureFileDetails fileDetails;
    ASSERT_TRUE(capture.ParseFilename(filename,fileDetails));
-   EXPECT_EQ("testuuid",fileDetails.sessionId);
+   EXPECT_EQ("161122fd-6681-42a3-b953-48beb5247172",fileDetails.sessionId);
+}
+
+/**
+ * File names need to be 36 characters
+ */
+TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilenameFail) {
+   MockConf conf;
+   MockDiskPacketCapture capture(conf);
+   
+   std::string filename = capture.BuildFilename("testuuid");
+   
+   ASSERT_FALSE(filename.empty());
+   EXPECT_EQ("testuuid",filename);
+   DiskPacketCapture::PacketCaptureFileDetails fileDetails;
+   ASSERT_FALSE(capture.ParseFilename(filename,fileDetails));
+   EXPECT_EQ("",fileDetails.sessionId);
 }
 #endif
 TEST_F(DiskPacketCaptureTest, Construct) {
