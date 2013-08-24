@@ -403,8 +403,8 @@ void BoomStick::CleanPendingReplies() {
          deleteUnread++;
          mUnreadReplies.erase(hash);
       }
-      LOG_IF(INFO, (deleteUnread > 0)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
    }
+   LOG_IF(INFO, (deleteUnread > 0)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
 }
 
 /**
