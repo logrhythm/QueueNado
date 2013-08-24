@@ -396,13 +396,14 @@ void BoomStick::CleanPendingReplies() {
          hashesToRemove.push_back(pendingSend.first);
       }
    }
-
+   int deleteUnread = 0;
    for (auto hash : hashesToRemove) {
       mPendingReplies.erase(hash);
       if (mUnreadReplies.find(hash) != mUnreadReplies.end()) {
-         LOG(DEBUG) << "Discarding unread reply for " << hash;
+         deleteUnread++;
          mUnreadReplies.erase(hash);
       }
+      LOG_IF(INFO, (deleteUnread > 0)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
    }
 }
 
