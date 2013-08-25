@@ -1740,6 +1740,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
    } catch (...) {
       exception = true;
    }
+   EXPECT_EQ(processManager->mCountNumberOfRuns, 3); // 3x ifup
    ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifdown", processManager->getRunCommand());
    ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
@@ -1765,10 +1766,10 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
    } catch (...) {
       exception = true;
    }
+   EXPECT_EQ(processManager->mCountNumberOfRuns, 3); // 3x  ifup
    ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
    ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
-
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
@@ -1790,10 +1791,59 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
    } catch (...) {
       exception = true;
    }
+   EXPECT_EQ(processManager->mCountNumberOfRuns, 3); // 3x ifup
    ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
    ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
+}
 
+TEST_F(CommandProcessorTests, NetworkConfigCommandStaticNoExtraRetriesOnSuccessfulInterfaceUp) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("eth0");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.InterfaceUp();
+   } catch (...) {
+      exception = true;
+   }
+   EXPECT_EQ(processManager->mCountNumberOfRuns, 1); // 1 ifup
+   ASSERT_FALSE(exception);
+   ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
+   ASSERT_EQ("eth0 boot --force", processManager->getRunArgs());
+}
+TEST_F(CommandProcessorTests, NetworkConfigCommandDhcpNoExtraRetriesOnSuccessfulInterfaceUp) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::DHCP);
+   interfaceConfig.set_interface("eth0");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.InterfaceUp();
+   } catch (...) {
+      exception = true;
+   }
+   EXPECT_EQ(processManager->mCountNumberOfRuns, 1); // 1 ifup
+   ASSERT_FALSE(exception);
+   ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
+   ASSERT_EQ("eth0 boot --force", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
