@@ -42,7 +42,8 @@ public:
    mSyslogMaxLineLength(2048),
    mStatsIntervalSeconds(5),
    mOverrideInternalRepair(false),
-   mInternalRepair(true){
+   mInternalRepair(true), 
+   mValidateEthFailCount(0){
    }
 
    ~MockConf() {
@@ -233,16 +234,25 @@ public:
       return mSiemDebug;
    }
    
-   bool InternallyRepairBaseConf() LR_OVERRIDE {
+   bool InternallyRepairBaseConf(bool canVerifyEth, EthInfo& ethInfo) LR_OVERRIDE {
       if (mOverrideInternalRepair) {
          return mInternalRepair;
       }
-      return Conf::InternallyRepairBaseConf();
+      return Conf::InternallyRepairBaseConf(canVerifyEth,ethInfo);
    }
    void RepairEthConfFieldsWithDefaults(ConfMap& protoMap, bool canVerifyEth, EthInfo& ethInfo) LR_OVERRIDE {
+      if (mValidateEthFailCount > 0) {
+         mValidateEthFailCount--;
+      }
       return Conf::RepairEthConfFieldsWithDefaults(protoMap,canVerifyEth,ethInfo);
    }
    bool ValidateEthConfFields(ConfMap& protoMap, bool canVerifyEth, EthInfo& ethInfo) LR_OVERRIDE {
+      if (mValidateEthFailCount > 0) {
+         return false;
+      } else if (mValidateEthFailCount == 0) {
+         return true;
+      } 
+      mValidateEthFailCount = -1;
       return Conf::ValidateEthConfFields(protoMap,canVerifyEth,ethInfo);
    }
    
@@ -291,5 +301,6 @@ public:
    unsigned int mStatsIntervalSeconds;
    bool mOverrideInternalRepair;
    bool mInternalRepair;
+   int mValidateEthFailCount;
 
 };

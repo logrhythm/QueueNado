@@ -100,7 +100,7 @@ TEST_F(ConfProcessorTests, ConfNtp_WProtoBufUpdateTriggerWriteToFile) {
 }
 #endif 
 
-TEST_F(ConfProcessorTests, NtpMessagePassedBetweenMasterAndSlave) {
+TEST_F(ConfProcessorTests, DISABLED_NtpMessagePassedBetweenMasterAndSlave) {
 #if defined(LR_DEBUG)
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.Stop();
