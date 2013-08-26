@@ -242,8 +242,24 @@ bool BoomStick::SendAsync(const MessageIdentifier& uuid, const std::string& comm
       zmsg_destroy(&msg);
       return false;
    }
-   if (zmsg_send(&msg, mChamber) < 0) {
-      LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
+   zmq_pollitem_t items[1];
+   items[0].socket = mChamber;
+   items[0].events = ZMQ_POLLOUT;
+   int rc = zmq_poll(items, 1, 0);
+   if (rc < 0) {
+      LOG(WARNING) << "Queue error, cannot poll for status";
+      return false;
+   } else if (rc == 1) {
+      if ((items[0].revents & ZMQ_POLLOUT) != ZMQ_POLLOUT) {
+         LOG(WARNING) << "Queue error, cannot send messages the queue is full";
+         return false;
+      }
+      if (zmsg_send(&msg, mChamber) < 0) {
+         LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
+         return false;
+      }
+   } else {
+      LOG(WARNING) << "Queue error, timeout waiting for queue to be ready";
       return false;
    }
 
