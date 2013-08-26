@@ -26,10 +26,43 @@
 using namespace std;
 using namespace networkMonitor;
 
+#ifdef LR_DEBUG
+#include "MockConf.h"
+#include "MockEthInfo.h"
+TEST_F(ConfProcessorTests, EthConfValidate) {
+   MockConf conf;
+   MockEthInfo ethInfo;
+   ConfMap protoMap;
+   
+   EXPECT_TRUE(conf.ValidateEthConfFields(protoMap,false,ethInfo)); // Cannot verify anything
+   
+   ethInfo.mFakeInitialize = true;
+   ethInfo.mFakeInitializeFailure = false;
+   ethInfo.mFakeInterfaceNames.insert("test1");
+   ethInfo.mFakeInterfaceNames.insert("test2");
+   ethInfo.mFakeInterfaceNames.insert("test3");
+   
+   ethInfo.Initialize();
+   
+   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap,true,ethInfo)); // "" value is false
+   
+   conf.mPCAPInterface = "false";
+   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap,true,ethInfo)); // not in valid interface names
+   
+   conf.mPCAPInterface = "test1";
+   EXPECT_TRUE(conf.ValidateEthConfFields(protoMap,true,ethInfo)); 
+}
+TEST_F(ConfProcessorTests, EthConfRepair) {
+   MockConf conf;
+}
+TEST_F(ConfProcessorTests, BaseConfInternalRepair) {
+   MockConf conf;
+}
+#endif
 TEST_F(ConfProcessorTests, ConfInterfaceInitialize) {
    ConfNetInterface conf;
    ASSERT_EQ("conf/nm.yaml.Interface", conf.GetPath());
-   EXPECT_EQ(0, conf.GetMethod()); //default 
+   EXPECT_EQ(0, conf.GetMethod()); //desfault 
 }
 
 TEST_F(ConfProcessorTests, ConfInterfaceInitializeWithPath) {

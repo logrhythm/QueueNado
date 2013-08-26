@@ -40,7 +40,9 @@ public:
    mPacketSendQueueSize(100),
    mPacketRecvQueueSize(100),
    mSyslogMaxLineLength(2048),
-   mStatsIntervalSeconds(5) {
+   mStatsIntervalSeconds(5),
+   mOverrideInternalRepair(false),
+   mInternalRepair(true){
    }
 
    ~MockConf() {
@@ -230,6 +232,20 @@ public:
    bool SiemDebugLogging() {
       return mSiemDebug;
    }
+   
+   bool InternallyRepairBaseConf() LR_OVERRIDE {
+      if (mOverrideInternalRepair) {
+         return mInternalRepair;
+      }
+      return Conf::InternallyRepairBaseConf();
+   }
+   void RepairEthConfFieldsWithDefaults(ConfMap& protoMap, bool canVerifyEth, EthInfo& ethInfo) LR_OVERRIDE {
+      return Conf::RepairEthConfFieldsWithDefaults(protoMap,canVerifyEth,ethInfo);
+   }
+   bool ValidateEthConfFields(ConfMap& protoMap, bool canVerifyEth, EthInfo& ethInfo) LR_OVERRIDE {
+      return Conf::ValidateEthConfFields(protoMap,canVerifyEth,ethInfo);
+   }
+   
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;
@@ -273,5 +289,7 @@ public:
    int mPacketRecvQueueSize;
    unsigned int mSyslogMaxLineLength;
    unsigned int mStatsIntervalSeconds;
+   bool mOverrideInternalRepair;
+   bool mInternalRepair;
 
 };
