@@ -292,7 +292,7 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
 bool BoomStick::CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply) {
    if (!zsocket_poll(mChamber, msToWait)) {
       reply = "socket timed out";
-      LOG(DEBUG) << "Failed to find any new messages on socket while looking for " << messageHash;
+      LOG(DEBUG) << "Failed to find any new messages on socket while looking for a message";
       return false;
    }
    return true;
@@ -346,7 +346,7 @@ bool BoomStick::GetAsyncReply(const MessageIdentifier& uuid, const unsigned int 
    }
    std::string messageHash = HashMessageId(uuid);
    if (!FindPendingHash(messageHash)) {
-      LOG(WARNING) << "Tried to get a reply for " << uuid.first << " more than once";
+      LOG(WARNING) << "Tried to get a reply for a message more than once";
       reply = "ID is not pending";
       CleanOldPendingData();
       return false;
@@ -412,14 +412,15 @@ void BoomStick::CleanPendingReplies() {
          hashesToRemove.push_back(pendingSend.first);
       }
    }
-
+   int deleteUnread = 0;
    for (auto hash : hashesToRemove) {
       mPendingReplies.erase(hash);
       if (mUnreadReplies.find(hash) != mUnreadReplies.end()) {
-         LOG(DEBUG) << "Discarding unread reply for " << hash;
+         deleteUnread++;
          mUnreadReplies.erase(hash);
       }
    }
+   LOG_IF(INFO, (deleteUnread > 0)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
 }
 
 /**
@@ -435,8 +436,10 @@ void BoomStick::CleanUnreadReplies() {
       }
    }
 
+   int count = 0;
    for (auto hash : hashesToRemove) {
-      LOG(INFO) << "Discarding reply that doesn't exist in pending " << hash;
+      count++;
       mUnreadReplies.erase(hash);
    }
+   LOG_IF(INFO, (count > 0)) << "Deleted " << count << " replies that no longer exist in pending";
 }
