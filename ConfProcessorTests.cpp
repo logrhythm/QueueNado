@@ -29,36 +29,71 @@ using namespace networkMonitor;
 #ifdef LR_DEBUG
 #include "MockConf.h"
 #include "MockEthInfo.h"
+
 TEST_F(ConfProcessorTests, EthConfValidate) {
    MockConf conf;
    MockEthInfo ethInfo;
    ConfMap protoMap;
-   
-   EXPECT_TRUE(conf.ValidateEthConfFields(protoMap,false,ethInfo)); // Cannot verify anything
-   
+
+   EXPECT_TRUE(conf.ValidateEthConfFields(protoMap, false, ethInfo)); // Cannot verify anything
+
    ethInfo.mFakeInitialize = true;
    ethInfo.mFakeInitializeFailure = false;
    ethInfo.mFakeInterfaceNames.insert("test1");
    ethInfo.mFakeInterfaceNames.insert("test2");
    ethInfo.mFakeInterfaceNames.insert("test3");
-   
+
    ethInfo.Initialize();
-   
-   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap,true,ethInfo)); // "" value is false
-   
+
+   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap, true, ethInfo)); // "" value is false
+
    conf.mPCAPInterface = "false";
-   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap,true,ethInfo)); // not in valid interface names
-   
+   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap, true, ethInfo)); // not in valid interface names
+
    conf.mPCAPInterface = "test1";
-   EXPECT_TRUE(conf.ValidateEthConfFields(protoMap,true,ethInfo)); 
+   EXPECT_TRUE(conf.ValidateEthConfFields(protoMap, true, ethInfo));
 }
+
 TEST_F(ConfProcessorTests, EthConfRepair) {
    MockConf conf;
+   MockEthInfo ethInfo;
+   ConfMap protoMap;
+
+   ethInfo.mFakeInitialize = true;
+   ethInfo.mFakeInitializeFailure = false;
+   ethInfo.mFakeInterfaceNames.insert("test1");
+   ethInfo.mFakeInterfaceNames.insert("test2");
+   ethInfo.mFakeInterfaceNames.insert("em2");
+
+   ethInfo.Initialize();
+
+   conf.RepairEthConfFieldsWithDefaults(protoMap, false, ethInfo); // doesn't do anything
+   EXPECT_EQ(0, protoMap.size());
+   conf.RepairEthConfFieldsWithDefaults(protoMap, true, ethInfo); // empty becomes full
+   ASSERT_EQ(1, protoMap.size());
+   EXPECT_EQ("em2", protoMap["pcapInterface"]);
+   conf.mPCAPInterface = "false";
+   protoMap.clear();
+   conf.RepairEthConfFieldsWithDefaults(protoMap, true, ethInfo); // wrong becomes right
+   ASSERT_EQ(1, protoMap.size());
+   EXPECT_EQ("em2", protoMap["pcapInterface"]);
+   ethInfo.mFakeInterfaceNames.clear();
+   ethInfo.mFakeInterfaceNames.insert("test1");
+   ethInfo.mFakeInterfaceNames.insert("test2");
+   ethInfo.mFakeInterfaceNames.insert("eth1");
+   ethInfo.Initialize();
+   conf.mPCAPInterface = "em2";
+   protoMap.clear();
+   conf.RepairEthConfFieldsWithDefaults(protoMap, true, ethInfo); // flip to eth1
+   ASSERT_EQ(1, protoMap.size());
+   EXPECT_EQ("eth1", protoMap["pcapInterface"]);
 }
+
 TEST_F(ConfProcessorTests, BaseConfInternalRepair) {
    MockConf conf;
 }
 #endif
+
 TEST_F(ConfProcessorTests, ConfInterfaceInitialize) {
    ConfNetInterface conf;
    ASSERT_EQ("conf/nm.yaml.Interface", conf.GetPath());
@@ -731,6 +766,7 @@ TEST_F(ConfProcessorTests, ProcessConfMsg) {
    ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots));
 }
 #ifdef LR_DEBUG
+
 TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
 
    MockConfSlave testSlave;
@@ -896,6 +932,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
 
 }
 #endif
+
 TEST_F(ConfProcessorTests, testSingletonInstantiation) {
    ConfMaster& confThread = ConfMaster::Instance();
    //   confThread.Stop();
@@ -1162,7 +1199,6 @@ TEST_F(ConfProcessorTests, teststatsQueue) {
    conf.updateFields(msg);
    EXPECT_EQ("12347", conf.getSendStatsQueue());
 }
-
 
 TEST_F(ConfProcessorTests, testSiemLogging) {
    protoMsg::SyslogConf msg;
