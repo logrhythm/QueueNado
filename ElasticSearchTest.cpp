@@ -7,15 +7,6 @@
 
 #ifdef LR_DEBUG
 
-TEST_F(ElasticSearchTest, SynchrnousCannotAddDel) {
-   MockBoomStick transport("tcp://127.0.0.1:9700");
-   transport.mReturnString = "{\"ok\":true,\"_index\":\"indexName\",\"_type\":\"typeName\",\"_id\":\"abc_123\",\"_version\":1}";
-
-   ElasticSearch es(transport, false);
-   ASSERT_TRUE(es.Initialize());
-   EXPECT_FALSE(es.AddDoc("foo", "bar", "baz", "fuz"));
-   EXPECT_FALSE(es.DeleteDoc("foo", "bar", "baz"));
-}
 
 TEST_F(ElasticSearchTest, AsynchrnousCannotDoOtherStuff) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
