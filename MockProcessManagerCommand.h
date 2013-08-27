@@ -1,15 +1,17 @@
 #pragma once
 #include "ProcessManager.h"
 #include "Conf.h"
+#include <g2log.hpp>
 
 class MockProcessManagerCommand : public ProcessManager {
 public:
 
-   MockProcessManagerCommand(const Conf& conf) : ProcessManager(conf) {
-      mSuccess = true;
-      mReturnCode = 0;
-      mResult = "Success";
-      mInit = true;
+   MockProcessManagerCommand(const Conf& conf) : ProcessManager(conf),
+   mReturnCode(0),
+   mInit(true),
+   mSuccess(true),
+   mCountNumberOfRuns(0),
+   mResult({"Success"}) {
    }
 
    bool Initialize() {
@@ -43,6 +45,9 @@ public:
    }
 
    protoMsg::ProcessReply RunProcess(const std::string& execPath, const std::string& args) {
+      ++mCountNumberOfRuns;
+      LOG(INFO) << "Executing: " << execPath << " " << args;
+             
       mRunCommand.clear();
       mRunCommand = execPath;
       mRunArgs.clear();
@@ -61,6 +66,7 @@ public:
    int mReturnCode;
    bool mInit;
    bool mSuccess;
+   size_t mCountNumberOfRuns;
    std::string mResult;
    std::string mRunCommand;
    std::string mRunArgs;
