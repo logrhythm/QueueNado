@@ -5,6 +5,7 @@
 #include "BaseConfMsg.pb.h"
 #include <g2log.hpp>
 #include <functional>
+#include <limits>
 
 #ifdef LR_DEBUG
 using namespace std;
@@ -17,6 +18,33 @@ TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillFail) {
    EXPECT_EQ(blank.has_dpithreads(), false);
    conf.updateFields(blank); // trigger Mocked ValidateBaseConf
    EXPECT_EQ(conf.mValidBaseConf, false);   
+}
+
+
+TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
+   MockConf conf;
+   EXPECT_EQ(conf.mValidBaseConf, true);
+   
+   conf.CheckNumber(""); // check for empty
+   EXPECT_EQ(conf.mValidBaseConf, false);  
+   conf.mValidBaseConf = true;
+
+   conf.CheckNumberForNegative("-123");
+   EXPECT_EQ(conf.mValidBaseConf, false);
+   conf.CheckNumberForNegative("123");
+   EXPECT_EQ(conf.mValidBaseConf, true);
+
+   size_t value = std::numeric_limits<int32_t>::max();   
+   conf.CheckNumberForSize(std::to_string(value+1));
+   EXPECT_EQ(conf.mValidBaseConf, false);  
+   conf.CheckNumberForSize(std::to_string(value));
+   EXPECT_EQ(conf.mValidBaseConf, true);  
+   
+   protoMsg::BaseConf msg;
+   msg.set_dpithreads("10");
+   conf.CheckNumber(msg.dpithreads()); 
+   EXPECT_EQ(conf.mValidBaseConf, true);  
+   
 }
 
 TEST_F(ConfProcessorTests, BaseConfValidationDpiThreadsInvalidNumberWillFail) {
@@ -37,6 +65,13 @@ TEST_F(ConfProcessorTests, BaseConfValidationDpiThreadsInvalidNumberWillFail) {
    EXPECT_EQ(blank.has_dpithreads(), true);
    conf.updateFields(blank); // trigger Mocked ValidateBaseConf
    EXPECT_EQ(conf.mValidBaseConf, false);      
+   
+   blank.set_dpithreads("-123");
+   EXPECT_EQ(blank.has_dpithreads(), true);
+   conf.updateFields(blank); // trigger Mocked ValidateBaseConf
+   EXPECT_EQ(conf.mValidBaseConf, false);      
+   
+
 }
 
 

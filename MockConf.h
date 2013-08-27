@@ -261,7 +261,39 @@ public:
       mValidBaseConf = Conf::ValidateBaseConf(msg);
       return mValidBaseConf;
    }
+
+   void CheckNumber(const std::string& number)  LR_OVERRIDE {
+      try {
+         Conf::CheckNumber(number);
+      } catch (...) {
+         mValidBaseConf = false;
+         return;
+      }
+      mValidBaseConf = true;
+   }
+
+   void CheckNumberForNegative(const std::string& number)  LR_OVERRIDE {
+   try {
+      Conf::CheckNumberForNegative(number);
+   } catch (...) {
+      mValidBaseConf = false;
+      return;
+   }
+   mValidBaseConf = true;
+}
+
+void CheckNumberForSize(const std::string& number)  LR_OVERRIDE {
+   try {
+      Conf::CheckNumberForSize(number);
+   } catch (...) {
+      mValidBaseConf = false;
+      return;
+   }
+   mValidBaseConf = true;
+}
    
+
+
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;
