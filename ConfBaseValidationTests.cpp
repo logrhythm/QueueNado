@@ -13,6 +13,8 @@ using namespace std;
 
 TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillFail) {
    MockConf conf;
+   conf.mIgnoreBaseConfValidation = false;
+   
    EXPECT_EQ(conf.mValidBaseConf, true);
    protoMsg::BaseConf blank;
    EXPECT_EQ(blank.has_dpithreads(), false);
@@ -23,6 +25,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillFail) {
 
 TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
    MockConf conf;
+   conf.mIgnoreBaseConfValidation = false;
    EXPECT_EQ(conf.mValidBaseConf, true);
    
    conf.CheckNumber(""); // check for empty
@@ -43,12 +46,79 @@ TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
    protoMsg::BaseConf msg;
    msg.set_dpithreads("10");
    conf.CheckNumber(msg.dpithreads()); 
-   EXPECT_EQ(conf.mValidBaseConf, true);  
-   
+   EXPECT_EQ(conf.mValidBaseConf, true);   
 }
+
+TEST_F(ConfProcessorTests, BaseConfValidationText) {
+   MockConf conf;
+   conf.mIgnoreBaseConfValidation = false;
+   EXPECT_EQ(conf.mValidBaseConf, true);
+   
+
+   conf.mValidBaseConf = false;
+   conf.CheckString(""); 
+   EXPECT_EQ(conf.mValidBaseConf, true);  
+   conf.mValidBaseConf = true;
+   
+   conf.mValidBaseConf = false;
+   conf.CheckString("Hello World!"); 
+   EXPECT_EQ(conf.mValidBaseConf, true);  
+
+
+   std::string text(1000,'x');
+   conf.mValidBaseConf = false;
+   conf.CheckString(text); 
+   EXPECT_EQ(conf.mValidBaseConf, true);  
+   conf.mValidBaseConf = false;
+   conf.CheckStringForSize(text); 
+   EXPECT_EQ(conf.mValidBaseConf, true); 
+   
+   // validate size failures
+   conf.mValidBaseConf = true;
+   text.append({"y"});
+   conf.CheckString(text); 
+   EXPECT_EQ(conf.mValidBaseConf, false);  
+ 
+   conf.mValidBaseConf = true;
+   conf.CheckStringForSize(text); 
+   EXPECT_EQ(conf.mValidBaseConf, false); 
+}   
+
+
+
+TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
+   MockConf conf;
+   conf.mIgnoreBaseConfValidation = false;
+   protoMsg::BaseConf msg;
+   EXPECT_EQ(conf.mValidBaseConf, true);
+   conf.updateFields(msg);
+   EXPECT_EQ(conf.mValidBaseConf, false);
+
+   const std::string validNumber = {"10"};
+   const std::string validText = {"Hello Wold!"};
+   msg.set_dpithreads(validNumber);     // dpithreads
+   msg.set_pcapetimeout(validNumber);   // pcapETimeout
+   msg.set_pcapbuffersize(validNumber); // pcapBufferSize
+   msg.set_pcapinterface(validText);    // pcapBufferSize
+   msg.set_dpihalfsessions(validNumber); // dpiHalfSessions
+   msg.set_packetsendqueuesize(validNumber); // packetSendQueueSize
+   msg.set_packetrecvqueuesize(validNumber); // packetRecvQueueSize
+   msg.set_dpimsgsendqueuesize(validNumber); // dpiMsgSendQueueSize
+   //msg.has_dpimsgrecvqueuesize(validNumber); // dpiMsgRecvQueueSize 
+   //slslsl
+  //??is SHOULD FAIL IF IT IS NOT IMPELETNTED here. The check is in the conf
+   
+   //msg.set_qosmosdebugmodeenabled(); // check for boolean NOT IMPLEMENTED
+   conf.updateFields(msg);
+   EXPECT_EQ(conf.mValidBaseConf, true);   
+}
+
+
+// below this old, failing? tests
 
 TEST_F(ConfProcessorTests, BaseConfValidationDpiThreadsInvalidNumberWillFail) {
    MockConf conf;
+   conf.mIgnoreBaseConfValidation = false;
    EXPECT_EQ(conf.mValidBaseConf, true);
    protoMsg::BaseConf blank;
    blank.set_dpithreads("");
@@ -70,9 +140,10 @@ TEST_F(ConfProcessorTests, BaseConfValidationDpiThreadsInvalidNumberWillFail) {
    EXPECT_EQ(blank.has_dpithreads(), true);
    conf.updateFields(blank); // trigger Mocked ValidateBaseConf
    EXPECT_EQ(conf.mValidBaseConf, false);      
-   
-
 }
+
+
+
 
 
 //bool BaseConfValidateNumber(const std::string& dataField, std::function<bool()> hasData, std::function<void()> setData) {
@@ -100,6 +171,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationpcapETimeoutInvalidNumberWillFail) 
 //   BaseConfValidateNumber("dpithreads", hasDpi, setDpi);
    
    MockConf conf;
+   conf.mIgnoreBaseConfValidation = false;
    EXPECT_EQ(conf.mValidBaseConf, true);
    protoMsg::BaseConf msg;
    msg.set_dpithreads("10"); // valid dpithreads
@@ -121,18 +193,5 @@ TEST_F(ConfProcessorTests, BaseConfValidationpcapETimeoutInvalidNumberWillFail) 
 }
 
 
-TEST_F(ConfProcessorTests, BaseConfValidationWithValidNumbersWillNotFail) {
-   MockConf conf;
-   protoMsg::BaseConf msg;
-   EXPECT_EQ(conf.mValidBaseConf, true);
-   conf.updateFields(msg);
-   EXPECT_EQ(conf.mValidBaseConf, false);
-
-   const std::string validNumber = {"10"};
-   msg.set_dpithreads(validNumber); // valid dpithreads
-   msg.set_pcapetimeout(validNumber);
-   conf.updateFields(msg);
-   EXPECT_EQ(conf.mValidBaseConf, true);   
-}
 
 #endif //  LR_DEBUG

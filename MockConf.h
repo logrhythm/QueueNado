@@ -10,7 +10,7 @@
 
 class MockConf : public Conf {
 public:
-   
+
    MockConf() :
    mSyslogAgentPort("1234"),
    mSyslogFacility("local4"),
@@ -42,9 +42,10 @@ public:
    mSyslogMaxLineLength(2048),
    mStatsIntervalSeconds(5),
    mOverrideInternalRepair(false),
-   mInternalRepair(true), 
+   mInternalRepair(true),
    mValidateEthFailCount(0),
-   mValidBaseConf(true){
+   mValidBaseConf(true),
+   mIgnoreBaseConfValidation(true) {
    }
 
    ~MockConf() {
@@ -234,37 +235,46 @@ public:
    bool SiemDebugLogging() {
       return mSiemDebug;
    }
-   
-   bool InternallyRepairBaseConf( EthInfo& ethInfo) LR_OVERRIDE {
+
+   bool InternallyRepairBaseConf(EthInfo& ethInfo) LR_OVERRIDE {
       if (mOverrideInternalRepair) {
          return mInternalRepair;
       }
       return Conf::InternallyRepairBaseConf(ethInfo);
    }
+
    void RepairEthConfFieldsWithDefaults(ConfMap& protoMap, EthInfo& ethInfo) LR_OVERRIDE {
       if (mValidateEthFailCount > 0) {
          mValidateEthFailCount--;
       }
-      return Conf::RepairEthConfFieldsWithDefaults(protoMap,ethInfo);
+      return Conf::RepairEthConfFieldsWithDefaults(protoMap, ethInfo);
    }
-   bool ValidateEthConfFields(ConfMap& protoMap,  EthInfo& ethInfo) LR_OVERRIDE {
+
+   bool ValidateEthConfFields(ConfMap& protoMap, EthInfo& ethInfo) LR_OVERRIDE {
       if (mValidateEthFailCount > 0) {
          return false;
       } else if (mValidateEthFailCount == 0) {
          return true;
-      } 
+      }
       mValidateEthFailCount = -1;
-      return Conf::ValidateEthConfFields(protoMap,ethInfo);
+      return Conf::ValidateEthConfFields(protoMap, ethInfo);
    }
-   
+
    bool ValidateBaseConf(const protoMsg::BaseConf& msg) LR_OVERRIDE {
+      if (mIgnoreBaseConfValidation) {
+         return true;
+      }
       mValidBaseConf = Conf::ValidateBaseConf(msg);
       return mValidBaseConf;
    }
 
-   void CheckNumber(const std::string& number)  LR_OVERRIDE {
-      try {
+   void CheckNumber(const std::string& number) LR_OVERRIDE {
          Conf::CheckNumber(number);
+   }
+
+   void CheckNumberForNegative(const std::string& number) LR_OVERRIDE {
+      try {
+         Conf::CheckNumberForNegative(number);
       } catch (...) {
          mValidBaseConf = false;
          return;
@@ -272,26 +282,31 @@ public:
       mValidBaseConf = true;
    }
 
-   void CheckNumberForNegative(const std::string& number)  LR_OVERRIDE {
-   try {
-      Conf::CheckNumberForNegative(number);
-   } catch (...) {
-      mValidBaseConf = false;
-      return;
+   void CheckNumberForSize(const std::string& number) LR_OVERRIDE {
+      try {
+         Conf::CheckNumberForSize(number);
+      } catch (...) {
+         mValidBaseConf = false;
+         return;
+      }
+      mValidBaseConf = true;
    }
-   mValidBaseConf = true;
-}
 
-void CheckNumberForSize(const std::string& number)  LR_OVERRIDE {
-   try {
-      Conf::CheckNumberForSize(number);
-   } catch (...) {
-      mValidBaseConf = false;
-      return;
+   void CheckString(const std::string& text) LR_OVERRIDE {
+      Conf::CheckString(text);
    }
-   mValidBaseConf = true;
-}
-   
+
+   void CheckStringForSize(const std::string& text) LR_OVERRIDE {
+      try {
+         Conf::CheckStringForSize(text);
+      } catch (...) {
+         mValidBaseConf = false;
+         return;
+      }
+      mValidBaseConf = true;
+   }
+
+
 
 
    std::string mSyslogAgentPort;
@@ -341,5 +356,6 @@ void CheckNumberForSize(const std::string& number)  LR_OVERRIDE {
    bool mInternalRepair;
    int mValidateEthFailCount;
    bool mValidBaseConf;
+   bool mIgnoreBaseConfValidation;
 
 };

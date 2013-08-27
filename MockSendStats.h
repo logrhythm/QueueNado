@@ -1,11 +1,12 @@
 #pragma once
 
 #include "SendStats.h"
-
+#include "include/global.h"
+#include <vector>
 class MockSendStats : public SendStats {
 public:
 
-   MockSendStats() : SendStats(), mDummyTimeStamp(0) {
+   MockSendStats() : SendStats(), mDummyTimeStamp(0){
    }
 
    std::time_t GetTimestamp() {
@@ -13,7 +14,16 @@ public:
    }
 
    std::time_t mDummyTimeStamp;
+   std::vector<int64_t>  mSendStatValues;
 
+  bool SendStat(const std::string& key, const int64_t statValue,
+                 const bool repeatStat) LR_OVERRIDE {
+     mSendStatValues.push_back(statValue);
+     return SendStats::SendStat(key, statValue, repeatStat);
+     
+  }
+      
+      
    protoMsg::Stats& ConstructMessageToSend(const std::string& key, double statValue) {
       return SendStats::ConstructMessageToSend(key, statValue, false);
    }

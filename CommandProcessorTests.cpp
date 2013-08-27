@@ -22,6 +22,7 @@
 #include "g2log.hpp"
 #include "RestartSyslogCommandTest.h"
 #include "NetInterfaceMsg.pb.h"
+#include "ShutdownMsg.pb.h"
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
@@ -477,19 +478,65 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
    MockShutdownCommand shutdown = MockShutdownCommand(cmd, processManager);
+   MockShutdownCommand::callRealShutdownCommand = true;
    bool exception = false;
    try {
       protoMsg::CommandReply reply = shutdown.Execute(conf);
       LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
       ASSERT_TRUE(reply.success());
-      EXPECT_TRUE(processManager->mRunCommand == "/sbin/init");
-      EXPECT_TRUE(processManager->mRunArgs == " 0");
+      EXPECT_EQ(processManager->mRunCommand,"/sbin/init");
+      EXPECT_EQ(processManager->mRunArgs," 0");
    } catch (...) {
       exception = true;
    }
    ASSERT_FALSE(exception);
 #endif
 }
+
+//
+//  The Mock Shutdown sets a flag if the DoTheShutdown gets triggered. 
+//  As long as the Mock is not tampered with and the ChangeRegistration below is in order
+//  this test will NOT shutdown your PC, only fake it. 
+//
+//  If you tamper with the details mentioned, all bets are OFF!
+//
+TEST_F(CommandProcessorTests, PseudoShutdown) {  
+   #ifdef LR_DEBUG
+   MockConf conf;
+   conf.mCommandQueue = "tcp://127.0.0.1:";
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);   
+   MockCommandProcessor testProcessor(conf);
+   EXPECT_TRUE(testProcessor.Initialize());
+   LOG(INFO) << "Executing Real command with real Processor but with Mocked Shutdown function";
+   // NEVER CHANGE the LINE below. If it is set to true your PC will shut down
+   MockShutdownCommand::callRealShutdownCommand = false;
+   MockShutdownCommand::wasShutdownCalled = false; 
+   
+  
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN, MockShutdownCommand::FatalAndDangerousConstruct);
+   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+   Crowbar sender(conf.getCommandQueue());
+   ASSERT_TRUE(sender.Wield());
+   protoMsg::CommandRequest requestMsg;
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);   
+   
+   protoMsg::ShutdownMsg shutdown;
+   shutdown.set_now(true);
+   requestMsg.set_stringargone(shutdown.SerializeAsString());
+   sender.Swing(requestMsg.SerializeAsString());
+   std::string reply;
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   protoMsg::CommandReply replyMsg;
+   replyMsg.ParseFromString(reply);
+   EXPECT_TRUE(replyMsg.success());
+   EXPECT_TRUE(MockShutdownCommand::wasShutdownCalled);
+   raise(SIGTERM);  
+#endif
+}
+
+
+
 //
 //TEST_F(CommandProcessorTests, ShutdownSystem) {
 //#ifdef LR_DEBUG
@@ -503,6 +550,10 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
 //   
 //#endif
 //}
+
+
+
+
 TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
 #ifdef LR_DEBUG
    const MockConf conf;
@@ -1740,6 +1791,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
    } catch (...) {
       exception = true;
    }
+   EXPECT_EQ(processManager->mCountNumberOfRuns, 3); // 3x ifup
    ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifdown", processManager->getRunCommand());
    ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
@@ -1765,10 +1817,10 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
    } catch (...) {
       exception = true;
    }
+   EXPECT_EQ(processManager->mCountNumberOfRuns, 3); // 3x  ifup
    ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
    ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
-
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
@@ -1790,10 +1842,59 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
    } catch (...) {
       exception = true;
    }
+   EXPECT_EQ(processManager->mCountNumberOfRuns, 3); // 3x ifup
    ASSERT_FALSE(exception);
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
    ASSERT_EQ("ethx boot --force", processManager->getRunArgs());
+}
 
+TEST_F(CommandProcessorTests, NetworkConfigCommandStaticNoExtraRetriesOnSuccessfulInterfaceUp) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::STATICIP);
+   interfaceConfig.set_interface("eth0");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.InterfaceUp();
+   } catch (...) {
+      exception = true;
+   }
+   EXPECT_EQ(processManager->mCountNumberOfRuns, 1); // 1 ifup
+   ASSERT_FALSE(exception);
+   ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
+   ASSERT_EQ("eth0 boot --force", processManager->getRunArgs());
+}
+TEST_F(CommandProcessorTests, NetworkConfigCommandDhcpNoExtraRetriesOnSuccessfulInterfaceUp) {
+   const MockConf conf;
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
+   processManager->SetSuccess(true);
+   processManager->SetReturnCode(0);
+   processManager->SetResult("");
+   protoMsg::CommandRequest cmd;
+   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
+   protoMsg::NetInterface interfaceConfig;
+   interfaceConfig.set_method(protoMsg::DHCP);
+   interfaceConfig.set_interface("eth0");
+   cmd.set_stringargone(interfaceConfig.SerializeAsString());
+   NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
+   bool exception = false;
+   try {
+      ncct.InterfaceUp();
+   } catch (...) {
+      exception = true;
+   }
+   EXPECT_EQ(processManager->mCountNumberOfRuns, 1); // 1 ifup
+   ASSERT_FALSE(exception);
+   ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
+   ASSERT_EQ("eth0 boot --force", processManager->getRunArgs());
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {

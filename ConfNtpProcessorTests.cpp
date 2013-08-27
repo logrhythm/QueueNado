@@ -8,6 +8,7 @@
 #include "MockConfNtpToReadFile.h"
 #include "MockConfNtp.h"
 #include "NtpMsg.pb.h"
+#include "FileIO.h"
 #include <g2log.hpp>
 
 using namespace std;
@@ -49,11 +50,29 @@ namespace {
    const std::string contentOKLongName = {"resources/test.ntp.confOKLongName"};
    const std::string contentWithNoBackup = {"resources/test.ntp.confOKWithNoBackup"};
    const std::string contentCommentedOutServers = {"resources/test.ntp.confCommentedOutServers"};
-   const std::string contentWithNoServers = {"resources/dtest.ntp.confNoServers"};
+   const std::string contentWithNoServers = {"resources/test.ntp.confNoServers"};
 }//anonymous
 
 //only run these tests in debug because they require mocks.
 #ifdef LR_DEBUG
+TEST_F(ConfProcessorTests, ConfNtp_VerifyTestResources) {
+   using namespace FileIO;
+   auto ok = ReadAsciiFileContent(contentOK);
+   EXPECT_FALSE(ok.HasFailed());
+   
+   auto longName = ReadAsciiFileContent(contentOK);
+   EXPECT_FALSE(longName.HasFailed());
+
+   auto noBackup = ReadAsciiFileContent(contentOK);
+   EXPECT_FALSE(noBackup.HasFailed());
+
+   auto commentedOut = ReadAsciiFileContent(contentOK);
+   EXPECT_FALSE(commentedOut.HasFailed());
+
+   auto noServers = ReadAsciiFileContent(contentOK);
+   EXPECT_FALSE(noServers.HasFailed());   
+}
+
 TEST_F(ConfProcessorTests, ConfNtp_ReadContentsFromFile) {
    MockConfNtp conf(contentOK);
    ASSERT_EQ("10.128.64.251", conf.GetMasterServer());
