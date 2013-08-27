@@ -225,6 +225,7 @@ ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=
 
 ToolsTest_LDADD=${DYNAMIC_LIBS}
 ToolsTest_LDFLAGS=${BASE_LIBS}
+
 ToolsTest_SOURCES=main.cpp ToolsTestMakeUnique.cpp ToolsTestStringFix.cpp ToolsTestFileIO.cpp EthInfoTest.cpp
 ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
