@@ -7,6 +7,9 @@
 #include "pcap.h"
 #include "MockConfMaster.h"
 #include "QosmosPacketAllocator.h"
+#include "MockSendStats.h"
+#include "SendStats.h"
+#include <memory>
 
 class PacketCaptureTest : public ::testing::Test {
 public:
@@ -201,6 +204,23 @@ public:
    unsigned int GetNumberOfPacketsCaptured();
    int GetPacketFromPCap(ctb_ppacket& packet);
 
+
+   void IncrementTotalData(int64_t incomingData) LR_OVERRIDE {
+        PacketCapturePCap::IncrementTotalData(incomingData);
+   }
+
+   SendStats& GetSendStatForwarder() LR_OVERRIDE {
+      if(mMockSendStatsForwarder) {
+         return *(mMockSendStatsForwarder.get());
+      }
+      return PacketCapturePCap::GetSendStatForwarder();
+   }
+   
+   void SetupSendStatForwarder() {
+      mMockSendStatsForwarder.reset(new MockSendStats);
+   }
+   
+   
    unsigned int m_numberCaptured;
    unsigned int m_numberToCapture;
    unsigned int m_numberOfEmptyReadsToTolerate;
@@ -212,9 +232,11 @@ public:
    bool mWarnActivatePCapHandle;
    bool mRealIsDone;
    bool mFailGetStats;
-   int mPsRecv;
-   int mPsDrop;
-   int mPsIfDrop;
+   
+   
+   uint32_t mPsRecv;
+   uint32_t mPsDrop;
+   uint32_t mPsIfDrop;
    bool mFakePutEvent;
    bool mFakePutEventTriggered;
    bool mFakePCap;
@@ -222,6 +244,10 @@ public:
    uint8_t mBogusPacket[100];
    int mFakePCapRetVal;
    static std::string mAnError;
+   
+private:
+   std::unique_ptr<SendStats> mMockSendStatsForwarder;
+
 
 };
 

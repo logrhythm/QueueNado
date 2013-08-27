@@ -2,9 +2,11 @@
 #include "PacketCaptureReceiver.h"
 #include "PacketCaptureTest.h"
 #include "PacketCapturePCapClientThread.h"
+#include "MockSendStats.h"
 #include <sys/socket.h>
 #include "QosmosDPI.h"
 #include <algorithm>
+#include <limits>
 
 using namespace std;
 string MockPacketCapturePCap::mAnError = "this is an error";
@@ -225,7 +227,7 @@ TEST_F(PacketCaptureTest, GetSomethingFromTheInterfaceSendOverExisting) {
 
       PacketCaptureReceiver receiver(t_serverAddr);
       MockPacketCapturePCap capturer(receiver.GetZMQ(), t_interface, mConf);
-
+      
       ASSERT_TRUE(capturer.Initialize());
 
       capturer.mFailGetStats = false;
@@ -254,6 +256,116 @@ TEST_F(PacketCaptureTest, GetSomethingFromTheInterfaceSendOverExisting) {
 #endif
 }
 
+
+TEST_F(PacketCaptureTest, SendWrappedValues) {
+#ifdef LR_DEBUG
+   if (geteuid() == 0) {
+      PacketCaptureReceiver receiver(t_serverAddr);
+      MockPacketCapturePCap capturer(receiver.GetZMQ(), t_interface, mConf);
+      capturer.SetupSendStatForwarder(); // pseudo SendStat
+
+      // dynamic cast only in the unit test. GetStatForwarder would normally return the real class type
+      MockSendStats& statForwarder = dynamic_cast<MockSendStats&>(capturer.GetSendStatForwarder());
+      auto& receivedStats = statForwarder.mSendStatValues;
+      ASSERT_TRUE(capturer.Initialize());
+       
+      static const uint32_t max = std::numeric_limits<uint32_t>::max();
+      capturer.mFailGetStats = false;
+      capturer.mPsRecv = max;
+      capturer.mPsDrop = 100;
+      capturer.mPsIfDrop = 200;
+      
+      capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
+              t_packetsIfDropped, t_totalData);
+      ASSERT_EQ(receivedStats.size(), 4);
+      EXPECT_EQ(capturer.mPsRecv, max);  
+      EXPECT_EQ(max-100, t_packetsReceived); // mPsRecv - mPsDrop
+      EXPECT_EQ(receivedStats[0], max-100);  // SendStat (rec-dropped - last)
+
+      EXPECT_EQ(100, t_packetsDropped);
+      EXPECT_EQ(receivedStats[1], 100); // SendStat (dropped - last)
+
+      EXPECT_EQ(200, t_packetsIfDropped);
+      EXPECT_EQ(receivedStats[2],200); // SendStat (ifDropped -last)
+
+      // wrap the values, i.e. lower value than earlier
+      receivedStats.clear();
+      capturer.mPsRecv = 10;  // 10+1+100 more
+      capturer.mPsDrop = 0;   // max-100+1 more
+      capturer.mPsIfDrop = 0; // max-200+1 more
+      capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
+              t_packetsIfDropped, t_totalData);
+  
+      ASSERT_EQ(receivedStats.size(), 4);
+      EXPECT_EQ(10, t_packetsReceived); // mPsRecv - mPsDrop
+      EXPECT_EQ(receivedStats[0], 111); // SendState rec - last: wrap(10 + 1, max-100)
+
+      EXPECT_EQ(0, t_packetsDropped);
+      EXPECT_EQ(receivedStats[1], max-100+1); // SendStat drop: (max -100 +1)
+
+      EXPECT_EQ(0, t_packetsIfDropped);
+      EXPECT_EQ(receivedStats[2], max-200+1);
+   
+      capturer.Shutdown(true);
+   }
+#endif
+}
+
+
+
+
+TEST_F(PacketCaptureTest, TotalDataWrappedValues) {
+#ifdef LR_DEBUG
+   if (geteuid() == 0) {
+      PacketCaptureReceiver receiver(t_serverAddr);
+      MockPacketCapturePCap capturer(receiver.GetZMQ(), t_interface, mConf);
+      capturer.SetupSendStatForwarder(); // pseudo SendStat
+
+      // dynamic cast only in the unit test. GetStatForwarder would normally return the real class type
+      MockSendStats& statForwarder = dynamic_cast<MockSendStats&>(capturer.GetSendStatForwarder());
+      auto& receivedStats = statForwarder.mSendStatValues;
+      ASSERT_TRUE(capturer.Initialize());
+       
+      capturer.mFailGetStats = false;
+      int64_t iMax = std::numeric_limits<int64_t>::max();
+      capturer.IncrementTotalData(iMax);
+      // start from max
+      capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
+              t_packetsIfDropped, t_totalData);
+      size_t totalIndex  = 3;
+      EXPECT_EQ(t_totalData, iMax);
+      EXPECT_EQ(receivedStats[totalIndex], iMax);
+      receivedStats.clear();
+
+
+      // wrap around
+      capturer.IncrementTotalData(10); // i.e. 10+max --> wrap to 9
+      capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
+              t_packetsIfDropped, t_totalData);
+      EXPECT_EQ(t_totalData, 9); // latest update
+      EXPECT_EQ(receivedStats[totalIndex], 10);  // diff 10 in size from earlier
+      receivedStats.clear();
+
+      // small increment
+      capturer.IncrementTotalData(15); 
+      capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
+              t_packetsIfDropped, t_totalData);
+      EXPECT_EQ(t_totalData, 24); // 9+15
+      EXPECT_EQ(receivedStats[totalIndex], 15);  // 24-9
+      receivedStats.clear();
+
+      // wrap around again. This big increment represents many small
+      capturer.IncrementTotalData(iMax);  // 24 + max --> wrap --> 23
+      capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
+              t_packetsIfDropped, t_totalData);
+      EXPECT_EQ(t_totalData, 23); 
+      EXPECT_EQ(receivedStats[totalIndex], iMax);  
+      receivedStats.clear();
+
+      capturer.Shutdown(true);
+   }
+#endif
+}
 //TEST_F( PacketCaptureTest, GetSomethingFromABigFile) {
 //   if (geteuid() == 0) {
 //      int expectedPackets = 583;
