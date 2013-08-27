@@ -5,7 +5,8 @@ class MockEthInfo : public EthInfo {
 public:
       
    MockEthInfo() : EthInfo(), mFakeInitialize(false), mFakeInitializeFailure(false),
-   mFakeGetIFAddrs(false), mifaddr(NULL), mGetIFAddrsRetVal(-1) {
+   mFakeGetIFAddrs(false), mifaddr(NULL), mGetIFAddrsRetVal(-1),mFakeIsValid (false),
+   mFakeIsValidValue(true){
       
    }
    virtual ~MockEthInfo() {}
@@ -30,10 +31,18 @@ public:
       }
       return EthInfo::GetIFAddrs(ifaddr);
    }
+   bool IsValid() {
+      if (mFakeIsValid) {
+         return mFakeIsValidValue;
+      }
+      return EthInfo::IsValid();
+   }
    bool mFakeInitialize;
    bool mFakeInitializeFailure;
    bool mFakeGetIFAddrs;
    struct ifaddrs *mifaddr;
    int mGetIFAddrsRetVal;
    std::unordered_set<std::string> mFakeInterfaceNames;
+   bool mFakeIsValid;
+   bool mFakeIsValidValue;
 };

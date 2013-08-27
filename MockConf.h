@@ -234,26 +234,26 @@ public:
       return mSiemDebug;
    }
    
-   bool InternallyRepairBaseConf(bool canVerifyEth, EthInfo& ethInfo) LR_OVERRIDE {
+   bool InternallyRepairBaseConf( EthInfo& ethInfo) LR_OVERRIDE {
       if (mOverrideInternalRepair) {
          return mInternalRepair;
       }
-      return Conf::InternallyRepairBaseConf(canVerifyEth,ethInfo);
+      return Conf::InternallyRepairBaseConf(ethInfo);
    }
-   void RepairEthConfFieldsWithDefaults(ConfMap& protoMap, bool canVerifyEth, EthInfo& ethInfo) LR_OVERRIDE {
+   void RepairEthConfFieldsWithDefaults(ConfMap& protoMap, EthInfo& ethInfo) LR_OVERRIDE {
       if (mValidateEthFailCount > 0) {
          mValidateEthFailCount--;
       }
-      return Conf::RepairEthConfFieldsWithDefaults(protoMap,canVerifyEth,ethInfo);
+      return Conf::RepairEthConfFieldsWithDefaults(protoMap,ethInfo);
    }
-   bool ValidateEthConfFields(ConfMap& protoMap, bool canVerifyEth, EthInfo& ethInfo) LR_OVERRIDE {
+   bool ValidateEthConfFields(ConfMap& protoMap,  EthInfo& ethInfo) LR_OVERRIDE {
       if (mValidateEthFailCount > 0) {
          return false;
       } else if (mValidateEthFailCount == 0) {
          return true;
       } 
       mValidateEthFailCount = -1;
-      return Conf::ValidateEthConfFields(protoMap,canVerifyEth,ethInfo);
+      return Conf::ValidateEthConfFields(protoMap,ethInfo);
    }
    
    std::string mSyslogAgentPort;

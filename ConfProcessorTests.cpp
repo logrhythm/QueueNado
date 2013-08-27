@@ -35,8 +35,9 @@ TEST_F(ConfProcessorTests, EthConfValidate) {
    conf.mValidateEthFailCount = -1;
    MockEthInfo ethInfo;
    ConfMap protoMap;
-
-   EXPECT_TRUE(conf.ValidateEthConfFields(protoMap, false, ethInfo)); // Cannot verify anything
+   ethInfo.mFakeIsValid = true;
+   ethInfo.mFakeIsValidValue = false;
+   EXPECT_TRUE(conf.ValidateEthConfFields(protoMap, ethInfo)); // Cannot verify anything
 
    ethInfo.mFakeInitialize = true;
    ethInfo.mFakeInitializeFailure = false;
@@ -45,14 +46,14 @@ TEST_F(ConfProcessorTests, EthConfValidate) {
    ethInfo.mFakeInterfaceNames.insert("test3");
 
    ethInfo.Initialize();
-
-   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap, true, ethInfo)); // "" value is false
+   ethInfo.mFakeIsValidValue = true;
+   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap, ethInfo)); // "" value is false
 
    conf.mPCAPInterface = "false";
-   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap, true, ethInfo)); // not in valid interface names
+   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap,ethInfo)); // not in valid interface names
 
    conf.mPCAPInterface = "test1";
-   EXPECT_TRUE(conf.ValidateEthConfFields(protoMap, true, ethInfo));
+   EXPECT_TRUE(conf.ValidateEthConfFields(protoMap, ethInfo));
 }
 
 TEST_F(ConfProcessorTests, EthConfRepair) {
@@ -68,15 +69,17 @@ TEST_F(ConfProcessorTests, EthConfRepair) {
    ethInfo.mFakeInterfaceNames.insert("em2");
 
    ethInfo.Initialize();
-
-   conf.RepairEthConfFieldsWithDefaults(protoMap, false, ethInfo); // doesn't do anything
+   ethInfo.mFakeIsValid = true;
+   ethInfo.mFakeIsValidValue = false;
+   conf.RepairEthConfFieldsWithDefaults(protoMap, ethInfo); // doesn't do anything
    EXPECT_EQ(0, protoMap.size());
-   conf.RepairEthConfFieldsWithDefaults(protoMap, true, ethInfo); // empty becomes full
+   ethInfo.mFakeIsValidValue = true;
+   conf.RepairEthConfFieldsWithDefaults(protoMap, ethInfo); // empty becomes full
    ASSERT_EQ(1, protoMap.size());
    EXPECT_EQ("em2", protoMap["pcapInterface"]);
    conf.mPCAPInterface = "false";
    protoMap.clear();
-   conf.RepairEthConfFieldsWithDefaults(protoMap, true, ethInfo); // wrong becomes right
+   conf.RepairEthConfFieldsWithDefaults(protoMap, ethInfo); // wrong becomes right
    ASSERT_EQ(1, protoMap.size());
    EXPECT_EQ("em2", protoMap["pcapInterface"]);
    ethInfo.mFakeInterfaceNames.clear();
@@ -86,7 +89,7 @@ TEST_F(ConfProcessorTests, EthConfRepair) {
    ethInfo.Initialize();
    conf.mPCAPInterface = "em2";
    protoMap.clear();
-   conf.RepairEthConfFieldsWithDefaults(protoMap, true, ethInfo); // flip to eth1
+   conf.RepairEthConfFieldsWithDefaults(protoMap, ethInfo); // flip to eth1
    ASSERT_EQ(1, protoMap.size());
    EXPECT_EQ("eth1", protoMap["pcapInterface"]);
 }
@@ -95,11 +98,13 @@ TEST_F(ConfProcessorTests, BaseConfInternalRepair) {
    MockConf conf;
    MockEthInfo ethInfo;
    conf.mValidateEthFailCount = 2;
-   EXPECT_FALSE(conf.InternallyRepairBaseConf(true,ethInfo)); // Repair always fails
+      ethInfo.mFakeIsValid = true;
+   ethInfo.mFakeIsValidValue = true;
+   EXPECT_FALSE(conf.InternallyRepairBaseConf(ethInfo)); // Repair always fails
    conf.mValidateEthFailCount = 0;
-   EXPECT_FALSE(conf.InternallyRepairBaseConf(true,ethInfo)); // no change needed
+   EXPECT_FALSE(conf.InternallyRepairBaseConf(ethInfo)); // no change needed
    conf.mValidateEthFailCount = 1;
-   EXPECT_TRUE(conf.InternallyRepairBaseConf(true,ethInfo)); // repair works
+   EXPECT_TRUE(conf.InternallyRepairBaseConf(ethInfo)); // repair works
 }
 #endif
 
