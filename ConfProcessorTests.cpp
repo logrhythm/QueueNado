@@ -31,14 +31,12 @@ using namespace networkMonitor;
 #include "MockConf.h"
 #include "MockEthInfo.h"
 
-//TEST_F(ConfProcessorTests, BlankBaseConfWillFail) {
-//   MockConf conf;
-//   EXPECT_EQ(conf.mValidBaseConf, true);
-//   protoMsg::BaseConf blank;
-//   EXPECT_EQ(blank.has_dpithreads(), false);
-//   conf.updateFields(blank); // trigger Mocked ValidateBaseConf
-//   EXPECT_EQ(conf.mValidBaseConf, false);   
-//}
+
+
+
+
+
+
 
 TEST_F(ConfProcessorTests, EthConfValidate) {
    MockConf conf;

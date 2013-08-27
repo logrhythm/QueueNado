@@ -143,7 +143,8 @@ ConfProcessorTests_LDFLAGS=${BASE_LIBS}
 ConfProcessorTests_SOURCES=main.cpp \
         ConfProcessorTests.cpp \
 	QosmosConfTest.cpp \
-	ConfNtpProcessorTests.cpp
+	ConfNtpProcessorTests.cpp \
+	ConfBaseValidationTests.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 CommandProcessorTests_LDADD=${DYNAMIC_LIBS}
