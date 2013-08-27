@@ -18,6 +18,7 @@
 #include "MockConfMaster.h"
 #include "RestartMsg.pb.h"
 #include "VersionMsg.pb.h"
+#include "BaseConfMsg.pb.h"
 #include "SyslogConfMsg.pb.h"
 #include "Shotgun.h"
 #include "g2log.hpp"
@@ -29,6 +30,15 @@ using namespace networkMonitor;
 #ifdef LR_DEBUG
 #include "MockConf.h"
 #include "MockEthInfo.h"
+
+//TEST_F(ConfProcessorTests, BlankBaseConfWillFail) {
+//   MockConf conf;
+//   EXPECT_EQ(conf.mValidBaseConf, true);
+//   protoMsg::BaseConf blank;
+//   EXPECT_EQ(blank.has_dpithreads(), false);
+//   conf.updateFields(blank); // trigger Mocked ValidateBaseConf
+//   EXPECT_EQ(conf.mValidBaseConf, false);   
+//}
 
 TEST_F(ConfProcessorTests, EthConfValidate) {
    MockConf conf;

@@ -43,7 +43,8 @@ public:
    mStatsIntervalSeconds(5),
    mOverrideInternalRepair(false),
    mInternalRepair(true), 
-   mValidateEthFailCount(0){
+   mValidateEthFailCount(0),
+   mValidBaseConf(true){
    }
 
    ~MockConf() {
@@ -256,6 +257,11 @@ public:
       return Conf::ValidateEthConfFields(protoMap,ethInfo);
    }
    
+   bool ValidateBaseConf(const protoMsg::BaseConf& msg) LR_OVERRIDE {
+      mValidBaseConf = Conf::ValidateBaseConf(msg);
+      return mValidBaseConf;
+   }
+   
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;
@@ -302,5 +308,6 @@ public:
    bool mOverrideInternalRepair;
    bool mInternalRepair;
    int mValidateEthFailCount;
+   bool mValidBaseConf;
 
 };
