@@ -78,6 +78,10 @@ namespace networkMonitor {
       }
       int mRepeats;
 
+      std::string GetApplicationNameFromList(const TypeAppLicationList& appList) const LR_OVERRIDE{
+         return DpiMsgLR::GetApplicationNameFromList(appList);
+      }
+
    };
 }
 #endif
