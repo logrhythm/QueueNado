@@ -7,13 +7,14 @@
 #include "ConfSlave.h"
 #include "MockConf.h"
 #include "g2log.hpp"
+#include "ShutdownMsg.pb.h"
 
 namespace networkMonitor {
 
    class MockConfSlave : public ConfSlave {
    public:
 
-      MockConfSlave() : mAppClosed(false), mNewConfSeen(false),
+      MockConfSlave() : mShutDownConfReceived(false), mShutDownConfValue(false), mAppClosed(false), mNewConfSeen(false),
       mNewQosmosSeen(false), mNewSyslogSeen(false), mNewNetInterfaceMsg(false), mNewNtpMsg(false),
       mBroadcastQueueName("ipc:///tmp/testconfbroacast.ipc") {
 
@@ -61,6 +62,22 @@ namespace networkMonitor {
          LOG(DEBUG) << "MockProcessRestartMsg";
          return ConfSlave::ProcessRestartMsg(configTypeMessage, shots);
       }
+      
+      bool ProcessShutdownMsg(const protoMsg::ConfType& configTypeMessage,
+              const std::vector<std::string>& shots) {
+         LOG(DEBUG) << "ProcessShutdownMsg";
+         mShutDownConfReceived = ConfSlave::ProcessShutdownMsg(configTypeMessage, shots);
+         
+         if(mShutDownConfReceived) {
+            protoMsg::ShutdownMsg shutdownMsg;
+            shutdownMsg.ParseFromString(shots[1]);
+            mShutDownConfValue = shutdownMsg.now();
+            LOG(INFO) << "MockShutdown command received, with status: " << shutdownMsg.now();
+         }
+         
+         return mShutDownConfReceived;
+      }
+      
 
       virtual bool ProcessNetInterfaceMsg(const protoMsg::ConfType& configTypeMessage,
               const std::vector<std::string>& shots) {
@@ -74,6 +91,8 @@ namespace networkMonitor {
          return mNewNtpMsg = ConfSlave::ProcessNtpMsg(configTypeMessage, shots);
       }
 
+      bool mShutDownConfReceived;
+      bool mShutDownConfValue;
       bool mAppClosed;
       bool mNewConfSeen;
       bool mNewQosmosSeen;

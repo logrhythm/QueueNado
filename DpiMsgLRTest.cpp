@@ -558,7 +558,6 @@ TEST_F(DpiMsgLRTests, GetLastStringFieldsByName) {
    lastStr.clear();
    ASSERT_TRUE(dm.GetLastStringByName("application_endq_proto_base", lastStr));
    ASSERT_EQ("def456", lastStr);
-
 }
 
 TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoMultipleProtocols) {
@@ -566,11 +565,65 @@ TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoMultipleProtocols) {
    dm.add_application_endq_proto_base("tcp");
    dm.add_application_endq_proto_base("http");
    dm.add_application_endq_proto_base("google");
-   std::string lastStr;
-   lastStr = dm.GetLatestApplicationFromProto();
+   std::string lastStr = dm.GetLatestApplicationFromProto();
    ASSERT_EQ("google", lastStr);
-
 }
+
+
+TEST_F(DpiMsgLRTests, VerifyGetApplicationNameFromList) {
+   MockDpiMsgLR dm;
+   dm.add_application_endq_proto_base("google");
+   dm.add_applicationq_proto_base("yahoo");
+   auto listG = dm.application_endq_proto_base();
+   auto listY = dm.applicationq_proto_base();
+                
+   auto appG = dm.GetApplicationNameFromList(listG);
+   auto appY = dm.GetApplicationNameFromList(listY);
+   ASSERT_EQ(appG, "google");   
+   ASSERT_EQ(appY, "yahoo");   
+}
+
+TEST_F(DpiMsgLRTests, GetUnknownApplicationNameFromList) {
+   MockDpiMsgLR dm;
+   dm.add_application_endq_proto_base("tcp");
+   dm.add_application_endq_proto_base("unknown");
+   auto list = dm.application_endq_proto_base();
+   
+   auto app = dm.GetApplicationNameFromList(list);
+   ASSERT_EQ(app, "unknown");   
+}
+
+TEST_F(DpiMsgLRTests, GetKnownApplicationNameFromList) {
+   MockDpiMsgLR dm;
+   dm.add_application_endq_proto_base("tcp");
+   dm.add_application_endq_proto_base("gtalk");
+   dm.add_application_endq_proto_base("unknown");
+   auto list = dm.application_endq_proto_base();
+   
+   auto app = dm.GetApplicationNameFromList(list);
+   ASSERT_EQ(app, "gtalk");   
+   ASSERT_EQ(app, dm.GetLatestApplicationFromProto());
+}
+
+TEST_F(DpiMsgLRTests, GetXApplicationNameFromList) {
+   std::vector<std::string> unknownInclusiveList {{"base"}, {"ip"}, {"udp"}, {"tcp"}};
+   for(auto& protocol: unknownInclusiveList) {
+      MockDpiMsgLR dm;
+      dm.add_applicationq_proto_base(protocol);
+      dm.add_applicationq_proto_base("jabber");
+      dm.add_applicationq_proto_base("unknown");
+      EXPECT_EQ("jabber", dm.GetLatestApplication());
+   }
+   
+   for(auto& protocol: unknownInclusiveList) {
+      MockDpiMsgLR dm;
+      dm.add_applicationq_proto_base("jabber");
+      dm.add_applicationq_proto_base(protocol);
+      dm.add_applicationq_proto_base("unknown");
+      EXPECT_EQ("unknown", dm.GetLatestApplication());
+   }
+}
+
 
 TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoSingleProtocol) {
    DpiMsgLR dm;

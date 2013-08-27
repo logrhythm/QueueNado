@@ -48,7 +48,11 @@ namespace networkMonitor {
       bool IsRestartRequest(const protoMsg::ConfType& configTypeMessage) {
          return ConfMaster::IsRestartRequest(configTypeMessage);
       }
-
+      
+      bool IsShutdownRequest(const protoMsg::ConfType& configTypeMessage) {
+         return ConfMaster::IsShutdownRequest(configTypeMessage);
+      }
+      
       void UpdateCachedMessages(Conf& conf) {
          return ConfMaster::UpdateCachedMessages(conf);
       }
