@@ -569,7 +569,7 @@ TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoMultipleProtocols) {
    ASSERT_EQ("google", lastStr);
 }
 
-
+#ifdef LR_DEBUG
 TEST_F(DpiMsgLRTests, VerifyGetApplicationNameFromList) {
    MockDpiMsgLR dm;
    dm.add_application_endq_proto_base("google");
@@ -623,7 +623,7 @@ TEST_F(DpiMsgLRTests, GetXApplicationNameFromList) {
       EXPECT_EQ("unknown", dm.GetLatestApplication());
    }
 }
-
+#endif
 
 TEST_F(DpiMsgLRTests, GetLastApplicationFromProtoSingleProtocol) {
    DpiMsgLR dm;
