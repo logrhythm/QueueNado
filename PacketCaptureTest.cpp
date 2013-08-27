@@ -347,7 +347,7 @@ TEST_F(PacketCaptureTest, TotalDataWrappedValues) {
       receivedStats.clear();
 
       // small increment
-      capturer.IncrementTotalData(15); // i.e. (up to max, then wrap around  +2
+      capturer.IncrementTotalData(15); 
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
               t_packetsIfDropped, t_totalData);
       EXPECT_EQ(t_totalData, 24); // 9+15
@@ -355,7 +355,7 @@ TEST_F(PacketCaptureTest, TotalDataWrappedValues) {
       receivedStats.clear();
 
       // wrap around again. This big increment represents many small
-      capturer.IncrementTotalData(iMax);  // 24 + complete wrap --> 23
+      capturer.IncrementTotalData(iMax);  // 24 + max --> wrap --> 23
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
               t_packetsIfDropped, t_totalData);
       EXPECT_EQ(t_totalData, 23); 
