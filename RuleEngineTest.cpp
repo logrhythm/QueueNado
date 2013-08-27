@@ -13,6 +13,35 @@
 
 using namespace networkMonitor;
 
+TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
+#ifdef LR_DEBUG
+   MockRuleEngine dm(conf, syslogName, syslogOption,
+           syslogFacility, syslogPriority, true, 0);
+
+   networkMonitor::DpiMsgLR aMessage;
+   aMessage.set_sessionid("abc123");
+   aMessage.set_childflownumber(1);
+   aMessage.set_timeupdated(123456789);
+   dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
+   EXPECT_FALSE(dm.mSentUpdate);
+   aMessage.set_childflownumber(2);
+   dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
+   EXPECT_TRUE(dm.mSentUpdate);
+   EXPECT_EQ(123456789-600,dm.mEsMessage.timeupdated());
+   EXPECT_EQ(1,dm.mEsMessage.childflownumber());
+   EXPECT_FALSE(dm.mEsMessage.latestupdate());
+   dm.mSentUpdate = false;
+
+   aMessage.set_timeprevious(123);
+   aMessage.set_childflownumber(201);
+   dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
+   EXPECT_TRUE(dm.mSentUpdate);
+   EXPECT_EQ(123,dm.mEsMessage.timeupdated());
+   EXPECT_EQ(200,dm.mEsMessage.childflownumber());
+   EXPECT_FALSE(dm.mEsMessage.latestupdate());
+#endif
+}
+
 TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
 #ifdef LR_DEBUG
    MockRuleEngine dm(conf, syslogName, syslogOption,
@@ -48,7 +77,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("00:00:00:00:00:00", results[SIEM_FIELD_SMAC].second);
    EXPECT_EQ("00:00:00:00:00:00", results[SIEM_FIELD_DMAC].second);
    EXPECT_EQ("0", results[SIEM_FIELD_PROTONUM].second);
-   EXPECT_EQ("", results[SIEM_FIELD_PROCESS].second);  // when we have a "none" field this should change
+   EXPECT_EQ("", results[SIEM_FIELD_PROCESS].second); // when we have a "none" field this should change
    EXPECT_EQ("0", results[SIEM_FIELD_BYTES_IN].second);
    EXPECT_EQ("0", results[SIEM_FIELD_DELTA_BYTES_IN].second);
    EXPECT_EQ("0", results[SIEM_FIELD_BYTES_OUT].second);

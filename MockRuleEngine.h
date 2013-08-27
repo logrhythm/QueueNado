@@ -20,7 +20,7 @@ namespace networkMonitor {
       mMaxLineLength(2048), mScriptsDir("../scripts"),
       mStatsQueueName("ipc:///tmp/statsAccumulatorQ.ipc"),
       mDpiRcvrQueue("ipc:///tmp/dpilrmsgtest.ipc"),
-      mDpiMsgQueueSize(1000), mSiemDebugMode(false) {
+      mDpiMsgQueueSize(1000), mSiemDebugMode(false), mSentUpdate(false) {
       };
 
       bool GetSyslogMessages(IndexedFieldPairs& formattedFieldData, std::vector<std::string>& messages, unsigned int dynamicStart) {
@@ -133,6 +133,20 @@ namespace networkMonitor {
          RuleEngine::mElasticSearchTarget = target;
          RuleEngine::mTransferElasticSearch.SetBinding(target);
       }
+      void UpdatePreviousRecordNoLongerLatest(networkMonitor::DpiMsgLR* dpiMsg) {
+         RuleEngine::UpdatePreviousRecordNoLongerLatest(dpiMsg);
+      }
+      bool UpdateDocWithDpiMsg(const networkMonitor::DpiMsgLR& dpiMsg) {
+         mEsMessage.Clear();
+         mEsMessage = dpiMsg;
+         mSentUpdate = true;
+         return true;
+      }
+      bool AddDocWithDpiMsg(const networkMonitor::DpiMsgLR& dpiMsg) {
+         mEsMessage.Clear();
+         mEsMessage = dpiMsg;
+         return true;
+      }
       bool mSiemMode;
       bool mSyslogEnabled;
       unsigned int mMaxLineLength;
@@ -141,7 +155,8 @@ namespace networkMonitor {
       std::string mDpiRcvrQueue;
       int mDpiMsgQueueSize;
       bool mSiemDebugMode;
-
+      bool mSentUpdate;
+      DpiMsgLR mEsMessage;
    };
 
 }
