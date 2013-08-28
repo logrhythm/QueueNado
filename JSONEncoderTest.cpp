@@ -194,9 +194,9 @@ TEST_F(JSONEncoderTest, encodesQuickSearchFields) {
 
    testMsg.set_sessionid("ABC123");
    testMsg.add_application_endq_proto_base("test");
-   testMsg.add_application_endq_proto_base("unknown");
+   testMsg.add_application_endq_proto_base("test2");
    testMsg.add_applicationq_proto_base("test");
-   testMsg.add_applicationq_proto_base("unknown");
+   testMsg.add_applicationq_proto_base("test2");
    testMsg.set_bytesserver(567);
    testMsg.set_bytesserverdelta(67);
    testMsg.set_bytesclient(899);
@@ -209,23 +209,23 @@ TEST_F(JSONEncoderTest, encodesQuickSearchFields) {
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
    EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
    EXPECT_TRUE(StringContains(encodedMessage,"\"bytesClient\": 899")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#application\": [\"test\", \"unknown\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#application\": [\"test\", \"test2\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"bytesServer\": 567")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"bytesServerDelta\": 67")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"bytesClientDelta\": 99")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationEnd\": [\"test\", \"unknown\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationEnd\": [\"test\", \"test2\"]")); 
 
    testMsg.UpdateQuickSearchFields();
    encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
    EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
    EXPECT_TRUE(StringContains(encodedMessage,"\"bytesClient\": 899")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#application\": [\"test\", \"unknown\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#application\": [\"test\", \"test2\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"bytesServer\": 567")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"bytesServerDelta\": 67")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"bytesClientDelta\": 99")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationEnd\": [\"test\", \"unknown\"]"));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"applicationPath\": \"/test/unknown\"")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"application\": \"unknown\"")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationEnd\": [\"test\", \"test2\"]"));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"applicationPath\": \"/test/test2\"")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"application\": \"test2\"")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"bytesTotal\": 1466"));
    EXPECT_TRUE(StringContains(encodedMessage,"\"bytesTotalDelta\": 166"));
    

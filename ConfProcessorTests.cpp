@@ -1597,10 +1597,11 @@ TEST_F(ConfProcessorTests, testConfSlaveBasic) {
 
 TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    LOG(DEBUG) << "testConfSlaveUpdate start";
-   ConfMaster& master = ConfMaster::Instance();
+   MockConfMaster master;
    ConfSlave& slave = ConfSlave::Instance();
    master.Stop();
    slave.Stop();
+   master.SetConfLocation(mWriteLocation);
    master.SetPath(mWriteLocation);
    slave.SetPath(mWriteLocation);
    master.Start();
@@ -1626,7 +1627,7 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    //expect all confs to be updated
    sleep(1);
    ASSERT_TRUE(master.ReceiveConf((void *) &masterConf, masterConf));
-   int tries = 5;
+   int tries = 50;
    while (tries >= 0) {
       if (slave.ReceiveConf((void *) &slaveConf, slaveConf)) {
          break;
@@ -1652,6 +1653,17 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    EXPECT_EQ(normalConf.getPCAPInterface(), slaveConf.getPCAPInterface());
    EXPECT_EQ(normalConf.getSyslogEnabled(), slaveConf.getSyslogEnabled());
 
+   EXPECT_EQ(normalConf.getSyslogAgentIP(), masterConf.getSyslogAgentIP());
+   EXPECT_EQ(normalConf.getSyslogAgentPort(), masterConf.getSyslogAgentPort());
+   EXPECT_EQ(normalConf.getDpiRcvrQueue(), masterConf.getDpiRcvrQueue());
+   EXPECT_EQ(normalConf.getConfChangeQueue(), masterConf.getConfChangeQueue());
+   EXPECT_EQ(normalConf.getCommandQueue(), masterConf.getCommandQueue());
+   EXPECT_EQ(normalConf.getDpiThreads(), masterConf.getDpiThreads());
+   EXPECT_EQ(normalConf.getPCAPETimeOut(), masterConf.getPCAPETimeOut());
+   EXPECT_EQ(normalConf.getPCAPBuffsize(), masterConf.getPCAPBuffsize());
+   EXPECT_EQ(normalConf.getPCAPInterface(), masterConf.getPCAPInterface());
+   EXPECT_EQ(normalConf.getSyslogEnabled(), masterConf.getSyslogEnabled());
+   
    master.UnregisterConsumer((void *) &masterConf);
    slave.UnregisterConsumer((void *) &slaveConf);
    master.Stop();
