@@ -149,6 +149,13 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
    msg.set_enableintermediateflows(validBool);
    msg.set_enablepacketcapture(validBool);
    
+   
+   // START
+   msg.set_capturefilelimit(validNumber);
+   msg.set_capturesizelimit(validNumber);
+   msg.set_capturememorylimit(validNumber);
+   msg.set_capturemaxpackets(validNumber);
+   
    conf.updateFields(msg);
    EXPECT_EQ(conf.mValidBaseConf, true);   
 }
