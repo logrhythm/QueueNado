@@ -28,19 +28,23 @@ TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
    conf.mIgnoreBaseConfValidation = false;
    EXPECT_EQ(conf.mValidBaseConf, true);
    
-   conf.CheckNumber(""); // check for empty
+   EXPECT_ANY_THROW(conf.CheckNumber("")); // check for empty
+   EXPECT_EQ(conf.mValidBaseConf, false);  
+   conf.mValidBaseConf = true;
+   
+   EXPECT_ANY_THROW(conf.CheckNumber("Hello World!")); // check for empty
    EXPECT_EQ(conf.mValidBaseConf, false);  
    conf.mValidBaseConf = true;
 
-   conf.CheckNumberForNegative("-123");
+   EXPECT_ANY_THROW(conf.CheckNumberForNegative("-123"));
    EXPECT_EQ(conf.mValidBaseConf, false);
-   conf.CheckNumberForNegative("123");
+   EXPECT_NO_THROW(conf.CheckNumberForNegative("123"));
    EXPECT_EQ(conf.mValidBaseConf, true);
 
    size_t value = std::numeric_limits<int32_t>::max();   
-   conf.CheckNumberForSize(std::to_string(value+1));
+   EXPECT_ANY_THROW(conf.CheckNumberForSize(std::to_string(value+1)));
    EXPECT_EQ(conf.mValidBaseConf, false);  
-   conf.CheckNumberForSize(std::to_string(value));
+   EXPECT_NO_THROW(conf.CheckNumberForSize(std::to_string(value)));
    EXPECT_EQ(conf.mValidBaseConf, true);  
    
    protoMsg::BaseConf msg;
@@ -56,31 +60,31 @@ TEST_F(ConfProcessorTests, BaseConfValidationText) {
    
 
    conf.mValidBaseConf = false;
-   conf.CheckString(""); 
+   EXPECT_NO_THROW(conf.CheckString("")); 
    EXPECT_EQ(conf.mValidBaseConf, true);  
    conf.mValidBaseConf = true;
    
    conf.mValidBaseConf = false;
-   conf.CheckString("Hello World!"); 
+   EXPECT_NO_THROW(conf.CheckString("Hello World!")); 
    EXPECT_EQ(conf.mValidBaseConf, true);  
 
 
    std::string text(1000,'x');
    conf.mValidBaseConf = false;
-   conf.CheckString(text); 
+   EXPECT_NO_THROW(conf.CheckString(text)); 
    EXPECT_EQ(conf.mValidBaseConf, true);  
    conf.mValidBaseConf = false;
-   conf.CheckStringForSize(text); 
+   EXPECT_NO_THROW(conf.CheckStringForSize(text)); 
    EXPECT_EQ(conf.mValidBaseConf, true); 
    
    // validate size failures
    conf.mValidBaseConf = true;
    text.append({"y"});
-   conf.CheckString(text); 
+   EXPECT_ANY_THROW(conf.CheckString(text)); 
    EXPECT_EQ(conf.mValidBaseConf, false);  
  
    conf.mValidBaseConf = true;
-   conf.CheckStringForSize(text); 
+   EXPECT_ANY_THROW(conf.CheckStringForSize(text)); 
    EXPECT_EQ(conf.mValidBaseConf, false); 
 }   
 
@@ -91,19 +95,19 @@ TEST_F(ConfProcessorTests, BaseConfValidationBool) {
    EXPECT_EQ(conf.mValidBaseConf, true);
 
    conf.mValidBaseConf = true;
-   conf.CheckBool(""); 
+   EXPECT_ANY_THROW(conf.CheckBool("")); 
    EXPECT_EQ(conf.mValidBaseConf, false);  
 
    conf.mValidBaseConf = true;
-   conf.CheckBool("Hello World!"); 
+   EXPECT_ANY_THROW(conf.CheckBool("Hello World!")); 
    EXPECT_EQ(conf.mValidBaseConf, false);  
 
    conf.mValidBaseConf = false;
-   conf.CheckBool("true"); 
+   EXPECT_NO_THROW(conf.CheckBool("true")); 
    EXPECT_EQ(conf.mValidBaseConf, true);  
 
    conf.mValidBaseConf = false;
-   conf.CheckBool("false"); 
+   EXPECT_NO_THROW(conf.CheckBool("false")); 
    EXPECT_EQ(conf.mValidBaseConf, true);  
 }   
 
@@ -145,114 +149,105 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
    // msg.set_dburl
    // msg.set_dburl;
    // msg.set_statsaggregationqueue
-   msg.set_commandqueue(validText);
-   msg.set_enableintermediateflows(validBool);
-   msg.set_enablepacketcapture(validBool);
-   
-   
-   // START
-   msg.set_capturefilelimit(validNumber);
-   msg.set_capturesizelimit(validNumber);
-   msg.set_capturememorylimit(validNumber);
-   msg.set_capturemaxpackets(validNumber);
+   msg.set_commandqueue(validText);            // commandQueue
+   msg.set_enableintermediateflows(validBool); //enableIntermediateFlows
+   msg.set_enablepacketcapture(validBool);     //enablePacketCapture
+   msg.set_capturefilelimit(validNumber);       //captureFileLimit
+   msg.set_capturesizelimit(validNumber);       //captureSizeLimit
+   msg.set_capturememorylimit(validNumber);     //captureMemoryLimit
+   msg.set_capturemaxpackets(validNumber);      //captureMaxPackets
    
    conf.updateFields(msg);
    EXPECT_EQ(conf.mValidBaseConf, true);   
 }
 
-
-// below this old, failing ALWAYS since the total conf is evaluated
-// the tests below should be removed and instead be replaced for 
-// 1. the non failing test above
-// 2. An looping approach where all fields are entered except one (
-// 
-//  this should make it less verbose and easier to modify as the conf changes
-//  over time
-// 
-//    for(int i = 0; i < fields; ++i) }{ doAllExcept(i)
-//    void doAllExcept(int number) {
-//    if( check++ != number) xxx_setdpithreads(...);
-//    ....
-//    conf.updateFields(...);
-//    EXPECT_EQ(conf.mValidBaseConf, false)....
-//     
-//
-TEST_F(ConfProcessorTests, BaseConfValidationDpiThreadsInvalidNumberWillFail) {
+/**
+ * Sets all fields except for the given @param shouldFail. 
+ * Setting the shouldField to a higher number than the number of fields
+ * SHOULD make the validation to pass instead of fail
+ */
+namespace {
+    const size_t gNumberOfFields = 26;
+}
+void ValidateAllFieldsSetInvalidOnX(const size_t shouldFail) {
+   size_t index = 0;
    MockConf conf;
    conf.mIgnoreBaseConfValidation = false;
-   EXPECT_EQ(conf.mValidBaseConf, true);
-   protoMsg::BaseConf blank;
-   blank.set_dpithreads("");
-   EXPECT_EQ(blank.has_dpithreads(), true);
-   conf.updateFields(blank); // trigger Mocked ValidateBaseConf
-   EXPECT_EQ(conf.mValidBaseConf, false);   
+   conf.mValidBaseConf = false;
    
-   blank.set_dpithreads("Hello World!");
-   EXPECT_EQ(blank.has_dpithreads(), true);
-   conf.updateFields(blank); // trigger Mocked ValidateBaseConf
-   EXPECT_EQ(conf.mValidBaseConf, false);  
+   protoMsg::BaseConf msg; 
+   const std::string validNumber = {"10"};
+   const std::string invalidNumber = std::to_string(std::numeric_limits<size_t>::max());
    
-   blank.set_dpithreads("-123");
-   EXPECT_EQ(blank.has_dpithreads(), true);
-   conf.updateFields(blank); // trigger Mocked ValidateBaseConf
-   EXPECT_EQ(conf.mValidBaseConf, false);      
+   const std::string validText = {"Hello Wold!"};
+   const std::string invalidText(1001,'x');
    
-   blank.set_dpithreads("-123");
-   EXPECT_EQ(blank.has_dpithreads(), true);
-   conf.updateFields(blank); // trigger Mocked ValidateBaseConf
-   EXPECT_EQ(conf.mValidBaseConf, false);      
+   const std::string validBool = {"false"};
+   const std::string invalidBool = {"1"};
+   
+   (index++ == shouldFail) ? msg.set_dpithreads(invalidNumber) : msg.set_dpithreads(validNumber);
+   (index++ == shouldFail) ? msg.set_pcapetimeout(invalidNumber) : msg.set_pcapetimeout(validNumber);
+   (index++ == shouldFail) ? msg.set_pcapbuffersize(invalidNumber): msg.set_pcapbuffersize(validNumber);
+   (index++ == shouldFail) ? msg.set_pcapinterface(invalidText): msg.set_pcapinterface(validText);
+   (index++ == shouldFail) ? msg.set_dpihalfsessions(invalidNumber) : msg.set_dpihalfsessions(validNumber) ;
+   (index++ == shouldFail) ? msg.set_packetsendqueuesize(invalidNumber) : msg.set_packetsendqueuesize(validNumber);
+   (index++ == shouldFail) ? msg.set_packetrecvqueuesize(invalidNumber) : msg.set_packetrecvqueuesize(validNumber);
+   (index++ == shouldFail) ? msg.set_dpimsgsendqueuesize(invalidNumber) : msg.set_dpimsgsendqueuesize(validNumber);
+   (index++ == shouldFail) ? msg.set_dpimsgrecvqueuesize(invalidNumber) : msg.set_dpimsgrecvqueuesize(validNumber);
+   (index++ == shouldFail) ? msg.set_qosmosdebugmodeenabled(invalidBool) : msg.set_qosmosdebugmodeenabled(validBool);
+   (index++ == shouldFail) ? msg.set_qosmos64bytepool(invalidNumber) : msg.set_qosmos64bytepool(validNumber);
+   (index++ == shouldFail) ? msg.set_qosmos128bytepool(invalidNumber) : msg.set_qosmos128bytepool(validNumber);
+   (index++ == shouldFail) ? msg.set_qosmos256bytepool(invalidNumber) :msg.set_qosmos256bytepool(validNumber);
+   (index++ == shouldFail) ? msg.set_qosmos512bytepool(invalidNumber) : msg.set_qosmos512bytepool(validNumber);
+   (index++ == shouldFail) ? msg.set_statsaccumulatorqueue(invalidText) : msg.set_statsaccumulatorqueue(validText);
+   (index++ == shouldFail) ? msg.set_sendstatsqueue(invalidText) : msg.set_sendstatsqueue(validText);
+   (index++ == shouldFail) ? msg.set_qosmosexpirepercallback(invalidNumber):msg.set_qosmosexpirepercallback(validNumber);
+   (index++ == shouldFail) ? msg.set_qosmostcpreassemblyenabled(invalidBool) : msg.set_qosmostcpreassemblyenabled(validBool);
+   (index++ == shouldFail) ? msg.set_qosmosipdefragmentationenabled(invalidBool) : msg.set_qosmosipdefragmentationenabled(validBool);
+   (index++ == shouldFail) ? msg.set_commandqueue(invalidText) : msg.set_commandqueue(validText);
+   (index++ == shouldFail) ? msg.set_enableintermediateflows(invalidBool) : msg.set_enableintermediateflows(validBool);
+   (index++ == shouldFail) ? msg.set_enablepacketcapture(invalidBool) : msg.set_enablepacketcapture(validBool);
+   (index++ == shouldFail) ? msg.set_capturefilelimit(invalidNumber) : msg.set_capturefilelimit(validNumber);
+   (index++ == shouldFail) ? msg.set_capturesizelimit(invalidNumber) : msg.set_capturesizelimit(validNumber);
+   (index++ == shouldFail) ? msg.set_capturememorylimit(invalidNumber) : msg.set_capturememorylimit(validNumber);
+   (index++ == shouldFail) ? msg.set_capturemaxpackets(invalidNumber) : msg.set_capturemaxpackets(validNumber);
+   
+   
+   // Test sanity check. Total number of used fields are :  26
+   EXPECT_EQ(index, gNumberOfFields) << "\t\t\t\t\t: Expected number of fields are 26 unless you added more?";
+   conf.updateFields(msg);
+   
+   
+   if (shouldFail > gNumberOfFields) {
+      if(false == conf.mValidBaseConf) {
+         FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);  
+      }
+      else {
+         SUCCEED();
+      }
+      return;
+   }
+   
+   // We can only reach this if 'shouldFail' was less than number of fields
+   // in this case me MUST have failed or else this test or Conf.cpp has changed
+   //  (or is corrupt)
+   if (true == conf.mValidBaseConf) {
+      FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
+      return;
+   }
+   SUCCEED();
 }
 
 
-
-
-
-//bool BaseConfValidateNumber(const std::string& dataField, std::function<bool()> hasData, std::function<void()> setData) {
-//   std::string help = {"\t\t\t\t\t\tTesting of : "};
-//   help.append(dataField);
-//   MockConf conf;
-//   protoMsg::BaseConf msg;
-//
-//   EXPECT_EQ(conf.mValidBaseConf, true); // before any tests are run
-//   EXPECT_EQ(hasData(msg), false);
-//   conf.updateFields(msg); 
-//   EXPECT_EQ(conf.mValidBaseConf, false) << help;
-//   
-//   setData(msg, "10"); // msg.set_dpithreads("10");
-//   EXPECT_EQ(hasData(msg), true);
-//   conf.updateFields(msg); 
-//   EXPECT_EQ(conf.mValidBaseConf, true);
-//   
-//   return true;
-//}
-
-TEST_F(ConfProcessorTests, BaseConfValidationpcapETimeoutInvalidNumberWillFail) {
-//   auto hasDpi = [](protoMsg::BaseConf& msg) -> bool { return msg.has_dpithreads();};
-//   auto setDpi = [](protoMsg::BaseConf& msg, const std::string& value) ->void { msg.set_dpithreads(value);};
-//   BaseConfValidateNumber("dpithreads", hasDpi, setDpi);
-   
-   MockConf conf;
-   conf.mIgnoreBaseConfValidation = false;
-   EXPECT_EQ(conf.mValidBaseConf, true);
-   protoMsg::BaseConf msg;
-   msg.set_dpithreads("10"); // valid dpithreads
-   
-   msg.set_pcapetimeout("");
-   EXPECT_EQ(msg.has_pcapetimeout(), true);
-   conf.updateFields(msg); // trigger Mocked ValidateBaseConf
-   EXPECT_EQ(conf.mValidBaseConf, false);   
-   
-   msg.set_pcapetimeout("Hello World!");
-   EXPECT_EQ(msg.has_pcapetimeout(), true);
-   conf.updateFields(msg); // trigger Mocked ValidateBaseConf
-   EXPECT_EQ(conf.mValidBaseConf, false);  
-   
-   msg.set_pcapetimeout("-123");
-   EXPECT_EQ(msg.has_pcapetimeout(), true);
-   conf.updateFields(msg); // trigger Mocked ValidateBaseConf
-   EXPECT_EQ(conf.mValidBaseConf, false);      
+TEST_F(ConfProcessorTests, BaseConfValidationAllFieldsFailure) {
+   for(size_t field = 0; field <  gNumberOfFields; ++field) {
+      ValidateAllFieldsSetInvalidOnX(field);
+   }
 }
 
+TEST_F(ConfProcessorTests, BaseConfValidationAllFieldsSuccess) {
+   ValidateAllFieldsSetInvalidOnX(gNumberOfFields+1);
+}
 
 
 #endif //  LR_DEBUG

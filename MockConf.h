@@ -272,7 +272,12 @@ public:
    }
 
    void CheckNumber(const std::string& number) LR_OVERRIDE {
-         Conf::CheckNumber(number);
+         try {
+            Conf::CheckNumber(number);
+         } catch(...){
+               mValidBaseConf = false;
+               throw;   
+         }  
    }
 
    
@@ -299,7 +304,7 @@ public:
          } catch (std::exception e) {
          LOG(DEBUG) << e.what();
          mValidBaseConf = false;
-         return;
+         throw;
       }
       mValidBaseConf = true;
    }
@@ -310,13 +315,18 @@ public:
          } catch (std::exception e) {
          LOG(DEBUG) << e.what();
          mValidBaseConf = false;
-         return;
+         throw;
       }
       mValidBaseConf = true;
    }
 
    void CheckString(const std::string& text) LR_OVERRIDE {
-      Conf::CheckString(text);
+      try {
+         Conf::CheckString(text);
+      } catch(...) {
+         mValidBaseConf = false;
+         throw;
+      }
    }
 
    void CheckStringForSize(const std::string& text) LR_OVERRIDE {
@@ -325,7 +335,7 @@ public:
       } catch (std::exception e) {
          LOG(DEBUG) << e.what();
          mValidBaseConf = false;
-         return;
+         throw;
       }
       mValidBaseConf = true;
    }
@@ -336,7 +346,7 @@ public:
       } catch (std::exception e) {
          LOG(DEBUG) << e.what();
          mValidBaseConf = false;
-         return;
+         throw;
       }
       mValidBaseConf = true;
    }

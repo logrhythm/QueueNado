@@ -32,12 +32,6 @@ using namespace networkMonitor;
 #include "MockEthInfo.h"
 
 
-
-
-
-
-
-
 TEST_F(ConfProcessorTests, EthConfValidate) {
    MockConf conf;
    conf.mValidateEthFailCount = -1;
