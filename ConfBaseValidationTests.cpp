@@ -132,8 +132,22 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
    msg.set_qosmos64bytepool(validNumber);     // Qosmos Byte Bool 64Byte
    msg.set_qosmos128bytepool(validNumber);     // Qosmos Byte Bool 128Byte
    msg.set_qosmos256bytepool(validNumber);     // Qosmos Byte Bool 256Byte
-   msg.set_qosmos512bytepool(validNumber);     // Qosmos Byte Bool 512Byte
+   msg.set_qosmos512bytepool(validNumber); // Qosmos Byte Bool 512Byte
+   msg.set_statsaccumulatorqueue(validText);  // statsAccumulatorQueue
+   msg.set_sendstatsqueue(validText); //sendStatsQueue
+   msg.set_qosmosexpirepercallback(validNumber); //qosmosExpirePerCallback
+   msg.set_qosmostcpreassemblyenabled(validBool); //qosmosTCPReAssemblyEnabled
+   msg.set_qosmosipdefragmentationenabled(validBool);//qosmosIPDefragmentationEnabled
    
+   // WARNING: The commented out fields does not seem to be used in the conf
+   // SHOULD THEY BE REMOVED FROM THE BaseConfMsg.proto?
+   // msg.set_dbclustername
+   // msg.set_dburl
+   // msg.set_dburl;
+   // msg.set_statsaggregationqueue
+   msg.set_commandqueue(validText);
+   msg.set_enableintermediateflows(validBool);
+   msg.set_enablepacketcapture(validBool);
    
    conf.updateFields(msg);
    EXPECT_EQ(conf.mValidBaseConf, true);   
@@ -143,7 +157,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
 // below this old, failing ALWAYS since the total conf is evaluated
 // the tests below should be removed and instead be replaced for 
 // 1. the non failing test above
-// 2. An looping approach where all fields are enteried except one (
+// 2. An looping approach where all fields are entered except one (
 // 
 //  this should make it less verbose and easier to modify as the conf changes
 //  over time
