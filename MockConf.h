@@ -263,7 +263,7 @@ public:
       return Conf::ValidateEthConfFields(protoMap, ethInfo);
    }
 
-   bool ValidateBaseConf(const protoMsg::BaseConf& msg) LR_OVERRIDE {
+   bool ValidateBaseConf(protoMsg::BaseConf& msg) LR_OVERRIDE {
       if (mIgnoreBaseConfValidation) {
          return true;
       }
@@ -271,34 +271,11 @@ public:
       return mValidBaseConf;
    }
 
-   void CheckNumber(const std::string& number) LR_OVERRIDE {
-         try {
-            Conf::CheckNumber(number);
-         } catch(...){
-               mValidBaseConf = false;
-               throw;   
-         }  
+   bool CheckNumber(const std::string& number, int64_t max) LR_OVERRIDE {
+         return Conf::CheckNumber(number, max);
    }
-
-   
-// Possible cleanup / code reduction below   
-//   void DoCatchedCall(std::function<void()> function) {
-//      try {
-//         function();
-//      } catch (std::exception e){
-//         LOG(DEBUG) << e.what();
-//         mValidBaseConf = false;
-//         return;        
-//      }
-//      mValidBaseConf = true;
-//   }
    
    void CheckNumberForNegative(const std::string& number) LR_OVERRIDE {
-// Possible cleanup below
-//   typedef void (Conf::*Func)(const std::string& number);
-//      Func f = &Conf::CheckNumberForNegative;      
-//      DoCatchedCall([this, &f, number]{ this->(*f)(number);}); //Conf::CheckNumberForNegative(number);});
-//      
       try {
          Conf::CheckNumberForNegative(number);
          } catch (std::exception e) {
@@ -309,9 +286,9 @@ public:
       mValidBaseConf = true;
    }
 
-   void CheckNumberForSize(const std::string& number) LR_OVERRIDE {
+   void CheckNumberForSize(const std::string& number, int64_t max) LR_OVERRIDE {
       try {
-         Conf::CheckNumberForSize(number);
+         Conf::CheckNumberForSize(number, max);
          } catch (std::exception e) {
          LOG(DEBUG) << e.what();
          mValidBaseConf = false;
@@ -320,13 +297,8 @@ public:
       mValidBaseConf = true;
    }
 
-   void CheckString(const std::string& text) LR_OVERRIDE {
-      try {
-         Conf::CheckString(text);
-      } catch(...) {
-         mValidBaseConf = false;
-         throw;
-      }
+   bool CheckString(const std::string& text) LR_OVERRIDE {
+      return Conf::CheckString(text);
    }
 
    void CheckStringForSize(const std::string& text) LR_OVERRIDE {
@@ -340,15 +312,9 @@ public:
       mValidBaseConf = true;
    }
    
-   void CheckBool(const std::string& text) LR_OVERRIDE {
-      try {
-         Conf::CheckBool(text);
-      } catch (std::exception e) {
-         LOG(DEBUG) << e.what();
-         mValidBaseConf = false;
-         throw;
-      }
-      mValidBaseConf = true;
+   bool CheckBool(const std::string& text) LR_OVERRIDE {
+    mValidBaseConf = Conf::CheckBool(text);
+    return mValidBaseConf;
    }
 
 

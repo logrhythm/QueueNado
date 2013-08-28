@@ -10,8 +10,11 @@
 #ifdef LR_DEBUG
 using namespace std;
 
-
-TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillFail) {
+namespace {
+   int64_t gMax = std::numeric_limits<int32_t>::max();
+}
+// Not set fields are NOT failure, they will just be ignored 
+TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillSucceed) {
    MockConf conf;
    conf.mIgnoreBaseConfValidation = false;
    
@@ -19,7 +22,27 @@ TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillFail) {
    protoMsg::BaseConf blank;
    EXPECT_EQ(blank.has_dpithreads(), false);
    conf.updateFields(blank); // trigger Mocked ValidateBaseConf
-   EXPECT_EQ(conf.mValidBaseConf, false);   
+   EXPECT_EQ(conf.mValidBaseConf, true);   
+}
+
+// Erronous fields WILL be cleared
+TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
+   MockConf conf;
+   conf.mIgnoreBaseConfValidation = false;
+   EXPECT_EQ(conf.mValidBaseConf, true);
+   
+   protoMsg::BaseConf wrong;
+   EXPECT_EQ(wrong.has_dpithreads(), false);
+   wrong.set_dpithreads("Hello World!");
+   EXPECT_EQ(wrong.has_dpithreads(), true);
+   
+   EXPECT_EQ(conf.mValidBaseConf, true); 
+   conf.updateFields(wrong); // takes a copy of the proto msg
+   EXPECT_EQ(wrong.has_dpithreads(), true);
+   EXPECT_EQ(conf.mValidBaseConf, false); // wrong fields are cleared and marked false   
+
+   conf.ValidateBaseConf(wrong); // but this should clear it
+   EXPECT_EQ(wrong.has_dpithreads(), false);
 }
 
 
@@ -28,11 +51,11 @@ TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
    conf.mIgnoreBaseConfValidation = false;
    EXPECT_EQ(conf.mValidBaseConf, true);
    
-   EXPECT_ANY_THROW(conf.CheckNumber("")); // check for empty
+   EXPECT_NO_THROW(conf.CheckNumber("", gMax)); // check for empty
    EXPECT_EQ(conf.mValidBaseConf, false);  
    conf.mValidBaseConf = true;
    
-   EXPECT_ANY_THROW(conf.CheckNumber("Hello World!")); // check for empty
+   EXPECT_NO_THROW(conf.CheckNumber("Hello World!", gMax)); // check for empty
    EXPECT_EQ(conf.mValidBaseConf, false);  
    conf.mValidBaseConf = true;
 
@@ -40,16 +63,15 @@ TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
    EXPECT_EQ(conf.mValidBaseConf, false);
    EXPECT_NO_THROW(conf.CheckNumberForNegative("123"));
    EXPECT_EQ(conf.mValidBaseConf, true);
-
-   size_t value = std::numeric_limits<int32_t>::max();   
-   EXPECT_ANY_THROW(conf.CheckNumberForSize(std::to_string(value+1)));
+  
+   EXPECT_ANY_THROW(conf.CheckNumberForSize(std::to_string(gMax+1), gMax));
    EXPECT_EQ(conf.mValidBaseConf, false);  
-   EXPECT_NO_THROW(conf.CheckNumberForSize(std::to_string(value)));
+   EXPECT_NO_THROW(conf.CheckNumberForSize(std::to_string(gMax), gMax));
    EXPECT_EQ(conf.mValidBaseConf, true);  
    
    protoMsg::BaseConf msg;
    msg.set_dpithreads("10");
-   conf.CheckNumber(msg.dpithreads()); 
+   conf.CheckNumber(msg.dpithreads(), gMax); 
    EXPECT_EQ(conf.mValidBaseConf, true);   
 }
 
@@ -80,7 +102,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationText) {
    // validate size failures
    conf.mValidBaseConf = true;
    text.append({"y"});
-   EXPECT_ANY_THROW(conf.CheckString(text)); 
+   EXPECT_NO_THROW(conf.CheckString(text)); 
    EXPECT_EQ(conf.mValidBaseConf, false);  
  
    conf.mValidBaseConf = true;
@@ -95,11 +117,11 @@ TEST_F(ConfProcessorTests, BaseConfValidationBool) {
    EXPECT_EQ(conf.mValidBaseConf, true);
 
    conf.mValidBaseConf = true;
-   EXPECT_ANY_THROW(conf.CheckBool("")); 
+   EXPECT_NO_THROW(conf.CheckBool("")); 
    EXPECT_EQ(conf.mValidBaseConf, false);  
 
    conf.mValidBaseConf = true;
-   EXPECT_ANY_THROW(conf.CheckBool("Hello World!")); 
+   EXPECT_NO_THROW(conf.CheckBool("Hello World!")); 
    EXPECT_EQ(conf.mValidBaseConf, false);  
 
    conf.mValidBaseConf = false;
@@ -117,8 +139,10 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
    conf.mIgnoreBaseConfValidation = false;
    protoMsg::BaseConf msg;
    EXPECT_EQ(conf.mValidBaseConf, true);
+
+   // Nonsense update will not trigger a 'failed validation'
    conf.updateFields(msg);
-   EXPECT_EQ(conf.mValidBaseConf, false);
+   EXPECT_EQ(conf.mValidBaseConf, true);
 
    const std::string validNumber = {"10"};
    const std::string validText = {"Hello Wold!"};
