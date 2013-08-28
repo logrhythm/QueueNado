@@ -31,17 +31,25 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    conf.mIgnoreBaseConfValidation = false;
    EXPECT_EQ(conf.mValidBaseConf, true);
    
-   protoMsg::BaseConf wrong;
-   EXPECT_EQ(wrong.has_dpithreads(), false);
-   wrong.set_dpithreads("Hello World!");
-   EXPECT_EQ(wrong.has_dpithreads(), true);
+   protoMsg::BaseConf right;
+   right.set_dpithreads("2");
+   conf.updateFields(right);
    
-   EXPECT_EQ(conf.mValidBaseConf, true); 
-   conf.updateFields(wrong); // takes a copy of the proto msg
-   EXPECT_EQ(wrong.has_dpithreads(), true);
-   EXPECT_EQ(conf.mValidBaseConf, false); // wrong fields are cleared and marked false   
-
-   conf.ValidateBaseConf(wrong); // but this should clear it
+   // Verify that erronous fields are cleared and ignored
+   protoMsg::BaseConf wrong = conf.getProtoMsg();
+   EXPECT_EQ(wrong.dpithreads(), "2");
+   wrong.set_dpithreads("Hello World!");
+   conf.mValidBaseConf =  true;
+   conf.updateFields(wrong);
+   EXPECT_EQ(wrong.has_dpithreads(), true); // copies are not cleared
+   EXPECT_EQ(conf.mValidBaseConf, false);
+   
+   wrong = conf.getProtoMsg();
+   EXPECT_EQ(wrong.dpithreads(), "2"); 
+      
+   wrong.set_dpithreads("Hello World!");
+   EXPECT_EQ(wrong.has_dpithreads(), true); 
+   conf.ValidateBaseConf(wrong); // this should clear the field
    EXPECT_EQ(wrong.has_dpithreads(), false);
 }
 
