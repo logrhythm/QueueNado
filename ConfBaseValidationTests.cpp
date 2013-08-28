@@ -140,8 +140,22 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
 }
 
 
-// below this old, failing? tests
-
+// below this old, failing ALWAYS since the total conf is evaluated
+// the tests below should be removed and instead be replaced for 
+// 1. the non failing test above
+// 2. An looping approach where all fields are enteried except one (
+// 
+//  this should make it less verbose and easier to modify as the conf changes
+//  over time
+// 
+//    for(int i = 0; i < fields; ++i) }{ doAllExcept(i)
+//    void doAllExcept(int number) {
+//    if( check++ != number) xxx_setdpithreads(...);
+//    ....
+//    conf.updateFields(...);
+//    EXPECT_EQ(conf.mValidBaseConf, false)....
+//     
+//
 TEST_F(ConfProcessorTests, BaseConfValidationDpiThreadsInvalidNumberWillFail) {
    MockConf conf;
    conf.mIgnoreBaseConfValidation = false;
