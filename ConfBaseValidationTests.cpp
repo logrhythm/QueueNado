@@ -212,19 +212,16 @@ void ValidateAllFieldsSetInvalidOnX(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_capturememorylimit(invalidNumber) : msg.set_capturememorylimit(validNumber);
    (index++ == shouldFail) ? msg.set_capturemaxpackets(invalidNumber) : msg.set_capturemaxpackets(validNumber);
    
-   
    // Test sanity check. Total number of used fields are :  26
    EXPECT_EQ(index, gNumberOfFields) << "\t\t\t\t\t: Expected number of fields are 26 unless you added more?";
    conf.updateFields(msg);
-   
-   
+
    if (shouldFail > gNumberOfFields) {
       if(false == conf.mValidBaseConf) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);  
+         return;
       }
-      else {
-         SUCCEED();
-      }
+      SUCCEED();
       return;
    }
    
@@ -235,6 +232,7 @@ void ValidateAllFieldsSetInvalidOnX(const size_t shouldFail) {
       FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
       return;
    }
+   
    SUCCEED();
 }
 
@@ -248,6 +246,14 @@ TEST_F(ConfProcessorTests, BaseConfValidationAllFieldsFailure) {
 TEST_F(ConfProcessorTests, BaseConfValidationAllFieldsSuccess) {
    ValidateAllFieldsSetInvalidOnX(gNumberOfFields+1);
 }
+
+TEST_F(ConfProcessorTests, BaseConfValidationInternalRepairBaseConf) {
+   Conf conf; // using a real conf
+   auto check = conf.InternallyRepairBaseConf();
+   EXPECT_EQ(check, true);   
+}
+
+
 
 
 #endif //  LR_DEBUG
