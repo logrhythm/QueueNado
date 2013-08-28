@@ -7,6 +7,9 @@
 #pragma once
 #include "Conf.h"
 #include "include/global.h"
+#include <g2log.hpp>
+#include <functional>
+#include <exception>
 
 class MockConf : public Conf {
 public:
@@ -272,10 +275,29 @@ public:
          Conf::CheckNumber(number);
    }
 
+   
+// Possible cleanup / code reduction below   
+//   void DoCatchedCall(std::function<void()> function) {
+//      try {
+//         function();
+//      } catch (std::exception e){
+//         LOG(DEBUG) << e.what();
+//         mValidBaseConf = false;
+//         return;        
+//      }
+//      mValidBaseConf = true;
+//   }
+   
    void CheckNumberForNegative(const std::string& number) LR_OVERRIDE {
+// Possible cleanup below
+//   typedef void (Conf::*Func)(const std::string& number);
+//      Func f = &Conf::CheckNumberForNegative;      
+//      DoCatchedCall([this, &f, number]{ this->(*f)(number);}); //Conf::CheckNumberForNegative(number);});
+//      
       try {
          Conf::CheckNumberForNegative(number);
-      } catch (...) {
+         } catch (std::exception e) {
+         LOG(DEBUG) << e.what();
          mValidBaseConf = false;
          return;
       }
@@ -285,7 +307,8 @@ public:
    void CheckNumberForSize(const std::string& number) LR_OVERRIDE {
       try {
          Conf::CheckNumberForSize(number);
-      } catch (...) {
+         } catch (std::exception e) {
+         LOG(DEBUG) << e.what();
          mValidBaseConf = false;
          return;
       }
@@ -299,7 +322,19 @@ public:
    void CheckStringForSize(const std::string& text) LR_OVERRIDE {
       try {
          Conf::CheckStringForSize(text);
-      } catch (...) {
+      } catch (std::exception e) {
+         LOG(DEBUG) << e.what();
+         mValidBaseConf = false;
+         return;
+      }
+      mValidBaseConf = true;
+   }
+   
+   void CheckBool(const std::string& text) LR_OVERRIDE {
+      try {
+         Conf::CheckBool(text);
+      } catch (std::exception e) {
+         LOG(DEBUG) << e.what();
          mValidBaseConf = false;
          return;
       }

@@ -85,7 +85,29 @@ TEST_F(ConfProcessorTests, BaseConfValidationText) {
 }   
 
 
+TEST_F(ConfProcessorTests, BaseConfValidationBool) {
+   MockConf conf;
+   conf.mIgnoreBaseConfValidation = false;
+   EXPECT_EQ(conf.mValidBaseConf, true);
 
+   conf.mValidBaseConf = true;
+   conf.CheckBool(""); 
+   EXPECT_EQ(conf.mValidBaseConf, false);  
+
+   conf.mValidBaseConf = true;
+   conf.CheckBool("Hello World!"); 
+   EXPECT_EQ(conf.mValidBaseConf, false);  
+
+   conf.mValidBaseConf = false;
+   conf.CheckBool("true"); 
+   EXPECT_EQ(conf.mValidBaseConf, true);  
+
+   conf.mValidBaseConf = false;
+   conf.CheckBool("false"); 
+   EXPECT_EQ(conf.mValidBaseConf, true);  
+}   
+
+   
 TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
    MockConf conf;
    conf.mIgnoreBaseConfValidation = false;
@@ -96,6 +118,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
 
    const std::string validNumber = {"10"};
    const std::string validText = {"Hello Wold!"};
+   const std::string validBool = {"false"};
    msg.set_dpithreads(validNumber);     // dpithreads
    msg.set_pcapetimeout(validNumber);   // pcapETimeout
    msg.set_pcapbuffersize(validNumber); // pcapBufferSize
@@ -104,11 +127,14 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
    msg.set_packetsendqueuesize(validNumber); // packetSendQueueSize
    msg.set_packetrecvqueuesize(validNumber); // packetRecvQueueSize
    msg.set_dpimsgsendqueuesize(validNumber); // dpiMsgSendQueueSize
-   //msg.has_dpimsgrecvqueuesize(validNumber); // dpiMsgRecvQueueSize 
-   //slslsl
-  //??is SHOULD FAIL IF IT IS NOT IMPELETNTED here. The check is in the conf
+   msg.set_dpimsgrecvqueuesize(validNumber); // dpiMsgRecvQueueSize 
+   msg.set_qosmosdebugmodeenabled(validBool); //qosmosdebugmodeenabled
+   msg.set_qosmos64bytepool(validNumber);     // Qosmos Byte Bool 64Byte
+   msg.set_qosmos128bytepool(validNumber);     // Qosmos Byte Bool 128Byte
+   msg.set_qosmos256bytepool(validNumber);     // Qosmos Byte Bool 256Byte
+   msg.set_qosmos512bytepool(validNumber);     // Qosmos Byte Bool 512Byte
    
-   //msg.set_qosmosdebugmodeenabled(); // check for boolean NOT IMPLEMENTED
+   
    conf.updateFields(msg);
    EXPECT_EQ(conf.mValidBaseConf, true);   
 }
