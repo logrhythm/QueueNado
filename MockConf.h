@@ -7,6 +7,7 @@
 #pragma once
 #include "Conf.h"
 #include "include/global.h"
+#include "Range.h"
 #include <g2log.hpp>
 #include <functional>
 #include <exception>
@@ -271,8 +272,8 @@ public:
       return mValidBaseConf;
    }
 
-   bool CheckNumber(const std::string& number, int64_t max) LR_OVERRIDE {
-         return Conf::CheckNumber(number, max);
+   bool CheckNumber(const std::string& number, const Range& range) LR_OVERRIDE {
+         return Conf::CheckNumber(number, range);
    }
    
    void CheckNumberForNegative(const std::string& number) LR_OVERRIDE {
@@ -286,9 +287,9 @@ public:
       mValidBaseConf = true;
    }
 
-   void CheckNumberForSize(const std::string& number, int64_t max) LR_OVERRIDE {
+   void CheckNumberForSize(const std::string& number, const Range& range) LR_OVERRIDE {
       try {
-         Conf::CheckNumberForSize(number, max);
+         Conf::CheckNumberForSize(number, range);
          } catch (std::exception e) {
          LOG(DEBUG) << e.what();
          mValidBaseConf = false;

@@ -11,7 +11,7 @@
 using namespace std;
 
 namespace {
-   int64_t gMax = std::numeric_limits<int32_t>::max();
+   Range gMax = {1, std::numeric_limits<uint32_t>::max()};
 }
 // Not set fields are NOT failure, they will just be ignored 
 TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillSucceed) {
@@ -34,6 +34,9 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    protoMsg::BaseConf right;
    right.set_dpithreads("2");
    conf.updateFields(right);
+   EXPECT_EQ(conf.mValidBaseConf, true);
+   
+   
    
    // Verify that erronous fields are cleared and ignored
    protoMsg::BaseConf wrong = conf.getProtoMsg();
@@ -72,14 +75,14 @@ TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
    EXPECT_NO_THROW(conf.CheckNumberForNegative("123"));
    EXPECT_EQ(conf.mValidBaseConf, true);
   
-   EXPECT_ANY_THROW(conf.CheckNumberForSize(std::to_string(gMax+1), gMax));
+   EXPECT_ANY_THROW(conf.CheckNumberForSize(std::to_string(gMax.higher+1), gMax));
    EXPECT_EQ(conf.mValidBaseConf, false);  
-   EXPECT_NO_THROW(conf.CheckNumberForSize(std::to_string(gMax), gMax));
+   EXPECT_NO_THROW(conf.CheckNumberForSize(std::to_string(gMax.higher), gMax));
    EXPECT_EQ(conf.mValidBaseConf, true);  
    
    protoMsg::BaseConf msg;
    msg.set_dpithreads("10");
-   conf.CheckNumber(msg.dpithreads(), gMax); 
+   conf.CheckNumber(msg.dpithreads(), Range{1,10}); 
    EXPECT_EQ(conf.mValidBaseConf, true);   
 }
 
@@ -152,26 +155,25 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
    conf.updateFields(msg);
    EXPECT_EQ(conf.mValidBaseConf, true);
 
-   const std::string validNumber = {"10"};
    const std::string validText = {"Hello Wold!"};
    const std::string validBool = {"false"};
-   msg.set_dpithreads(validNumber);     // dpithreads
-   msg.set_pcapetimeout(validNumber);   // pcapETimeout
-   msg.set_pcapbuffersize(validNumber); // pcapBufferSize
+   msg.set_dpithreads("8");     // dpithreads
+   msg.set_pcapetimeout("500");   // pcapETimeout
+   msg.set_pcapbuffersize("10"); // pcapBufferSize
    msg.set_pcapinterface(validText);    // pcapBufferSize
-   msg.set_dpihalfsessions(validNumber); // dpiHalfSessions
-   msg.set_packetsendqueuesize(validNumber); // packetSendQueueSize
-   msg.set_packetrecvqueuesize(validNumber); // packetRecvQueueSize
-   msg.set_dpimsgsendqueuesize(validNumber); // dpiMsgSendQueueSize
-   msg.set_dpimsgrecvqueuesize(validNumber); // dpiMsgRecvQueueSize 
+   msg.set_dpihalfsessions("1000000"); // dpiHalfSessions
+   msg.set_packetsendqueuesize("20000"); // packetSendQueueSize
+   msg.set_packetrecvqueuesize("200"); // packetRecvQueueSize
+   msg.set_dpimsgsendqueuesize("100000"); // dpiMsgSendQueueSize
+   msg.set_dpimsgrecvqueuesize("100000"); // dpiMsgRecvQueueSize 
    msg.set_qosmosdebugmodeenabled(validBool); //qosmosdebugmodeenabled
-   msg.set_qosmos64bytepool(validNumber);     // Qosmos Byte Bool 64Byte
-   msg.set_qosmos128bytepool(validNumber);     // Qosmos Byte Bool 128Byte
-   msg.set_qosmos256bytepool(validNumber);     // Qosmos Byte Bool 256Byte
-   msg.set_qosmos512bytepool(validNumber); // Qosmos Byte Bool 512Byte
+   msg.set_qosmos64bytepool("8000000");     // Qosmos Byte Bool 64Byte
+   msg.set_qosmos128bytepool("3000000");     // Qosmos Byte Bool 128Byte
+   msg.set_qosmos256bytepool("500000");     // Qosmos Byte Bool 256Byte
+   msg.set_qosmos512bytepool("500000"); // Qosmos Byte Bool 512Byte
    msg.set_statsaccumulatorqueue(validText);  // statsAccumulatorQueue
    msg.set_sendstatsqueue(validText); //sendStatsQueue
-   msg.set_qosmosexpirepercallback(validNumber); //qosmosExpirePerCallback
+   msg.set_qosmosexpirepercallback("100"); //qosmosExpirePerCallback
    msg.set_qosmostcpreassemblyenabled(validBool); //qosmosTCPReAssemblyEnabled
    msg.set_qosmosipdefragmentationenabled(validBool);//qosmosIPDefragmentationEnabled
    
@@ -184,10 +186,10 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
    msg.set_commandqueue(validText);            // commandQueue
    msg.set_enableintermediateflows(validBool); //enableIntermediateFlows
    msg.set_enablepacketcapture(validBool);     //enablePacketCapture
-   msg.set_capturefilelimit(validNumber);       //captureFileLimit
-   msg.set_capturesizelimit(validNumber);       //captureSizeLimit
-   msg.set_capturememorylimit(validNumber);     //captureMemoryLimit
-   msg.set_capturemaxpackets(validNumber);      //captureMaxPackets
+   msg.set_capturefilelimit(std::to_string(std::numeric_limits<int32_t>::max()));       //captureFileLimit
+   msg.set_capturesizelimit("1000");       //captureSizeLimit
+   msg.set_capturememorylimit("16000");     //captureMemoryLimit
+   msg.set_capturemaxpackets("1000000");      //captureMaxPackets
    
    conf.updateFields(msg);
    EXPECT_EQ(conf.mValidBaseConf, true);   
@@ -208,8 +210,6 @@ void ValidateAllFieldsSetInvalidOnX(const size_t shouldFail) {
    conf.mValidBaseConf = false;
    
    protoMsg::BaseConf msg; 
-   const std::string validNumber = {"10"};
-   const std::string invalidNumber = std::to_string(std::numeric_limits<size_t>::max());
    
    const std::string validText = {"Hello Wold!"};
    const std::string invalidText(1001,'x');
@@ -217,32 +217,32 @@ void ValidateAllFieldsSetInvalidOnX(const size_t shouldFail) {
    const std::string validBool = {"false"};
    const std::string invalidBool = {"1"};
    
-   (index++ == shouldFail) ? msg.set_dpithreads(invalidNumber) : msg.set_dpithreads(validNumber);
-   (index++ == shouldFail) ? msg.set_pcapetimeout(invalidNumber) : msg.set_pcapetimeout(validNumber);
-   (index++ == shouldFail) ? msg.set_pcapbuffersize(invalidNumber): msg.set_pcapbuffersize(validNumber);
+   (index++ == shouldFail) ? msg.set_dpithreads("9") : msg.set_dpithreads("8");
+   (index++ == shouldFail) ? msg.set_pcapetimeout("501") : msg.set_pcapetimeout("500");
+   (index++ == shouldFail) ? msg.set_pcapbuffersize("9"): msg.set_pcapbuffersize("100");
    (index++ == shouldFail) ? msg.set_pcapinterface(invalidText): msg.set_pcapinterface(validText);
-   (index++ == shouldFail) ? msg.set_dpihalfsessions(invalidNumber) : msg.set_dpihalfsessions(validNumber) ;
-   (index++ == shouldFail) ? msg.set_packetsendqueuesize(invalidNumber) : msg.set_packetsendqueuesize(validNumber);
-   (index++ == shouldFail) ? msg.set_packetrecvqueuesize(invalidNumber) : msg.set_packetrecvqueuesize(validNumber);
-   (index++ == shouldFail) ? msg.set_dpimsgsendqueuesize(invalidNumber) : msg.set_dpimsgsendqueuesize(validNumber);
-   (index++ == shouldFail) ? msg.set_dpimsgrecvqueuesize(invalidNumber) : msg.set_dpimsgrecvqueuesize(validNumber);
+   (index++ == shouldFail) ? msg.set_dpihalfsessions("500") : msg.set_dpihalfsessions("1000000") ;
+   (index++ == shouldFail) ? msg.set_packetsendqueuesize("100") : msg.set_packetsendqueuesize("20000");
+   (index++ == shouldFail) ? msg.set_packetrecvqueuesize("199") : msg.set_packetrecvqueuesize("20000");
+   (index++ == shouldFail) ? msg.set_dpimsgsendqueuesize("999") : msg.set_dpimsgsendqueuesize("1000");
+   (index++ == shouldFail) ? msg.set_dpimsgrecvqueuesize("100") : msg.set_dpimsgrecvqueuesize("1000");
    (index++ == shouldFail) ? msg.set_qosmosdebugmodeenabled(invalidBool) : msg.set_qosmosdebugmodeenabled(validBool);
-   (index++ == shouldFail) ? msg.set_qosmos64bytepool(invalidNumber) : msg.set_qosmos64bytepool(validNumber);
-   (index++ == shouldFail) ? msg.set_qosmos128bytepool(invalidNumber) : msg.set_qosmos128bytepool(validNumber);
-   (index++ == shouldFail) ? msg.set_qosmos256bytepool(invalidNumber) :msg.set_qosmos256bytepool(validNumber);
-   (index++ == shouldFail) ? msg.set_qosmos512bytepool(invalidNumber) : msg.set_qosmos512bytepool(validNumber);
+   (index++ == shouldFail) ? msg.set_qosmos64bytepool("4") : msg.set_qosmos64bytepool("1500000");
+   (index++ == shouldFail) ? msg.set_qosmos128bytepool("3") : msg.set_qosmos128bytepool("3000000");
+   (index++ == shouldFail) ? msg.set_qosmos256bytepool("2") :msg.set_qosmos256bytepool("500000");
+   (index++ == shouldFail) ? msg.set_qosmos512bytepool("1") : msg.set_qosmos512bytepool("8000000");
    (index++ == shouldFail) ? msg.set_statsaccumulatorqueue(invalidText) : msg.set_statsaccumulatorqueue(validText);
    (index++ == shouldFail) ? msg.set_sendstatsqueue(invalidText) : msg.set_sendstatsqueue(validText);
-   (index++ == shouldFail) ? msg.set_qosmosexpirepercallback(invalidNumber):msg.set_qosmosexpirepercallback(validNumber);
+   (index++ == shouldFail) ? msg.set_qosmosexpirepercallback("101"):msg.set_qosmosexpirepercallback("100");
    (index++ == shouldFail) ? msg.set_qosmostcpreassemblyenabled(invalidBool) : msg.set_qosmostcpreassemblyenabled(validBool);
    (index++ == shouldFail) ? msg.set_qosmosipdefragmentationenabled(invalidBool) : msg.set_qosmosipdefragmentationenabled(validBool);
    (index++ == shouldFail) ? msg.set_commandqueue(invalidText) : msg.set_commandqueue(validText);
    (index++ == shouldFail) ? msg.set_enableintermediateflows(invalidBool) : msg.set_enableintermediateflows(validBool);
    (index++ == shouldFail) ? msg.set_enablepacketcapture(invalidBool) : msg.set_enablepacketcapture(validBool);
-   (index++ == shouldFail) ? msg.set_capturefilelimit(invalidNumber) : msg.set_capturefilelimit(validNumber);
-   (index++ == shouldFail) ? msg.set_capturesizelimit(invalidNumber) : msg.set_capturesizelimit(validNumber);
-   (index++ == shouldFail) ? msg.set_capturememorylimit(invalidNumber) : msg.set_capturememorylimit(validNumber);
-   (index++ == shouldFail) ? msg.set_capturemaxpackets(invalidNumber) : msg.set_capturemaxpackets(validNumber);
+   (index++ == shouldFail) ? msg.set_capturefilelimit("1") : msg.set_capturefilelimit("1000000");
+   (index++ == shouldFail) ? msg.set_capturesizelimit("999") : msg.set_capturesizelimit("1000000");
+   (index++ == shouldFail) ? msg.set_capturememorylimit("999") : msg.set_capturememorylimit("1000");
+   (index++ == shouldFail) ? msg.set_capturemaxpackets("100") : msg.set_capturemaxpackets("1000000");
    
    // Test sanity check. Total number of used fields are :  26
    EXPECT_EQ(index, gNumberOfFields) << "\t\t\t\t\t: Expected number of fields are 26 unless you added more?";
