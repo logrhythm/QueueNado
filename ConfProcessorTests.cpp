@@ -1056,7 +1056,7 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
    EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
-   EXPECT_TRUE(99 == conf.getDpiThreads());
+   EXPECT_TRUE(8 == conf.getDpiThreads());
    EXPECT_EQ(123, conf.getPCAPETimeOut());
    EXPECT_EQ(13, conf.getPCAPBuffsize());
 //   EXPECT_EQ("eth0", conf.getPCAPInterface()); this is now internally validated
@@ -1095,7 +1095,7 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
    EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
-   EXPECT_TRUE(99 == conf.getDpiThreads());
+   EXPECT_TRUE(8 == conf.getDpiThreads());
    EXPECT_EQ(123, conf.getPCAPETimeOut());
    EXPECT_EQ(13, conf.getPCAPBuffsize());
 //   EXPECT_EQ("eth0", conf.getPCAPInterface());  this is now internally validated
@@ -1122,7 +1122,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    std::string expectedDir = INSTALL_PREFIX;
    expectedDir += "/logs";
    EXPECT_EQ(expectedDir, conf.getLogDir());
-   EXPECT_TRUE(NUMBER_OF_QOSMOS_THREADS == conf.getDpiThreads());
+   EXPECT_EQ(NUMBER_OF_QOSMOS_THREADS, conf.getDpiThreads());
    EXPECT_EQ(PCAP_ETIMEDOUT, conf.getPCAPETimeOut());
    EXPECT_EQ(PCAP_BUFFER_SIZE, conf.getPCAPBuffsize());
 //   EXPECT_EQ("", conf.getPCAPInterface());  internally validated
@@ -1167,47 +1167,51 @@ TEST_F(ConfProcessorTests, testConfQosmosDebugModeEnabled) {
 
 TEST_F(ConfProcessorTests, testConfQosmos512BytePool) {
    protoMsg::BaseConf msg;
-   msg.set_qosmos512bytepool("1234");
+   msg.set_qosmos512bytepool("1234"); // Range{500000 , 8000000}
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ(1234, conf.getQosmos512BytePool());
+   EXPECT_NE(1234, conf.getQosmos512BytePool());
+
+   msg.set_qosmos512bytepool("500001");
+   conf.updateFields(msg);
+   EXPECT_EQ(500001, conf.getQosmos512BytePool());
 }
 
 TEST_F(ConfProcessorTests, testConfQosmos256BytePool) {
    protoMsg::BaseConf msg;
-   msg.set_qosmos256bytepool("12345");
+   msg.set_qosmos256bytepool("8000000"); // Range{500000, 8000000}
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ(12345, conf.getQosmos256BytePool());
+   EXPECT_EQ(8000000, conf.getQosmos256BytePool());
 }
 
 TEST_F(ConfProcessorTests, testConfQosmos128BytePool) {
    protoMsg::BaseConf msg;
-   msg.set_qosmos128bytepool("12346");
+   msg.set_qosmos128bytepool("3000000"); // Range{3000000, 8000000}
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ(12346, conf.getQosmos128BytePool());
+   EXPECT_EQ(3000000, conf.getQosmos128BytePool());
 }
 
 TEST_F(ConfProcessorTests, testConfQosmos64BytePool) {
    protoMsg::BaseConf msg;
-   msg.set_qosmos64bytepool("12347");
+   msg.set_qosmos64bytepool("1500000"); // Range{1500000,8000000}
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ(12347, conf.getQosmos64BytePool());
+   EXPECT_EQ(1500000, conf.getQosmos64BytePool());
 }
 
 TEST_F(ConfProcessorTests, testQosmosExpirePerCallback) {
    protoMsg::BaseConf msg;
-   msg.set_qosmosexpirepercallback("111");
+   msg.set_qosmosexpirepercallback("100"); // Range{1,100}
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ(111, conf.getQosmosExpirePerCallback());
+   EXPECT_EQ(100, conf.getQosmosExpirePerCallback());
 }
 
 TEST_F(ConfProcessorTests, testQosmosTCPReAssembly) {
@@ -1516,7 +1520,7 @@ TEST_F(ConfProcessorTests, testPolledConsumerRcvAfterReg) {
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
    EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
-   EXPECT_TRUE(99 == conf.getDpiThreads());
+   EXPECT_TRUE(8 == conf.getDpiThreads());
    EXPECT_EQ(1, conf.getStatsIntervalSeconds());
    EXPECT_TRUE(conf.getSyslogEnabled());
    EXPECT_EQ("../scripts", conf.getScriptsDir());
@@ -1586,7 +1590,7 @@ TEST_F(ConfProcessorTests, testConfSlaveBasic) {
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
    EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
-   EXPECT_TRUE(99 == conf.getDpiThreads());
+   EXPECT_EQ(8, conf.getDpiThreads());
    EXPECT_EQ(123, conf.getPCAPETimeOut());
    EXPECT_EQ(13, conf.getPCAPBuffsize());
 //   EXPECT_EQ("eth0", conf.getPCAPInterface());  internally validated
