@@ -191,7 +191,7 @@ std::string BoomStick::Send(const std::string& command) {
       };
    }
    std::string returnString;
-   if (!GetAsyncReply(id, 100, returnString)) {
+   if (!GetAsyncReply(id, 10000, returnString)) {
       return
       {
       };
