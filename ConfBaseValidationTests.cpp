@@ -176,13 +176,9 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
    msg.set_qosmosexpirepercallback("100"); //qosmosExpirePerCallback
    msg.set_qosmostcpreassemblyenabled(validBool); //qosmosTCPReAssemblyEnabled
    msg.set_qosmosipdefragmentationenabled(validBool);//qosmosIPDefragmentationEnabled
-   
-   // WARNING: The commented out fields does not seem to be used in the conf
-   // SHOULD THEY BE REMOVED FROM THE BaseConfMsg.proto?
-   // msg.set_dbclustername
-   // msg.set_dburl
-   // msg.set_dburl;
-   // msg.set_statsaggregationqueue
+   msg.set_dbclustername(validText); // dbCluserName
+   msg.set_dburl(validText);         // dbUrl
+   msg.set_statsaggregationqueue(validText); // statsAggregationQueue
    msg.set_commandqueue(validText);            // commandQueue
    msg.set_enableintermediateflows(validBool); //enableIntermediateFlows
    msg.set_enablepacketcapture(validBool);     //enablePacketCapture
@@ -201,7 +197,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationWithValidDataWillNotFail) {
  * SHOULD make the validation to pass instead of fail
  */
 namespace {
-    const size_t gNumberOfFields = 26;
+    const size_t gNumberOfFields = 29;
 }
 void ValidateAllFieldsSetInvalidOnX(const size_t shouldFail) {
    size_t index = 0;
@@ -236,6 +232,11 @@ void ValidateAllFieldsSetInvalidOnX(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_qosmosexpirepercallback("101"):msg.set_qosmosexpirepercallback("100");
    (index++ == shouldFail) ? msg.set_qosmostcpreassemblyenabled(invalidBool) : msg.set_qosmostcpreassemblyenabled(validBool);
    (index++ == shouldFail) ? msg.set_qosmosipdefragmentationenabled(invalidBool) : msg.set_qosmosipdefragmentationenabled(validBool);
+   // next three are used in jave only, cannot be changed through the UI
+   (index++ == shouldFail) ? msg.set_dbclustername(invalidText) : msg.set_dbclustername(validText);
+   (index++ == shouldFail) ? msg.set_dburl(invalidText) : msg.set_dburl(validText);
+   (index++ == shouldFail) ? msg.set_statsaggregationqueue(invalidText) : msg.set_statsaggregationqueue(validText);
+   
    (index++ == shouldFail) ? msg.set_commandqueue(invalidText) : msg.set_commandqueue(validText);
    (index++ == shouldFail) ? msg.set_enableintermediateflows(invalidBool) : msg.set_enableintermediateflows(validBool);
    (index++ == shouldFail) ? msg.set_enablepacketcapture(invalidBool) : msg.set_enablepacketcapture(validBool);
@@ -244,7 +245,7 @@ void ValidateAllFieldsSetInvalidOnX(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_capturememorylimit("999") : msg.set_capturememorylimit("1000");
    (index++ == shouldFail) ? msg.set_capturemaxpackets("100") : msg.set_capturemaxpackets("1000000");
    
-   // Test sanity check. Total number of used fields are :  26
+   // Test sanity check. Total number of used fields are :  29
    EXPECT_EQ(index, gNumberOfFields) << "\t\t\t\t\t: Expected number of fields are 26 unless you added more?";
    conf.updateFields(msg);
 
