@@ -135,14 +135,23 @@ TEST_F(RESTSenderTest, ParseForSessionIds) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
    RESTSender sender(transport);
    
-   std::vector<std::string> ids = sender.GetSessionIdsFromQuery(reply);
+   auto ids = sender.GetSessionIdsFromQuery(reply);
    
    EXPECT_EQ(10,ids.size());
+
+   EXPECT_TRUE(StringContains(ids[0],"2e0bb480-be41-427c-92b5-61ccedbe5d6a"));
+   EXPECT_TRUE(StringContains(ids[1],"989a6965-a19a-44b4-9f75-cf283fc44b30"));
+   EXPECT_TRUE(StringContains(ids[2],"6ca68984-3333-431f-8a29-763524ad4f3f"));
+   EXPECT_TRUE(StringContains(ids[3],"de2bd6fe-95dc-4058-9b5c-dd0f6821add7"));
+   EXPECT_TRUE(StringContains(ids[4],"64fe3bb6-312d-4353-b9e0-abbc61303b99"));
+   EXPECT_TRUE(StringContains(ids[5],"0a368a48-d4ad-4edf-8aff-e6b49da4d38b"));
+   EXPECT_TRUE(StringContains(ids[6],"c79802e0-1021-43f4-af16-7be26db0363a"));
+   EXPECT_TRUE(StringContains(ids[7],"ec4b8906-a3e8-4024-97c6-8617848339db"));
+   EXPECT_TRUE(StringContains(ids[8],"648e4bfc-6198-4170-abb9-840e761381cf"));
+   EXPECT_TRUE(StringContains(ids[9],"99d603f6-25e9-4d40-8808-364f4cbcb229"));
    
-   for( auto id : ids ) {
-      EXPECT_TRUE(StringContains(id,"foo"));
-      
-   }
+   
+
    
 }
 
