@@ -3,8 +3,33 @@
 #include "ElasticSearch.h"
 #include <unordered_set>
 #include <fstream>
-
+namespace {
+   bool StringContains(const std::string& input, const std::string& pattern) {
+      if (input.find(pattern) != std::string::npos) {
+         return true;
+      } else {
+         std::cout << input << " does not contain " << pattern << std::endl;
+      }
+      return false;
+   }
+}
 #ifdef LR_DEBUG
+
+TEST_F(RESTBuilderTest, GetFilteredQuerySortedByTime) {
+   RESTBuilder builder;
+   
+   std::string command = builder.GetOldestNDocuments("captured:true",100,true);
+   
+   EXPECT_TRUE(StringContains(command, "\"query\": \"captured:true\""));
+   
+   EXPECT_TRUE(StringContains(command, "\"timeUpdated\": {\"order\": \"asc\"}"));
+   EXPECT_TRUE(StringContains(command, "\"fields\": [\"sessionId\"]"));
+   EXPECT_TRUE(StringContains(command, "\"size\": 100"));
+   EXPECT_TRUE(StringContains(command, "\"_cache\": true"));
+   EXPECT_TRUE(StringContains(command, "GET|/_all/meta/_search|"));
+   
+   
+}
 
 TEST_F(RESTBuilderTest, ConstructAQuery) {
    RESTBuilder builder;
