@@ -1,7 +1,17 @@
 #include "RESTSenderTest.h"
 #include "MockBoomStick.h"
 #include <algorithm>
-
+#include "FileIO.h"
+namespace {
+   bool StringContains(const std::string& input, const std::string& pattern) {
+      if (input.find(pattern) != std::string::npos) {
+         return true;
+      } else {
+         std::cout << input << " does not contain " << pattern << std::endl;
+      }
+      return false;
+   }
+}
 #ifdef LR_DEBUG
 TEST_F(RESTSenderTest, GetListOfClusterNames) {
    DiskInformation info;
@@ -113,6 +123,27 @@ TEST_F(RESTSenderTest, GetSpecificDiskInfo) {
    EXPECT_EQ(0, sender.GetDiskWrites(clusterName, info));
    EXPECT_EQ(0, sender.GetDiskFreeInBytes(clusterName, info));
    EXPECT_EQ(0, sender.GetDiskTotalInBytes(clusterName, info));
+}
+
+TEST_F(RESTSenderTest, ParseForSessionIds) {
+   using namespace FileIO;
+   
+   auto results = ReadAsciiFileContent("resources/filteredQueryTest");
+   ASSERT_FALSE(results.HasFailed());
+   auto reply = results.result;
+   
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   RESTSender sender(transport);
+   
+   std::vector<std::string> ids = sender.GetSessionIdsFromQuery(reply);
+   
+   EXPECT_EQ(10,ids.size());
+   
+   for( auto id : ids ) {
+      EXPECT_TRUE(StringContains(id,"foo"));
+      
+   }
+   
 }
 
 #else

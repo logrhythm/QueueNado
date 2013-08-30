@@ -23,7 +23,6 @@ TEST_F(RESTBuilderTest, GetFilteredQuerySortedByTime) {
    EXPECT_TRUE(StringContains(command, "\"query\": \"captured:true\""));
    
    EXPECT_TRUE(StringContains(command, "\"timeUpdated\": {\"order\": \"asc\"}"));
-   EXPECT_TRUE(StringContains(command, "\"fields\": [\"sessionId\"]"));
    EXPECT_TRUE(StringContains(command, "\"size\": 100"));
    EXPECT_TRUE(StringContains(command, "\"_cache\": true"));
    EXPECT_TRUE(StringContains(command, "GET|/_all/meta/_search|"));
