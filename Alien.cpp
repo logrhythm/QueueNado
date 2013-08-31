@@ -50,18 +50,22 @@ std::vector<std::string> Alien::GetShot() {
  * @return 
  */
 void Alien::GetShot(const unsigned int timeout, std::vector<std::string>& bullets) {
+   if (!mBody) {
+      return;
+   }
 
    if (zsocket_poll(mBody, timeout)) {
       zmsg_t* msg = zmsg_recv(mBody);
-      if (msg && zmsg_size(msg) == 2) {
+      if (msg && zmsg_size(msg) == 3) {
          zframe_t* data = zmsg_pop(msg);
          if (data) {
+            //remove the first frame
             zframe_destroy(&data);
          }
          int msgSize = zmsg_size(msg);
          for (int i = 0; i < msgSize; i++) {
             data = zmsg_pop(msg);
-            if(data) {
+            if (data) {
                std::string bullet;
                bullet.assign(reinterpret_cast<char*> (zframe_data(data)), zframe_size(data));
                bullets.push_back(bullet);
@@ -69,7 +73,9 @@ void Alien::GetShot(const unsigned int timeout, std::vector<std::string>& bullet
             }
          }
       } else {
-         throw std::string("GetShot returned null");
+         if (msg) {
+            LOG(WARNING) << "Got Invalid bullet of size: " << zmsg_size(msg);
+         }
       }
       if (msg) {
          zmsg_destroy(&msg);

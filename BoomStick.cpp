@@ -309,6 +309,9 @@ bool BoomStick::CheckForMessagePending(const std::string& messageHash, const uns
  * @return 
  */
 bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundReply) {
+   if(!mChamber) {
+      return false;
+   }
    bool success = false;
    zmsg_t* msg = zmsg_recv(mChamber);
    if (!msg) {
