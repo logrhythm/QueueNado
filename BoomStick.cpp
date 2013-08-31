@@ -295,6 +295,9 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
  * @return 
  */
 bool BoomStick::CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply) {
+   if(!mChamber) {
+      return false;
+   }
    if (!zsocket_poll(mChamber, msToWait)) {
       reply = "socket timed out";
       LOG(DEBUG) << "Failed to find any new messages on socket while looking for a message";
@@ -315,7 +318,7 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
    if (!msg) {
       foundReply = zmq_strerror(zmq_errno());
    }
-   if (zmsg_size(msg) == 2) {
+   else if (zmsg_size(msg) == 2) {
       char* msgChar;
       msgChar = zmsg_popstr(msg);
       foundId = msgChar;
@@ -327,7 +330,10 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
    } else {
       foundReply = "Malformed reply, expecting 2 parts";
    }
-   zmsg_destroy(&msg);
+   
+   if(msg) {
+      zmsg_destroy(&msg);
+   }
    return success;
 }
 
@@ -350,7 +356,7 @@ bool BoomStick::GetAsyncReply(const MessageIdentifier& uuid, const unsigned int 
    }
    std::string messageHash = HashMessageId(uuid);
    if (!FindPendingHash(messageHash)) {
-      LOG(WARNING) << "Tried to get a reply for a message more than once";
+      LOG(WARNING) << "Tried to get a reply for a message more than once sessionId: ";
       reply = "ID is not pending";
       CleanOldPendingData();
       return false;

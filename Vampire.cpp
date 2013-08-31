@@ -124,7 +124,7 @@ bool Vampire::PrepareToBeShot() {
 void Vampire::setIpcFilePermissions() {
 
    mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP
-           | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
+      | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
 
    size_t ipcFound = mLocation.find("ipc");
    if (ipcFound != std::string::npos) {
@@ -148,6 +148,8 @@ bool Vampire::GetShot(std::string& wound, const int timeout) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
       return false;
    }
+   bool success = false;
+   zmsg_t* message = NULL;
    zmq_pollitem_t items [] = {
       { mBody, 0, ZMQ_POLLIN, 0}
    };
@@ -155,28 +157,32 @@ bool Vampire::GetShot(std::string& wound, const int timeout) {
    if (pollResult > 0) {
       if (items[0].revents & ZMQ_POLLIN) {
          zmsg_t* message = zmsg_recv(mBody);
-         if (!message || (zmsg_size(message) != 1)) {
-            LOG(WARNING) << "Received invalid message.";
-            return false;
+         if (message && zmsg_size(message) == 1) {
+            zframe_t* frame = zmsg_last(message);
+            wound.clear();
+            wound.append(reinterpret_cast<char*> (zframe_data(frame)), zframe_size(frame));
+            //wound.swap(*slug);
+            success = true;
+         } else {
+            if (!message) {
+               LOG(INFO) << "received null message, time for shutdown.";
+            } else {
+               LOG(WARNING) << "Received invalid sized message of size: " << zmsg_size(message);
+            }
          }
-         zframe_t* frame = zmsg_last(message);
-         wound.clear();
-         wound.append(reinterpret_cast<char*> (zframe_data(frame)), zframe_size(frame));
-         //wound.swap(*slug);
-         zmsg_destroy(&message);
-         return true;
       } else {
          LOG(WARNING) << "Error in zmq_pollin " << GetBinding();
       }
 
    } else if (pollResult < 0) {
       LOG(WARNING) << "Error on zmq socket receiving " << GetBinding() << ": " << zmq_strerror(zmq_errno());
-      return false;
    } else {
-      //timeout on socket.
+      //yae that happened...
    }
-
-   return false;
+   if (message) {
+      zmsg_destroy(&message);
+   }
+   return success;
 }
 
 /**
@@ -192,24 +198,33 @@ bool Vampire::GetStake(void*& stake, const int timeout) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
       return false;
    }
+   bool success = false;
+   zmsg_t* message = NULL;
    if (zsocket_poll(mBody, timeout)) {
-      zmsg_t* message = zmsg_recv(mBody);
-      if (!message || (zmsg_size(message) != 1)) {
-         LOG(WARNING) << "Received invalid message.";
-         return false;
+      message = zmsg_recv(mBody);
+      if (message && (zmsg_size(message) == 1)) {
+         zframe_t* frame = zmsg_pop(message);
+         if (frame && zframe_size(frame) != sizeof (void*)) {
+            LOG(WARNING) << "Received non-pointer message.";
+         } else if(frame) {
+            stake = *reinterpret_cast<void**> (zframe_data(frame));
+            success = true;
+         }
+         //always delete frame if it exists
+         if (frame) {
+            zframe_destroy(&frame);
+         }
+      } else if (message) {
+         LOG(WARNING) << "Received an invalid message";
       }
-      zframe_t* frame = zmsg_pop(message);
-      if (zframe_size(frame) != sizeof (void*)) {
-         LOG(WARNING) << "Received non-pointer message.";
-         return false;
-      }
-      stake = *reinterpret_cast<void**> (zframe_data(frame));
-      zframe_destroy(&frame);
-      zmsg_destroy(&message);
-      return true;
    }
-   stake = NULL;
-   return false;
+   if (message) {
+      zmsg_destroy(&message);
+   }
+   if (!success) {
+      stake = NULL;
+   }
+   return success;
 }
 
 /**
@@ -232,36 +247,44 @@ bool Vampire::GetStakeNoWait(void*& stake) {
  *   If something was found
  */
 bool Vampire::GetStakes(std::vector<std::pair<void*, unsigned int> >& stakes,
-        const int timeout) {
+   const int timeout) {
    if (!mBody) {
       LOG(WARNING) << "Socket uninitialized!";
       boost::this_thread::sleep(boost::posix_time::seconds(1));
       return false;
    }
+   bool success = false;
+   zmsg_t* message = NULL;
    if (zsocket_poll(mBody, timeout)) {
-      zmsg_t* message = zmsg_recv(mBody);
-      if (!message || (zmsg_size(message) != 1)) {
+      message = zmsg_recv(mBody);
+      if (message && zmsg_size(message) == 1) {
+         zframe_t* frame = zmsg_pop(message);
+         if (frame && zframe_size(frame) < (sizeof (std::pair<void*, unsigned int>))) {
+            LOG(WARNING) << "Received non-pointer message.";
+         } else if (frame) {
+            stakes.clear();
+            stakes.assign(reinterpret_cast<std::pair<void*, unsigned int>*> (zframe_data(frame)),
+               reinterpret_cast<std::pair<void*, unsigned int>*> (zframe_data(frame))
+               + (zframe_size(frame) / sizeof (std::pair<void*, unsigned int>)));
+            success = true;
+         }
+         //always delete frame if it exists
+         if (frame) {
+            zframe_destroy(&frame);
+         }
+      } else if (!message || (zmsg_size(message) != 1)) {
          LOG(WARNING) << "Received invalid message.";
-         //std::cout << "Received invalid message." << std::endl;
          return false;
       }
-      zframe_t* frame = zmsg_pop(message);
-      if (zframe_size(frame) < (sizeof (std::pair<void*, unsigned int>))) {
-         //std::cout << "Received invalid message content." << std::endl;
-         LOG(WARNING) << "Received non-pointer message.";
-         return false;
-      }
-      stakes.clear();
-      stakes.assign(reinterpret_cast<std::pair<void*, unsigned int>*> (zframe_data(frame)),
-              reinterpret_cast<std::pair<void*, unsigned int>*> (zframe_data(frame))
-              + (zframe_size(frame) / sizeof (std::pair<void*, unsigned int>)));
-      zframe_destroy(&frame);
-      zmsg_destroy(&message);
-      return true;
+
    }
-   //std::cout << "timed out" << std::endl;
-   stakes.clear();
-   return false;
+   if (message) {
+      zmsg_destroy(&message);
+   }
+   if (!success) {
+      stakes.clear();
+   }
+   return success;
 }
 
 /**
