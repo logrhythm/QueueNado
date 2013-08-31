@@ -226,6 +226,7 @@ bool BoomStick::SendAsync(const MessageIdentifier& uuid, const std::string& comm
    if (nullptr == mCtx || nullptr == mChamber) {
       return false;
    }
+   bool success = true;
    std::string messageHash = HashMessageId(uuid);
    if (FindPendingHash(messageHash)) {
       //LOG(DEBUG) << "Attempted to re-send " << messageHash;
@@ -234,13 +235,9 @@ bool BoomStick::SendAsync(const MessageIdentifier& uuid, const std::string& comm
    zmsg_t* msg = zmsg_new();
    if (zmsg_addmem(msg, messageHash.c_str(), messageHash.size()) < 0) {
       LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
-      zmsg_destroy(&msg);
-      return false;
    }
    if (zmsg_addmem(msg, command.c_str(), command.size()) < 0) {
       LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
-      zmsg_destroy(&msg);
-      return false;
    }
    zmq_pollitem_t items[1];
    items[0].socket = mChamber;
@@ -248,26 +245,25 @@ bool BoomStick::SendAsync(const MessageIdentifier& uuid, const std::string& comm
    int rc = zmq_poll(items, 1, 0);
    if (rc < 0) {
       LOG(WARNING) << "Queue error, cannot poll for status";
-      zmsg_destroy(&msg);
-      return false;
    } else if (rc == 1) {
       if ((items[0].revents & ZMQ_POLLOUT) != ZMQ_POLLOUT) {
          LOG(WARNING) << "Queue error, cannot send messages the queue is full";
-         zmsg_destroy(&msg);
-         return false;
       }
-      if (zmsg_send(&msg, mChamber) < 0) {
+      if (zmsg_send(&msg, mChamber) == 0) {
+         success = true;
+         mPendingReplies[messageHash] = uuid;
+      } else {
          LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
-         return false;
       }
    } else {
       LOG(WARNING) << "Queue error, timeout waiting for queue to be ready";
+   }
+   
+   if(msg) { 
       zmsg_destroy(&msg);
-      return false;
    }
 
-   mPendingReplies[messageHash] = uuid;
-   return true;
+   return success;
 }
 
 /**
