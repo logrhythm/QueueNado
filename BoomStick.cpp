@@ -191,7 +191,7 @@ std::string BoomStick::Send(const std::string& command) {
       };
    }
    std::string returnString;
-   if (!GetAsyncReply(id, 5000, returnString)) {
+   if (!GetAsyncReply(id, 30000, returnString)) {
       return
       {
       };
@@ -248,10 +248,12 @@ bool BoomStick::SendAsync(const MessageIdentifier& uuid, const std::string& comm
    int rc = zmq_poll(items, 1, 0);
    if (rc < 0) {
       LOG(WARNING) << "Queue error, cannot poll for status";
+      zmsg_destroy(&msg);
       return false;
    } else if (rc == 1) {
       if ((items[0].revents & ZMQ_POLLOUT) != ZMQ_POLLOUT) {
          LOG(WARNING) << "Queue error, cannot send messages the queue is full";
+         zmsg_destroy(&msg);
          return false;
       }
       if (zmsg_send(&msg, mChamber) < 0) {
@@ -260,6 +262,7 @@ bool BoomStick::SendAsync(const MessageIdentifier& uuid, const std::string& comm
       }
    } else {
       LOG(WARNING) << "Queue error, timeout waiting for queue to be ready";
+      zmsg_destroy(&msg);
       return false;
    }
 
@@ -278,7 +281,9 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
    if (mUnreadReplies.find(messageHash) != mUnreadReplies.end()) {
       reply = mUnreadReplies[messageHash];
       mUnreadReplies.erase(messageHash);
-      mPendingReplies.erase(messageHash);
+      if (mPendingReplies.find(messageHash) != mPendingReplies.end()) {
+         mPendingReplies.erase(messageHash);
+      }
       return true;
    }
    return false;
@@ -305,26 +310,23 @@ bool BoomStick::CheckForMessagePending(const std::string& messageHash, const uns
  * @return 
  */
 bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundReply) {
+   bool success = false;
    zmsg_t* msg = zmsg_recv(mChamber);
    if (!msg) {
       foundReply = zmq_strerror(zmq_errno());
-      zmsg_destroy(&msg);
-      return false;
-   }
-   if (zmsg_size(msg) != 2) {
+   } else if (zmsg_size(msg) != 2) {
       foundReply = "Malformed reply, expecting 2 parts";
-      zmsg_destroy(&msg);
-      return false;
+   } else {
+      char* msgChar;
+      msgChar = zmsg_popstr(msg);
+      foundId = msgChar;
+      free(msgChar);
+      msgChar = zmsg_popstr(msg);
+      foundReply = msgChar;
+      free(msgChar);
    }
-   char* msgChar;
-   msgChar = zmsg_popstr(msg);
-   foundId = msgChar;
-   free(msgChar);
-   msgChar = zmsg_popstr(msg);
-   foundReply = msgChar;
-   free(msgChar);
    zmsg_destroy(&msg);
-   return true;
+   return success;
 }
 
 /**
