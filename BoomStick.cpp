@@ -314,9 +314,8 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
    zmsg_t* msg = zmsg_recv(mChamber);
    if (!msg) {
       foundReply = zmq_strerror(zmq_errno());
-   } else if (zmsg_size(msg) != 2) {
-      foundReply = "Malformed reply, expecting 2 parts";
-   } else {
+   }
+   if (zmsg_size(msg) == 2) {
       char* msgChar;
       msgChar = zmsg_popstr(msg);
       foundId = msgChar;
@@ -324,6 +323,9 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
       msgChar = zmsg_popstr(msg);
       foundReply = msgChar;
       free(msgChar);
+      success = true;
+   } else {
+      foundReply = "Malformed reply, expecting 2 parts";
    }
    zmsg_destroy(&msg);
    return success;
