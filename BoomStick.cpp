@@ -268,11 +268,11 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
  */
 bool BoomStick::CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply) {
    if(!mChamber) {
+      LOG(WARNING) << "Invalid socket";
       return false;
    }
    if (!zsocket_poll(mChamber, msToWait)) {
       reply = "socket timed out";
-      LOG(DEBUG) << "Failed to find any new messages on socket while looking for a message";
       return false;
    }
    return true;
@@ -286,6 +286,7 @@ bool BoomStick::CheckForMessagePending(const std::string& messageHash, const uns
  */
 bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundReply) {
    if(!mChamber) {
+      LOG(WARNING) << "Invalid socket";
       return false;
    }
    bool success = false;
@@ -325,6 +326,7 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
  */
 bool BoomStick::GetAsyncReply(const std::string& uuid, const unsigned int msToWait, std::string& reply) {
    if (nullptr == mCtx || nullptr == mChamber) {
+      LOG(WARNING) << "Invalid socket";
       reply = "No socket";
       CleanOldPendingData();
       return false;
