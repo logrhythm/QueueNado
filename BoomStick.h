@@ -6,7 +6,6 @@
 #include "include/global.h"
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
-typedef std::pair<std::string, time_t> MessageIdentifier;
 
 class BoomStick {
 public:
@@ -17,29 +16,28 @@ public:
    BoomStick& operator=(BoomStick&& other);
    LR_VIRTUAL bool Initialize();
    LR_VIRTUAL std::string Send(const std::string& command);
-   LR_VIRTUAL bool SendAsync(const MessageIdentifier& uuid, const std::string& command);
-   LR_VIRTUAL bool GetAsyncReply(const MessageIdentifier& uuid, const unsigned int msToWait, std::string& reply);
+   LR_VIRTUAL bool SendAsync(const std::string& uuid, const std::string& command);
+   LR_VIRTUAL bool GetAsyncReply(const std::string& uuid, const unsigned int msToWait, std::string& reply);
+   std::string GetUuid();
    void Swap(BoomStick& other);
    void SetBinding(const std::string& binding);
-   bool FindPendingId(const MessageIdentifier& id) const;
    zctx_t* GetContext();
 protected:
    LR_VIRTUAL zctx_t* GetNewContext();
    LR_VIRTUAL void* GetNewSocket(zctx_t* ctx);
    LR_VIRTUAL bool ConnectToBinding(void* socket, const std::string& binding);
-   LR_VIRTUAL std::string HashMessageId(const MessageIdentifier& messageid) const;
-   LR_VIRTUAL bool FindPendingHash(const std::string& hash) const;
+   LR_VIRTUAL bool FindPendingUuid(const std::string& uuid) const;
    LR_VIRTUAL void CleanOldPendingData();
    LR_VIRTUAL void CleanPendingReplies();
    LR_VIRTUAL void CleanUnreadReplies();
-   LR_VIRTUAL bool GetReplyFromSocket(const std::string& messageHash, const unsigned int msToWait, std::string& reply);
-   bool GetReplyFromCache(const std::string& messageHash, std::string& reply);
+   LR_VIRTUAL bool GetReplyFromSocket(const std::string& uuid, const unsigned int msToWait, std::string& reply);
+   bool GetReplyFromCache(const std::string& uuid, std::string& reply);
    bool CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply);
    bool ReadFromReadySocket(std::string& foundId, std::string& foundReply);
    std::unordered_map<std::string, std::string> mUnreadReplies;
    time_t mLastGCTime;
 private:
-   std::unordered_map<std::string, MessageIdentifier> mPendingReplies;
+   std::unordered_map<std::string, time_t> mPendingReplies;
    std::string mBinding;
    void *mChamber;
    zctx_t *mCtx;
