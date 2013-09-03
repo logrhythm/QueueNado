@@ -9,9 +9,9 @@
  */
 Alien::Alien() {
    mCtx = zctx_new();
-   assert(mCtx);
+   CHECK(mCtx);
    mBody = zsocket_new(mCtx, ZMQ_SUB);
-   assert(mBody);
+   CHECK(mBody);
 }
 
 /**

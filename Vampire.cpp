@@ -161,7 +161,6 @@ bool Vampire::GetShot(std::string& wound, const int timeout) {
             zframe_t* frame = zmsg_last(message);
             wound.clear();
             wound.append(reinterpret_cast<char*> (zframe_data(frame)), zframe_size(frame));
-            //wound.swap(*slug);
             success = true;
          } else {
             if (!message) {
@@ -177,7 +176,7 @@ bool Vampire::GetShot(std::string& wound, const int timeout) {
    } else if (pollResult < 0) {
       LOG(WARNING) << "Error on zmq socket receiving " << GetBinding() << ": " << zmq_strerror(zmq_errno());
    } else {
-      //yae that happened...
+      //socket timed out
    }
    if (message) {
       zmsg_destroy(&message);
@@ -274,9 +273,7 @@ bool Vampire::GetStakes(std::vector<std::pair<void*, unsigned int> >& stakes,
          }
       } else if (!message || (zmsg_size(message) != 1)) {
          LOG(WARNING) << "Received invalid message.";
-         return false;
       }
-
    }
    if (message) {
       zmsg_destroy(&message);
