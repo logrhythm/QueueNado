@@ -1057,7 +1057,7 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
    EXPECT_TRUE(8 == conf.getDpiThreads());
-   EXPECT_EQ(123, conf.getPCAPETimeOut());
+   EXPECT_EQ(30, conf.getPCAPETimeOut());
    EXPECT_EQ(13, conf.getPCAPBuffsize());
 //   EXPECT_EQ("eth0", conf.getPCAPInterface()); this is now internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
@@ -1096,7 +1096,7 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
    EXPECT_TRUE(8 == conf.getDpiThreads());
-   EXPECT_EQ(123, conf.getPCAPETimeOut());
+   EXPECT_EQ(30, conf.getPCAPETimeOut());
    EXPECT_EQ(13, conf.getPCAPBuffsize());
 //   EXPECT_EQ("eth0", conf.getPCAPInterface());  this is now internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
@@ -1296,6 +1296,7 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    std::string expAgentPort = "514";
    std::string expLogFacility = "local4";
    std::string dpiThreads = "13";
+   std::string pcapTimeout = "30";
    std::string pcapBufferSize = "30";
    std::string pcapInterface = "foo";
    std::string syslogMaxLineLength = "1234";
@@ -1303,7 +1304,7 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    sysMsg.set_sysloglogagentport(expAgentPort);
    sysMsg.set_debugsiemlogging("true");
    msg.set_dpithreads(dpiThreads);
-   msg.set_pcapetimeout(dpiThreads);
+   msg.set_pcapetimeout(pcapTimeout);
    msg.set_pcapbuffersize(pcapBufferSize);
    msg.set_pcapinterface(pcapInterface);
    sysMsg.set_syslogmaxlinelength(syslogMaxLineLength);
@@ -1313,7 +1314,7 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
    EXPECT_EQ(expAgentPort, conf.getSyslogAgentPort());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(dpiThreads), conf.getDpiThreads());
-   EXPECT_EQ(boost::lexical_cast<unsigned int>(dpiThreads), conf.getPCAPETimeOut());
+   EXPECT_EQ(boost::lexical_cast<unsigned int>(pcapTimeout), conf.getPCAPETimeOut());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(pcapBufferSize), conf.getPCAPBuffsize());
    EXPECT_EQ(pcapInterface, conf.getPCAPInterface());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(syslogMaxLineLength), conf.getSyslogMaxLineLength());
@@ -1591,7 +1592,7 @@ TEST_F(ConfProcessorTests, testConfSlaveBasic) {
    EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
    EXPECT_EQ(8, conf.getDpiThreads());
-   EXPECT_EQ(123, conf.getPCAPETimeOut());
+   EXPECT_EQ(30, conf.getPCAPETimeOut());
    EXPECT_EQ(13, conf.getPCAPBuffsize());
 //   EXPECT_EQ("eth0", conf.getPCAPInterface());  internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());

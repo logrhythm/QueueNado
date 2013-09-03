@@ -21,7 +21,7 @@ scriptDir: ../scripts
 qosmos512BytePool: 512
 logBufferSize: 2048
 multiThreadQosmos: false
-pcapETimeout: 123
+pcapETimeout: 30
 qosmos64BytePool: 64
 qosmosExpirePerCallback: 123
 qosmos256BytePool: 256
