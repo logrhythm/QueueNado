@@ -15,17 +15,86 @@
 #endif
 
 #ifdef LR_DEBUG
+
+TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
+   MockConf conf;
+   MockDiskPacketCapture capture(conf);
+
+   conf.mPCapCaptureLocation = "testLocation";
+   conf.mPCapCaptureFileLimit = 10000;
+   conf.mPCapCaptureSizeLimit = 10000;
+   conf.mPCapCaptureMemoryLimit = 5;
+   conf.mMaxIndividualPCap = 10;
+   std::stringstream testDir;
+   testDir << "/tmp/TooMuchPcap." << pthread_self();
+
+   conf.mPCapCaptureLocation = testDir.str();
+
+   std::string makeADir = "mkdir -p ";
+   makeADir += testDir.str();
+
+   ASSERT_EQ(0, system(makeADir.c_str()));
+   ASSERT_TRUE(capture.Initialize());
+
+   EXPECT_EQ(0, capture.NewTotalMemory(0));
+   EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
+   struct upacket packet;
+   ctb_pkt p;
+   packet.p = & p;
+   unsigned char data[(1024 * 1024)*10 - sizeof (struct pcap_pkthdr)];
+   p.len = 2 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
+   p.data = data;
+   networkMonitor::DpiMsgLR dpiMsg;
+   dpiMsg.set_sessionid("FlowOne");
+   dpiMsg.set_written(false);
+   capture.SavePacket(&dpiMsg, &packet);
+   EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
+   EXPECT_FALSE(dpiMsg.written());
+   EXPECT_EQ(2, capture.CurrentMemoryForFlow("FlowOne"));
+   p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
+   capture.SavePacket(&dpiMsg, &packet);
+   EXPECT_EQ(2, capture.CurrentDiskForFlow("FlowOne"));
+   EXPECT_TRUE(dpiMsg.written());
+   dpiMsg.set_written(false);
+   EXPECT_EQ(4, capture.CurrentMemoryForFlow("FlowOne"));
+   p.len = 5 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
+   capture.SavePacket(&dpiMsg, &packet);
+   EXPECT_EQ(6, capture.CurrentDiskForFlow("FlowOne"));
+   EXPECT_TRUE(dpiMsg.written());
+   dpiMsg.set_written(false);
+   EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+
+   conf.mMaxIndividualPCap = 11;
+   p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
+   capture.SavePacket(&dpiMsg, &packet);
+
+   EXPECT_EQ(6, capture.CurrentDiskForFlow("FlowOne"));
+   EXPECT_FALSE(dpiMsg.written());
+   dpiMsg.set_written(false);
+   EXPECT_EQ(4, capture.CurrentMemoryForFlow("FlowOne"));
+   makeADir = "rm -rf ";
+   makeADir += testDir.str();
+   ASSERT_EQ(0, system(makeADir.c_str()));
+   ASSERT_FALSE(capture.Initialize());
+
+}
+
 TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
    MockConf conf;
    MockDiskPacketCapture capture(conf);
-   
-   std::string filename = capture.BuildFilename("testuuid");
-   
+
+   std::string filename = capture.BuildFilename("161122fd-6681-42a3-b953-48beb5247172");
+
    ASSERT_FALSE(filename.empty());
-   EXPECT_EQ("161122fd-6681-42a3-b953-48beb5247172",filename);
+   EXPECT_EQ("161122fd-6681-42a3-b953-48beb5247172", filename);
    DiskPacketCapture::PacketCaptureFileDetails fileDetails;
-   ASSERT_TRUE(capture.ParseFilename(filename,fileDetails));
-   EXPECT_EQ("161122fd-6681-42a3-b953-48beb5247172",fileDetails.sessionId);
+   ASSERT_TRUE(capture.ParseFilename(filename, fileDetails));
+   EXPECT_EQ("161122fd-6681-42a3-b953-48beb5247172", fileDetails.sessionId);
+
+   filename = capture.BuildFilename("notAUuid");
+   ASSERT_FALSE(filename.empty());
+   EXPECT_EQ("notAUuid", filename);
+   ASSERT_FALSE(capture.ParseFilename(filename, fileDetails));
 }
 
 /**
@@ -34,16 +103,17 @@ TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
 TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilenameFail) {
    MockConf conf;
    MockDiskPacketCapture capture(conf);
-   
+
    std::string filename = capture.BuildFilename("testuuid");
-   
+
    ASSERT_FALSE(filename.empty());
-   EXPECT_EQ("testuuid",filename);
+   EXPECT_EQ("testuuid", filename);
    DiskPacketCapture::PacketCaptureFileDetails fileDetails;
-   ASSERT_FALSE(capture.ParseFilename(filename,fileDetails));
-   EXPECT_EQ("",fileDetails.sessionId);
+   ASSERT_FALSE(capture.ParseFilename(filename, fileDetails));
+   EXPECT_EQ("", fileDetails.sessionId);
 }
 #endif
+
 TEST_F(DiskPacketCaptureTest, Construct) {
 #ifdef LR_DEBUG
    MockConf conf;
@@ -70,8 +140,8 @@ TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
    conf.mPCapCaptureFileLimit = 10000;
    conf.mPCapCaptureSizeLimit = 10000;
    ASSERT_TRUE(capture.Initialize());
-   std::pair<InMemoryPacketBuffer*, size_t>* sessionInfo;
-   std::pair<InMemoryPacketBuffer*, size_t>* sessionInfo2;
+   SessionInfo* sessionInfo;
+   SessionInfo* sessionInfo2;
    capture.GetRunningPackets("abc123", sessionInfo);
    capture.GetRunningPackets("abc123", sessionInfo2);
    ASSERT_EQ(sessionInfo, sessionInfo2);
@@ -79,10 +149,10 @@ TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
    ASSERT_NE(sessionInfo, sessionInfo2);
 
    //A promise object that can be used for sharing a variable between threads
-   std::promise<std::pair<InMemoryPacketBuffer*, size_t>* > promisedPacket;
+   std::promise<SessionInfo* > promisedPacket;
 
    // A future variable that reads from the promise, allows you to wait on the other thread
-   std::future<std::pair<InMemoryPacketBuffer*, size_t>* > futurePacket = promisedPacket.get_future();
+   std::future<SessionInfo* > futurePacket = promisedPacket.get_future();
 
    // A thread that does a call to the capture object, stores the result in the promise.
    //
@@ -94,9 +164,9 @@ TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
    // the arguments to be references rather than pointers in this context.  
    //
    // Finally the .detach() breaks the thread off to execute in the background
-   std::thread([](std::promise<std::pair<InMemoryPacketBuffer*, size_t>* >& pointer,
+   std::thread([](std::promise<SessionInfo* >& pointer,
            MockDiskPacketCapture & capture) {
-      std::pair<InMemoryPacketBuffer*, size_t>* sessionInfo3;
+      SessionInfo* sessionInfo3;
       capture.GetRunningPackets("abc123", sessionInfo3);
               pointer.set_value(sessionInfo3); }, std::ref(promisedPacket), std::ref(capture)).detach();
 
@@ -105,7 +175,7 @@ TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
 
    // Verify that the code run in the thread gives you a different pointer 
    capture.GetRunningPackets("abc123", sessionInfo);
-   std::pair<InMemoryPacketBuffer*, size_t>* otherRunningPacket = futurePacket.get();
+   SessionInfo* otherRunningPacket = futurePacket.get();
    EXPECT_NE(sessionInfo, otherRunningPacket);
    makeADir = "";
    makeADir = "rm -rf ";
@@ -118,7 +188,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
 #ifdef LR_DEBUG
    MockConf conf;
    MockDiskPacketCapture capture(conf);
-   
+
    conf.mPCapCaptureLocation = "testLocation";
    std::string fileName = capture.BuildFilenameWithPath("TestUUID");
    ASSERT_EQ("testLocation/TestUUID", fileName);
@@ -172,7 +242,7 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
    EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
    struct upacket packet;
    ctb_pkt p;
-   packet.p = &p;
+   packet.p = & p;
    unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
    p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
    p.data = data;
@@ -237,7 +307,7 @@ TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit) {
    EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
    struct upacket packet;
    ctb_pkt p;
-   packet.p = &p;
+   packet.p = & p;
    unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
    p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
    p.data = data;
@@ -257,11 +327,17 @@ TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit) {
    p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
    capture.mFailFlush = false;
    capture.SavePacket(&dpiMsg, &packet);
-   ASSERT_EQ(1,capture.mFilesWritten.size());
-   EXPECT_EQ("FlowOne",*capture.mFilesWritten.begin());
+   ASSERT_EQ(1, capture.mFilesWritten.size());
+   // cleanup is an unordered map, the flow that gets picked could very based on the 
+   // pointer hash
+   if ("FlowOne" == * capture.mFilesWritten.begin()) {
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowTwo"));
+   } else {
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
+   }
    EXPECT_EQ(1, capture.NewTotalMemory(0));
-   EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
-   EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowTwo"));
 
    makeADir = "rm -rf ";
    makeADir += testDir.str();

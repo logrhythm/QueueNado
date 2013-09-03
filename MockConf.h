@@ -10,7 +10,7 @@
 
 class MockConf : public Conf {
 public:
-   
+
    MockConf() :
    mSyslogAgentPort("1234"),
    mSyslogFacility("local4"),
@@ -42,8 +42,9 @@ public:
    mSyslogMaxLineLength(2048),
    mStatsIntervalSeconds(5),
    mOverrideInternalRepair(false),
-   mInternalRepair(true), 
-   mValidateEthFailCount(0){
+   mInternalRepair(true),
+   mValidateEthFailCount(0),
+   mMaxIndividualPCap(1000) {
    }
 
    ~MockConf() {
@@ -233,29 +234,35 @@ public:
    bool SiemDebugLogging() {
       return mSiemDebug;
    }
-   
-   bool InternallyRepairBaseConf( EthInfo& ethInfo) LR_OVERRIDE {
+
+   bool InternallyRepairBaseConf(EthInfo& ethInfo) LR_OVERRIDE {
       if (mOverrideInternalRepair) {
          return mInternalRepair;
       }
       return Conf::InternallyRepairBaseConf(ethInfo);
    }
+
    void RepairEthConfFieldsWithDefaults(ConfMap& protoMap, EthInfo& ethInfo) LR_OVERRIDE {
       if (mValidateEthFailCount > 0) {
          mValidateEthFailCount--;
       }
-      return Conf::RepairEthConfFieldsWithDefaults(protoMap,ethInfo);
+      return Conf::RepairEthConfFieldsWithDefaults(protoMap, ethInfo);
    }
-   bool ValidateEthConfFields(ConfMap& protoMap,  EthInfo& ethInfo) LR_OVERRIDE {
+
+   bool ValidateEthConfFields(ConfMap& protoMap, EthInfo& ethInfo) LR_OVERRIDE {
       if (mValidateEthFailCount > 0) {
          return false;
       } else if (mValidateEthFailCount == 0) {
          return true;
-      } 
+      }
       mValidateEthFailCount = -1;
-      return Conf::ValidateEthConfFields(protoMap,ethInfo);
+      return Conf::ValidateEthConfFields(protoMap, ethInfo);
    }
-   
+
+   size_t GetPCapIndividualFileLimit() {
+      return mMaxIndividualPCap;
+   }
+
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;
@@ -302,5 +309,6 @@ public:
    bool mOverrideInternalRepair;
    bool mInternalRepair;
    int mValidateEthFailCount;
+   size_t mMaxIndividualPCap;
 
 };
