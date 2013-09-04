@@ -108,7 +108,7 @@ void* BoomStick::GetNewSocket(zctx_t* ctx) {
 std::string BoomStick::GetUuid() {
    boost::uuids::uuid u1 = m_uuidGen();
 
-   stdstringstream ss;
+   std::stringstream ss;
    ss << u1;
 
    return ss.str();
