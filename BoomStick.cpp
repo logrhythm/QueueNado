@@ -42,6 +42,7 @@ void BoomStick::Swap(BoomStick& other) {
    mBinding = other.mBinding;
    mChamber = other.mChamber;
    mCtx = other.mCtx;
+   mLastGCTime = other.mLastGCTime;
    //   other.mBinding.clear();  Allow it to be initialized again
    other.mChamber = nullptr;
    other.mCtx = nullptr;
@@ -308,7 +309,6 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
    zmsg_t* msg = zmsg_recv(mChamber);
    if (!msg) {
       foundReply = zmq_strerror(zmq_errno());
-      zmsg_destroy(&msg);
       return false;
    }
    if (zmsg_size(msg) != 2) {
