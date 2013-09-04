@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "include/global.h"
+#include "boost/uuid/uuid.hpp"
+#include "boost/uuid/uuid_generators.hpp"
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
 
@@ -41,5 +43,6 @@ private:
    std::string mBinding;
    void *mChamber;
    zctx_t *mCtx;
-
+   boost::mt19937 mRan;
+   boost::uuids::basic_random_generator<boost::mt19937> m_uuidGen;
 };

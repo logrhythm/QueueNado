@@ -9,23 +9,27 @@
 #include <iostream>
 #include <time.h>
 #include <vector>
-#include "MsgUuid.h"
+#include "boost/uuid/uuid_io.hpp"
 
-static networkMonitor::MsgUuid& msgUuid = networkMonitor::MsgUuid::Instance();
+
 /**
  * Construct with a ZMQ socket binding
  * @param binding
  *   The binding is stored, but Initialize must be used to connect to it.
  */
-BoomStick::BoomStick(const std::string& binding) : mLastGCTime(time(NULL)), mBinding(binding), mChamber(nullptr), mCtx(nullptr) {
+BoomStick::BoomStick(const std::string& binding) : mLastGCTime(time(NULL)),
+mBinding(binding), mChamber(nullptr), mCtx(nullptr), mRan(), m_uuidGen(mRan) {
+   mRan.seed(boost::uuids::detail::seed_rng()());
 }
 
 /**
  * Deconstruct
  *   This destroys the context and any associated sockets
  */
-BoomStick::~BoomStick() {
-   zctx_destroy(&mCtx);
+BoomStick::~ BoomStick() {
+   if (mCtx != nullptr) {
+      zctx_destroy(&mCtx);
+   }
 }
 
 /**
@@ -45,6 +49,8 @@ void BoomStick::Swap(BoomStick& other) {
    mChamber = other.mChamber;
    mCtx = other.mCtx;
    mLastGCTime = other.mLastGCTime;
+   mRan = other.mRan;
+   m_uuidGen = other.m_uuidGen;
    //   other.mBinding.clear();  Allow it to be initialized again
    other.mChamber = nullptr;
    other.mCtx = nullptr;
@@ -67,8 +73,10 @@ BoomStick::BoomStick(BoomStick&& other) {
  *   A reference to this
  */
 BoomStick& BoomStick::operator=(BoomStick&& other) {
-   if (this != &other) {
-      zctx_destroy(&mCtx);
+   if (this != & other) {
+      if (nullptr != mCtx) {
+         zctx_destroy(&mCtx);
+      }
       Swap(other);
    }
    return *this;
@@ -98,7 +106,12 @@ void* BoomStick::GetNewSocket(zctx_t* ctx) {
 }
 
 std::string BoomStick::GetUuid() {
-   return msgUuid.GetMsgUuid();
+   boost::uuids::uuid u1 = m_uuidGen();
+
+   std::stringstream ss;
+   ss << u1;
+
+   return ss.str();
 }
 
 /**
@@ -152,7 +165,7 @@ bool BoomStick::Initialize() {
       mCtx = nullptr;
       return false;
    }
-   if (!ConnectToBinding(mChamber, mBinding)) {
+   if (! ConnectToBinding(mChamber, mBinding)) {
 
       zctx_destroy(&mCtx);
       mChamber = nullptr;
@@ -163,7 +176,7 @@ bool BoomStick::Initialize() {
 }
 
 bool BoomStick::FindPendingUuid(const std::string& uuid) const {
-    return mPendingReplies.find(uuid) != mPendingReplies.end();
+   return mPendingReplies.find(uuid) != mPendingReplies.end();
 }
 
 /**
@@ -177,13 +190,13 @@ bool BoomStick::FindPendingUuid(const std::string& uuid) const {
 std::string BoomStick::Send(const std::string& command) {
    const std::string uuid = GetUuid();
 
-   if (!SendAsync(uuid, command)) {
+   if (! SendAsync(uuid, command)) {
       return
       {
       };
    }
    std::string returnString;
-   if (!GetAsyncReply(uuid, 30000, returnString)) {
+   if (! GetAsyncReply(uuid, 30000, returnString)) {
       return
       {
       };
@@ -235,8 +248,8 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
    } else {
       LOG(WARNING) << "Queue error, timeout waiting for queue to be ready";
    }
-   
-   if(msg) { 
+
+   if (msg) {
       zmsg_destroy(&msg);
    }
 
@@ -268,11 +281,11 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
  * @return 
  */
 bool BoomStick::CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply) {
-   if(!mChamber) {
+   if (! mChamber) {
       LOG(WARNING) << "Invalid socket";
       return false;
    }
-   if (!zsocket_poll(mChamber, msToWait)) {
+   if (! zsocket_poll(mChamber, msToWait)) {
       reply = "socket timed out";
       return false;
    }
@@ -286,16 +299,15 @@ bool BoomStick::CheckForMessagePending(const std::string& messageHash, const uns
  * @return 
  */
 bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundReply) {
-   if(!mChamber) {
+   if (! mChamber) {
       LOG(WARNING) << "Invalid socket";
       return false;
    }
    bool success = false;
    zmsg_t* msg = zmsg_recv(mChamber);
-   if (!msg) {
+   if (! msg) {
       foundReply = zmq_strerror(zmq_errno());
-   }
-   else if (zmsg_size(msg) == 2) {
+   } else if (zmsg_size(msg) == 2) {
       char* msgChar;
       msgChar = zmsg_popstr(msg);
       foundId = msgChar;
@@ -307,8 +319,8 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
    } else {
       foundReply = "Malformed reply, expecting 2 parts";
    }
-   
-   if(msg) {
+
+   if (msg) {
       zmsg_destroy(&msg);
    }
    return success;
@@ -332,14 +344,14 @@ bool BoomStick::GetAsyncReply(const std::string& uuid, const unsigned int msToWa
       CleanOldPendingData();
       return false;
    }
-   if (!FindPendingUuid(uuid)) {
+   if (! FindPendingUuid(uuid)) {
       LOG(WARNING) << "Tried to get a reply for a message more than once sessionId: ";
       reply = "ID is not pending";
       CleanOldPendingData();
       return false;
    }
    bool found = GetReplyFromCache(uuid, reply);
-   if (!found) {
+   if (! found) {
       found = GetReplyFromSocket(uuid, msToWait, reply);
    }
    CleanOldPendingData();
@@ -358,9 +370,9 @@ bool BoomStick::GetAsyncReply(const std::string& uuid, const unsigned int msToWa
 bool BoomStick::GetReplyFromSocket(const std::string& uuid, const unsigned int msToWait, std::string& reply) {
    bool found = false;
    reply = "Timed out searching for reply";
-   while (!found && CheckForMessagePending(uuid, msToWait, reply)) {
+   while (! found && CheckForMessagePending(uuid, msToWait, reply)) {
       std::string foundId;
-      if (!ReadFromReadySocket(foundId, reply)) {
+      if (! ReadFromReadySocket(foundId, reply)) {
          break;
       }
       if (uuid == foundId) {
@@ -403,7 +415,7 @@ void BoomStick::CleanPendingReplies() {
    for (auto uuid : uuidsToRemove) {
       mPendingReplies.erase(uuid);
       if (mUnreadReplies.find(uuid) != mUnreadReplies.end()) {
-         deleteUnread++;
+         deleteUnread ++;
          mUnreadReplies.erase(uuid);
       }
    }
@@ -425,7 +437,7 @@ void BoomStick::CleanUnreadReplies() {
 
    int count = 0;
    for (auto hash : uuidsToRemove) {
-      count++;
+      count ++;
       mUnreadReplies.erase(hash);
    }
    LOG_IF(INFO, (count > 0)) << "Deleted " << count << " replies that no longer exist in pending";
