@@ -25,7 +25,7 @@ pcapETimeout: 123
 qosmos64BytePool: 64
 qosmosExpirePerCallback: 123
 qosmos256BytePool: 256
-pcapInterface: eth0
+pcapInterface: em2
 qosmosTCPReAssemblyEnabled: false
 dbUrl: localhost:9160
 qosmos128BytePool: 128
