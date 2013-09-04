@@ -105,7 +105,7 @@ bool Rifle::Aim() {
       } else {
          int result = zsocket_connect(mChamber, mLocation.c_str());
          if (result < 0) {
-            printf("Can't connect : %d\n", result);
+            printf("Rifle Can't connect : %d\n", result);
             zsocket_destroy(mContext, mChamber);
             mChamber = NULL;
             return false;

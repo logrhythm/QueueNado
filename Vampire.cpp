@@ -98,7 +98,7 @@ bool Vampire::PrepareToBeShot() {
          if (result < 0) {
             zsocket_destroy(mContext, mBody);
             mBody = NULL;
-            LOG(WARNING) << "Can't connect : " << result;
+            LOG(WARNING) << "Vampire Can't bind : " << result;
             return false;
          } else {
             setIpcFilePermissions();
@@ -108,7 +108,7 @@ bool Vampire::PrepareToBeShot() {
          if (result < 0) {
             zsocket_destroy(mContext, mBody);
             mBody = NULL;
-            LOG(WARNING) << "Can't connect : " << result;
+            LOG(WARNING) << "Vampire Can't connect : " << result;
             return false;
          }
       }
