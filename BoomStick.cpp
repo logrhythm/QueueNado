@@ -9,7 +9,9 @@
 #include <iostream>
 #include <time.h>
 #include <vector>
+#include "MsgUuid.h"
 
+static networkMonitor::MsgUuid& msgUuid = networkMonitor::MsgUuid::Instance();
 /**
  * Construct with a ZMQ socket binding
  * @param binding
@@ -95,6 +97,10 @@ void* BoomStick::GetNewSocket(zctx_t* ctx) {
    return zsocket_new(ctx, ZMQ_DEALER);
 }
 
+std::string BoomStick::GetUuid() {
+   return msgUuid.GetMsgUuid();
+}
+
 /**
  * Connect the given socket to the given binding
  * @param socket
@@ -156,23 +162,8 @@ bool BoomStick::Initialize() {
    return true;
 }
 
-/**
- * Does the current Id exist in the list of pending replies
- * @param id
- * @return 
- */
-bool BoomStick::FindPendingId(const MessageIdentifier& id) const {
-   std::string messageHash = HashMessageId(id);
-   return FindPendingHash(messageHash);
-}
-
-/**
- * Does the current hashed id is in the list of pending replies
- * @param hash
- * @return 
- */
-bool BoomStick::FindPendingHash(const std::string& hash) const {
-   return mPendingReplies.find(hash) != mPendingReplies.end();
+bool BoomStick::FindPendingUuid(const std::string& uuid) const {
+    return mPendingReplies.find(uuid) != mPendingReplies.end();
 }
 
 /**
@@ -184,34 +175,20 @@ bool BoomStick::FindPendingHash(const std::string& hash) const {
  *   The reply received
  */
 std::string BoomStick::Send(const std::string& command) {
-   MessageIdentifier id = std::make_pair("synchronous", time(NULL));
+   const std::string uuid = GetUuid();
 
-   if (!SendAsync(id, command)) {
+   if (!SendAsync(uuid, command)) {
       return
       {
       };
    }
    std::string returnString;
-   if (!GetAsyncReply(id, 5000, returnString)) {
+   if (!GetAsyncReply(uuid, 30000, returnString)) {
       return
       {
       };
    }
    return returnString;
-}
-
-/**
- * Hash the contents of the MessageIdentifier type into something that can be used
- *   in hashmaps
- * @param messageid
- *   The message id
- * @return 
- *   A string that is a simple hash of the contents of the id
- */
-std::string BoomStick::HashMessageId(const MessageIdentifier& messageid) const {
-   std::stringstream messageHash;
-   messageHash << messageid.first << messageid.second;
-   return messageHash.str();
 }
 
 /**
@@ -223,25 +200,21 @@ std::string BoomStick::HashMessageId(const MessageIdentifier& messageid) const {
  * @return 
  *   If the send was successful
  */
-bool BoomStick::SendAsync(const MessageIdentifier& uuid, const std::string& command) {
+bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
    if (nullptr == mCtx || nullptr == mChamber) {
       return false;
    }
-   std::string messageHash = HashMessageId(uuid);
-   if (FindPendingHash(messageHash)) {
+   bool success = true;
+   if (FindPendingUuid(uuid)) {
       //LOG(DEBUG) << "Attempted to re-send " << messageHash;
       return false;
    }
    zmsg_t* msg = zmsg_new();
-   if (zmsg_addmem(msg, messageHash.c_str(), messageHash.size()) < 0) {
+   if (zmsg_addmem(msg, uuid.c_str(), uuid.size()) < 0) {
       LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
-      zmsg_destroy(&msg);
-      return false;
    }
    if (zmsg_addmem(msg, command.c_str(), command.size()) < 0) {
       LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
-      zmsg_destroy(&msg);
-      return false;
    }
    zmq_pollitem_t items[1];
    items[0].socket = mChamber;
@@ -249,23 +222,25 @@ bool BoomStick::SendAsync(const MessageIdentifier& uuid, const std::string& comm
    int rc = zmq_poll(items, 1, 0);
    if (rc < 0) {
       LOG(WARNING) << "Queue error, cannot poll for status";
-      return false;
    } else if (rc == 1) {
       if ((items[0].revents & ZMQ_POLLOUT) != ZMQ_POLLOUT) {
          LOG(WARNING) << "Queue error, cannot send messages the queue is full";
-         return false;
       }
-      if (zmsg_send(&msg, mChamber) < 0) {
+      if (zmsg_send(&msg, mChamber) == 0) {
+         success = true;
+         mPendingReplies[uuid] = std::time(NULL);
+      } else {
          LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
-         return false;
       }
    } else {
       LOG(WARNING) << "Queue error, timeout waiting for queue to be ready";
-      return false;
+   }
+   
+   if(msg) { 
+      zmsg_destroy(&msg);
    }
 
-   mPendingReplies[messageHash] = uuid;
-   return true;
+   return success;
 }
 
 /**
@@ -279,7 +254,9 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
    if (mUnreadReplies.find(messageHash) != mUnreadReplies.end()) {
       reply = mUnreadReplies[messageHash];
       mUnreadReplies.erase(messageHash);
-      mPendingReplies.erase(messageHash);
+      if (mPendingReplies.find(messageHash) != mPendingReplies.end()) {
+         mPendingReplies.erase(messageHash);
+      }
       return true;
    }
    return false;
@@ -291,9 +268,12 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
  * @return 
  */
 bool BoomStick::CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply) {
+   if(!mChamber) {
+      LOG(WARNING) << "Invalid socket";
+      return false;
+   }
    if (!zsocket_poll(mChamber, msToWait)) {
       reply = "socket timed out";
-      LOG(DEBUG) << "Failed to find any new messages on socket while looking for a message";
       return false;
    }
    return true;
@@ -306,25 +286,32 @@ bool BoomStick::CheckForMessagePending(const std::string& messageHash, const uns
  * @return 
  */
 bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundReply) {
+   if(!mChamber) {
+      LOG(WARNING) << "Invalid socket";
+      return false;
+   }
+   bool success = false;
    zmsg_t* msg = zmsg_recv(mChamber);
    if (!msg) {
       foundReply = zmq_strerror(zmq_errno());
-      return false;
    }
-   if (zmsg_size(msg) != 2) {
+   else if (zmsg_size(msg) == 2) {
+      char* msgChar;
+      msgChar = zmsg_popstr(msg);
+      foundId = msgChar;
+      free(msgChar);
+      msgChar = zmsg_popstr(msg);
+      foundReply = msgChar;
+      free(msgChar);
+      success = true;
+   } else {
       foundReply = "Malformed reply, expecting 2 parts";
-      zmsg_destroy(&msg);
-      return false;
    }
-   char* msgChar;
-   msgChar = zmsg_popstr(msg);
-   foundId = msgChar;
-   free(msgChar);
-   msgChar = zmsg_popstr(msg);
-   foundReply = msgChar;
-   free(msgChar);
-   zmsg_destroy(&msg);
-   return true;
+   
+   if(msg) {
+      zmsg_destroy(&msg);
+   }
+   return success;
 }
 
 /**
@@ -338,22 +325,22 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
  *   if the pull was successful.  Can timeout and return false.  Error info will 
  * be in the reply return. 
  */
-bool BoomStick::GetAsyncReply(const MessageIdentifier& uuid, const unsigned int msToWait, std::string& reply) {
+bool BoomStick::GetAsyncReply(const std::string& uuid, const unsigned int msToWait, std::string& reply) {
    if (nullptr == mCtx || nullptr == mChamber) {
+      LOG(WARNING) << "Invalid socket";
       reply = "No socket";
       CleanOldPendingData();
       return false;
    }
-   std::string messageHash = HashMessageId(uuid);
-   if (!FindPendingHash(messageHash)) {
-      LOG(WARNING) << "Tried to get a reply for a message more than once";
+   if (!FindPendingUuid(uuid)) {
+      LOG(WARNING) << "Tried to get a reply for a message more than once sessionId: ";
       reply = "ID is not pending";
       CleanOldPendingData();
       return false;
    }
-   bool found = GetReplyFromCache(messageHash, reply);
+   bool found = GetReplyFromCache(uuid, reply);
    if (!found) {
-      found = GetReplyFromSocket(messageHash, msToWait, reply);
+      found = GetReplyFromSocket(uuid, msToWait, reply);
    }
    CleanOldPendingData();
    return found;
@@ -368,17 +355,17 @@ bool BoomStick::GetAsyncReply(const MessageIdentifier& uuid, const unsigned int 
  * @return 
  *   If the message was found
  */
-bool BoomStick::GetReplyFromSocket(const std::string& messageHash, const unsigned int msToWait, std::string& reply) {
+bool BoomStick::GetReplyFromSocket(const std::string& uuid, const unsigned int msToWait, std::string& reply) {
    bool found = false;
    reply = "Timed out searching for reply";
-   while (!found && CheckForMessagePending(messageHash, msToWait, reply)) {
+   while (!found && CheckForMessagePending(uuid, msToWait, reply)) {
       std::string foundId;
       if (!ReadFromReadySocket(foundId, reply)) {
          break;
       }
-      if (messageHash == foundId) {
+      if (uuid == foundId) {
          found = true;
-         mPendingReplies.erase(messageHash);
+         mPendingReplies.erase(uuid);
       } else {
          mUnreadReplies[foundId] = reply;
       }
@@ -406,18 +393,18 @@ void BoomStick::CleanPendingReplies() {
       return;
    }
    mLastGCTime = now;
-   std::vector<std::string> hashesToRemove;
+   std::vector<std::string> uuidsToRemove;
    for (auto pendingSend : mPendingReplies) {
-      if (pendingSend.second.second <= now - 5 * MINUTES_TO_SECONDS) {
-         hashesToRemove.push_back(pendingSend.first);
+      if (pendingSend.second <= now - 5 * MINUTES_TO_SECONDS) {
+         uuidsToRemove.push_back(pendingSend.first);
       }
    }
    int deleteUnread = 0;
-   for (auto hash : hashesToRemove) {
-      mPendingReplies.erase(hash);
-      if (mUnreadReplies.find(hash) != mUnreadReplies.end()) {
+   for (auto uuid : uuidsToRemove) {
+      mPendingReplies.erase(uuid);
+      if (mUnreadReplies.find(uuid) != mUnreadReplies.end()) {
          deleteUnread++;
-         mUnreadReplies.erase(hash);
+         mUnreadReplies.erase(uuid);
       }
    }
    LOG_IF(INFO, (deleteUnread > 0)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
@@ -427,17 +414,17 @@ void BoomStick::CleanPendingReplies() {
  * Cleanup unread replies that don't exist in pending.
  */
 void BoomStick::CleanUnreadReplies() {
-   std::vector<std::string> hashesToRemove;
+   std::vector<std::string> uuidsToRemove;
    //check all unread replies and remove any that don't exist in pending.
    for (auto unreadReply : mUnreadReplies) {
       if (mPendingReplies.find(unreadReply.first) == mPendingReplies.end()) {
-         LOG(WARNING) << "Found unmatched reply to unknown hash " << unreadReply.first;
-         hashesToRemove.push_back(unreadReply.first);
+         LOG(WARNING) << "Found unmatched reply to unknown UUID " << unreadReply.first;
+         uuidsToRemove.push_back(unreadReply.first);
       }
    }
 
    int count = 0;
-   for (auto hash : hashesToRemove) {
+   for (auto hash : uuidsToRemove) {
       count++;
       mUnreadReplies.erase(hash);
    }
