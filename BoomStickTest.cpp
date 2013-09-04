@@ -41,7 +41,7 @@ namespace {
       for (auto id : sentMessages) {
          std::string reply;
          sS << "request " << i++ << " reply";
-         if (!stick.GetAsyncReply(id, 10, reply)) {
+         if (!stick.GetAsyncReply(id, 1000, reply)) {
             FAIL();
          }
          if (reply != sS.str()) {
@@ -385,7 +385,7 @@ TEST_F(BoomStickTest, DontSearchSocketForever) {
               finished.set_value(true);
    }, std::ref(promisedFinished), std::ref(stick), std::ref(id)).detach();
 
-   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(10+2)) != std::future_status::timeout);
+   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(1000+2)) != std::future_status::timeout);
 
    
 }
