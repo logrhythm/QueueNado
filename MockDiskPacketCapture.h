@@ -14,13 +14,13 @@ public:
    bool Initialize(const bool diskCleanThread = false) {
       return DiskPacketCapture::Initialize(diskCleanThread);
    }
-   void GetRunningPackets(const std::string& uuid, std::pair<InMemoryPacketBuffer*, size_t>*& sessionInfo) {
+   void GetRunningPackets(const std::string& uuid, SessionInfo*& sessionInfo) {
       DiskPacketCapture::GetRunningPackets(uuid,sessionInfo);
    }
    
-   bool WriteSavedSessionToDisk(const std::string& sessionId) {
-      mFilesWritten.push_back(sessionId);
-      return DiskPacketCapture::WriteSavedSessionToDisk(sessionId);
+   bool WriteSavedSessionToDisk(networkMonitor::DpiMsgLR* dpiMsg) {
+      mFilesWritten.push_back(dpiMsg->sessionid());
+      return DiskPacketCapture::WriteSavedSessionToDisk(dpiMsg);
    }
 
    void RemoveFromRunningPackets(const pthread_t tid,const std::string& uuid) {
@@ -42,7 +42,11 @@ public:
    int CurrentMemoryForFlow(const std::string& uuid) {
       return DiskPacketCapture::CurrentMemoryForFlow(uuid);
    }
- 
+   
+   int CurrentDiskForFlow(const std::string & sessionId) {
+      return DiskPacketCapture::CurrentDiskForFlow(sessionId);
+   }
+   
    bool FlushABigSession() {
       if (mFailFlush) {
          return false;

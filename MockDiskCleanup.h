@@ -17,8 +17,11 @@ public:
    virtual ~MockDiskCleanup() {
    }
 
+   bool IsShutdown() {
+      return false;
+   }
    size_t RemoveOldestPCapFiles(const size_t maxToRemove, ElasticSearch& es, size_t& filesRemoved, size_t& spaceRemoved) {
-      return DiskCleanup::RemoveOldestPCapFiles(1,es, filesRemoved, spaceRemoved);
+      return DiskCleanup::RemoveOldestPCapFiles(1, es, filesRemoved, spaceRemoved);
    }
 
    bool TooMuchPCap(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
@@ -30,10 +33,10 @@ public:
    }
 
    void CleanupOldPcapFiles(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
-        std::time_t& currentTime,std::atomic<size_t>& aDiskUsed,
-        std::atomic<size_t>& aTotalFiles,
-        const size_t fsFreeGigs,
-        const size_t fsTotalGigs) {
+           std::time_t& currentTime, std::atomic<size_t>& aDiskUsed,
+           std::atomic<size_t>& aTotalFiles,
+           const size_t fsFreeGigs,
+           const size_t fsTotalGigs) {
       DiskCleanup::CleanupOldPcapFiles(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, fsFreeGigs, fsTotalGigs);
    }
 
@@ -68,11 +71,11 @@ public:
    }
 
    void CleanupSearch(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
-        std::time_t& currentTime, const std::atomic<size_t>& aDiskUsed,
-        const std::atomic<size_t>& aTotalFiles,
-        size_t& fsFreeGigs,
-        size_t& fsTotalGigs) {
-      return DiskCleanup::CleanupSearch(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles,fsFreeGigs,fsTotalGigs);
+           std::time_t& currentTime, const std::atomic<size_t>& aDiskUsed,
+           const std::atomic<size_t>& aTotalFiles,
+           size_t& fsFreeGigs,
+           size_t& fsTotalGigs) {
+      return DiskCleanup::CleanupSearch(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, fsFreeGigs, fsTotalGigs);
    }
 
    void GetStatVFS(struct statvfs* fileSystemInfo) {

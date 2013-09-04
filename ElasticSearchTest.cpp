@@ -35,7 +35,7 @@ TEST_F(ElasticSearchTest, ReplyNotReadyIsFalseBadIsTrue) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
    ElasticSearchSocket es(transport, true);
 
-   MessageIdentifier id;
+   std::string id = transport.GetUuid();
    std::string reply;
    transport.mReturnString = "FAILFAILFAIL";
    transport.mReturnSocketEmpty = true;

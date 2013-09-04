@@ -15,7 +15,9 @@ namespace networkMonitor {
       MockConfMaster() : ConfMaster(), mConfLocation("resources/test.yaml"), mConf(mConfLocation) {
 
       }
-
+      
+      void RepairConf(Conf& conf) {}
+      
       Conf GetConf(void) {
          Conf conf(mConfLocation);
          return std::move(conf);

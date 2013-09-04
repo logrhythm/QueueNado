@@ -30,7 +30,7 @@ public:
       }
    }
 
-   bool SendAsync(const MessageIdentifier& uuid, const std::string& command) {
+   bool SendAsync(const std::string uuid, const std::string& command) {
       if (mReturnString.empty()) {
          return BoomStick::SendAsync(uuid,command);
       } else {
@@ -38,7 +38,7 @@ public:
       }
    }
 
-   bool GetAsyncReply(const MessageIdentifier& uuid, const unsigned int msToWait, std::string& reply) {
+   bool GetAsyncReply(const std::string uuid, const unsigned int msToWait, std::string& reply) {
       if (mReturnString.empty()) {
          return BoomStick::GetAsyncReply(uuid,msToWait,reply);
       } else {
@@ -77,10 +77,9 @@ public:
     * @param messageid
     * @return Empty if it isn't there
     */
-   std::string GetCachedReply(const MessageIdentifier& messageid) {
-      std::string messageHash = HashMessageId(messageid);
-      if (mUnreadReplies.find(messageHash) != mUnreadReplies.end()) {
-         return mUnreadReplies[messageHash];
+   std::string GetCachedReply(const std::string uuid) {
+      if (mUnreadReplies.find(uuid) != mUnreadReplies.end()) {
+         return mUnreadReplies[uuid];
       }
       return
       {
