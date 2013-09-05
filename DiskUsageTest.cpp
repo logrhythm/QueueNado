@@ -62,20 +62,20 @@ TEST(DiskUsage, ByteToKByteToMBToGB) {
    auto MBTotal = usage.DiskTotal(DiskUsage::Size::MB);
    auto MBFree = usage.DiskFree(DiskUsage::Size::MB);
    auto MBAvailable = usage.DiskAvailable(DiskUsage::Size::MB);
-   EXPECT_EQ(MBUsed, 1 + KBUsed/1024); // ceiling adds +1
-   EXPECT_EQ(MBTotal, 1 + KBTotal/1024);
-   EXPECT_EQ(MBFree, 1 +KBFree/1024);
-   EXPECT_EQ(MBAvailable, 1 +KBAvailable/1024);
+   EXPECT_EQ(MBUsed, KBUsed/1024); // ceiling adds +1
+   EXPECT_EQ(MBTotal, KBTotal/1024);
+   EXPECT_EQ(MBFree, KBFree/1024);
+   EXPECT_EQ(MBAvailable, KBAvailable/1024);
    
    
    auto GBUsed = usage.DiskUsed(DiskUsage::Size::GB);
    auto GBTotal = usage.DiskTotal(DiskUsage::Size::GB);
    auto GBFree = usage.DiskFree(DiskUsage::Size::GB);
    auto GBAvailable = usage.DiskAvailable(DiskUsage::Size::GB);
-   EXPECT_EQ(GBUsed, 1 + MBUsed/1024);
-   EXPECT_EQ(GBTotal, 1 + MBTotal/1024);
-   EXPECT_EQ(GBFree, 1 + MBFree/1024);
-   EXPECT_EQ(GBAvailable, 1 + MBAvailable/1024);
+   EXPECT_EQ(GBUsed, MBUsed/1024);
+   EXPECT_EQ(GBTotal, MBTotal/1024);
+   EXPECT_EQ(GBFree, MBFree/1024);
+   EXPECT_EQ(GBAvailable, MBAvailable/1024);
 }
 
 
@@ -102,7 +102,7 @@ TEST(DiskUsage, CheckValuesByte) {
    EXPECT_EQ(total, 78036156416);
    EXPECT_EQ(free, 64657141760); // free is available + "overhead"
    EXPECT_EQ(available, 60693106688);
-   EXPECT_EQ(std::ceil(percentage), std::ceil(18.80));
+   EXPECT_EQ(std::ceil(1000* percentage), std::ceil(1000*18.0621));
 }
 
 
@@ -119,7 +119,7 @@ TEST(DiskUsage, CheckValuesKByte) {
    EXPECT_EQ(total, 76207184);
    EXPECT_EQ(free, 63141740); // free is available + "overhead"
    EXPECT_EQ(available, 59270612);
-   EXPECT_EQ(std::ceil(percentage), std::ceil(18.80));
+   EXPECT_EQ(std::ceil(1000* percentage), std::ceil(1000*18.0621));
 }
 
 
@@ -133,11 +133,11 @@ TEST(DiskUsage, CheckValuesMB) {
    auto percentage = usage.DiskUsedPercentage();
 
    // from snapshot 
-   EXPECT_EQ(used, 12760);
-   EXPECT_EQ(total, 74422);
-   EXPECT_EQ(free, 61662); // free is available + "overhead"
-   EXPECT_EQ(available, 57882);
-   EXPECT_EQ(std::ceil(percentage), std::ceil(18.80));
+   EXPECT_EQ(used, 12759);
+   EXPECT_EQ(total, 74421);
+   EXPECT_EQ(free, 61661); // free is available + "overhead"
+   EXPECT_EQ(available, 57881);
+   EXPECT_EQ(std::ceil(1000* percentage), std::ceil(1000*18.0621));
 } 
 
 
@@ -150,11 +150,11 @@ TEST(DiskUsage, CheckValuesGB) {
    auto percentage = usage.DiskUsedPercentage();
 
    // from snapshot 
-   EXPECT_EQ(used, 13);
-   EXPECT_EQ(total, 73);
-   EXPECT_EQ(free, 61);
-   EXPECT_EQ(available, 57);
-   EXPECT_EQ(std::ceil(percentage), std::ceil(18.79));
+   EXPECT_EQ(used, 12);
+   EXPECT_EQ(total, 72);
+   EXPECT_EQ(free, 60);
+   EXPECT_EQ(available, 56);
+   EXPECT_EQ(std::ceil(1000* percentage), std::ceil(1000*18.0621));
 }
 
 
