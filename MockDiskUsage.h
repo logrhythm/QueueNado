@@ -13,7 +13,7 @@
 
 struct MockDiskUsage : public DiskUsage {
    MockDiskUsage() 
-   : DiskUsage("abc_this_will_not_read_anything")
+   : DiskUsage("/usr/local/probe/pcap")
    {
       // snapshot from a statvfs call
       mstatvs.f_bsize = 4096;
