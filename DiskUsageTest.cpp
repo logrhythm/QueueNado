@@ -203,8 +203,8 @@ TEST(DiskUsage, CheckValuesGB) {
 }
 
 
-#if 0
-TEST(DiskUsage, doPrintouts) {
+
+TEST(DiskUsage, DISABLED_doPrintouts) {
  
    DiskUsage usage("/home/pcap");
    auto used = usage.DiskUsed(DiskUsage::Size::MB);
@@ -219,6 +219,6 @@ TEST(DiskUsage, doPrintouts) {
    LOG(INFO) << "/home/pcap available: " << available;
    LOG(INFO) << "/home/pcap percentage: " << percentage;
 }
-#endif 
+
 
 
