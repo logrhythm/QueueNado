@@ -12,19 +12,10 @@
 #include <g2log.hpp>
 
 struct MockDiskUsage : public DiskUsage {
-   MockDiskUsage() 
+   MockDiskUsage(const struct statvfs& mockStatvs) 
    : DiskUsage("/usr/local/probe/pcap")
+   , mstatvs(mockStatvs)
    {
-      // snapshot from a statvfs call
-      mstatvs.f_bsize = 4096;
-      mstatvs.f_frsize = 4096;
-      mstatvs.f_blocks = 19051796;
-      mstatvs.f_bfree = 15785435;
-      mstatvs.f_bavail = 14817653;
-      mstatvs.f_files = 4841472;
-      mstatvs.f_ffree = 4798215;
-      mstatvs.f_favail = 4798215;
-
       Update();
    }
 

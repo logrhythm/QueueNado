@@ -9,6 +9,26 @@
 #include "DiskUsage.h"
 #include "MockDiskUsage.h"
 #include <cmath>
+
+
+namespace {
+   struct statvfs GetDefaultMockStatvs() {
+      // snapshot from a statvfs call
+      struct statvfs toMock;
+      toMock.f_bsize = 4096;
+      toMock.f_frsize = 4096;
+      toMock.f_blocks = 19051796;
+      toMock.f_bfree = 15785435;
+      toMock.f_bavail = 14817653;
+      toMock.f_files = 4841472;
+      toMock.f_ffree = 4798215;
+      toMock.f_favail = 4798215;  
+      return toMock;
+   }
+}
+
+
+
 TEST(DiskUsage, FailedReading) {
    DiskUsage usage("abc");
    auto bytesUsed = usage.DiskUsed(DiskUsage::Size::Byte);
@@ -22,7 +42,18 @@ TEST(DiskUsage, FailedReading) {
 }
 
 TEST(DiskUsage, ReadAtStartup) {
-   MockDiskUsage usage;
+   struct statvfs stat;
+   stat.f_bsize = 4096;
+   stat.f_frsize = 4096;
+   stat.f_blocks = 3000;
+   stat.f_bfree = 200;
+   stat.f_bavail = 175;
+   stat.f_files = 4841472;
+   stat.f_ffree = 4798215;
+   stat.f_favail = 4798215;
+   
+   
+   MockDiskUsage usage(stat);
    usage.Update();
    auto bytesUsed = usage.DiskUsed(DiskUsage::Size::Byte);
    auto bytesTotal = usage.DiskTotal(DiskUsage::Size::Byte);
@@ -33,16 +64,30 @@ TEST(DiskUsage, ReadAtStartup) {
    EXPECT_TRUE(bytesTotal > bytesFree);
    EXPECT_TRUE(bytesTotal > bytesAvailable);
    
-   EXPECT_TRUE(bytesUsed > 0);
-   EXPECT_TRUE(bytesTotal > 0);
-   EXPECT_TRUE(bytesFree > 0);
-   EXPECT_TRUE(bytesAvailable > 0);
-   EXPECT_TRUE(usePercentage > 0);
+   uint64_t blocks = stat.f_blocks;
+   uint64_t block_size = stat.f_frsize;
+   uint64_t block_available = stat.f_bavail;
+   uint64_t block_free = stat.f_bfree;
+
+   auto sizeInBytes = blocks * block_size;
+   auto availableInBytes = block_available * block_size;
+   auto diskFreeInBytes = block_free * block_size;
+   auto diskUsedInBytes = sizeInBytes - diskFreeInBytes;
+   
+   long double used = diskUsedInBytes;
+   long double total = diskUsedInBytes + availableInBytes;
+   double percent = (100 * used) / total;
+   
+   EXPECT_EQ(bytesUsed, diskUsedInBytes);
+   EXPECT_EQ(bytesTotal, sizeInBytes);
+   EXPECT_EQ(bytesFree, diskFreeInBytes);
+   EXPECT_EQ(bytesAvailable, availableInBytes);
+   EXPECT_EQ(std::ceil(1000* usePercentage), std::ceil(1000*percent));
 }
 
 
 TEST(DiskUsage, ByteToKByteToMBToGB) {
-   MockDiskUsage usage;
+   MockDiskUsage usage(GetDefaultMockStatvs());
    usage.Update();
    auto bytesUsed = usage.DiskUsed(DiskUsage::Size::Byte);
    auto bytesTotal = usage.DiskTotal(DiskUsage::Size::Byte);
@@ -80,7 +125,7 @@ TEST(DiskUsage, ByteToKByteToMBToGB) {
 
 
 TEST(DiskUsage, PercentageUsed) {
-   MockDiskUsage usage;
+   MockDiskUsage usage(GetDefaultMockStatvs());
    usage.Update();
 
    double usePercentage = usage.DiskUsedPercentage();
@@ -90,7 +135,7 @@ TEST(DiskUsage, PercentageUsed) {
 
 
 TEST(DiskUsage, CheckValuesByte) {
-   MockDiskUsage usage;
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(DiskUsage::Size::Byte);
    auto total = usage.DiskTotal(DiskUsage::Size::Byte);
    auto free = usage.DiskFree(DiskUsage::Size::Byte);
@@ -107,7 +152,7 @@ TEST(DiskUsage, CheckValuesByte) {
 
 
 TEST(DiskUsage, CheckValuesKByte) {
-   MockDiskUsage usage;
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(DiskUsage::Size::KByte);
    auto total = usage.DiskTotal(DiskUsage::Size::KByte);
    auto free = usage.DiskFree(DiskUsage::Size::KByte);
@@ -125,7 +170,7 @@ TEST(DiskUsage, CheckValuesKByte) {
 
 TEST(DiskUsage, CheckValuesMB) {
 
-   MockDiskUsage usage;
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(DiskUsage::Size::MB);
    auto total = usage.DiskTotal(DiskUsage::Size::MB);
    auto free = usage.DiskFree(DiskUsage::Size::MB);
@@ -142,7 +187,7 @@ TEST(DiskUsage, CheckValuesMB) {
 
 
 TEST(DiskUsage, CheckValuesGB) {
-   MockDiskUsage usage;
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(DiskUsage::Size::GB);
    auto total = usage.DiskTotal(DiskUsage::Size::GB);
    auto free = usage.DiskFree(DiskUsage::Size::GB);

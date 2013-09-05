@@ -66,15 +66,19 @@ public:
          if (mRealFilesSystemAccess) {
             DiskCleanup::GetEsFileSystemInfo(fsFreeGigs, fsTotalGigs);
          }  else {
-            MockDiskUsage disk;
-            disk.mstatvs.f_bsize = mFleSystemInfo.f_bsize;
-            disk.mstatvs.f_frsize = mFleSystemInfo.f_frsize;
-            disk.mstatvs.f_blocks = mFleSystemInfo.f_blocks;
-            disk.mstatvs.f_bfree = mFleSystemInfo.f_bfree;
-            disk.mstatvs.f_bavail = 1;
-            disk.mstatvs.f_files = 1;
-            disk.mstatvs.f_ffree = 1;
-            disk.mstatvs.f_favail = 1;
+            struct statvfs mockStatvs;
+            mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
+            mockStatvs.f_frsize = mFleSystemInfo.f_frsize;
+            mockStatvs.f_blocks = mFleSystemInfo.f_blocks;
+            mockStatvs.f_bfree = mFleSystemInfo.f_bfree;
+            mockStatvs.f_bavail = 1;
+            mockStatvs.f_files = 1;
+            mockStatvs.f_ffree = 1;
+            mockStatvs.f_favail = 1;
+            MockDiskUsage disk(mockStatvs);
+
+            
+
             disk.Update();
             fsFreeGigs = disk.DiskFree(DiskUsage::Size::GB);
              fsTotalGigs = disk.DiskTotal(DiskUsage::Size::GB); 
