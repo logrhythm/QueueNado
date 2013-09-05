@@ -87,7 +87,8 @@ BoomStick& BoomStick::operator=(BoomStick&& other) {
  *   A pointer to the context
  */
 zctx_t* BoomStick::GetNewContext() {
-   return zctx_new();
+   zctx_t* context = zctx_new();
+   return context;
 }
 
 /**
