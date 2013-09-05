@@ -10,8 +10,7 @@
 #include "MockDiskUsage.h"
 #include <cmath>
 TEST(DiskUsage, FailedReading) {
-   bool doNotMockStats = false;
-   MockDiskUsage usage("abc", doNotMockStats);
+   DiskUsage usage("abc");
    auto bytesUsed = usage.DiskUsed(DiskUsage::Size::Byte);
    auto bytesTotal = usage.DiskTotal(DiskUsage::Size::Byte);
    auto bytesFree = usage.DiskFree(DiskUsage::Size::Byte);
@@ -23,8 +22,7 @@ TEST(DiskUsage, FailedReading) {
 }
 
 TEST(DiskUsage, ReadAtStartup) {
-   bool mockStats = true;
-   MockDiskUsage usage("/home", mockStats);
+   MockDiskUsage usage;
    usage.Update();
    auto bytesUsed = usage.DiskUsed(DiskUsage::Size::Byte);
    auto bytesTotal = usage.DiskTotal(DiskUsage::Size::Byte);
@@ -44,8 +42,7 @@ TEST(DiskUsage, ReadAtStartup) {
 
 
 TEST(DiskUsage, ByteToKByteToMBToGB) {
-   bool mockStats = true;
-   MockDiskUsage usage("/home", mockStats);
+   MockDiskUsage usage;
    usage.Update();
    auto bytesUsed = usage.DiskUsed(DiskUsage::Size::Byte);
    auto bytesTotal = usage.DiskTotal(DiskUsage::Size::Byte);
@@ -83,8 +80,7 @@ TEST(DiskUsage, ByteToKByteToMBToGB) {
 
 
 TEST(DiskUsage, PercentageUsed) {
-   bool mockStats = true;
-   MockDiskUsage usage("/home", mockStats);
+   MockDiskUsage usage;
    usage.Update();
 
    double usePercentage = usage.DiskUsedPercentage();
@@ -93,9 +89,43 @@ TEST(DiskUsage, PercentageUsed) {
 }
 
 
+TEST(DiskUsage, CheckValuesByte) {
+   MockDiskUsage usage;
+   auto used = usage.DiskUsed(DiskUsage::Size::Byte);
+   auto total = usage.DiskTotal(DiskUsage::Size::Byte);
+   auto free = usage.DiskFree(DiskUsage::Size::Byte);
+   auto available = usage.DiskAvailable(DiskUsage::Size::Byte);
+   auto percentage = usage.DiskUsedPercentage();
+
+   // from snapshot 
+   EXPECT_EQ(used, 13379014656);
+   EXPECT_EQ(total, 78036156416);
+   EXPECT_EQ(free, 64657141760); // free is available + "overhead"
+   EXPECT_EQ(available, 60693106688);
+   EXPECT_EQ(std::ceil(percentage), std::ceil(18.80));
+}
+
+
+TEST(DiskUsage, CheckValuesKByte) {
+   MockDiskUsage usage;
+   auto used = usage.DiskUsed(DiskUsage::Size::KByte);
+   auto total = usage.DiskTotal(DiskUsage::Size::KByte);
+   auto free = usage.DiskFree(DiskUsage::Size::KByte);
+   auto available = usage.DiskAvailable(DiskUsage::Size::KByte);
+   auto percentage = usage.DiskUsedPercentage();
+
+   // from snapshot 
+   EXPECT_EQ(used, 13065444);
+   EXPECT_EQ(total, 76207184);
+   EXPECT_EQ(free, 63141740); // free is available + "overhead"
+   EXPECT_EQ(available, 59270612);
+   EXPECT_EQ(std::ceil(percentage), std::ceil(18.80));
+}
+
+
 TEST(DiskUsage, CheckValuesMB) {
-   bool mockStats = true;
-   MockDiskUsage usage("/home", mockStats);
+
+   MockDiskUsage usage;
    auto used = usage.DiskUsed(DiskUsage::Size::MB);
    auto total = usage.DiskTotal(DiskUsage::Size::MB);
    auto free = usage.DiskFree(DiskUsage::Size::MB);
@@ -103,17 +133,16 @@ TEST(DiskUsage, CheckValuesMB) {
    auto percentage = usage.DiskUsedPercentage();
 
    // from snapshot 
-   EXPECT_EQ(used, 13279);
+   EXPECT_EQ(used, 12760);
    EXPECT_EQ(total, 74422);
-   EXPECT_EQ(free, 61143); // free is available + "overhead"
-   EXPECT_EQ(available, 57362);
+   EXPECT_EQ(free, 61662); // free is available + "overhead"
+   EXPECT_EQ(available, 57882);
    EXPECT_EQ(std::ceil(percentage), std::ceil(18.80));
-}
+} 
 
 
 TEST(DiskUsage, CheckValuesGB) {
-   bool mockStats = true;
-   MockDiskUsage usage("/home", mockStats);
+   MockDiskUsage usage;
    auto used = usage.DiskUsed(DiskUsage::Size::GB);
    auto total = usage.DiskTotal(DiskUsage::Size::GB);
    auto free = usage.DiskFree(DiskUsage::Size::GB);
@@ -123,7 +152,28 @@ TEST(DiskUsage, CheckValuesGB) {
    // from snapshot 
    EXPECT_EQ(used, 13);
    EXPECT_EQ(total, 73);
-   EXPECT_EQ(free, 60);
+   EXPECT_EQ(free, 61);
    EXPECT_EQ(available, 57);
    EXPECT_EQ(std::ceil(percentage), std::ceil(18.79));
 }
+
+
+#if 0
+TEST(DiskUsage, doPrintouts) {
+ 
+   DiskUsage usage("/home/pcap");
+   auto used = usage.DiskUsed(DiskUsage::Size::MB);
+   auto total = usage.DiskTotal(DiskUsage::Size::MB);
+   auto free = usage.DiskFree(DiskUsage::Size::MB);
+   auto available = usage.DiskAvailable(DiskUsage::Size::MB);
+   auto percentage = usage.DiskUsedPercentage();
+
+   LOG(INFO) << "/home/pcap used: " << used;
+   LOG(INFO) << "/home/pcap total: " << total;
+   LOG(INFO) << "/home/pcap free: " << free;
+   LOG(INFO) << "/home/pcap available: " << available;
+   LOG(INFO) << "/home/pcap percentage: " << percentage;
+}
+#endif 
+
+

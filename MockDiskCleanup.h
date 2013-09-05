@@ -1,6 +1,7 @@
 #pragma once
 #include "DiskCleanup.h"
 #include <sys/statvfs.h>
+#include <MockDiskUsage.h>
 
 class MockDiskCleanup : public DiskCleanup {
 public:
@@ -62,7 +63,22 @@ public:
 
    void GetFileSystemInfo(size_t& fsFreeGigs, size_t& fsTotalGigs) {
       if (!mFailFileSystemInfo) {
-         return DiskCleanup::GetFileSystemInfo(fsFreeGigs, fsTotalGigs);
+         if (mRealFilesSystemAccess) {
+            DiskCleanup::GetFileSystemInfo(fsFreeGigs, fsTotalGigs);
+         }  else {
+            MockDiskUsage disk;
+            disk.mstatvs.f_bsize = mFleSystemInfo.f_bsize;
+            disk.mstatvs.f_frsize = mFleSystemInfo.f_frsize;
+            disk.mstatvs.f_blocks = mFleSystemInfo.f_blocks;
+            disk.mstatvs.f_bfree = mFleSystemInfo.f_bfree;
+            disk.mstatvs.f_bavail = 1;
+            disk.mstatvs.f_files = 1;
+            disk.mstatvs.f_ffree = 1;
+            disk.mstatvs.f_favail = 1;
+            disk.Update();
+            fsFreeGigs = disk.DiskFree(DiskUsage::Size::GB);
+             fsTotalGigs = disk.DiskTotal(DiskUsage::Size::GB); 
+         }
       }
       if (mFileSystemInfoCountdown-- == 1) {
          fsFreeGigs = fsTotalGigs;
@@ -78,13 +94,6 @@ public:
       return DiskCleanup::CleanupSearch(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, fsFreeGigs, fsTotalGigs);
    }
 
-   void GetStatVFS(struct statvfs* fileSystemInfo) {
-      if (mRealFilesSystemAccess) {
-         DiskCleanup::GetStatVFS(fileSystemInfo);
-      } else {
-         memcpy(fileSystemInfo, &mFleSystemInfo, sizeof (struct statvfs));
-      }
-   }
 
    std::string GetOldestIndex(ElasticSearch& es) {
       return DiskCleanup::GetOldestIndex(es);
