@@ -344,6 +344,7 @@ TEST_F(DiskCleanupTest, RemoveGetsTheOldestMatch) {
 
 TEST_F(DiskCleanupTest, FSMath) {
    MockDiskCleanup diskCleanup(mConf);
+   auto location = mConf.mConf.getESLocation();
    diskCleanup.mFleSystemInfo.f_bfree = 100 << B_TO_MB_SHIFT;
    diskCleanup.mFleSystemInfo.f_frsize = 1024;
    diskCleanup.mFleSystemInfo.f_blocks = 109 << B_TO_MB_SHIFT;
@@ -352,14 +353,14 @@ TEST_F(DiskCleanupTest, FSMath) {
    size_t free(0);
    size_t total(0);
 
-   diskCleanup.GetFileSystemInfo(free, total);
+   diskCleanup.GetEsFileSystemInfo(free, total);
    EXPECT_EQ(100, free);
    EXPECT_EQ(109, total);
 
    diskCleanup.mRealFilesSystemAccess = true;
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
    diskCleanup.ResetConf();
-   diskCleanup.GetFileSystemInfo(free, total);
+   diskCleanup.GetEsFileSystemInfo(free, total);
    EXPECT_NE(0, free);
    EXPECT_NE(0, total);
 }

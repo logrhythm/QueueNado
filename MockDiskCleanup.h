@@ -61,10 +61,10 @@ public:
       return false;
    }
 
-   void GetFileSystemInfo(size_t& fsFreeGigs, size_t& fsTotalGigs) {
+   void GetEsFileSystemInfo(size_t& fsFreeGigs, size_t& fsTotalGigs) {
       if (!mFailFileSystemInfo) {
          if (mRealFilesSystemAccess) {
-            DiskCleanup::GetFileSystemInfo(fsFreeGigs, fsTotalGigs);
+            DiskCleanup::GetEsFileSystemInfo(fsFreeGigs, fsTotalGigs);
          }  else {
             MockDiskUsage disk;
             disk.mstatvs.f_bsize = mFleSystemInfo.f_bsize;
