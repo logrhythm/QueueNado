@@ -11,6 +11,9 @@ public:
 
    virtual ~MockDiskPacketCapture() {
    }
+   bool InitializeStatsSender(SendStats& sendQueue) {
+      return false;
+   }
    bool Initialize(const bool diskCleanThread = false) {
       return DiskPacketCapture::Initialize(diskCleanThread);
    }

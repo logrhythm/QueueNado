@@ -18,61 +18,7 @@
 
 #include "tempFileCreate.h"
 
-TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
-   MockConf conf;
-   MockDiskPacketCapture capture(conf);
 
-   conf.mPCapCaptureLocation = "testLocation";
-   conf.mPCapCaptureFileLimit = 10000;
-   conf.mPCapCaptureSizeLimit = 10000;
-   conf.mPCapCaptureMemoryLimit = 5;
-   conf.mMaxIndividualPCap = 10;
-   {
-      tempFileCreate tempFile(conf);
-      ASSERT_TRUE(tempFile.Init());
-
-      ASSERT_TRUE(capture.Initialize());
-
-      EXPECT_EQ(0, capture.NewTotalMemory(0));
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
-      struct upacket packet;
-      ctb_pkt p;
-      packet.p = & p;
-      unsigned char data[(1024 * 1024)*10 - sizeof (struct pcap_pkthdr)];
-      p.len = 2 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
-      p.data = data;
-      networkMonitor::DpiMsgLR dpiMsg;
-      dpiMsg.set_sessionid("FlowOne");
-      dpiMsg.set_written(false);
-      capture.SavePacket(&dpiMsg, &packet);
-      EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
-      EXPECT_FALSE(dpiMsg.written());
-      EXPECT_EQ(2, capture.CurrentMemoryForFlow("FlowOne"));
-      p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
-      capture.SavePacket(&dpiMsg, &packet);
-      EXPECT_EQ(2, capture.CurrentDiskForFlow("FlowOne"));
-      EXPECT_TRUE(dpiMsg.written());
-      dpiMsg.set_written(false);
-      EXPECT_EQ(4, capture.CurrentMemoryForFlow("FlowOne"));
-      p.len = 5 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
-      capture.SavePacket(&dpiMsg, &packet);
-      EXPECT_EQ(6, capture.CurrentDiskForFlow("FlowOne"));
-      EXPECT_TRUE(dpiMsg.written());
-      dpiMsg.set_written(false);
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
-
-      conf.mMaxIndividualPCap = 11;
-      p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
-      capture.SavePacket(&dpiMsg, &packet);
-
-      EXPECT_EQ(6, capture.CurrentDiskForFlow("FlowOne"));
-      EXPECT_FALSE(dpiMsg.written());
-      dpiMsg.set_written(false);
-      EXPECT_EQ(4, capture.CurrentMemoryForFlow("FlowOne"));
-   }
-   ASSERT_FALSE(capture.Initialize());
-
-}
 
 TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
    MockConf conf;
@@ -309,3 +255,64 @@ TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit) {
    ASSERT_FALSE(capture.Initialize());
 #endif
 }
+#ifdef LR_DEBUG
+TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
+
+
+   MockConf conf;
+   MockDiskPacketCapture capture(conf);
+
+   conf.mPCapCaptureLocation = "testLocation";
+   conf.mPCapCaptureFileLimit = 10000;
+   conf.mPCapCaptureSizeLimit = 10000;
+   conf.mPCapCaptureMemoryLimit = 5;
+   conf.mMaxIndividualPCap = 10;
+
+   {
+      tempFileCreate tempFile(conf);
+      ASSERT_TRUE(tempFile.Init());
+      ASSERT_TRUE(capture.Initialize());
+      EXPECT_EQ(0, capture.NewTotalMemory(0));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
+      struct upacket packet;
+      ctb_pkt p;
+      packet.p = & p;
+
+      unsigned char* data = new unsigned char[(1024*1024*10) - sizeof (struct pcap_pkthdr)];
+      p.len = 2 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
+      p.data = data;
+      networkMonitor::DpiMsgLR dpiMsg;
+      dpiMsg.set_sessionid("FlowOne");
+      dpiMsg.set_written(false);
+      capture.SavePacket(&dpiMsg, &packet);
+
+      EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
+      EXPECT_FALSE(dpiMsg.written());
+      EXPECT_EQ(2, capture.CurrentMemoryForFlow("FlowOne"));
+      p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
+      capture.SavePacket(&dpiMsg, &packet);
+      EXPECT_EQ(2, capture.CurrentDiskForFlow("FlowOne"));
+      EXPECT_TRUE(dpiMsg.written());
+      dpiMsg.set_written(false);
+      EXPECT_EQ(4, capture.CurrentMemoryForFlow("FlowOne"));
+      p.len = 5 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
+      capture.SavePacket(&dpiMsg, &packet);
+
+      EXPECT_EQ(6, capture.CurrentDiskForFlow("FlowOne"));
+      EXPECT_TRUE(dpiMsg.written());
+      dpiMsg.set_written(false);
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+
+      conf.mMaxIndividualPCap = 11;
+      p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
+      capture.SavePacket(&dpiMsg, &packet);
+      EXPECT_EQ(6, capture.CurrentDiskForFlow("FlowOne"));
+      EXPECT_FALSE(dpiMsg.written());
+      dpiMsg.set_written(false);
+      EXPECT_EQ(4, capture.CurrentMemoryForFlow("FlowOne"));
+      delete []data;
+   }
+   ASSERT_FALSE(capture.Initialize());
+
+}
+#endif
