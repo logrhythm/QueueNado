@@ -6,7 +6,14 @@
 #include <sys/syscall.h> 
 #include <g2log.hpp>
 
-
+TEST_F(ProcStatsTest, ValgrindTest) {
+   ProcStats & procStats(ProcStats::Instance());
+   procStats.ThreadRegister("TEST");
+   int iterations=100;
+   while (iterations-- > 0) {
+            procStats.Update();
+   }
+}
 TEST_F(ProcStatsTest, ConstructSingleton) {
    if (geteuid() == 0) {
       EXPECT_EQ(0, mProcStats.GetUserPercent());

@@ -11,7 +11,7 @@ namespace {
 
    void runIterations(BoomStick& stick, int iterations) {
       std::stringstream sS;
-      for (int i = 0; i < iterations; i++) {
+      for (int i = 0; i < iterations; i ++) {
          sS << "request " << i;
          std::string reply = stick.Send(sS.str());
          sS << " reply";
@@ -26,11 +26,11 @@ namespace {
       std::stringstream sS;
       std::stringstream uuid;
       std::vector<std::string> sentMessages;
-      for (int i = 0; i < iterations; i++) {
+      for (int i = 0; i < iterations; i ++) {
          sS << "request " << i;
          uuid << i;
          std::string id = stick.GetUuid();
-         if (!stick.SendAsync(id, sS.str())) {
+         if (! stick.SendAsync(id, sS.str())) {
             FAIL();
          }
          sentMessages.push_back(id);
@@ -40,8 +40,8 @@ namespace {
       int i = 0;
       for (auto id : sentMessages) {
          std::string reply;
-         sS << "request " << i++ << " reply";
-         if (!stick.GetAsyncReply(id, 1000, reply)) {
+         sS << "request " << i ++ << " reply";
+         if (! stick.GetAsyncReply(id, 1000, reply)) {
             FAIL();
          }
          if (reply != sS.str()) {
@@ -64,6 +64,68 @@ namespace {
    }
 }
 
+TEST_F(BoomStickTest, ValgrindSync) {
+   BoomStick stick{mAddress};
+
+   MockSkelleton target{mAddress};
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   target.BeginListenAndRepeat();
+
+   int iterations = 10000;
+   while (iterations -- > 0) {
+      std::string reply = stick.Send("foo");
+      EXPECT_EQ("foo reply", reply);
+   }
+   target.EndListendAndRepeat();
+}
+TEST_F(BoomStickTest, ValgrindASync) {
+   const int targetIter(10000);
+   BoomStick stick{mAddress};
+
+   MockSkelleton target{mAddress};
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   target.BeginListenAndRepeat();
+
+   int iterations = targetIter;
+   while (!zctx_interrupted && iterations > 0) {
+      std::stringstream ss;
+      ss << iterations;
+      EXPECT_TRUE(stick.SendAsync(ss.str(),"foo"));
+      iterations--;
+   }
+   iterations = targetIter;
+   while (!zctx_interrupted && iterations > 0) {
+      std::stringstream ss;
+      ss << iterations;
+      std::string reply;
+      if (stick.GetAsyncReply(ss.str(),1,reply)) {
+         iterations --;
+         EXPECT_EQ("foo reply", reply);
+      }
+   }
+   target.EndListendAndRepeat();
+}
+TEST_F(BoomStickTest, ValgrindASyncEmpty) {
+   BoomStick stick{mAddress};
+
+   MockSkelleton target{mAddress};
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   target.BeginListenAndRepeat();
+
+   int iterations = 1000000;
+
+   while (!zctx_interrupted && iterations > 0) {
+      std::stringstream ss;
+      ss << iterations;
+      std::string reply;
+      EXPECT_FALSE(stick.GetAsyncReply(ss.str(),1,reply));
+      iterations --;
+   }
+   target.EndListendAndRepeat();
+}
 TEST_F(BoomStickTest, Construct) {
    BoomStick stick{mAddress};
    std::unique_ptr<BoomStick> pStick(new BoomStick(mAddress));
@@ -182,38 +244,38 @@ TEST_F(BoomStickTest, GetAsyncNoListener) {
 }
 
 TEST_F(BoomStickTest, DISABLED_CleanupStaleStuff) {
-//   MockBoomStick exposedStick{mAddress};
-//   MockSkelleton target{mAddress};
-//
-//   ASSERT_TRUE(target.Initialize());
-//   ASSERT_TRUE(exposedStick.Initialize());
-//
-//   target.BeginListenAndRepeat();
-//   std::string id = "foo";
-//   id.second = time(NULL)-(5 * MINUTES_TO_SECONDS);
-//   MessageIdentifier id2;
-//   id2.first = "bar";
-//   id2.second = time(NULL);
-//   std::string reply;
-//
-//   ASSERT_TRUE(exposedStick.SendAsync(id, "foo"));
-//   while (reply.empty()) { // Loop until we find the reply for id while searching for id2
-//      ASSERT_TRUE(exposedStick.SendAsync(id2, "foo"));
-//      EXPECT_TRUE(exposedStick.FindPendingId(id));
-//      EXPECT_TRUE(exposedStick.FindPendingId(id2));
-//      EXPECT_TRUE(exposedStick.GetAsyncReply(id2, 10, reply));
-//      reply = exposedStick.GetCachedReply(id);
-//   }
-//   EXPECT_TRUE(exposedStick.FindPendingId(id));
-//   EXPECT_FALSE(exposedStick.FindPendingId(id2));
-//   exposedStick.ForceGC();
-//   exposedStick.CleanOldPendingData();
-//
-//   EXPECT_FALSE(exposedStick.FindPendingId(id));
-//   // We never read the AsyncReply, it was purged in the cleanup
-//   EXPECT_FALSE(exposedStick.GetAsyncReply(id, 0, reply));
-//
-//   target.EndListendAndRepeat();
+   //   MockBoomStick exposedStick{mAddress};
+   //   MockSkelleton target{mAddress};
+   //
+   //   ASSERT_TRUE(target.Initialize());
+   //   ASSERT_TRUE(exposedStick.Initialize());
+   //
+   //   target.BeginListenAndRepeat();
+   //   std::string id = "foo";
+   //   id.second = time(NULL)-(5 * MINUTES_TO_SECONDS);
+   //   MessageIdentifier id2;
+   //   id2.first = "bar";
+   //   id2.second = time(NULL);
+   //   std::string reply;
+   //
+   //   ASSERT_TRUE(exposedStick.SendAsync(id, "foo"));
+   //   while (reply.empty()) { // Loop until we find the reply for id while searching for id2
+   //      ASSERT_TRUE(exposedStick.SendAsync(id2, "foo"));
+   //      EXPECT_TRUE(exposedStick.FindPendingId(id));
+   //      EXPECT_TRUE(exposedStick.FindPendingId(id2));
+   //      EXPECT_TRUE(exposedStick.GetAsyncReply(id2, 10, reply));
+   //      reply = exposedStick.GetCachedReply(id);
+   //   }
+   //   EXPECT_TRUE(exposedStick.FindPendingId(id));
+   //   EXPECT_FALSE(exposedStick.FindPendingId(id2));
+   //   exposedStick.ForceGC();
+   //   exposedStick.CleanOldPendingData();
+   //
+   //   EXPECT_FALSE(exposedStick.FindPendingId(id));
+   //   // We never read the AsyncReply, it was purged in the cleanup
+   //   EXPECT_FALSE(exposedStick.GetAsyncReply(id, 0, reply));
+   //
+   //   target.EndListendAndRepeat();
 }
 
 TEST_F(BoomStickTest, SingleTargetSingleShooterAsync) {
@@ -238,7 +300,7 @@ TEST_F(BoomStickTest, SingleTargetMultipleShooterSync) {
    ASSERT_TRUE(target.Initialize());
    std::unordered_set<std::shared_ptr<std::thread> > threads;
    target.BeginListenAndRepeat();
-   for (int i = 0; i < 10; i++) {
+   for (int i = 0; i < 10; i ++) {
       threads.insert(std::make_shared<std::thread>(Shooter, i, 100, mAddress));
    }
    for (auto thread : threads) {
@@ -255,7 +317,7 @@ TEST_F(BoomStickTest, SingleTargetMultipleShooterAsync) {
    ASSERT_TRUE(target.Initialize());
    std::unordered_set<std::shared_ptr<std::thread> > threads;
    target.BeginListenAndRepeat();
-   for (int i = 0; i < 10; i++) {
+   for (int i = 0; i < 10; i ++) {
       threads.insert(std::make_shared<std::thread>(AsyncShooter, i, 100, mAddress));
    }
    for (auto thread : threads) {
@@ -368,10 +430,10 @@ TEST_F(BoomStickTest, DontSearchSocketForever) {
    std::thread([](std::promise<bool>& finished, MockBoomStick & stick, std::string & id) {
       std::string reply;
       EXPECT_FALSE(stick.GetAsyncReply(id, 10, reply));
-         finished.set_value(true);
+              finished.set_value(true);
    }, std::ref(promisedFinished), std::ref(stick), std::ref(id)).detach();
 
-   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(1000+2)) != std::future_status::timeout);
+   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(1000 + 2)) != std::future_status::timeout);
 
 }
 
