@@ -22,6 +22,7 @@
 
 TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
    MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
 
    std::string filename = capture.BuildFilename("161122fd-6681-42a3-b953-48beb5247172");
@@ -43,6 +44,7 @@ TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
  */
 TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilenameFail) {
    MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
 
    std::string filename = capture.BuildFilename("testuuid");
@@ -58,6 +60,7 @@ TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilenameFail) {
 TEST_F(DiskPacketCaptureTest, Construct) {
 #ifdef LR_DEBUG
    MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
    DiskPacketCapture capture(conf);
    DiskPacketCapture* pCapture = new DiskPacketCapture(conf);
    delete pCapture;
@@ -67,6 +70,7 @@ TEST_F(DiskPacketCaptureTest, Construct) {
 TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
 #ifdef LR_DEBUG
    MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
 
    {
@@ -120,6 +124,7 @@ TEST_F(DiskPacketCaptureTest, GetRunningPackets) {
 TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
 #ifdef LR_DEBUG
    MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
 
    conf.mPCapCaptureLocation = "testLocation";
@@ -131,6 +136,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
 TEST_F(DiskPacketCaptureTest, Initialize) {
 #ifdef LR_DEBUG
    MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
    {
       tempFileCreate tempFile(conf);
@@ -148,6 +154,7 @@ TEST_F(DiskPacketCaptureTest, Initialize) {
 TEST_F(DiskPacketCaptureTest, MemoryLimits) {
 #ifdef LR_DEBUG
    MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
    conf.mPCapCaptureLocation = "testLocation";
    conf.mPCapCaptureFileLimit = 10000;
@@ -205,6 +212,7 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
 TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit) {
 #ifdef LR_DEBUG
    MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
    conf.mPCapCaptureLocation = "testLocation";
    conf.mPCapCaptureFileLimit = 10000;
@@ -260,6 +268,7 @@ TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
 
 
    MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
 
    conf.mPCapCaptureLocation = "testLocation";
@@ -310,6 +319,53 @@ TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
       EXPECT_FALSE(dpiMsg.written());
       dpiMsg.set_written(false);
       EXPECT_EQ(4, capture.CurrentMemoryForFlow("FlowOne"));
+      delete []data;
+   }
+   ASSERT_FALSE(capture.Initialize());
+
+}
+#endif
+#ifdef LR_DEBUG
+TEST_F(DiskPacketCaptureTest, PacketCaptureDisabled) {
+
+
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = false;
+   MockDiskPacketCapture capture(conf);
+
+   conf.mPCapCaptureLocation = "testLocation";
+   conf.mPCapCaptureFileLimit = 10000;
+   conf.mPCapCaptureSizeLimit = 10000;
+   conf.mPCapCaptureMemoryLimit = 5;
+   conf.mMaxIndividualPCap = 10;
+
+   {
+      tempFileCreate tempFile(conf);
+      ASSERT_TRUE(tempFile.Init());
+      ASSERT_TRUE(capture.Initialize());
+      EXPECT_EQ(0, capture.NewTotalMemory(0));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
+      struct upacket packet;
+      ctb_pkt p;
+      packet.p = & p;
+
+      unsigned char* data = new unsigned char[(1024*1024*10) - sizeof (struct pcap_pkthdr)];
+      p.len = 2 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
+      p.data = data;
+      networkMonitor::DpiMsgLR dpiMsg;
+      dpiMsg.set_sessionid("FlowOne");
+      dpiMsg.set_written(false);
+      capture.SavePacket(&dpiMsg, &packet);
+      EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
+      EXPECT_FALSE(dpiMsg.written());
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+
+      p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
+      capture.SavePacket(&dpiMsg, &packet);
+      EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
+      EXPECT_FALSE(dpiMsg.written());
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+
       delete []data;
    }
    ASSERT_FALSE(capture.Initialize());
