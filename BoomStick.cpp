@@ -29,6 +29,18 @@ BoomStick::~BoomStick() {
    if (mCtx != nullptr) {
       zctx_destroy(&mCtx);
    }
+   if (!mPendingReplies.empty()) {
+      LOG(WARNING) << "Pending replies never emptied " << mPendingReplies.size();
+      for (auto reply : mPendingReplies) {
+         LOG(WARNING) << reply.first;
+      }
+   }
+   if (!mUnreadReplies.empty()) {
+      LOG(WARNING) << "mUnreadReplies replies never emptied " << mUnreadReplies.size();
+      for (auto reply : mUnreadReplies) {
+         LOG(WARNING) << reply.first;
+      }
+   }
 }
 
 /**
@@ -238,8 +250,7 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
    } else if (rc == 1) {
       if ((items[0].revents & ZMQ_POLLOUT) != ZMQ_POLLOUT) {
          LOG(WARNING) << "Queue error, cannot send messages the queue is full";
-      }
-      if (zmsg_send(&msg, mChamber) == 0) {
+      } else if (zmsg_send(&msg, mChamber) == 0) {
          success = true;
          mPendingReplies[uuid] = std::time(NULL);
       } else {
@@ -269,6 +280,8 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
       mUnreadReplies.erase(messageHash);
       if (mPendingReplies.find(messageHash) != mPendingReplies.end()) {
          mPendingReplies.erase(messageHash);
+      } else {
+         LOG(WARNING) << "Found reply in cache, but it was never pending" << messageHash;
       }
       return true;
    }
@@ -344,12 +357,7 @@ bool BoomStick::GetAsyncReply(const std::string& uuid, const unsigned int msToWa
       CleanOldPendingData();
       return false;
    }
-   if (!FindPendingUuid(uuid)) {
-      LOG(WARNING) << "Tried to get a reply for a message more than once sessionId: ";
-      reply = "ID is not pending";
-      CleanOldPendingData();
-      return false;
-   }
+
    bool found = GetReplyFromCache(uuid, reply);
    if (!found) {
       found = GetReplyFromSocket(uuid, msToWait, reply);
