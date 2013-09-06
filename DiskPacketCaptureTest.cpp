@@ -356,28 +356,16 @@ TEST_F(DiskPacketCaptureTest, PacketCaptureDisabled) {
       dpiMsg.set_sessionid("FlowOne");
       dpiMsg.set_written(false);
       capture.SavePacket(&dpiMsg, &packet);
-
       EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
       EXPECT_FALSE(dpiMsg.written());
-      EXPECT_EQ(2, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+
       p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
       capture.SavePacket(&dpiMsg, &packet);
       EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
       EXPECT_FALSE(dpiMsg.written());
       EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
-      p.len = 5 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
-      capture.SavePacket(&dpiMsg, &packet);
 
-      EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
-      EXPECT_FALSE(dpiMsg.written());
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
-
-      conf.mMaxIndividualPCap = 11;
-      p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
-      capture.SavePacket(&dpiMsg, &packet);
-      EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
-      EXPECT_FALSE(dpiMsg.written());
-      EXPECT_EQ(4, capture.CurrentMemoryForFlow("FlowOne"));
       delete []data;
    }
    ASSERT_FALSE(capture.Initialize());
