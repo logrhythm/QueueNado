@@ -50,6 +50,7 @@ std::vector<std::string> Alien::GetShot() {
  * @return 
  */
 void Alien::GetShot(const unsigned int timeout, std::vector<std::string>& bullets) {
+   bullets.clear();
    if (!mBody) {
       return;
    }
