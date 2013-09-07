@@ -14,6 +14,21 @@ namespace {
       return false;
    }
 }
+TEST_F(JSONEncoderTest, Valgrind) {
+   networkMonitor::DpiMsgLR testMsg;
+   
+   testMsg.set_sessionid("abc123");
+   testMsg.set_written(true);
+   testMsg.set_portdest(123);
+   testMsg.add_application_endq_proto_base("abc");
+   testMsg.add_application_endq_proto_base("def");
+   testMsg.set_timeupdated(123456789);
+   int iterations = 1000;
+   while (iterations-- > 0) {
+      JSONEncoder encoder(&testMsg);
+      std::string encodedMessage = encoder.Encode();
+   }
+}
 TEST_F(JSONEncoderTest, Construct) {
    networkMonitor::DpiMsgLR testMsg;
 
