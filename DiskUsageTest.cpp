@@ -8,6 +8,7 @@
 #include "DiskUsageTest.h"
 #include "DiskUsage.h"
 #include "MockDiskUsage.h"
+#include "Conf.h"
 #include <cmath>
 
 
@@ -220,5 +221,42 @@ TEST(DiskUsage, DISABLED_doPrintouts) {
    LOG(INFO) << "/home/pcap percentage: " << percentage;
 }
 
+// Under the assumptions  that
+//  1. "/" and "/home" will ALWAYS be on separate
+//     disk partitions and "/mnt" will always be on the "/" partition
+//  2. that probe /usr/local/probe is on a separate location than the 
+//          pcap location. Likely the location for pcap is 
+//          /usr/local/probe/pcap which is a symlink to /pcap or elsewhere
+TEST(DiskUsage, FileSystemID) {
+  DiskUsage root{"/"};
+  DiskUsage home{"/home"};
+  DiskUsage mnt{"/mnt"};
+  EXPECT_NE(root.FileSystemID(), home.FileSystemID());
+  EXPECT_EQ(root.FileSystemID(), mnt.FileSystemID());
+  LOG(INFO) << "\n/home\t\t" << home.FileSystemID() 
+            << "\n/\t\t" << root.FileSystemID()
+            << "\n/mnt\t\t" << mnt.FileSystemID();
+  
+  Conf conf;
+  DiskUsage probe{conf.GetProbeLocation()};
+  DiskUsage pcap{conf.GetPcapCaptureLocation()};
+  EXPECT_NE(probe.FileSystemID(), pcap.FileSystemID());
+}
 
 
+TEST(FolderUsage, FolderDoesNotExist) {
+    auto result = FolderUsage::DiskUsed("abc123", DiskUsage::Size::GB);
+    EXPECT_EQ(result, 0);
+}
+
+
+
+TEST(FolderUsage, FolderDoesExist) {
+    auto result_0 = FolderUsage::DiskUsed("/usr/local/probe/pcap/", DiskUsage::Size::GB);
+    EXPECT_TRUE(result_0 > 0);
+    LOG(INFO) << "GB usage was: " << result_0;
+    
+    auto result_1 = FolderUsage::DiskUsed("/usr/local/probe/pcap", DiskUsage::Size::GB);
+    EXPECT_TRUE(result_1 >= result_0);
+    LOG(INFO) << "GB usage was: " << result_1;
+}

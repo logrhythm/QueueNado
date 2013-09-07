@@ -61,10 +61,11 @@ public:
       return false;
    }
 
-   void GetEsFileSystemInfo(size_t& fsFreeGigs, size_t& fsTotalGigs) {
+   // TODO pcapture or probe location?size_t& fsFree, size_t& fsTotal, const DiskUsage::Size size
+   void GetPcapStoreUsage(size_t& fsFree, size_t& fsTotal, size_t& fsUsed, const DiskUsage::Size size) {
       if (!mFailFileSystemInfo) {
          if (mRealFilesSystemAccess) {
-            DiskCleanup::GetEsFileSystemInfo(fsFreeGigs, fsTotalGigs);
+            DiskCleanup::GetPcapStoreUsage(fsFree, fsTotal, fsUsed, size);
          }  else {
             struct statvfs mockStatvs;
             mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
@@ -77,15 +78,13 @@ public:
             mockStatvs.f_favail = 1;
             MockDiskUsage disk(mockStatvs);
 
-            
-
             disk.Update();
-            fsFreeGigs = disk.DiskFree(DiskUsage::Size::GB);
-             fsTotalGigs = disk.DiskTotal(DiskUsage::Size::GB); 
+            fsFree = disk.DiskFree(size);
+             fsTotal = disk.DiskTotal(size); 
          }
       }
       if (mFileSystemInfoCountdown-- == 1) {
-         fsFreeGigs = fsTotalGigs;
+         fsFree = fsTotal;
       }
       return;
    }
