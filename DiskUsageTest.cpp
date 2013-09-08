@@ -238,7 +238,7 @@ TEST(DiskUsage, FileSystemID) {
 // df and DiskUsage give very similar answers
 // df and du differ in answer with about 5.8% with 
 // df giving the higher answer
-TEST(DiskUsage, ToWaysToCheck) {
+TEST(DiskUsage, DISABLED_ToWaysToCheck) {
   DiskUsage home{"/home/"};
   auto homeUsed = home.DiskUsed(DiskUsage::Size::KByte);
   auto homeAsFolder = FolderUsage::DiskUsed("/home/", DiskUsage::Size::KByte);
@@ -265,6 +265,34 @@ TEST(FolderUsage, FolderDoesExist) {
     LOG(INFO) << "GB usage was: " << result_1;
 }
 
+
+
+TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_MB) {
+   std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
+   make1MFileFile += testDir.str();
+   make1MFileFile += "/1MFile";
+   EXPECT_EQ(0, system(make1MFileFile.c_str()));
+
+   size_t usedMB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::KByte);
+   EXPECT_EQ(usedMB, 1024+4); // overhead
+   usedMB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB);
+   EXPECT_EQ(usedMB, 1);
+}
+
+
+TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_GB) {
+   std::string make1GFileFile = "dd bs=1024 count=1048576 if=/dev/zero of=";
+   make1GFileFile += testDir.str();
+   make1GFileFile += "/1MFile";
+   EXPECT_EQ(0, system(make1GFileFile.c_str()));
+
+   size_t usedGB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::KByte);
+   EXPECT_EQ(usedGB, 1048576+4); // 4: overhead?
+   usedGB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB);
+   EXPECT_EQ(usedGB, 1024);
+   usedGB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::GB);
+   EXPECT_EQ(usedGB, 1);
+}
 
 
 
