@@ -61,11 +61,33 @@ public:
       return false;
    }
 
-   // TODO pcapture or probe location?size_t& fsFree, size_t& fsTotal, const DiskUsage::Size size
-   void GetPcapStoreUsage(size_t& fsFree, size_t& fsTotal, size_t& fsUsed, const DiskUsage::Size size) {
-      if (!mFailFileSystemInfo) {
+   void GetPcapStoreUsage(size_t& fsFree, size_t& fsTotal, size_t& fsUsed, 
+                          const DiskUsage::Size size) {
          if (mRealFilesSystemAccess) {
             DiskCleanup::GetPcapStoreUsage(fsFree, fsTotal, fsUsed, size);
+         }  else {
+            struct statvfs mockStatvs;
+            mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
+            mockStatvs.f_frsize = mFleSystemInfo.f_frsize;
+            mockStatvs.f_blocks = mFleSystemInfo.f_blocks;
+            mockStatvs.f_bfree = mFleSystemInfo.f_bfree;
+            mockStatvs.f_bavail = 1;
+            mockStatvs.f_files = 1;
+            mockStatvs.f_ffree = 1;
+            mockStatvs.f_favail = 1;
+            MockDiskUsage disk(mockStatvs);
+
+            disk.Update();
+            fsFree = disk.DiskFree(size);
+            fsTotal = disk.DiskTotal(size); 
+         }
+   }
+
+   void GetProbeFileSystemInfo(size_t& fsFree, size_t& fsTotal, 
+                               const DiskUsage::Size size) {
+      if (!mFailFileSystemInfo) {
+         if (mRealFilesSystemAccess) {
+            DiskCleanup::GetProbeFileSystemInfo(fsFree, fsTotal,size);
          }  else {
             struct statvfs mockStatvs;
             mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
@@ -89,6 +111,30 @@ public:
       return;
    }
 
+
+  void GetTotalDiskUsageInfo(size_t& fsFree, size_t& fsTotal, 
+                  std::atomic<size_t>& fsUsed, const DiskUsage::Size size) {
+     if (mRealFilesSystemAccess) {
+        DiskCleanup::GetTotalDiskUsageInfo(fsFree, fsTotal, fsUsed, size);
+        }  else {
+        struct statvfs mockStatvs;
+        mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
+        mockStatvs.f_frsize = mFleSystemInfo.f_frsize;
+        mockStatvs.f_blocks = mFleSystemInfo.f_blocks;
+        mockStatvs.f_bfree = mFleSystemInfo.f_bfree;
+        mockStatvs.f_bavail = 1;
+        mockStatvs.f_files = 1;
+        mockStatvs.f_ffree = 1;
+        mockStatvs.f_favail = 1;
+        MockDiskUsage disk(mockStatvs);
+
+        disk.Update();
+        fsFree = disk.DiskFree(size);
+        fsTotal = disk.DiskTotal(size); 
+    }
+}
+
+
    void CleanupSearch(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
            std::time_t& currentTime, const std::atomic<size_t>& aDiskUsed,
            const std::atomic<size_t>& aTotalFiles,
@@ -101,6 +147,10 @@ public:
    std::string GetOldestIndex(ElasticSearch& es) {
       return DiskCleanup::GetOldestIndex(es);
    }
+
+   const Conf& GetConf() { return DiskCleanup::GetConf(); }
+
+
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
    int mFileSystemInfoCountdown;

@@ -205,22 +205,6 @@ TEST(DiskUsage, CheckValuesGB) {
 
 
 
-TEST(DiskUsage, DISABLED_doPrintouts) {
- 
-   DiskUsage usage("/home/pcap");
-   auto used = usage.DiskUsed(DiskUsage::Size::MB);
-   auto total = usage.DiskTotal(DiskUsage::Size::MB);
-   auto free = usage.DiskFree(DiskUsage::Size::MB);
-   auto available = usage.DiskAvailable(DiskUsage::Size::MB);
-   auto percentage = usage.DiskUsedPercentage();
-
-   LOG(INFO) << "/home/pcap used: " << used;
-   LOG(INFO) << "/home/pcap total: " << total;
-   LOG(INFO) << "/home/pcap free: " << free;
-   LOG(INFO) << "/home/pcap available: " << available;
-   LOG(INFO) << "/home/pcap percentage: " << percentage;
-}
-
 // Under the assumptions  that
 //  "/" and "/home" will ALWAYS be on separate
 //     disk partitions and "/mnt" will always be on the "/" partition
@@ -235,35 +219,7 @@ TEST(DiskUsage, FileSystemID) {
             << "\n/mnt\t\t" << mnt.FileSystemID();
 }
 
-// df and DiskUsage give very similar answers
-// df and du differ in answer with about 5.8% with 
-// df giving the higher answer
-TEST(DiskUsage, DISABLED_ToWaysToCheck) {
-  DiskUsage home{"/home/"};
-  auto homeUsed = home.DiskUsed(DiskUsage::Size::KByte);
-  auto homeAsFolder = FolderUsage::DiskUsed("/home/", DiskUsage::Size::KByte);
-  
-  ASSERT_GE(homeUsed, homeAsFolder);
-  size_t percentUnitsx10 = (1000* (homeUsed - homeAsFolder))/homeAsFolder;  
-  EXPECT_EQ(percentUnitsx10, 58);
-}
 
-TEST(FolderUsage, FolderDoesNotExist) {
-    auto result = FolderUsage::DiskUsed("abc123", DiskUsage::Size::GB);
-    EXPECT_EQ(result, 0);
-}
-
-
-
-TEST(FolderUsage, FolderDoesExist) {
-    auto result_0 = FolderUsage::DiskUsed("/usr/local/probe/pcap/", DiskUsage::Size::GB);
-    EXPECT_TRUE(result_0 > 0);
-    LOG(INFO) << "GB usage was: " << result_0;
-    
-    auto result_1 = FolderUsage::DiskUsed("/usr/local/probe/pcap", DiskUsage::Size::GB);
-    EXPECT_TRUE(result_1 >= result_0);
-    LOG(INFO) << "GB usage was: " << result_1;
-}
 
 
 
@@ -292,6 +248,54 @@ TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_GB) {
    EXPECT_EQ(usedGB, 1024);
    usedGB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::GB);
    EXPECT_EQ(usedGB, 1);
+}
+
+
+TEST(DiskUsage, DISABLED_doPrintouts) {
+ 
+   DiskUsage usage("/home/pcap");
+   auto used = usage.DiskUsed(DiskUsage::Size::MB);
+   auto total = usage.DiskTotal(DiskUsage::Size::MB);
+   auto free = usage.DiskFree(DiskUsage::Size::MB);
+   auto available = usage.DiskAvailable(DiskUsage::Size::MB);
+   auto percentage = usage.DiskUsedPercentage();
+
+   LOG(INFO) << "/home/pcap used: " << used;
+   LOG(INFO) << "/home/pcap total: " << total;
+   LOG(INFO) << "/home/pcap free: " << free;
+   LOG(INFO) << "/home/pcap available: " << available;
+   LOG(INFO) << "/home/pcap percentage: " << percentage;
+}
+
+// df and DiskUsage give very similar answers
+// du and FolderUsage give very similar answers
+// BUT: df and du differ in answer with about 5.8% or more ?? with 
+// df giving the higher answer
+TEST(DiskUsage, DISABLED_ToWaysToCheck) {
+  DiskUsage home{"/home/"};
+  auto homeUsed = home.DiskUsed(DiskUsage::Size::KByte);
+  auto homeAsFolder = FolderUsage::DiskUsed("/home/", DiskUsage::Size::KByte);
+  
+  ASSERT_GE(homeUsed, homeAsFolder);
+  size_t percentUnitsx10 = (1000* (homeUsed - homeAsFolder))/homeAsFolder;  
+  EXPECT_EQ(percentUnitsx10, 58);
+}
+
+TEST(FolderUsage, FolderDoesNotExist) {
+    auto result = FolderUsage::DiskUsed("abc123", DiskUsage::Size::GB);
+    EXPECT_EQ(result, 0);
+}
+
+
+
+TEST(FolderUsage, DISABLED_FolderDoesExist) {
+    auto result_0 = FolderUsage::DiskUsed("/usr/local/probe/pcap/", DiskUsage::Size::GB);
+    EXPECT_TRUE(result_0 > 0);
+    LOG(INFO) << "GB usage was: " << result_0;
+    
+    auto result_1 = FolderUsage::DiskUsed("/usr/local/probe/pcap", DiskUsage::Size::GB);
+    EXPECT_TRUE(result_1 >= result_0);
+    LOG(INFO) << "GB usage was: " << result_1;
 }
 
 

@@ -1,5 +1,6 @@
 captureFileLimit: 10000
 captureLocation: /tmp/TooMuchPcap
+probeLocation:  /tmp/TooMuchPcap
 captureSizeLimit: 1
 sendStatsQueue: ipc:///tmp/sendStatsQ.ipc
 statsAccumulatorQueue: ipc:///tmp/statsAccumulatorQ.ipc
