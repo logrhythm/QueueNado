@@ -36,9 +36,9 @@ public:
    void CleanupOldPcapFiles(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
            std::time_t& currentTime, std::atomic<size_t>& aDiskUsed,
            std::atomic<size_t>& aTotalFiles,
-           const size_t fsFreeGigs,
-           const size_t fsTotalGigs) {
-      DiskCleanup::CleanupOldPcapFiles(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, fsFreeGigs, fsTotalGigs);
+        const DiskSpaceInGB& probeDisk,
+        const DiskSpaceInGB& pcapDisk) {
+      DiskCleanup::CleanupOldPcapFiles(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, probeDisk, pcapDisk);
    }
 
    bool TooMuchSearch(const size_t& fsFreeGigs, const size_t& fsTotalGigs) {
@@ -111,36 +111,9 @@ public:
       return;
    }
 
-
-  void GetTotalDiskUsageInfo(size_t& fsFree, size_t& fsTotal, 
-                  std::atomic<size_t>& fsUsed, const DiskUsage::Size size) {
-     if (mRealFilesSystemAccess) {
-        DiskCleanup::GetTotalDiskUsageInfo(fsFree, fsTotal, fsUsed, size);
-        }  else {
-        struct statvfs mockStatvs;
-        mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
-        mockStatvs.f_frsize = mFleSystemInfo.f_frsize;
-        mockStatvs.f_blocks = mFleSystemInfo.f_blocks;
-        mockStatvs.f_bfree = mFleSystemInfo.f_bfree;
-        mockStatvs.f_bavail = 1;
-        mockStatvs.f_files = 1;
-        mockStatvs.f_ffree = 1;
-        mockStatvs.f_favail = 1;
-        MockDiskUsage disk(mockStatvs);
-
-        disk.Update();
-        fsFree = disk.DiskFree(size);
-        fsTotal = disk.DiskTotal(size); 
-    }
-}
-
-
-   void CleanupSearch(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
-           std::time_t& currentTime, const std::atomic<size_t>& aDiskUsed,
-           const std::atomic<size_t>& aTotalFiles,
-           size_t& fsFreeGigs,
-           size_t& fsTotalGigs) {
-      return DiskCleanup::CleanupSearch(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, fsFreeGigs, fsTotalGigs);
+   void CleanupSearch(bool canSendStats, PacketCaptureFilesystemDetails& previous, 
+           ElasticSearch& es, SendStats& sendQueue, DiskSpaceInGB& probeDiskUsage) {
+      return DiskCleanup::CleanupSearch(canSendStats, previous, es, sendQueue, probeDiskUsage);
    }
 
 
