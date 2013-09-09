@@ -7,7 +7,7 @@
 class ElasticSearchTest : public ::testing::Test {
 public:
 
-   ElasticSearchTest() :targetIterations(100000) {
+   ElasticSearchTest() :targetIterations(1000) {
       std::stringstream sS;
 
       sS << "ipc:///tmp/elasticSearchtest" << pthread_self();

@@ -6,13 +6,20 @@
 
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
-
+TEST_F(ElasticSearchTest, g2LogMemoryGrowTest) {
+   int count = 0;
+   
+   while (count++ < targetIterations*100 && !zctx_interrupted) {
+      LOG(DEBUG) << "Lets fill up memory !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+   }
+}
 TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
    ElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
    
    int count = 0;
@@ -61,6 +68,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncGetListOfIndexeNames) {
    ElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
    int count = 0;
    std::set<std::string> indexNames;
@@ -69,6 +77,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncGetListOfIndexeNames) {
    goodResult.close();
    while (count ++ < targetIterations && !zctx_interrupted) {
       indexNames = es.GetListOfIndexeNames();
+      EXPECT_FALSE(indexNames.empty());
    }
 }
 
@@ -78,57 +87,243 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncCreateIndex) {
    ElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"acknowledged\":true}";
    while (count ++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.CreateIndex("test", 1, 1));
    }
+   count = 0;
    target.mReplyMessage = "{\"error\":\"IndexAlreadyExistsException[[indexName] Alread exists]\",\"status\":400}";
    while (count ++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.CreateIndex("test", 1, 1));
    }
 }
-
+TEST_F(ElasticSearchTest, ValgrindTestASyncCreateIndex) {
+   // not supported in Sync
+   EXPECT_TRUE(true);
+}
 TEST_F(ElasticSearchTest, ValgrindTestSyncDeleteIndex) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
    ElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"acknowledged\":true}";
    while (count ++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.DeleteIndex("test"));
    }
+   count = 0;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
    while (count ++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.DeleteIndex("test"));
    }
 }
-   //   LR_VIRTUAL bool IndexClose(const std::string& indexName);
-   //   LR_VIRTUAL bool IndexOpen(const std::string& indexName);
-   //   LR_VIRTUAL bool AddDoc(const std::string& indexName, const std::string& indexType, const std::string& id, const std::string& jsonData);
-   //   LR_VIRTUAL bool UpdateDoc(const std::string& indexName, const std::string& indexType, const std::string& id, const std::string& jsonData);
-   //   LR_VIRTUAL bool DeleteDoc(const std::string& indexName, const std::string& indexType, const std::string& id);
-   //   bool RefreshDiskInfo();
-   //   std::vector<std::string> GetClusterNames();
-   //   uint64_t GetTotalWrites(const std::string& clusterName);
-   //   uint64_t GetTotalReads(const std::string& clusterName);
-   //   uint64_t GetTotalWriteBytes(const std::string& clusterName);
-   //   uint64_t GetTotalReadBytes(const std::string& clusterName);
-
-TEST_F(ElasticSearchTest, ValgrindTestAsync) {
+TEST_F(ElasticSearchTest, ValgrindTestASyncDeleteIndex) {
+   // not supported in Sync
+   EXPECT_TRUE(true);
+}
+TEST_F(ElasticSearchTest, ValgrindTestSyncIndexClose) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   int count = 0;
+   target.mReplyMessage = "{\"ok\":true,\"acknowledged\":true}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.IndexClose("test"));
+   }
+   count = 0;
+   target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_FALSE(es.IndexClose("test"));
+   }
+}
+TEST_F(ElasticSearchTest, ValgrindTestASyncIndexClose) {
+   // not supported in Sync
+   EXPECT_TRUE(true);
+}
+TEST_F(ElasticSearchTest, ValgrindTestSyncIndexOpen) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   int count = 0;
+   target.mReplyMessage = "{\"ok\":true,\"acknowledged\":true}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.IndexOpen("test"));
+   }
+   count = 0;
+   target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_FALSE(es.IndexOpen("test"));
+   }
+}
+TEST_F(ElasticSearchTest, ValgrindTestASyncIndexOpen) {
+   // not supported in Sync
+   EXPECT_TRUE(true);
+}
+TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   int count = 0;
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.AddDoc("test","meta","123456789012345678901234567890123456","{something: true}"));
+   }
+   count = 0;
+   target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_FALSE(es.AddDoc("test","meta","123456789012345678901234567890123456","{something: true}"));
+   }
+}
+TEST_F(ElasticSearchTest, ValgrindTestASyncAddDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
    ElasticSearch es(stick, true);
-   target.mReplyMessage = "{\"ok\":true,\"acknowledged\":true}";
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-
-
+   int count = 0;
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.AddDoc("test","meta","123456789012345678901234567890123456","{something: true}"));
+   }
+   count = 0;
+   target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.AddDoc("test","meta","123456789012345678901234567890123456","{something: true}"));
+   }
+}
+TEST_F(ElasticSearchTest, ValgrindTestSyncUpdateDoc) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   int count = 0;
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.UpdateDoc("test","meta","123456789012345678901234567890123456","{something: true}"));
+   }
+   count = 0;
+   target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_FALSE(es.UpdateDoc("test","meta","123456789012345678901234567890123456","{something: true}"));
+   }
+}
+TEST_F(ElasticSearchTest, ValgrindTestASyncUpdateDoc) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, true);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   int count = 0;
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.UpdateDoc("test","meta","123456789012345678901234567890123456","{something: true}"));
+   }
+   count = 0;
+   target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.UpdateDoc("test","meta","123456789012345678901234567890123456","{something: true}"));
+   }
+}
+TEST_F(ElasticSearchTest, ValgrindTestSyncDeleteDoc) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   int count = 0;
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.DeleteDoc("test","meta","123456789012345678901234567890123456"));
+   }
+   count = 0;
+   target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_FALSE(es.DeleteDoc("test","meta","123456789012345678901234567890123456"));
+   }
+}
+TEST_F(ElasticSearchTest, ValgrindTestASyncDeleteDoc) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, true);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   int count = 0;
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.DeleteDoc("test","meta","123456789012345678901234567890123456"));
+   }
+   count = 0;
+   target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.DeleteDoc("test","meta","123456789012345678901234567890123456"));
+   }
+}
+TEST_F(ElasticSearchTest, ValgrindTestSyncRefreshDiskInfo) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   int count = 0;
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123}]}}}}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.RefreshDiskInfo());
+   }
+   count = 0;
+   target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_FALSE(es.RefreshDiskInfo());
+   }
+}
+TEST_F(ElasticSearchTest, ValgrindTestASyncRefreshDiskInfo) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, true);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   int count = 0;
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123}]}}}}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_TRUE(es.RefreshDiskInfo());
+   }
+   count = 0;
+   target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   while (count ++ < targetIterations && !zctx_interrupted) {
+      EXPECT_FALSE(es.RefreshDiskInfo());
+   }
 }
 
 TEST_F(ElasticSearchTest, AsynchrnousCannotDoOtherStuff) {
