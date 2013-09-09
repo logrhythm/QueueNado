@@ -29,16 +29,16 @@ public:
       return DiskCleanup::TooMuchPCap(aDiskUsed, aTotalFiles);
    }
 
-   void RecalculatePCapDiskUsed(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
-      DiskCleanup::RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles);
+   void RecalculatePCapDiskUsed(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles, DiskSpace& pcapDiskInGB) {
+      DiskCleanup::RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDiskInGB);
    }
 
    void CleanupOldPcapFiles(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
            std::time_t& currentTime, std::atomic<size_t>& aDiskUsed,
            std::atomic<size_t>& aTotalFiles,
-        const DiskSpaceInGB& probeDisk,
-        const DiskSpaceInGB& pcapDisk) {
-      DiskCleanup::CleanupOldPcapFiles(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, probeDisk, pcapDisk);
+        const DiskSpace& probeDiskInGB,
+        DiskSpace& pcapDiskInGB) {
+      DiskCleanup::CleanupOldPcapFiles(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, probeDiskInGB, pcapDiskInGB);
    }
 
    bool TooMuchSearch(const size_t& fsFreeGigs, const size_t& fsTotalGigs) {
@@ -61,10 +61,10 @@ public:
       return false;
    }
 
-   void GetPcapStoreUsage(size_t& fsFree, size_t& fsTotal, size_t& fsUsed, 
+   void GetPcapStoreUsage(DiskSpace& pcapDiskInGB, 
                           const DiskUsage::Size size) {
          if (mRealFilesSystemAccess) {
-            DiskCleanup::GetPcapStoreUsage(fsFree, fsTotal, fsUsed, size);
+            DiskCleanup::GetPcapStoreUsage(pcapDiskInGB, size);
          }  else {
             struct statvfs mockStatvs;
             mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
@@ -78,16 +78,17 @@ public:
             MockDiskUsage disk(mockStatvs);
 
             disk.Update();
-            fsFree = disk.DiskFree(size);
-            fsTotal = disk.DiskTotal(size); 
+            pcapDiskInGB.Free = disk.DiskFree(size);
+            pcapDiskInGB.Total = disk.DiskTotal(size); 
+            pcapDiskInGB.Used = disk.DiskUsed(size); 
          }
    }
 
-   void GetProbeFileSystemInfo(size_t& fsFree, size_t& fsTotal, 
+   void GetProbeFileSystemInfo(DiskSpace& probeDiskInGB, 
                                const DiskUsage::Size size) {
       if (!mFailFileSystemInfo) {
          if (mRealFilesSystemAccess) {
-            DiskCleanup::GetProbeFileSystemInfo(fsFree, fsTotal,size);
+            DiskCleanup::GetProbeFileSystemInfo(probeDiskInGB,size);
          }  else {
             struct statvfs mockStatvs;
             mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
@@ -101,18 +102,19 @@ public:
             MockDiskUsage disk(mockStatvs);
 
             disk.Update();
-            fsFree = disk.DiskFree(size);
-             fsTotal = disk.DiskTotal(size); 
+            probeDiskInGB.Free = disk.DiskFree(size);
+            probeDiskInGB.Total = disk.DiskTotal(size); 
+            probeDiskInGB.Used = disk.DiskUsed(size); 
          }
       }
       if (mFileSystemInfoCountdown-- == 1) {
-         fsFree = fsTotal;
+         probeDiskInGB.Free = probeDiskInGB.Total;
       }
       return;
    }
 
    void CleanupSearch(bool canSendStats, PacketCaptureFilesystemDetails& previous, 
-           ElasticSearch& es, SendStats& sendQueue, DiskSpaceInGB& probeDiskUsage) {
+           ElasticSearch& es, SendStats& sendQueue, DiskSpace& probeDiskUsage) {
       return DiskCleanup::CleanupSearch(canSendStats, previous, es, sendQueue, probeDiskUsage);
    }
 
