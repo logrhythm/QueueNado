@@ -33,9 +33,10 @@ protected:
    LR_VIRTUAL void CleanPendingReplies();
    LR_VIRTUAL void CleanUnreadReplies();
    LR_VIRTUAL bool GetReplyFromSocket(const std::string& uuid, const unsigned int msToWait, std::string& reply);
-   bool GetReplyFromCache(const std::string& uuid, std::string& reply);
-   bool CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply);
-   bool ReadFromReadySocket(std::string& foundId, std::string& foundReply);
+   LR_VIRTUAL bool GetReplyFromCache(const std::string& uuid, std::string& reply);
+   LR_VIRTUAL bool CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply);
+   LR_VIRTUAL bool ReadFromReadySocket(std::string& foundId, std::string& foundReply);
+   
    std::unordered_map<std::string, std::string> mUnreadReplies;
    time_t mLastGCTime;
 private:
