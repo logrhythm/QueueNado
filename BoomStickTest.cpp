@@ -115,7 +115,7 @@ TEST_F(BoomStickTest, ValgrindASyncEmpty) {
    ASSERT_TRUE(stick.Initialize());
    target.BeginListenAndRepeat();
 
-   int iterations = 1000000;
+   int iterations = 10000;
 
    while (!zctx_interrupted && iterations > 0) {
       std::stringstream ss;

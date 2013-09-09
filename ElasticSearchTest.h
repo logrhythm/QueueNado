@@ -2,13 +2,26 @@
 
 #include "gtest/gtest.h"
 #include "ElasticSearch.h"
-class ElasticSearchTest : public ::testing::Test
-{
+#include "czmq.h"
+
+class ElasticSearchTest : public ::testing::Test {
 public:
-    ElasticSearchTest(){};
+
+   ElasticSearchTest() :targetIterations(100000) {
+      std::stringstream sS;
+
+      sS << "ipc:///tmp/elasticSearchtest" << pthread_self();
+      mAddress = sS.str();
+   };
 
 protected:
-	virtual void SetUp() {}
-	virtual void TearDown() {}
 
+   virtual void SetUp() {
+      zctx_interrupted = false;
+   }
+
+   virtual void TearDown() {
+   }
+   std::string mAddress;
+   const int targetIterations;
 };

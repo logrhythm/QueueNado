@@ -24,6 +24,9 @@ public:
     * in the "real" class. 
     */
    virtual ~MockSkelleton() {
+      if (mRepeating) {
+         EndListendAndRepeat();
+      }
       if (nullptr == mRepeaterThread) {
          mRepeaterThread.reset(nullptr);
       }
@@ -60,7 +63,7 @@ public:
     *   built for testing within its own thread
     */
    void RepeatMessages() {
-      while (mRepeating.load()) {
+      while (mRepeating.load() && !zctx_interrupted) {
          if (zsocket_poll(mFace, 100)) {
             zmsg_t* msg = zmsg_recv(mFace);
             std::vector<zframe_t*> envelopes; // A place to put all the zmq routing info
@@ -71,19 +74,23 @@ public:
              * by the software.  These need to be preseved in order and put back on 
              * the reply.
              */
-            while (zmsg_size(msg) > 1 ) { // the last part of a message is the actual message
+            while (zmsg_size(msg) > 1) { // the last part of a message is the actual message
                envelopes.push_back(zmsg_pop(msg));
             }
             // Last one is the actual message
             char* msgChar = zmsg_popstr(msg);
             std::string reply = msgChar;
             free(msgChar);
-            reply += " reply";
+            if (mReplyMessage.empty()) {
+               reply += " reply";
+            } else {
+               reply = mReplyMessage;
+            }
             /* We are responsible for cleaning the message up, pop has removed those
              *  frame references.
-             */ 
+             */
             zmsg_destroy(&msg);
-            
+
             msg = zmsg_new();
             /**
              * Put the old envelopes back on, in order.  Their return addresses will
@@ -124,6 +131,8 @@ public:
          mRepeaterThread.reset(nullptr);
       }
    }
+
+   std::string mReplyMessage;
 private:
    std::atomic<bool> mRepeating;
    std::unique_ptr<std::thread> mRepeaterThread;
