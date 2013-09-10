@@ -20,6 +20,9 @@ public:
       }
       return EthInfo::Initialize();
    }
+   void FreeIFAddrs(struct ifaddrs *) {
+      
+   }
    int GetIFAddrs(struct ifaddrs **ifaddr) {
       if (mFakeGetIFAddrs) {
          if (NULL == mifaddr) {
