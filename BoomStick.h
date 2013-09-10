@@ -2,7 +2,6 @@
 #include <string>
 
 #include <unordered_map>
-#include <unordered_set>
 #include "include/global.h"
 #include "boost/uuid/uuid.hpp"
 #include "boost/uuid/uuid_generators.hpp"

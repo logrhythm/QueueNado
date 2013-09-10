@@ -10,7 +10,16 @@
 #include <time.h>
 #include <vector>
 #include "boost/uuid/uuid_io.hpp"
+namespace {
 
+   void ShrinkToFit(std::unordered_map<std::string, std::string>& map) {
+      std::unordered_map<std::string, std::string>(map).swap(map);
+   }
+   void ShrinkToFit(std::unordered_map<std::string, time_t>& map) {
+      std::unordered_map<std::string, time_t>(map).swap(map);
+   }
+   
+}
 /**
  * Construct with a ZMQ socket binding
  * @param binding
@@ -428,11 +437,9 @@ void BoomStick::CleanPendingReplies() {
       }
    }
    LOG_IF(INFO, (deleteUnread > 0)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
-   if (mPendingReplies.size() == 0) {
-      LOG(INFO) << "Memclear of pending replies";
-      std::unordered_map<std::string, time_t> temp;
-      mPendingReplies.swap(temp);
-   }
+   ShrinkToFit(mPendingReplies);
+   ShrinkToFit(mUnreadReplies);
+
 }
 
 /**
@@ -455,9 +462,4 @@ void BoomStick::CleanUnreadReplies() {
    }
    LOG_IF(INFO, (count > 0)) << "Deleted " << count << " replies that no longer exist in pending";
 
-   if (mUnreadReplies.size() == 0) {
-      LOG(INFO) << "Memclear of unread replies";
-      std::unordered_map<std::string, std::string> temp;
-      mUnreadReplies.swap(temp);
-   }
 }
