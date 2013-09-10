@@ -429,6 +429,7 @@ void BoomStick::CleanPendingReplies() {
    }
    LOG_IF(INFO, (deleteUnread > 0)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
    if (mPendingReplies.size() == 0) {
+      LOG(INFO) << "Memclear of pending replies";
       std::unordered_map<std::string, time_t> temp;
       mPendingReplies.swap(temp);
    }
@@ -455,6 +456,7 @@ void BoomStick::CleanUnreadReplies() {
    LOG_IF(INFO, (count > 0)) << "Deleted " << count << " replies that no longer exist in pending";
 
    if (mUnreadReplies.size() == 0) {
+      LOG(INFO) << "Memclear of unread replies";
       std::unordered_map<std::string, std::string> temp;
       mUnreadReplies.swap(temp);
    }
