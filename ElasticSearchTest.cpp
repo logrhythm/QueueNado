@@ -21,6 +21,12 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
       EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", "{something: true}"));
    }
    count = 0;
+   target.mDrowzy = true;
+   while (count ++ < targetIterations && ! zctx_interrupted) {
+      EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", "{something: true}"));
+   }
+   count = 0;
+   target.mDrowzy = false;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
    while (count ++ < targetIterations && ! zctx_interrupted) {
       EXPECT_FALSE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", "{something: true}"));
@@ -47,6 +53,12 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncAddDoc) {
       EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    count = 0;
+   target.mDrowzy = true;
+   while (count ++ < targetIterations && ! zctx_interrupted) {
+      EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
+   }
+   count = 0;
+   target.mDrowzy = false;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
    while (count ++ < targetIterations && ! zctx_interrupted) {
       EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
@@ -73,6 +85,13 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncUpdateDoc) {
       EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    count = 0;
+   target.mDrowzy = true;
+    target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   while (count ++ < targetIterations && ! zctx_interrupted) {
+      EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
+   }
+   count = 0;  
+   target.mDrowzy = false;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
    while (count ++ < targetIterations && ! zctx_interrupted) {
       EXPECT_FALSE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
@@ -99,6 +118,12 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncUpdateDoc) {
       EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    count = 0;
+   target.mDrowzy = true;
+   while (count ++ < targetIterations && ! zctx_interrupted) {
+      EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
+   }
+   count = 0;
+   target.mDrowzy = false;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
    while (count ++ < targetIterations && ! zctx_interrupted) {
       EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
@@ -140,7 +165,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_4\",\"_score\":12.650732},"
            "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
-   
+
    while (count ++ < targetIterations && ! zctx_interrupted) {
       EXPECT_TRUE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
       EXPECT_FALSE(recordsToUpdate.empty());
@@ -204,16 +229,16 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncCreateIndex) {
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
    int count = 0;
-//   target.mReplyMessage = "{\"ok\":true,\"acknowledged\":true}";
-//   while (count ++ < targetIterations && ! zctx_interrupted) {
-//      EXPECT_TRUE(es.CreateIndex("test", 1, 1));
-//   }
-//   count = 0;
-//   target.mReplyMessage = "{\"error\":\"IndexAlreadyExistsException[[indexName] Alread exists]\",\"status\":400}";
-//   while (count ++ < targetIterations && ! zctx_interrupted) {
-//      EXPECT_FALSE(es.CreateIndex("test", 1, 1));
-//   }
-//   target.mReplyMessage.clear();
+   //   target.mReplyMessage = "{\"ok\":true,\"acknowledged\":true}";
+   //   while (count ++ < targetIterations && ! zctx_interrupted) {
+   //      EXPECT_TRUE(es.CreateIndex("test", 1, 1));
+   //   }
+   //   count = 0;
+   //   target.mReplyMessage = "{\"error\":\"IndexAlreadyExistsException[[indexName] Alread exists]\",\"status\":400}";
+   //   while (count ++ < targetIterations && ! zctx_interrupted) {
+   //      EXPECT_FALSE(es.CreateIndex("test", 1, 1));
+   //   }
+   //   target.mReplyMessage.clear();
    count = 0;
    target.mEmptyReplies = true;
    while (count ++ < targetIterations && ! zctx_interrupted) {
@@ -318,6 +343,7 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncIndexOpen) {
    // not supported in Sync
    EXPECT_TRUE(true);
 }
+
 TEST_F(ElasticSearchTest, ValgrindTestSyncDeleteDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};

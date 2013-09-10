@@ -15,7 +15,8 @@ public:
     * @param binding
     *   The binding is stored, but not bound till Initialize is called
     */
-   explicit MockSkelleton(const std::string& binding) : Skelleton(binding), mRepeating(false), mRepeaterThread(nullptr), mEmptyReplies(false) {
+   explicit MockSkelleton(const std::string& binding) : Skelleton(binding), mRepeating(false),
+   mRepeaterThread(nullptr), mEmptyReplies(false), mDrowzy(false) {
    }
 
    /**
@@ -105,6 +106,11 @@ public:
             zmsg_addstr(msg, reply.c_str());
             /* Send will take care of the memory associated with msg
              */
+            if (mDrowzy) {
+               if ((rand() % 3000) == 0) {
+                  std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 200));
+               }
+            }
             zmsg_send(&msg, mFace);
          }
       }
@@ -134,10 +140,11 @@ public:
 
    std::string mReplyMessage;
    bool mEmptyReplies;
+   bool mDrowzy;
 private:
    std::atomic<bool> mRepeating;
    std::unique_ptr<std::thread> mRepeaterThread;
-   
+
 };
 #endif
 
