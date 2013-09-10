@@ -15,7 +15,7 @@ public:
     * @param binding
     *   The binding is stored, but not bound till Initialize is called
     */
-   explicit MockSkelleton(const std::string& binding) : Skelleton(binding), mRepeating(false), mRepeaterThread(nullptr) {
+   explicit MockSkelleton(const std::string& binding) : Skelleton(binding), mRepeating(false), mRepeaterThread(nullptr), mEmptyReplies(false) {
    }
 
    /**
@@ -81,7 +81,7 @@ public:
             char* msgChar = zmsg_popstr(msg);
             std::string reply = msgChar;
             free(msgChar);
-            if (mReplyMessage.empty()) {
+            if (mReplyMessage.empty() && !mEmptyReplies) {
                reply += " reply";
             } else {
                reply = mReplyMessage;
@@ -133,9 +133,11 @@ public:
    }
 
    std::string mReplyMessage;
+   bool mEmptyReplies;
 private:
    std::atomic<bool> mRepeating;
    std::unique_ptr<std::thread> mRepeaterThread;
+   
 };
 #endif
 
