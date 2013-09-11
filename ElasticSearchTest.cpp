@@ -196,7 +196,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
    target.mEmptyReplies = true;
    count = 0;
    while (count ++ < targetIterations && ! zctx_interrupted) {
-      EXPECT_TRUE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
+      EXPECT_FALSE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
       EXPECT_TRUE(recordsToUpdate.empty());
    }
 }
