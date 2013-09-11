@@ -91,7 +91,7 @@ public:
       return DiskCleanup::GetOldestIndex(es);
    }
 
-   std::map < std::time_t, std::vector<boost::filesystem::path> > GetOrderedMapOfFiles(boost::filesystem::path path) {
+   std::map < std::time_t, std::vector<boost::filesystem::path> >& GetOrderedMapOfFiles(boost::filesystem::path path) {
       return DiskCleanup::GetOrderedMapOfFiles(path);
    }
 
