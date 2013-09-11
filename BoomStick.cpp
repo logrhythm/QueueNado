@@ -65,7 +65,7 @@ zctx_t* BoomStick::GetContext() {
  * @param other
  */
 void BoomStick::Swap(BoomStick& other) {
-   LOG(DEBUG) << "BoomStickSwapping";
+   //LOG(DEBUG) << "BoomStickSwapping";
    mBinding = other.mBinding;
    mChamber = other.mChamber;
    mCtx = other.mCtx;
@@ -417,8 +417,8 @@ bool BoomStick::GetReplyFromSocket(const std::string& uuid, const unsigned int m
 void BoomStick::CleanOldPendingData() {
    const auto unreadSize = mUnreadReplies.size();
    const auto pendingSize = mPendingReplies.size();
-   LOG_IF(WARNING, (pendingSize > 0))  << " mPendingReplies: " << pendingSize;
-   LOG_IF(WARNING, (unreadSize > 0))   << " mUnreadReplies: " << unreadSize;
+   LOG_IF(WARNING, (pendingSize > 50))  << " mPendingReplies: " << pendingSize;
+   LOG_IF(WARNING, (unreadSize > 50))   << " mUnreadReplies: " << unreadSize;
    CleanUnreadReplies();
    CleanPendingReplies();
 }
@@ -446,7 +446,7 @@ void BoomStick::CleanPendingReplies() {
          mUnreadReplies.erase(uuid);
       }
    }
-   LOG_IF(INFO, (deleteUnread > 0)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
+   LOG_IF(INFO, (deleteUnread > 50)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
    ShrinkToFit(mPendingReplies);
    ShrinkToFit(mUnreadReplies);
 
@@ -470,6 +470,6 @@ void BoomStick::CleanUnreadReplies() {
       count++;
       mUnreadReplies.erase(hash);
    }
-   LOG_IF(INFO, (count > 0)) << "Deleted " << count << " replies that no longer exist in pending";
+   LOG_IF(INFO, (count > 50)) << "Deleted " << count << " replies that no longer exist in pending";
 
 }
