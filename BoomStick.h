@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-#include <unordered_map>
+#include <map>
 #include "include/global.h"
 #include "boost/uuid/uuid.hpp"
 #include "boost/uuid/uuid_generators.hpp"
@@ -28,6 +28,7 @@ protected:
    LR_VIRTUAL void* GetNewSocket(zctx_t* ctx);
    LR_VIRTUAL bool ConnectToBinding(void* socket, const std::string& binding);
    LR_VIRTUAL bool FindPendingUuid(const std::string& uuid) const;
+   bool FindUnreadUuid(const std::string& uuid) const;
    LR_VIRTUAL void CleanOldPendingData();
    LR_VIRTUAL void CleanPendingReplies();
    LR_VIRTUAL void CleanUnreadReplies();
@@ -36,10 +37,10 @@ protected:
    LR_VIRTUAL bool CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply);
    LR_VIRTUAL bool ReadFromReadySocket(std::string& foundId, std::string& foundReply);
    
-   std::unordered_map<std::string, std::string> mUnreadReplies;
+   std::map<std::string, std::string> mUnreadReplies;
    time_t mLastGCTime;
 private:
-   std::unordered_map<std::string, time_t> mPendingReplies;
+   std::map<std::string, time_t> mPendingReplies;
    std::string mBinding;
    void *mChamber;
    zctx_t *mCtx;

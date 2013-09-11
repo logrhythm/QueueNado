@@ -12,11 +12,11 @@
 #include "boost/uuid/uuid_io.hpp"
 namespace {
 
-   void ShrinkToFit(std::unordered_map<std::string, std::string>& map) {
-      std::unordered_map<std::string, std::string>(map).swap(map);
+   void ShrinkToFit(std::map<std::string, std::string>& map) {
+      std::map<std::string, std::string>(map).swap(map);
    }
-   void ShrinkToFit(std::unordered_map<std::string, time_t>& map) {
-      std::unordered_map<std::string, time_t>(map).swap(map);
+   void ShrinkToFit(std::map<std::string, time_t>& map) {
+      std::map<std::string, time_t>(map).swap(map);
    }
    
 }
@@ -65,6 +65,7 @@ zctx_t* BoomStick::GetContext() {
  * @param other
  */
 void BoomStick::Swap(BoomStick& other) {
+   LOG(DEBUG) << "BoomStickSwapping";
    mBinding = other.mBinding;
    mChamber = other.mChamber;
    mCtx = other.mCtx;
@@ -200,6 +201,9 @@ bool BoomStick::FindPendingUuid(const std::string& uuid) const {
    return mPendingReplies.find(uuid) != mPendingReplies.end();
 }
 
+bool BoomStick::FindUnreadUuid(const std::string& uuid) const {
+   return mUnreadReplies.find(uuid) != mUnreadReplies.end();
+}
 /**
  * A Synchronous send with a blocking receive.
  * 
@@ -240,8 +244,8 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
    }
    bool success = true;
    if (FindPendingUuid(uuid)) {
-      //LOG(DEBUG) << "Attempted to re-send " << messageHash;
-      return false;
+      LOG(DEBUG) << "Attempted to re-send " << uuid;
+      return true;
    }
    zmsg_t* msg = zmsg_new();
    if (zmsg_addmem(msg, uuid.c_str(), uuid.size()) < 0) {
@@ -255,18 +259,23 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
    items[0].events = ZMQ_POLLOUT;
    int rc = zmq_poll(items, 1, 0);
    if (rc < 0) {
+      success = false;
       LOG(WARNING) << "Queue error, cannot poll for status";
+
    } else if (rc == 1) {
       if ((items[0].revents & ZMQ_POLLOUT) != ZMQ_POLLOUT) {
          LOG(WARNING) << "Queue error, cannot send messages the queue is full";
+         success = false;
       } else if (zmsg_send(&msg, mChamber) == 0) {
          success = true;
          mPendingReplies[uuid] = std::time(NULL);
       } else {
          LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
+         success = false;
       }
    } else {
       LOG(WARNING) << "Queue error, timeout waiting for queue to be ready";
+      success = false;
    }
 
    if (msg) {
@@ -408,7 +417,8 @@ bool BoomStick::GetReplyFromSocket(const std::string& uuid, const unsigned int m
 void BoomStick::CleanOldPendingData() {
    const auto unreadSize = mUnreadReplies.size();
    const auto pendingSize = mPendingReplies.size();
-   LOG_IF(WARNING, (pendingSize >= 500)) << "sizes mUnreadReplies: " << unreadSize << " mPendingReplies: " << pendingSize;
+   LOG_IF(WARNING, (pendingSize > 0))  << " mPendingReplies: " << pendingSize;
+   LOG_IF(WARNING, (unreadSize > 0))   << " mUnreadReplies: " << unreadSize;
    CleanUnreadReplies();
    CleanPendingReplies();
 }
