@@ -1,7 +1,6 @@
 #include "RESTBuilderTest.h"
 #include "MockBoomStick.h"
 #include "ElasticSearch.h"
-#include <unordered_set>
 #include <fstream>
 
 #ifdef LR_DEBUG
