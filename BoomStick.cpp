@@ -250,7 +250,7 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
    zmsg_t* msg = zmsg_new();
    if (zmsg_addmem(msg, uuid.c_str(), uuid.size()) < 0) {
       LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
-   }
+   } 
    if (zmsg_addmem(msg, command.c_str(), command.size()) < 0) {
       LOG(WARNING) << "queue error " << zmq_strerror(zmq_errno());
    }

@@ -21,7 +21,7 @@ Headcrab::Headcrab(const std::string& binding) : mBinding(binding), mContext(NUL
 /**
  * Default deconstructor
  */
-Headcrab::~Headcrab() {
+Headcrab::~ Headcrab() {
    if (mContext) {
       zctx_destroy(&mContext);
    }
@@ -53,7 +53,7 @@ void* Headcrab::GetFace(zctx_t* context) {
       zsocket_set_rcvhwm(face, GetHighWater());
       zsocket_set_linger(face, 0);
       int connectRetries = 100;
-      while ((zsocket_bind(face, GetBinding().c_str()) < 0) && connectRetries-- > 0) {
+      while ((zsocket_bind(face, GetBinding().c_str()) < 0) && connectRetries -- > 0) {
          boost::this_thread::interruption_point();
          int err = zmq_errno();
          if (err == ETERM) {
@@ -100,15 +100,15 @@ void Headcrab::setIpcFilePermissions() {
  *   If initialization has worked 
  */
 bool Headcrab::ComeToLife() {
-   if (!mContext) {
+   if (! mContext) {
       mContext = zctx_new();
       zctx_set_linger(mContext, 0); // linger for a millisecond on close
       zctx_set_hwm(mContext, GetHighWater()); // HWM on internal thread communication
       zctx_set_iothreads(mContext, 1);
    }
-   if (!mFace) {
+   if (! mFace) {
       void* face = GetFace(mContext);
-      if (!face) {
+      if (! face) {
          return false;
       }
    }
@@ -135,7 +135,7 @@ zctx_t* Headcrab::GetContext() const {
 
 bool Headcrab::GetHitBlock(std::string& theHit) {
    std::vector<std::string> hits;
-   if (GetHitBlock(hits) && !hits.empty()) {
+   if (GetHitBlock(hits) && ! hits.empty()) {
       theHit = hits[0];
       return true;
    }
@@ -143,17 +143,17 @@ bool Headcrab::GetHitBlock(std::string& theHit) {
 }
 
 bool Headcrab::GetHitBlock(std::vector<std::string>& theHits) {
-   if (!mFace) {
+   if (! mFace) {
       return false;
    }
    zmsg_t* message = zmsg_recv(mFace);
-   if (!message) {
+   if (! message) {
       return false;
    }
    //std::cout << "Got message with " << zmsg_size(message) << " parts" << std::endl;
    theHits.clear();
    int msgSize = zmsg_size(message);
-   for (int i = 0; i < msgSize; i++) {
+   for (int i = 0; i < msgSize; i ++) {
       zframe_t* frame = zmsg_pop(message);
       std::string aFrame;
       aFrame.insert(0, reinterpret_cast<const char*> (zframe_data(frame)), zframe_size(frame));
@@ -170,7 +170,7 @@ bool Headcrab::GetHitBlock(std::vector<std::string>& theHits) {
 
 bool Headcrab::GetHitWait(std::string& theHit, const int timeout) {
    std::vector<std::string> hits;
-   if (GetHitWait(hits, timeout) && !hits.empty()) {
+   if (GetHitWait(hits, timeout) && ! hits.empty()) {
       theHit = hits[0];
       return true;
    }
@@ -178,7 +178,7 @@ bool Headcrab::GetHitWait(std::string& theHit, const int timeout) {
 }
 
 bool Headcrab::GetHitWait(std::vector<std::string>& theHits, const int timeout) {
-   if (!mFace) {
+   if (! mFace) {
       return false;
    }
    if (zsocket_poll(mFace, timeout)) {
@@ -194,20 +194,20 @@ bool Headcrab::SendSplatter(const std::string& feedback) {
 }
 
 bool Headcrab::SendSplatter(std::vector<std::string>& feedback) {
-   if (!mFace) {
+   if (! mFace) {
       return false;
    }
    zmsg_t* message = zmsg_new();
    for (auto it = feedback.begin();
-           it != feedback.end(); it++) {
+           it != feedback.end(); it ++) {
       zmsg_addmem(message, &((*it)[0]), it->size());
    }
-
+   bool success = true;
    if (zmsg_send(&message, mFace) != 0) {
-      if (message) {
-         zmsg_destroy(&message);
-      }
-      return false;
+      success = false;
    }
-   return true;
+   if (message) {
+      zmsg_destroy(&message);
+   }
+   return success;
 }

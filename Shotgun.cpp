@@ -3,6 +3,7 @@
 #define _OPEN_SYS
 #include <sys/stat.h>
 #include "czmq.h"
+
 /**
  * Shotgun class is a ZeroMQ Publisher.
  */
@@ -19,7 +20,7 @@ Shotgun::Shotgun() {
 void Shotgun::Aim(const std::string& location) {
    zsocket_set_sndhwm(mGun, 32 * 1024);
    int rc = zsocket_bind(mGun, location.c_str());
-   if (rc == -1) {
+   if (rc == - 1) {
 
       LOG(WARNING) << "bound socket rc:" << rc << " : location: " << location;
       LOG(WARNING) << zmq_strerror(zmq_errno());
@@ -68,23 +69,23 @@ void Shotgun::Fire(const std::vector<std::string>& bullets) {
 
    zmsg_t* msg = zmsg_new();
    zmsg_add(msg, key);
-   for (auto it = bullets.begin(); it != bullets.end(); it++) {
+   for (auto it = bullets.begin(); it != bullets.end(); it ++) {
       zframe_t* body = zframe_new(it->c_str(), it->size());
       zmsg_add(msg, body);
    }
 
    if (zmsg_send(&msg, mGun) != 0) {
-      if (msg) {
-         zmsg_destroy(&msg);
-      }
+      LOG(WARNING) << "could not send message";
    }
-
+   if (msg) {
+      zmsg_destroy(&msg);
+   }
 }
 
 /**
  * Cleanup our socket and context.
  */
-Shotgun::~Shotgun() {
+Shotgun::~ Shotgun() {
    zsocket_destroy(mCtx, mGun);
    zctx_destroy(&mCtx);
 }

@@ -14,7 +14,7 @@
  */
 Crowbar::Crowbar(const std::string& binding) : mContext(NULL),
 mBinding(binding), mTip(NULL), mOwnsContext(true) {
-   
+
 }
 
 /**
@@ -25,7 +25,7 @@ mBinding(binding), mTip(NULL), mOwnsContext(true) {
  */
 Crowbar::Crowbar(const Headcrab& target) : mContext(target.GetContext()),
 mBinding(target.GetBinding()), mTip(NULL), mOwnsContext(false) {
-   if (mContext == NULL ) {
+   if (mContext == NULL) {
       mOwnsContext = true;
    }
 }
@@ -45,7 +45,7 @@ mBinding(binding), mTip(NULL), mOwnsContext(false) {
 /**
  * Default deconstructor
  */
-Crowbar::~Crowbar() {
+Crowbar::~ Crowbar() {
    if (mOwnsContext && mContext != NULL) {
       zctx_destroy(&mContext);
    }
@@ -69,7 +69,7 @@ int Crowbar::GetHighWater() {
  */
 void* Crowbar::GetTip() {
    void* tip = zsocket_new(mContext, ZMQ_REQ);
-   if (!tip) {
+   if (! tip) {
       return NULL;
    }
    zsocket_set_sndhwm(tip, GetHighWater());
@@ -77,7 +77,7 @@ void* Crowbar::GetTip() {
    zsocket_set_linger(tip, 0);
    int connectRetries = 100;
 
-   while (zsocket_connect(tip, mBinding.c_str()) != 0 && connectRetries-- > 0 && !zctx_interrupted) {
+   while (zsocket_connect(tip, mBinding.c_str()) != 0 && connectRetries -- > 0 && ! zctx_interrupted) {
       boost::this_thread::interruption_point();
       int err = zmq_errno();
       if (err == ETERM) {
@@ -97,15 +97,15 @@ void* Crowbar::GetTip() {
 }
 
 bool Crowbar::Wield() {
-   if (!mContext) {
+   if (! mContext) {
       mContext = zctx_new();
       zctx_set_linger(mContext, 0); // linger for a millisecond on close
       zctx_set_hwm(mContext, GetHighWater()); // HWM on internal thread communicaiton
       zctx_set_iothreads(mContext, 1);
    }
-   if (!mTip) {
+   if (! mTip) {
       mTip = GetTip();
-      if (!mTip && mOwnsContext) {
+      if (! mTip && mOwnsContext) {
          zctx_destroy(&mContext);
          mContext = NULL;
       }
@@ -120,28 +120,29 @@ bool Crowbar::Swing(const std::string& hit) {
    return Flurry(hits);
 }
 
-bool Crowbar::Flurry( std::vector<std::string>& hits) {
-   if (!mTip) {
+bool Crowbar::Flurry(std::vector<std::string>& hits) {
+   if (! mTip) {
       return false;
    }
    zmsg_t* message = zmsg_new();
    for (auto it = hits.begin();
-           it != hits.end(); it++) {
+           it != hits.end(); it ++) {
       zmsg_addmem(message, &((*it)[0]), it->size());
    }
+   bool success = true;
    //std::cout << "Sending message with " << zmsg_size(message) << " " << hits.size() << std::endl;
    if (zmsg_send(&message, mTip) != 0) {
-      if (message) {
-         zmsg_destroy(&message);
-      }
-      return false;
+      success = false;
    }
-   return true;
+   if (message) {
+      zmsg_destroy(&message);
+   }
+   return success;
 }
 
 bool Crowbar::BlockForKill(std::string& guts) {
    std::vector<std::string> allReplies;
-   if (BlockForKill(allReplies) && !allReplies.empty()) {
+   if (BlockForKill(allReplies) && ! allReplies.empty()) {
       guts = allReplies[0];
       return true;
    }
@@ -149,16 +150,16 @@ bool Crowbar::BlockForKill(std::string& guts) {
 }
 
 bool Crowbar::BlockForKill(std::vector<std::string>& guts) {
-   if (!mTip) {
+   if (! mTip) {
       return false;
    }
    zmsg_t* message = zmsg_recv(mTip);
-   if (!message) {
+   if (! message) {
       return false;
    }
    guts.clear();
    int msgSize = zmsg_size(message);
-   for (int i = 0; i < msgSize; i++) {
+   for (int i = 0; i < msgSize; i ++) {
       zframe_t* frame = zmsg_pop(message);
       std::string aString;
       aString.insert(0, reinterpret_cast<const char*> (zframe_data(frame)), zframe_size(frame));
@@ -172,17 +173,17 @@ bool Crowbar::BlockForKill(std::vector<std::string>& guts) {
    return true;
 }
 
-bool Crowbar::WaitForKill(std::string& guts,const int timeout) {
+bool Crowbar::WaitForKill(std::string& guts, const int timeout) {
    std::vector<std::string> allReplies;
-   if (WaitForKill(allReplies,timeout) && !allReplies.empty()) {
+   if (WaitForKill(allReplies, timeout) && ! allReplies.empty()) {
       guts = allReplies[0];
       return true;
    }
    return false;
 }
 
-bool Crowbar::WaitForKill(std::vector<std::string>& guts,const int timeout) {
-   if (!mTip) {
+bool Crowbar::WaitForKill(std::vector<std::string>& guts, const int timeout) {
+   if (! mTip) {
       return false;
    }
    if (zsocket_poll(mTip, timeout)) {

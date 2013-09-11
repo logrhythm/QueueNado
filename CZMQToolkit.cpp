@@ -55,7 +55,7 @@ void CZMQToolkit::PrintCurrentHighWater(void* socket, const std::string& name) {
  *   If the message is valid
  */
 bool CZMQToolkit::IsValidMessage(zmsg_t* message) {
-   if (!message) {
+   if (! message) {
       return false;
    } else if (zmsg_size(message) == ZMQ_KILL_MESSAGE) {
       return false;
@@ -70,12 +70,12 @@ bool CZMQToolkit::IsValidMessage(zmsg_t* message) {
  *   A czmq pipe
  */
 void CZMQToolkit::SendShutdownMessage(void* socket) {
-   if (!socket) {
+   if (! socket) {
       LOG(WARNING) << "Invalid socket!";
       return;
    }
    zmsg_t* message = zmsg_new();
-   for (int i = 0; i < ZMQ_KILL_MESSAGE; i++) {
+   for (int i = 0; i < ZMQ_KILL_MESSAGE; i ++) {
       zmsg_addmem(message, "", 0);
    }
    if (zmsg_send(&message, socket) != 0) {
@@ -99,12 +99,12 @@ void CZMQToolkit::SendShutdownMessage(void* socket) {
  *   False if an error occurred
  */
 bool CZMQToolkit::GetSizeTFromSocket(void* socket, size_t& value) {
-   if (!socket) {
+   if (! socket) {
       return false;
    }
    zmsg_t* numberReply = zmsg_recv(socket);
 
-   if (!CZMQToolkit::IsValidMessage(numberReply)) {
+   if (! CZMQToolkit::IsValidMessage(numberReply)) {
       LOG(WARNING) << "Invalid Message!";
       if (numberReply) {
          zmsg_destroy(&numberReply);
@@ -118,7 +118,7 @@ bool CZMQToolkit::GetSizeTFromSocket(void* socket, size_t& value) {
               << " :: actual size:" << zframe_size(frame);
       return false;
    }
-   value = *reinterpret_cast<size_t*> (zframe_data(frame));
+   value = * reinterpret_cast<size_t*> (zframe_data(frame));
    zmsg_destroy(&numberReply);
 
    return true;
@@ -135,7 +135,7 @@ bool CZMQToolkit::GetSizeTFromSocket(void* socket, size_t& value) {
  *   If the call was successful
  */
 bool CZMQToolkit::SendBlankMessage(void* socket) {
-   if (!socket) {
+   if (! socket) {
       return false;
    }
    zmsg_t* blankRequest = zmsg_new();
@@ -161,12 +161,12 @@ bool CZMQToolkit::SendBlankMessage(void* socket) {
  *   If everything worked
  */
 bool CZMQToolkit::SocketFIFO(void* socket) {
-   if (!socket) {
+   if (! socket) {
       return false;
    }
    zmsg_t* bullet = zmsg_recv(socket);
 
-   if (!CZMQToolkit::IsValidMessage(bullet)) {
+   if (! CZMQToolkit::IsValidMessage(bullet)) {
       if (bullet) {
          zmsg_destroy(&bullet);
       }
@@ -203,24 +203,26 @@ bool CZMQToolkit::SocketFIFO(void* socket) {
  */
 bool CZMQToolkit::SendExistingMessage(zmsg_t*& message, void* socket) {
 
-   if (!socket || !message) {
+   if (! socket || ! message) {
       LOG(WARNING) << "Failed on send, NULL socket or message";
       if (message) {
          zmsg_destroy(&message);
       }
       return false;
    }
+   bool success = true;
    if (zmsg_send(&message, socket) != 0) {
 
       int err = zmq_errno();
       std::string error(zmq_strerror(err));
       LOG(WARNING) << "Failed on send " << error;
-      if (message) {
-         zmsg_destroy(&message);
-      }
-      return false;
+
+      success = false;
    }
-   return true;
+   if (message) {
+      zmsg_destroy(&message);
+   }
+   return success;
 }
 
 /**
@@ -232,12 +234,12 @@ bool CZMQToolkit::SendExistingMessage(zmsg_t*& message, void* socket) {
  *   if the call succeeded
  */
 bool CZMQToolkit::PopAndDiscardMessage(void* socket) {
-   if (!socket) {
+   if (! socket) {
       return false;
    }
    zmsg_t* tossMe = zmsg_recv(socket);
 
-   if (!CZMQToolkit::IsValidMessage(tossMe)) {
+   if (! CZMQToolkit::IsValidMessage(tossMe)) {
       if (tossMe) {
          zmsg_destroy(&tossMe);
       }
@@ -260,7 +262,7 @@ bool CZMQToolkit::PopAndDiscardMessage(void* socket) {
  *   If the call completed
  */
 bool CZMQToolkit::SendSizeTToSocket(void* socket, const size_t size) {
-   if (!socket) {
+   if (! socket) {
       return false;
    }
    zmsg_t* numberRequest = zmsg_new();
@@ -290,14 +292,14 @@ bool CZMQToolkit::SendSizeTToSocket(void* socket, const size_t size) {
  *   if the send was successful
  */
 bool CZMQToolkit::PassMessageAlong(void* sourceSocket, void* destSocket) {
-   if (!sourceSocket || !destSocket) {
+   if (! sourceSocket || ! destSocket) {
       LOG(WARNING) << "Invalid Socket!";
       return false;
    }
    //   printf("r msg\n");
    zmsg_t* message = zmsg_recv(sourceSocket);
    //   printf("s msg\n");
-   if (!CZMQToolkit::IsValidMessage(message)) {
+   if (! CZMQToolkit::IsValidMessage(message)) {
       LOG(WARNING) << "Invalid Message!";
       if (message) {
          zmsg_destroy(&message);
@@ -329,12 +331,12 @@ bool CZMQToolkit::PassMessageAlong(void* sourceSocket, void* destSocket) {
  *   If the call succeeded 
  */
 bool CZMQToolkit::SendStringContentsToSocket(void* sourceSocket, void* destSocket) {
-   if (!sourceSocket || !destSocket) {
+   if (! sourceSocket || ! destSocket) {
       LOG(WARNING) << "Invalid Socket!";
       return false;
    }
    zmsg_t* message = zmsg_recv(sourceSocket);
-   if (!CZMQToolkit::IsValidMessage(message)) {
+   if (! CZMQToolkit::IsValidMessage(message)) {
       if (message) {
          zmsg_destroy(&message);
       }
@@ -342,7 +344,7 @@ bool CZMQToolkit::SendStringContentsToSocket(void* sourceSocket, void* destSocke
       return false;
    }
    zframe_t* frame = zmsg_last(message);
-   std::string* slug = *(reinterpret_cast<std::string**> (zframe_data(frame)));
+   std::string* slug = * (reinterpret_cast<std::string**> (zframe_data(frame)));
    zmsg_destroy(&message);
    zmsg_t* shot = zmsg_new();
    zmsg_pushmem(shot, "", 0);
@@ -376,12 +378,12 @@ bool CZMQToolkit::SendStringContentsToSocket(void* sourceSocket, void* destSocke
  */
 bool CZMQToolkit::ForkPartsOfMessageTwoDirections(void* sourceSocket,
         void* firstDestination, void* secondDestination) {
-   if (!sourceSocket || !firstDestination || !secondDestination) {
+   if (! sourceSocket || ! firstDestination || ! secondDestination) {
       LOG(WARNING) << "Invalid socket!";
       return false;
    }
    zmsg_t* shot = zmsg_recv(sourceSocket);
-   if (!CZMQToolkit::IsValidMessage(shot)) {
+   if (! CZMQToolkit::IsValidMessage(shot)) {
       if (shot) {
          zmsg_destroy(&shot);
       }
@@ -424,11 +426,11 @@ bool CZMQToolkit::ForkPartsOfMessageTwoDirections(void* sourceSocket,
  *   A message that contains some characters in it
  */
 std::string* CZMQToolkit::GetStringFromMessage(zmsg_t*& message) {
-   if (!message) {
+   if (! message) {
       return NULL;
    }
    zframe_t* frame = zmsg_pop(message);
-   if (!frame) {
+   if (! frame) {
       return NULL;
    }
    std::string* slug = new std::string;
@@ -451,7 +453,7 @@ std::string* CZMQToolkit::GetStringFromMessage(zmsg_t*& message) {
  *   If the call succeeded
  */
 bool CZMQToolkit::SendStringWithHash(void* socket, zmsg_t*& message, const std::string* slug) {
-   if (!socket || !message || !slug) {
+   if (! socket || ! message || ! slug) {
       LOG(WARNING) << "Socket || message || slug!";
       return false;
    }
