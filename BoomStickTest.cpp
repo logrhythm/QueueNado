@@ -2,10 +2,10 @@
 #include "BoomStickTest.h"
 #include "MockSkelleton.h"
 #include "MockBoomStick.h"
-#include <unordered_set>
+#include <set>
 #include <memory>
 #include <future>
-#include <unordered_map>
+#include <map>
 #ifdef LR_DEBUG
 namespace {
 
@@ -115,7 +115,7 @@ TEST_F(BoomStickTest, ValgrindASyncEmpty) {
    ASSERT_TRUE(stick.Initialize());
    target.BeginListenAndRepeat();
 
-   int iterations = 1000000;
+   int iterations = 10000;
 
    while (!zctx_interrupted && iterations > 0) {
       std::stringstream ss;
@@ -298,7 +298,7 @@ TEST_F(BoomStickTest, SingleTargetMultipleShooterSync) {
    MockSkelleton target{mAddress};
 
    ASSERT_TRUE(target.Initialize());
-   std::unordered_set<std::shared_ptr<std::thread> > threads;
+   std::set<std::shared_ptr<std::thread> > threads;
    target.BeginListenAndRepeat();
    for (int i = 0; i < 10; i ++) {
       threads.insert(std::make_shared<std::thread>(Shooter, i, 100, mAddress));
@@ -315,7 +315,7 @@ TEST_F(BoomStickTest, SingleTargetMultipleShooterAsync) {
    MockSkelleton target{mAddress};
 
    ASSERT_TRUE(target.Initialize());
-   std::unordered_set<std::shared_ptr<std::thread> > threads;
+   std::set<std::shared_ptr<std::thread> > threads;
    target.BeginListenAndRepeat();
    for (int i = 0; i < 10; i ++) {
       threads.insert(std::make_shared<std::thread>(AsyncShooter, i, 100, mAddress));

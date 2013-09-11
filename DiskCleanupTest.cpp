@@ -9,6 +9,66 @@
 #include <thread>
 #include <atomic>
 
+#ifdef LR_DEBUG
+
+TEST_F(DiskCleanupTest, ValgrindGetListToRemove) {
+   MockElasticSearch es(false);
+   es.mUpdateDocAlwaysPasses = true;
+
+   MockDiskCleanup capture(mConf);
+   size_t maxToRemove = 50000;
+   size_t filesRemoved(0);
+   size_t spaceRemoved(0);
+   boost::filesystem::path path = "/usr/local/probe/pcap";
+   for (int i = 0; i < 5 && ! zctx_interrupted; i ++) {
+
+      std::map < std::time_t, std::vector<boost::filesystem::path> > fileOrderedByTime;
+      for (int j = 10000000; j < 11000000; j ++) {
+         std::vector<boost::filesystem::path > bucket;
+         int bucketDepth = rand() % 10;
+         for (int k = 100; k < 100 + bucketDepth; k ++) {
+            std::string filename = std::to_string(j);
+            filename += "1234567890123456789012345";
+            filename += std::to_string(k);
+            bucket.push_back(filename);
+         }
+
+         fileOrderedByTime[i * 10000000 + j] = bucket;
+      }
+      {
+         std::vector< std::tuple< std::string, std::string> > filesToRemove =
+                 capture.GetListToRemove(fileOrderedByTime, maxToRemove, filesRemoved, spaceRemoved);
+         for (auto id : filesToRemove) {
+            es.mQueryIdResults.push_back(std::make_pair(std::get<1>(id), "index_1973-11-29"));
+         }
+         capture.MarkFilesAsRemovedInES(filesToRemove, es);
+      }
+      std::cout << "iteration " << i << std::endl;
+      es.mQueryIdResults.clear();
+   }
+
+}
+
+TEST_F(DiskCleanupTest, ValgrindGetOrderedMapOfFiles) {
+   MockElasticSearch es(false);
+   es.mUpdateDocAlwaysPasses = true;
+
+   MockDiskCleanup capture(mConf);
+   size_t maxToRemove = 50000;
+   size_t filesRemoved(0);
+   size_t spaceRemoved(0);
+   boost::filesystem::path path = "/usr/local/probe/pcap";
+   for (int i = 0; i < 5 && ! zctx_interrupted; i ++) {
+
+      std::map < std::time_t, std::vector<boost::filesystem::path> > fileOrderedByTime =
+              capture.GetOrderedMapOfFiles(path);
+
+      std::cout << "iteration " << i << std::endl;
+   }
+
+}
+#endif
+
 TEST_F(DiskCleanupTest, TooMuchPCap) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
@@ -119,7 +179,7 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       std::time_t currentTime = std::time(NULL);
       std::atomic<size_t> aDiskUsed(0);
       std::atomic<size_t> aTotalFiles(0);
-         
+
       es.mUpdateDocAlwaysPasses = true;
       es.RunQueryGetIdsAlwaysPasses = true;
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
@@ -214,6 +274,7 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
 
    }
 }
+
 TEST_F(DiskCleanupTest, ESFailsToQueryRemoveFile) {
    if (geteuid() == 0) {
       std::string makeADir;
@@ -258,6 +319,7 @@ TEST_F(DiskCleanupTest, ESFailsToQueryRemoveFile) {
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
    }
 }
+
 TEST_F(DiskCleanupTest, TooMuchSearch) {
 
    MockDiskCleanup diskCleanup(mConf);

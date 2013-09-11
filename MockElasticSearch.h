@@ -111,7 +111,7 @@ public:
       matches = mQueryIdResults;
       return true;
    }
-   
+
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;

@@ -2,10 +2,40 @@
 #include "DpiMsgLR.h"
 #include "DpiMsgLRTest.h"
 #include "g2log.hpp"
+#include "czmq.h"
 
 using namespace networkMonitor;
 using namespace std;
-
+TEST_F(DpiMsgLRTests, EncodeJSonValgrind ) {
+   DpiMsgLR testMsg;
+   
+   testMsg.set_sessionid("ABC123");
+   testMsg.add_uri_fullq_proto_http("1");
+   testMsg.add_application_endq_proto_base("test");
+   testMsg.set_application_id_endq_proto_base(1234);
+   testMsg.set_bytesserver(567);
+   testMsg.set_bytesserverdelta(567);
+   testMsg.set_bytesclient(899);
+   testMsg.set_bytesclientdelta(899);
+   testMsg.set_packettotal(88);
+   testMsg.set_packetsdelta(88);
+   testMsg.add_loginq_proto_aim("aLogin");
+   testMsg.add_domainq_proto_smb("aDomain12345");
+   testMsg.add_uriq_proto_http("not/this/one");
+   testMsg.add_serverq_proto_http("thisname12345");
+   testMsg.add_referer_serverq_proto_http("notThisOne");
+   testMsg.add_methodq_proto_ftp("RUN");
+   testMsg.add_methodq_proto_ftp("COMMAND");
+   testMsg.add_methodq_proto_ftp("LONGLONGLONGLONG");
+   testMsg.add_senderq_proto_smtp("test1_123456");
+   testMsg.add_receiverq_proto_smtp("test2_123");
+   testMsg.add_subjectq_proto_smtp("test3_12345");
+   testMsg.add_versionq_proto_http("4.0");
+   
+   for ( int i = 0 ; i < 10000 && !zctx_interrupted; i++ ) {
+      std::string updateAsString = testMsg.EncodeAsJSON();
+   }
+}
 TEST_F(DpiMsgLRTests, SetTimeUpdated) {
    DpiMsgLR dm;
    

@@ -1,7 +1,6 @@
 #include "RESTBuilderTest.h"
 #include "MockBoomStick.h"
 #include "ElasticSearch.h"
-#include <unordered_set>
 #include <fstream>
 
 #ifdef LR_DEBUG
@@ -134,7 +133,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    EXPECT_TRUE(restQuery.CreateIndex("indexName", shards, replicas));
 
    transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexAlreadyExistsException[[indexName] Alread exists]\",\"status\":400}";
-   EXPECT_FALSE(sender.Send(command, reply));
+   EXPECT_TRUE(sender.Send(command, reply));
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_FALSE(restQuery.CreateIndex("indexName", shards, replicas));
@@ -152,7 +151,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
 
    EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
    transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   EXPECT_FALSE(sender.Send(command, reply));
+   EXPECT_TRUE(sender.Send(command, reply));
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_FALSE(restQuery.DeleteIndex("indexName"));
@@ -182,7 +181,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
    EXPECT_TRUE(restQuery.IndexClose("indexName"));
 
    transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   EXPECT_FALSE(sender.Send(command, reply));
+   EXPECT_TRUE(sender.Send(command, reply));
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
 
@@ -202,7 +201,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
 
    EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
    transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   EXPECT_FALSE(sender.Send(command, reply));
+   EXPECT_TRUE(sender.Send(command, reply));
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_FALSE(restQuery.IndexOpen("indexName"));
@@ -233,7 +232,8 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    EXPECT_TRUE(es.AddDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
 
    transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   EXPECT_FALSE(sender.Send(command, reply));
+   EXPECT_TRUE(sender.Send(command, reply));
+   EXPECT_FALSE(sender.IsOK(reply));
    EXPECT_EQ(transport.mReturnString, reply);
    EXPECT_TRUE(es.AddDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
    transport.mReturnString.clear();
@@ -246,7 +246,8 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    EXPECT_EQ(transport.mReturnString, reply);
    EXPECT_TRUE(esSync.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
    transport.mReturnString = "{\"error\":\"DocumentMissingException[[indexName][4] [typeName][abc_123]: document missing]\",\"status\":404}";
-   EXPECT_FALSE(sender.Send(command, reply));
+   EXPECT_TRUE(sender.Send(command, reply));
+   EXPECT_FALSE(sender.IsOK(reply));
    EXPECT_EQ(transport.mReturnString, reply);
    EXPECT_FALSE(esSync.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
    
@@ -267,7 +268,8 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_TRUE(es.DeleteDoc("indexName", "typeName", "abc_123"));
    transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   EXPECT_FALSE(sender.Send(command, reply));
+   EXPECT_TRUE(sender.Send(command, reply));
+   EXPECT_FALSE(sender.IsOK(reply));
    EXPECT_EQ(transport.mReturnString, reply);
    EXPECT_TRUE(es.DeleteDoc("indexName", "typeName", "abc_123"));
 }
