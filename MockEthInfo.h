@@ -45,7 +45,7 @@ public:
    bool mFakeGetIFAddrs;
    struct ifaddrs *mifaddr;
    int mGetIFAddrsRetVal;
-   std::unordered_set<std::string> mFakeInterfaceNames;
+   std::set<std::string> mFakeInterfaceNames;
    bool mFakeIsValid;
    bool mFakeIsValidValue;
 };
