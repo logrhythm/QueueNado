@@ -257,7 +257,6 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
    }
    bool success = true;
    if (FindPendingUuid(uuid)) {
-      LOG(DEBUG) << "Attempted to re-send " << uuid;
       return true;
    }
    zmsg_t* msg = zmsg_new();
