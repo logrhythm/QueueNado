@@ -13,10 +13,10 @@ TEST_F(DpiMsgLRTests, EncodeJSonValgrind ) {
    testMsg.add_uri_fullq_proto_http("1");
    testMsg.add_application_endq_proto_base("test");
    testMsg.set_application_id_endq_proto_base(1234);
-   testMsg.set_bytesserver(567);
-   testMsg.set_bytesserverdelta(567);
-   testMsg.set_bytesclient(899);
-   testMsg.set_bytesclientdelta(899);
+   testMsg.set_bytesdest(567);
+   testMsg.set_bytesdestdelta(567);
+   testMsg.set_bytessource(899);
+   testMsg.set_bytessourcedelta(899);
    testMsg.set_packettotal(88);
    testMsg.set_packetsdelta(88);
    testMsg.add_loginq_proto_aim("aLogin");
@@ -246,9 +246,9 @@ TEST_F(DpiMsgLRTests, GetSpecialIntegersAsStrings) {
    EXPECT_EQ("13.12.11.10", dm.GetIpSrcString());
    dm.set_ipdest(0x01020304);
    EXPECT_EQ("4.3.2.1", dm.GetIpDstString());
-   dm.set_ethsource(0x00000a0b0c0d0e0f);
+   dm.set_macsource(0x00000a0b0c0d0e0f);
    EXPECT_EQ("0f:0e:0d:0c:0b:0a", dm.GetEthSrcString());
-   dm.set_ethdest(0x0000010203040506);
+   dm.set_macdest(0x0000010203040506);
    EXPECT_EQ("06:05:04:03:02:01", dm.GetEthDstString());
 #endif
 }
@@ -275,14 +275,14 @@ TEST_F(DpiMsgLRTests, GetUuidPair) {
 
 TEST_F(DpiMsgLRTests, GetEthSrcPair) {
    EXPECT_EQ("00:00:00:00:00:00", tDpiMessage.GetEthSrcPair().second);
-   tDpiMessage.set_ethsource(0x00000a0b0c0d0e0f);
+   tDpiMessage.set_macsource(0x00000a0b0c0d0e0f);
    EXPECT_EQ("EthSrc", tDpiMessage.GetEthSrcPair().first);
    EXPECT_EQ("0f:0e:0d:0c:0b:0a", tDpiMessage.GetEthSrcPair().second);
 }
 
 TEST_F(DpiMsgLRTests, GetEthDstPair) {
    EXPECT_EQ("00:00:00:00:00:00", tDpiMessage.GetEthDstPair().second);
-   tDpiMessage.set_ethdest(0x0000010203040506);
+   tDpiMessage.set_macdest(0x0000010203040506);
    EXPECT_EQ("EthDst", tDpiMessage.GetEthDstPair().first);
    EXPECT_EQ("06:05:04:03:02:01", tDpiMessage.GetEthDstPair().second);
 }
@@ -334,8 +334,8 @@ TEST_F(DpiMsgLRTests, GetStaticFieldPairs) {
    tDpiMessage.GetStaticFieldPairs(results);
    ASSERT_EQ(1, results.size());
    EXPECT_EQ("UUID", results[1].first);
-   tDpiMessage.set_ethdest(123);
-   tDpiMessage.set_ethsource(123);
+   tDpiMessage.set_macdest(123);
+   tDpiMessage.set_macsource(123);
    tDpiMessage.set_ipdest(123);
    tDpiMessage.set_ipsource(123);
    tDpiMessage.set_pktpath("foo");
@@ -398,13 +398,13 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    dm.set_ipdest(0x01020304);
    expecteds["IpDst"] = ipdests;
 
-   string ethsources = "0f:0e:0d:0c:0b:0a";
-   dm.set_ethsource(0x00000a0b0c0d0e0f);
-   expecteds["EthSrc"] = ethsources;
+   string macsources = "0f:0e:0d:0c:0b:0a";
+   dm.set_macsource(0x00000a0b0c0d0e0f);
+   expecteds["EthSrc"] = macsources;
 
-   string ethdests = "06:05:04:03:02:01";
-   dm.set_ethdest(0x0000010203040506);
-   expecteds["EthDst"] = ethdests;
+   string macdests = "06:05:04:03:02:01";
+   dm.set_macdest(0x0000010203040506);
+   expecteds["EthDst"] = macdests;
 
    string uuid = "01234567-89ab-cdef-0123456789abcdef";
    dm.set_sessionid(uuid);

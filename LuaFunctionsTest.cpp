@@ -652,10 +652,10 @@ TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
    dpiMsg.add_application_endq_proto_base("dummy");
-   dpiMsg.set_bytesserver(12345);
-   dpiMsg.set_bytesserverdelta(12345);
-   dpiMsg.set_bytesclient(6789);
-   dpiMsg.set_bytesclientdelta(6789);
+   dpiMsg.set_bytesdest(12345);
+   dpiMsg.set_bytesdestdelta(12345);
+   dpiMsg.set_bytessource(6789);
+   dpiMsg.set_bytessourcedelta(6789);
    dpiMsg.set_packettotal(99);
    dpiMsg.set_packetsdelta(99);
    dpiMsg.add_loginq_proto_aim("aLogin");
@@ -852,7 +852,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetSessionLenServer) {
 
    // Expect known value when set
    int expectedSessionLenServer(99425);
-   dpiMsg.set_bytesserver(expectedSessionLenServer);
+   dpiMsg.set_bytesdest(expectedSessionLenServer);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionLenServer(luaState));
    EXPECT_EQ(expectedSessionLenServer, lua_tointeger(luaState, -1));
@@ -869,7 +869,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaSessionLenServer) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaSessionLenServer);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaSessionLenServer(luaState));
-   EXPECT_EQ(expectedDeltaSessionLenServer, dpiMsg.bytesserverdelta());
+   EXPECT_EQ(expectedDeltaSessionLenServer, dpiMsg.bytesdestdelta());
    lua_close(luaState);
 }
 
@@ -885,7 +885,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetSessionLenClient) {
 
    // Expect known value when set
    int expectedSessionLenClient(21553);
-   dpiMsg.set_bytesclient(expectedSessionLenClient);
+   dpiMsg.set_bytessource(expectedSessionLenClient);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionLenClient(luaState));
    EXPECT_EQ(expectedSessionLenClient, lua_tointeger(luaState, -1));
@@ -902,7 +902,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaSessionLenClient) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaSessionLenClient);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaSessionLenClient(luaState));
-   EXPECT_EQ(expectedDeltaSessionLenClient, dpiMsg.bytesclientdelta());
+   EXPECT_EQ(expectedDeltaSessionLenClient, dpiMsg.bytessourcedelta());
    lua_close(luaState);
 }
 
@@ -1060,9 +1060,9 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
-   dpiMsg.add_application_endq_proto_base("unknown");
-   dpiMsg.set_bytesserver(12345);
-   dpiMsg.set_bytesclient(6789);
+   dpiMsg.add_application_endq_proto_base("_3Com_Corp");
+   dpiMsg.set_bytesdest(12345);
+   dpiMsg.set_bytessource(6789);
    dpiMsg.set_packettotal(99);
    dpiMsg.add_loginq_proto_aim("aLogin");
    dpiMsg.add_domainq_proto_smb("aDomain");
@@ -1081,8 +1081,8 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    dpiMsg.set_timestart(123);
    dpiMsg.set_timeupdated(456);
    dpiMsg.set_timedelta(222);
-   dpiMsg.set_bytesclientdelta(567);
-   dpiMsg.set_bytesserverdelta(234);
+   dpiMsg.set_bytessourcedelta(567);
+   dpiMsg.set_bytesdestdelta(234);
    dpiMsg.set_packetsdelta(33);
    dpiMsg.set_sessionidq_proto_ymsg(2345);
    lua_State *luaState;
@@ -1092,12 +1092,12 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    ASSERT_EQ(0, LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState));
 
    dpiMsg.set_timeupdated(567);
-   dpiMsg.set_bytesserver(23456);
-   dpiMsg.set_bytesclient(7890);
+   dpiMsg.set_bytesdest(23456);
+   dpiMsg.set_bytessource(7890);
    dpiMsg.set_packettotal(124);
    dpiMsg.set_timedelta(111); // 567 - 456
-   dpiMsg.set_bytesclientdelta(1101); // 7890 - 6789
-   dpiMsg.set_bytesserverdelta(11111); // 23456 - 12345
+   dpiMsg.set_bytessourcedelta(1101); // 7890 - 6789
+   dpiMsg.set_bytesdestdelta(11111); // 23456 - 12345
    dpiMsg.set_packetsdelta(25); // 124 - 99
 
    dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
@@ -1110,10 +1110,10 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    ASSERT_EQ(2, sysLogOutput.size());
    EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:003 "));
    EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,1007,567/6789,234/12345,33/99,123,456,222/333"));
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,567/6789,234/12345,33/99,123,456,222/333"));
    EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:003 "));
    EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,1007,1101/7890,11111/23456,25/124,123,567,111/444"));
+   EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,1101/7890,11111/23456,25/124,123,567,111/444"));
    lua_close(luaState);
 #endif
 }
@@ -1172,11 +1172,11 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
    dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
-   dpiMsg.add_application_endq_proto_base("unknown");
-   dpiMsg.set_bytesserver(12345);
-   dpiMsg.set_bytesserverdelta(12345);
-   dpiMsg.set_bytesclient(6789);
-   dpiMsg.set_bytesclientdelta(6789);
+   dpiMsg.add_application_endq_proto_base("_3Com_Corp");
+   dpiMsg.set_bytesdest(12345);
+   dpiMsg.set_bytesdestdelta(12345);
+   dpiMsg.set_bytessource(6789);
+   dpiMsg.set_bytessourcedelta(6789);
    dpiMsg.set_packettotal(99);
    dpiMsg.set_packetsdelta(99);
    dpiMsg.add_loginq_proto_aim("aLogin");
@@ -1210,7 +1210,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
    ASSERT_EQ(1, sysLogOutput.size());
    EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
    EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,1007,6789/6789,12345/12345,99/99,123,456,333/333"));
+   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,6789/6789,12345/12345,99/99,123,456,333/333"));
    lua_close(luaState);
 #endif
 }
