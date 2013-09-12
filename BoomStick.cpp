@@ -28,7 +28,7 @@ namespace {
  *   The binding is stored, but Initialize must be used to connect to it.
  */
 BoomStick::BoomStick(const std::string& binding) : mLastGCTime(time(NULL)),
-mBinding(binding), mChamber(nullptr), mCtx(nullptr), mRan(), m_uuidGen(mRan) {
+mBinding(binding), mChamber(nullptr), mCtx(nullptr), mRan(), m_uuidGen(mRan), mSendHWM(1000), mRecvHWM(1000) {
    mRan.seed(boost::uuids::detail::seed_rng()());
 }
 
@@ -74,11 +74,26 @@ void BoomStick::Swap(BoomStick& other) {
    mLastGCTime = other.mLastGCTime;
    mRan = other.mRan;
    m_uuidGen = other.m_uuidGen;
+   mSendHWM = other.mSendHWM;
+   mRecvHWM = other.mRecvHWM;
    //   other.mBinding.clear();  Allow it to be initialized again
    other.mChamber = nullptr;
    other.mCtx = nullptr;
 }
-
+/**
+ * Set the High water for sending messages, only works before the socket connects
+ * @param hwm
+ */
+void BoomStick::SetSendHWM(const int hwm) {
+   mSendHWM = hwm;
+}
+/**
+ * Set the High water for receiving messages, only works before the socket connects
+ * @param hwm
+ */
+void BoomStick::SetRecvHWM(const int hwm) {
+   mRecvHWM = hwm;
+}
 /**
  * Move constructor
  * @param other
@@ -151,6 +166,8 @@ bool BoomStick::ConnectToBinding(void* socket, const std::string& binding) {
    if (nullptr == socket) {
       return false;
    }
+   zsocket_set_sndhwm(socket,mSendHWM);
+   zsocket_set_rcvhwm(socket,mRecvHWM);
    return (zsocket_connect(socket, binding.c_str()) >= 0);
 }
 
@@ -430,8 +447,8 @@ bool BoomStick::GetReplyFromSocket(const std::string& uuid, const unsigned int m
 void BoomStick::CleanOldPendingData() {
    const auto unreadSize = mUnreadReplies.size();
    const auto pendingSize = mPendingReplies.size();
-   LOG_IF(WARNING, (pendingSize > 50)) << " mPendingReplies: " << pendingSize;
-   LOG_IF(WARNING, (unreadSize > 50)) << " mUnreadReplies: " << unreadSize;
+   LOG_IF(WARNING, (pendingSize > 500)) << " mPendingReplies: " << pendingSize;
+   LOG_IF(WARNING, (unreadSize > 500)) << " mUnreadReplies: " << unreadSize;
    CleanUnreadReplies();
    CleanPendingReplies();
 }
@@ -459,7 +476,7 @@ void BoomStick::CleanPendingReplies() {
          mUnreadReplies.erase(uuid);
       }
    }
-   LOG_IF(INFO, (deleteUnread > 50)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
+   LOG_IF(INFO, (deleteUnread > 500)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
    ShrinkToFit(mPendingReplies);
    ShrinkToFit(mUnreadReplies);
 
@@ -483,6 +500,6 @@ void BoomStick::CleanUnreadReplies() {
       count ++;
       mUnreadReplies.erase(hash);
    }
-   LOG_IF(INFO, (count > 50)) << "Deleted " << count << " replies that no longer exist in pending";
+   LOG_IF(INFO, (count > 500)) << "Deleted " << count << " replies that no longer exist in pending";
 
 }

@@ -22,6 +22,8 @@ public:
    std::string GetUuid();
    void Swap(BoomStick& other);
    void SetBinding(const std::string& binding);
+   void SetSendHWM(const int hwm);
+   void SetRecvHWM(const int hwm);
    zctx_t* GetContext();
 protected:
    LR_VIRTUAL zctx_t* GetNewContext();
@@ -46,4 +48,6 @@ private:
    zctx_t *mCtx;
    boost::mt19937 mRan;
    boost::uuids::basic_random_generator<boost::mt19937> m_uuidGen;
+   int mSendHWM;
+   int mRecvHWM;
 };
