@@ -88,8 +88,8 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("0", results[SIEM_FIELD_TIME_TOTAL].second);
 
    tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_ethdest(123);
-   tDpiMessage.set_ethsource(124);
+   tDpiMessage.set_macdest(123);
+   tDpiMessage.set_macsource(124);
    tDpiMessage.set_ipdest(125);
    tDpiMessage.set_ipsource(126);
    tDpiMessage.set_portsource(127);
@@ -97,10 +97,10 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    tDpiMessage.set_protoid(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytesserver(567);
-   tDpiMessage.set_bytesserverdelta(456);
-   tDpiMessage.set_bytesclient(89);
-   tDpiMessage.set_bytesclientdelta(78);
+   tDpiMessage.set_bytesdest(567);
+   tDpiMessage.set_bytesdestdelta(456);
+   tDpiMessage.set_bytessource(89);
+   tDpiMessage.set_bytessourcedelta(78);
    tDpiMessage.set_packettotal(88);
    tDpiMessage.set_packetsdelta(44);
    tDpiMessage.add_loginq_proto_0zz0("dontSeeMee");
@@ -161,8 +161,8 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    dm.mSiemMode = true;
    dm.mSiemDebugMode = true;
    tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_ethdest(123);
-   tDpiMessage.set_ethsource(124);
+   tDpiMessage.set_macdest(123);
+   tDpiMessage.set_macsource(124);
    tDpiMessage.set_ipdest(125);
    tDpiMessage.set_ipsource(126);
    tDpiMessage.set_portsource(127);
@@ -170,10 +170,10 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    tDpiMessage.set_protoid(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytesserver(567);
-   tDpiMessage.set_bytesserverdelta(567);
-   tDpiMessage.set_bytesclient(89);
-   tDpiMessage.set_bytesclientdelta(89);
+   tDpiMessage.set_bytesdest(567);
+   tDpiMessage.set_bytesdestdelta(567);
+   tDpiMessage.set_bytessource(89);
+   tDpiMessage.set_bytessourcedelta(89);
    tDpiMessage.set_packettotal(88);
    tDpiMessage.set_packetsdelta(88);
    tDpiMessage.add_loginq_proto_aim("aLogin");
@@ -352,8 +352,8 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    dm.mSiemMode = true;
    dm.mSiemDebugMode = false;
    tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_ethdest(123);
-   tDpiMessage.set_ethsource(124);
+   tDpiMessage.set_macdest(123);
+   tDpiMessage.set_macsource(124);
    tDpiMessage.set_ipdest(125);
    tDpiMessage.set_ipsource(126);
    tDpiMessage.set_portsource(127);
@@ -361,10 +361,10 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    tDpiMessage.set_protoid(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytesserver(567);
-   tDpiMessage.set_bytesserverdelta(567);
-   tDpiMessage.set_bytesclient(899);
-   tDpiMessage.set_bytesclientdelta(899);
+   tDpiMessage.set_bytesdest(567);
+   tDpiMessage.set_bytesdestdelta(567);
+   tDpiMessage.set_bytessource(899);
+   tDpiMessage.set_bytessourcedelta(899);
    tDpiMessage.set_packettotal(88);
    tDpiMessage.set_packetsdelta(88);
    tDpiMessage.add_loginq_proto_aim("aLogin");
@@ -684,9 +684,9 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
       msg.set_protoid(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
-      msg.add_application_endq_proto_base("dummy");
-      msg.set_bytesserver(12345);
-      msg.set_bytesclient(6789);
+      msg.add_application_endq_proto_base("_3Com_Corp");
+      msg.set_bytesdest(12345);
+      msg.set_bytessource(6789);
       msg.set_packettotal(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
@@ -721,7 +721,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
       ASSERT_EQ(1, sysLogOutput.size());
       EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
       EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-      EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789/6789,12345/12345,99/99,123,456,333/333"));
+      EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,6789/6789,12345/12345,99/99,123,456,333/333"));
       EXPECT_NE(std::string::npos, sysLogOutput[0].find("login=aLogin"));
       EXPECT_NE(std::string::npos, sysLogOutput[0].find("domain=aDomain"));
       EXPECT_NE(std::string::npos, sysLogOutput[0].find("url=this/url.htm"));
@@ -817,9 +817,9 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       msg.set_protoid(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
-      msg.add_application_endq_proto_base("dummy");
-      msg.set_bytesserver(12345);
-      msg.set_bytesclient(6789);
+      msg.add_application_endq_proto_base("_3Com_Corp");
+      msg.set_bytesdest(12345);
+      msg.set_bytessource(6789);
       msg.set_packettotal(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
@@ -843,8 +843,8 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       msg.GetBuffer(dataToSend);
       sendQueue.SendData(dataToSend);
 
-      msg.set_bytesserver(23456); // delta = 11111
-      msg.set_bytesclient(7900); // delta = 1111
+      msg.set_bytesdest(23456); // delta = 11111
+      msg.set_bytessource(7900); // delta = 1111
       msg.set_packettotal(210); // delta = 111
       msg.set_timeupdated(567); // delta = 111
       dataToSend.clear();
@@ -852,8 +852,8 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       sendQueue.SendData(dataToSend);
 
       msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
-      msg.set_bytesserver(45678); // delta = 22222
-      msg.set_bytesclient(10122); // delta = 2222
+      msg.set_bytesdest(45678); // delta = 22222
+      msg.set_bytessource(10122); // delta = 2222
       msg.set_packettotal(432); // delta = 222
       msg.set_timeupdated(789); // delta = 222
       dataToSend.clear();
@@ -871,16 +871,16 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       ASSERT_EQ(4, sysLogOutput.size());
       EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:003 "));
       EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-      EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789/6789,12345/12345,99/99,123,456,333/333"));
+      EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,6789/6789,12345/12345,99/99,123,456,333/333"));
       EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:003 "));
       EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuid));
-      EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,1111/7900,11111/23456,111/210,123,567,111/444"));
+      EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,1111/7900,11111/23456,111/210,123,567,111/444"));
       EXPECT_NE(std::string::npos, sysLogOutput[2].find("EVT:003 "));
       EXPECT_NE(std::string::npos, sysLogOutput[2].find(testUuid));
-      EXPECT_NE(std::string::npos, sysLogOutput[2].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,2222/10122,22222/45678,222/432,123,789,222/666"));
+      EXPECT_NE(std::string::npos, sysLogOutput[2].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,2222/10122,22222/45678,222/432,123,789,222/666"));
       EXPECT_NE(std::string::npos, sysLogOutput[3].find("EVT:001 "));
       EXPECT_NE(std::string::npos, sysLogOutput[3].find(testUuid));
-      EXPECT_NE(std::string::npos, sysLogOutput[3].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,0/10122,0/45678,0/432,123,789,0/666"));
+      EXPECT_NE(std::string::npos, sysLogOutput[3].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,0/10122,0/45678,0/432,123,789,0/666"));
       dpiSyslog.join();
    }
 #endif
@@ -960,9 +960,9 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
       msg.set_protoid(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
-      msg.add_application_endq_proto_base("dummy");
-      msg.set_bytesserver(12345);
-      msg.set_bytesclient(6789);
+      msg.add_application_endq_proto_base("_3Com_Corp");
+      msg.set_bytesdest(12345);
+      msg.set_bytessource(6789);
       msg.set_packettotal(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
@@ -1001,10 +1001,10 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
       ASSERT_EQ(2, sysLogOutput.size());
       EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:003 "));
       EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-      EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,6789/6789,12345/12345,99/99,123,456,333/333"));
+      EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,6789/6789,12345/12345,99/99,123,456,333/333"));
       EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:001 "));
       EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuid));
-      EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,0/6789,0/12345,0/99,123,456,0/333"));
+      EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,0/6789,0/12345,0/99,123,456,0/333"));
 
       dpiSyslog.join();
    }
@@ -1089,9 +1089,9 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       msg.set_protoid(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
-      msg.add_application_endq_proto_base("dummy");
-      msg.set_bytesserver(12345);
-      msg.set_bytesclient(67890);
+      msg.add_application_endq_proto_base("_3Com_Corp");
+      msg.set_bytesdest(12345);
+      msg.set_bytessource(67890);
       msg.set_packettotal(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
@@ -1131,7 +1131,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       testUuidWithNumber += ":00";
       EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
       EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuidWithNumber));
-      EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,67890/67890,12345/12345,99/99,123,456,333/333"));
+      EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,67890/67890,12345/12345,99/99,123,456,333/333"));
       EXPECT_NE(std::string::npos, sysLogOutput[0].find("login=aLogin"));
       EXPECT_NE(std::string::npos, sysLogOutput[0].find("domain=aDomain"));
       EXPECT_NE(std::string::npos, sysLogOutput[0].find("url=this/url.htm"));
@@ -1150,9 +1150,9 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       testUuidWithNumber += ":01";
       EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:002 "));
       EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuidWithNumber));
-      EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,dummy,0/67890,0/12345,0/99,123,456,0/333"));
+      EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,0/67890,0/12345,0/99,123,456,0/333"));
       EXPECT_EQ(std::string::npos, sysLogOutput[1].find("EndTime=456"));
-      EXPECT_NE(std::string::npos, sysLogOutput[1].find("applicationEnd=wrong|dummy"));
+      EXPECT_NE(std::string::npos, sysLogOutput[1].find("applicationEnd=wrong|_3Com_Corp"));
       EXPECT_NE(std::string::npos, sysLogOutput[1].find("applicationIdEnd=13"));
       EXPECT_NE(std::string::npos, sysLogOutput[1].find("login=aLogin"));
       EXPECT_NE(std::string::npos, sysLogOutput[1].find("filenameEncoding=notitFile"));
@@ -1204,8 +1204,8 @@ TEST_F(RuleEngineTest, getSyslogMessages) {
 
    tDpiMessage.set_ipsource(0x0a0b0c0d);
    tDpiMessage.set_ipdest(0x01020304);
-   tDpiMessage.set_ethsource(0x00000a0b0c0d0e0f);
-   tDpiMessage.set_ethdest(0x0000010203040506);
+   tDpiMessage.set_macsource(0x00000a0b0c0d0e0f);
+   tDpiMessage.set_macdest(0x0000010203040506);
    tDpiMessage.set_sessionid("01234567-89ab-cdef-0123456789abcdef");
    string path = "foo.bar";
    tDpiMessage.set_pktpath(path);
@@ -2017,8 +2017,8 @@ TEST_F(RuleEngineTest, GetSessionField) {
    ASSERT_EQ(0, results.size());
    results.clear();
    tDpiMessage.Clear();
-   tDpiMessage.set_bytesclient(1234);
-   tDpiMessage.set_bytesserver(5678);
+   tDpiMessage.set_bytessource(1234);
+   tDpiMessage.set_bytesdest(5678);
    ASSERT_EQ(1, dm.GetSessionField(1, tDpiMessage, 0, results));
    ASSERT_EQ(0, results.size());
    results.clear();
