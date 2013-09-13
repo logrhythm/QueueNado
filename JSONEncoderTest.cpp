@@ -110,13 +110,13 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithEthSrcDst) {
 
    testMsg.set_sessionid("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_ethsource(12345678900L);
-   testMsg.set_ethdest(12345678901L);
+   testMsg.set_macsource(12345678900L);
+   testMsg.set_macdest(12345678901L);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
    EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"ethDest\": \"35:1c:dc:df:02:00\""));   
-   EXPECT_TRUE(StringContains(encodedMessage,"\"ethSource\": \"34:1c:dc:df:02:00\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"macDest\": \"35:1c:dc:df:02:00\""));   
+   EXPECT_TRUE(StringContains(encodedMessage,"\"macSource\": \"34:1c:dc:df:02:00\""));
    
 }
 
@@ -163,10 +163,10 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
    testMsg.add_uri_fullq_proto_http("1");
    testMsg.add_application_endq_proto_base("test");
    testMsg.set_application_id_endq_proto_base(1234);
-   testMsg.set_bytesserver(567);
-   testMsg.set_bytesserverdelta(567);
-   testMsg.set_bytesclient(899);
-   testMsg.set_bytesclientdelta(899);
+   testMsg.set_bytesdest(567);
+   testMsg.set_bytesdestdelta(567);
+   testMsg.set_bytessource(899);
+   testMsg.set_bytessourcedelta(899);
    testMsg.set_packettotal(88);
    testMsg.set_packetsdelta(88);
    testMsg.add_loginq_proto_aim("aLogin");
@@ -188,13 +188,13 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
    EXPECT_TRUE(StringContains(encodedMessage,"\"#server\": [\"thisname12345\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"packetsDelta\": 88")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#uri\": [\"not/this/one\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesClient\": 899")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSource\": 899")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#refererServer\": [\"notThisOne\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#method\": [\"RUN\", \"COMMAND\", \"LONGLONGLONGLONG\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"packetTotal\": 88")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesServer\": 567")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesServerDelta\": 567")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesClientDelta\": 899")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDest\": 567")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDestDelta\": 567")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSourceDelta\": 899")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#subject\": [\"test3_12345\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationEnd\": [\"test\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationIdEnd\": 1234")); 
@@ -212,10 +212,10 @@ TEST_F(JSONEncoderTest, encodesQuickSearchFields) {
    testMsg.add_application_endq_proto_base("test2");
    testMsg.add_applicationq_proto_base("test");
    testMsg.add_applicationq_proto_base("test2");
-   testMsg.set_bytesserver(567);
-   testMsg.set_bytesserverdelta(67);
-   testMsg.set_bytesclient(899);
-   testMsg.set_bytesclientdelta(99);
+   testMsg.set_bytesdest(567);
+   testMsg.set_bytesdestdelta(67);
+   testMsg.set_bytessource(899);
+   testMsg.set_bytessourcedelta(99);
    testMsg.set_timeupdated(1000999);
    testMsg.set_timestart(1000000);
 
@@ -223,21 +223,21 @@ TEST_F(JSONEncoderTest, encodesQuickSearchFields) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
    EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesClient\": 899")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSource\": 899")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#application\": [\"test\", \"test2\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesServer\": 567")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesServerDelta\": 67")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesClientDelta\": 99")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDest\": 567")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDestDelta\": 67")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSourceDelta\": 99")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationEnd\": [\"test\", \"test2\"]")); 
 
    testMsg.UpdateQuickSearchFields();
    encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
    EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesClient\": 899")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSource\": 899")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#application\": [\"test\", \"test2\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesServer\": 567")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesServerDelta\": 67")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesClientDelta\": 99")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDest\": 567")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDestDelta\": 67")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSourceDelta\": 99")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationEnd\": [\"test\", \"test2\"]"));
    EXPECT_TRUE(StringContains(encodedMessage,"\"applicationPath\": \"/test/test2\"")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"application\": \"test2\"")); 
