@@ -476,7 +476,7 @@ void BoomStick::CleanPendingReplies() {
          mUnreadReplies.erase(uuid);
       }
    }
-   LOG_IF(INFO, (deleteUnread > 500)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
+   LOG_IF(INFO, (deleteUnread > 0)) << "Deleted " << deleteUnread << " unread replies that exceed the 5 minute timeout";
    ShrinkToFit(mPendingReplies);
    ShrinkToFit(mUnreadReplies);
 
@@ -500,6 +500,6 @@ void BoomStick::CleanUnreadReplies() {
       count ++;
       mUnreadReplies.erase(hash);
    }
-   LOG_IF(INFO, (count > 500)) << "Deleted " << count << " replies that no longer exist in pending";
+   LOG_IF(INFO, (count > 0)) << "Deleted " << count << " replies that no longer exist in pending";
 
 }
