@@ -21,6 +21,7 @@ public:
    bool IsShutdown() {
       return false;
    }
+
    size_t RemoveOldestPCapFiles(const size_t maxToRemove, ElasticSearch& es, size_t& filesRemoved, size_t& spaceRemoved) {
       return DiskCleanup::RemoveOldestPCapFiles(1, es, filesRemoved, spaceRemoved);
    }
@@ -123,8 +124,23 @@ public:
       return DiskCleanup::GetOldestIndex(es);
    }
 
+
    const Conf& GetConf() { return DiskCleanup::GetConf(); }
 
+
+   std::map < std::time_t, std::vector<boost::filesystem::path> >& GetOrderedMapOfFiles(boost::filesystem::path path) {
+      return DiskCleanup::GetOrderedMapOfFiles(path);
+   }
+
+   std::vector< std::tuple< std::string, std::string> > GetListToRemove(
+           const std::map < std::time_t, std::vector<boost::filesystem::path> >& fileOrderedByTime,
+           const size_t maxToRemove, size_t& filesRemoved, size_t& spaceRemoved) {
+      return DiskCleanup::GetListToRemove(fileOrderedByTime, maxToRemove, filesRemoved, spaceRemoved);
+   }
+
+   void MarkFilesAsRemovedInES(const std::vector< std::tuple< std::string, std::string> >& filesToRemove, ElasticSearch& es) {
+      DiskCleanup::MarkFilesAsRemovedInES(filesToRemove, es);
+   }
 
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;

@@ -38,9 +38,11 @@ TEST_F(EthInfoTest, GetIFAddrs) {
    EXPECT_EQ(1,ethInfo.GetAvaliableInterfaces().size());
    EXPECT_EQ("eth1",*(ethInfo.GetAvaliableInterfaces().begin()));
    ethInfo.mifaddr->ifa_next = reinterpret_cast<struct ifaddrs*>(malloc(sizeof(struct ifaddrs)));
+   ASSERT_FALSE(NULL == ethInfo.mifaddr->ifa_next);
    ethInfo.mifaddr->ifa_next->ifa_next = NULL;
    std::string fakeName2("eth2");
    ethInfo.mifaddr->ifa_name = reinterpret_cast<char*>(malloc(fakeName2.size()));
+   ASSERT_FALSE(NULL == ethInfo.mifaddr->ifa_name);
    strncpy(ethInfo.mifaddr->ifa_next->ifa_name,fakeName.c_str(),fakeName2.size());
    EXPECT_TRUE(ethInfo.Initialize());
    EXPECT_EQ(2,ethInfo.GetAvaliableInterfaces().size());
