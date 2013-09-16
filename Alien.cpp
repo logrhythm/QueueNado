@@ -23,6 +23,7 @@ void Alien::PrepareToBeShot(const std::string& location) {
    char dummy = '\0';
    zsocket_set_subscribe(mBody, &dummy);
    zsocket_set_rcvhwm(mBody, 32 * 1024);
+   zsocket_set_sndhwm(mBody, 32 * 1024);
    int rc = zsocket_connect(mBody, location.c_str());
    if (rc == -1) {
       LOG(WARNING) << "location: " << location;

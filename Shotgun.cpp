@@ -19,6 +19,7 @@ Shotgun::Shotgun() {
  */
 void Shotgun::Aim(const std::string& location) {
    zsocket_set_sndhwm(mGun, 32 * 1024);
+   zsocket_set_rcvhwm(mGun, 32 * 1024);
    int rc = zsocket_bind(mGun, location.c_str());
    if (rc == - 1) {
 
