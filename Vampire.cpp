@@ -156,7 +156,7 @@ bool Vampire::GetShot(std::string& wound, const int timeout) {
    int pollResult = zmq_poll(items, 1, timeout);
    if (pollResult > 0) {
       if (items[0].revents & ZMQ_POLLIN) {
-         zmsg_t* message = zmsg_recv(mBody);
+         message = zmsg_recv(mBody);
          if (message && zmsg_size(message) == 1) {
             zframe_t* frame = zmsg_last(message);
             wound.clear();

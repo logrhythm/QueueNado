@@ -14,8 +14,7 @@ mChamber(NULL),
 mContext(NULL),
 mLinger(10),
 mIOThredCount(1),
-mOwnSocket(true)
-{
+mOwnSocket(true) {
 }
 
 /**
