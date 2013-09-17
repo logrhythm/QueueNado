@@ -7,9 +7,10 @@ class MockProcStats : public ProcStats {
    bool mPseudoTask; 
    bool mPseudoThreadPid;
    pid_t mPseudoPid;
+   size_t mPseudoTotalMemMB;
    std::string mPseudoProcTaskFileName;
 public:
-   MockProcStats(): mPseudoTask(false), mPseudoThreadPid(false) {}
+   MockProcStats(): mPseudoTask(false), mPseudoThreadPid(false), mPseudoTotalMemMB(0) {}
    ~MockProcStats() {}
    bool UpdateMemStats() {
       return ProcStats::UpdateMemStats();
@@ -51,6 +52,16 @@ public:
       }
       
       return ProcStats::GetThreadID();
+   }
+
+  void SetPseudoSysConfTotalMemoryMB (size_t pseudoTotalMB) {
+     mPseudoTotalMemMB = pseudoTotalMB;
+   }
+   size_t ReadTotalMemMBOnce() LR_OVERRIDE {
+      if(0 != mPseudoTotalMemMB) {
+         return mPseudoTotalMemMB;
+      }
+      return ProcStats::ReadTotalMemMBOnce();
    }
    
      
