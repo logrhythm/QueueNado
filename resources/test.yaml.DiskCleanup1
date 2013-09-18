@@ -3,6 +3,7 @@ captureMaxPackets: 2000000000
 captureMemoryLimit: 2000
 captureMinPackets: 1
 captureLocation:  /tmp/TooMuchPcap
+probeLocation:  /tmp/TooMuchPcap
 captureSizeLimit: 50000
 sendStatsQueue: ipc:///tmp/sendStatsQ.ipc
 statsAccumulatorQueue: ipc:///tmp/statsAccumulatorQ.ipc
