@@ -20,7 +20,7 @@ TEST_F(DiskCleanupTest, ValgrindGetListToRemove) {
    size_t filesRemoved(0);
    size_t spaceRemoved(0);
    boost::filesystem::path path = "/usr/local/probe/pcap";
-   for (int i = 0; i < 5 && ! zctx_interrupted; i ++) {
+   for (int i = 0; i < 1 && ! zctx_interrupted; i ++) {
 
       std::map < std::time_t, std::vector<boost::filesystem::path> > fileOrderedByTime;
       for (int j = 10000000; j < 11000000; j ++) {
@@ -58,7 +58,7 @@ TEST_F(DiskCleanupTest, ValgrindGetOrderedMapOfFiles) {
    size_t filesRemoved(0);
    size_t spaceRemoved(0);
    boost::filesystem::path path = "/usr/local/probe/pcap";
-   for (int i = 0; i < 5 && ! zctx_interrupted; i ++) {
+   for (int i = 0; i < 1 && ! zctx_interrupted; i ++) {
 
       std::map < std::time_t, std::vector<boost::filesystem::path> > fileOrderedByTime =
               capture.GetOrderedMapOfFiles(path);
