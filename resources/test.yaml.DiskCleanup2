@@ -1,4 +1,4 @@
-captureFileLimit: 0
+captureFileLimit: 1
 captureMaxPackets: 2000000000
 captureMemoryLimit: 2000
 captureMinPackets: 1

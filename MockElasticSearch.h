@@ -10,7 +10,8 @@ class MockElasticSearch : public ElasticSearch {
 public:
 
    MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport, async), mFakeIndexList(true),
-   mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true),RunQueryGetIdsAlwaysPasses(false) {
+   mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true),
+           RunQueryGetIdsAlwaysPasses(false),RunQueryGetIdsAlwaysFails(false) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -26,7 +27,8 @@ public:
    }
 
    MockElasticSearch(BoomStick& transport, bool async) : mMyTransport(""), ElasticSearch(transport, async), mFakeIndexList(true),
-   mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true), RunQueryGetIdsAlwaysPasses(false) {
+   mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true), 
+   RunQueryGetIdsAlwaysPasses(false),RunQueryGetIdsAlwaysFails(false) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -100,13 +102,16 @@ public:
       if (RunQueryGetIdsAlwaysPasses) {
          return true;
       }
+      if (RunQueryGetIdsAlwaysFails) {
+         return false;
+      }
       if (mQueryIdResults.empty()) {
          return ElasticSearch::RunQueryGetIds(indexType,query,matches);
       }
       matches = mQueryIdResults;
       return true;
    }
-   
+
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;
@@ -117,6 +122,7 @@ public:
    bool mUpdateDocAlwaysPasses;
    bool RunQueryGetIdsAlwaysPasses;
    std::vector<std::pair<std::string, std::string> > mQueryIdResults;
+   bool RunQueryGetIdsAlwaysFails;
 
 };
 #endif

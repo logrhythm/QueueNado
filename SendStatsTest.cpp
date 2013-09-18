@@ -2,6 +2,18 @@
 #include "MockSendStats.h"
 #include <czmq.h>
 #include <boost/thread.hpp>
+
+TEST_F(SendStatsTest, ConstructMessageToSendValgrind) {
+   MockSendStats fakeSender;
+
+   for (int64_t i = 0; i < 100000; i++) {
+      fakeSender.ConstructMessageToSend("aaaaaaa", "bbbbbb", i, "cccc", false);
+   }
+   for (int64_t i = 0; i < 100000; i++) {
+      fakeSender.ConstructMessageToSend("aaaaaaa", i, false);
+   }
+}
+
 TEST_F(SendStatsTest, ConstructAndInitialize) {
    SendStats* pSender = new SendStats();
    delete pSender;
@@ -32,23 +44,23 @@ TEST_F(SendStatsTest, CorrectTimeIncludedInStats) {
    fakeSender.mDummyTimeStamp = 1234;
 
    ASSERT_TRUE(fakeSender.Initialize(mStatsIpcLocation));
-
-   protoMsg::Stats intStatNamedMessage(fakeSender.ConstructMessageToSend("foo", "name", (int64_t) 1));
+   fakeSender.ConstructMessageToSend("foo", "name", (int64_t) 1);
+   protoMsg::Stats intStatNamedMessage(fakeSender.GetInternalMessage());
    ASSERT_EQ("foo", intStatNamedMessage.key());
    ASSERT_EQ(1234, intStatNamedMessage.time());
    ASSERT_EQ("name", intStatNamedMessage.statname());
    ASSERT_TRUE(intStatNamedMessage.has_statname());
    ASSERT_TRUE(intStatNamedMessage.has_longvalue());
    ASSERT_EQ(1, intStatNamedMessage.longvalue());
-
-   protoMsg::Stats int64Message(fakeSender.ConstructMessageToSend("foo", (int64_t) 1));
+   fakeSender.ConstructMessageToSend("foo", (int64_t) 1);
+   protoMsg::Stats int64Message(fakeSender.GetInternalMessage());
    ASSERT_EQ("foo", int64Message.key());
    ASSERT_EQ(1234, int64Message.time());
    ASSERT_FALSE(int64Message.has_statname());
    ASSERT_TRUE(int64Message.has_longvalue());
    ASSERT_EQ(1, int64Message.longvalue());
-   
-   protoMsg::Stats statMessageWithColumn(fakeSender.ConstructMessageToSend("foo", "name" , (int64_t) 1, "columnName"));
+   fakeSender.ConstructMessageToSend("foo", "name", (int64_t) 1, "columnName");
+   protoMsg::Stats statMessageWithColumn(fakeSender.GetInternalMessage());
    ASSERT_EQ("foo", statMessageWithColumn.key());
    ASSERT_EQ(1234, statMessageWithColumn.time());
    ASSERT_EQ("name", statMessageWithColumn.statname());
@@ -76,13 +88,13 @@ std::string SendStatsTest::GetIpcLocation() {
  * @param ioThreads
  */
 void SendStatsTest::VampireThread(int numberOfMessages,
-   std::string& location, std::string& expectedData, int hwm, int ioThreads) {
+        std::string& location, std::string& expectedData, int hwm, int ioThreads) {
    Vampire vampire(location);
    vampire.SetHighWater(hwm);
    vampire.SetIOThreads(ioThreads);
-   vampire.SetOwnSocket( true );
+   vampire.SetOwnSocket(true);
    ASSERT_TRUE(vampire.PrepareToBeShot());
-   for (int i=0; i < numberOfMessages; i++) {
+   for (int i = 0; i < numberOfMessages; i++) {
       std::string bullet;
       if (vampire.GetShot(bullet, 2000)) {
          EXPECT_EQ(bullet, expectedData);
@@ -96,7 +108,6 @@ void SendStatsTest::VampireThread(int numberOfMessages,
    }
 }
 
-
 TEST_F(SendStatsTest, VerifySendStatsDoubleMessage) {
 #ifdef LR_DEBUG
    int nIOThreads = 1;
@@ -105,14 +116,14 @@ TEST_F(SendStatsTest, VerifySendStatsDoubleMessage) {
 
    SendStats statSender;
    EXPECT_TRUE(statSender.Initialize(mStatsIpcLocation));
-   EXPECT_TRUE( statSender.SendStat("double", (double) 1.0, true) );
+   EXPECT_TRUE(statSender.SendStat("double", (double) 1.0, true));
    std::string expectedMsg;
    expectedMsg = statSender.GetStatMessage();
 
    boost::thread* aVampire = new boost::thread(&SendStatsTest::VampireThread,
-         this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
+           this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
 
-   sleep( 1 );
+   sleep(1);
    aVampire->interrupt();
    aVampire->join();
    delete aVampire;
@@ -127,14 +138,14 @@ TEST_F(SendStatsTest, VerifySendStatsFloatMessage) {
 
    SendStats statSender;
    EXPECT_TRUE(statSender.Initialize(mStatsIpcLocation));
-   EXPECT_TRUE( statSender.SendStat("float", (float) 1.0, true) );
+   EXPECT_TRUE(statSender.SendStat("float", (float) 1.0, true));
    std::string expectedMsg;
    expectedMsg = statSender.GetStatMessage();
 
    boost::thread* aVampire = new boost::thread(&SendStatsTest::VampireThread,
-         this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
+           this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
 
-   sleep( 1 );
+   sleep(1);
    aVampire->interrupt();
    aVampire->join();
    delete aVampire;
@@ -149,14 +160,14 @@ TEST_F(SendStatsTest, VerifySendStatsIntMessage) {
 
    SendStats statSender;
    EXPECT_TRUE(statSender.Initialize(mStatsIpcLocation));
-   EXPECT_TRUE( statSender.SendStat("int", (int) 1, true) );
+   EXPECT_TRUE(statSender.SendStat("int", (int) 1, true));
    std::string expectedMsg;
    expectedMsg = statSender.GetStatMessage();
 
    boost::thread* aVampire = new boost::thread(&SendStatsTest::VampireThread,
-         this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
+           this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
 
-   sleep( 1 );
+   sleep(1);
    aVampire->interrupt();
    aVampire->join();
    delete aVampire;
@@ -171,14 +182,14 @@ TEST_F(SendStatsTest, VerifySendStatsOptionNameIntMessage) {
 
    SendStats statSender;
    EXPECT_TRUE(statSender.Initialize(mStatsIpcLocation));
-   EXPECT_TRUE( statSender.SendStat("Option Name int", (int) 1, true) );
+   EXPECT_TRUE(statSender.SendStat("Option Name int", (int) 1, true));
    std::string expectedMsg;
    expectedMsg = statSender.GetStatMessage();
 
    boost::thread* aVampire = new boost::thread(&SendStatsTest::VampireThread,
-         this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
+           this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
 
-   sleep( 1 );
+   sleep(1);
    aVampire->interrupt();
    aVampire->join();
    delete aVampire;
@@ -193,14 +204,14 @@ TEST_F(SendStatsTest, VerifySendStatsUnsignedIntMessage) {
 
    SendStats statSender;
    EXPECT_TRUE(statSender.Initialize(mStatsIpcLocation));
-   EXPECT_TRUE( statSender.SendStat("unsigned int", (unsigned int) 1, true) );
+   EXPECT_TRUE(statSender.SendStat("unsigned int", (unsigned int) 1, true));
    std::string expectedMsg;
    expectedMsg = statSender.GetStatMessage();
 
    boost::thread* aVampire = new boost::thread(&SendStatsTest::VampireThread,
-         this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
+           this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
 
-   sleep( 1 );
+   sleep(1);
    aVampire->interrupt();
    aVampire->join();
    delete aVampire;
@@ -215,14 +226,14 @@ TEST_F(SendStatsTest, VerifySendStatsUint64Message) {
 
    SendStats statSender;
    EXPECT_TRUE(statSender.Initialize(mStatsIpcLocation));
-   EXPECT_TRUE( statSender.SendStat("uint64_t", "name", (uint64_t) 1, "columnName", true) );
+   EXPECT_TRUE(statSender.SendStat("uint64_t", "name", (uint64_t) 1, "columnName", true));
    std::string expectedMsg;
    expectedMsg = statSender.GetStatMessage();
 
    boost::thread* aVampire = new boost::thread(&SendStatsTest::VampireThread,
-         this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
+           this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
 
-   sleep( 1 );
+   sleep(1);
    aVampire->interrupt();
    aVampire->join();
    delete aVampire;
@@ -237,14 +248,14 @@ TEST_F(SendStatsTest, VerifySendStatsInt64Message) {
 
    SendStats statSender;
    EXPECT_TRUE(statSender.Initialize(mStatsIpcLocation));
-   EXPECT_TRUE( statSender.SendStat("int64_t", (int64_t) 1, true) );
+   EXPECT_TRUE(statSender.SendStat("int64_t", (int64_t) 1, true));
    std::string expectedMsg;
    expectedMsg = statSender.GetStatMessage();
 
    boost::thread* aVampire = new boost::thread(&SendStatsTest::VampireThread,
-         this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
+           this, nShotsPerVampire, mStatsIpcLocation, expectedMsg, vampireHWM, nIOThreads);
 
-   sleep( 1 );
+   sleep(1);
    aVampire->interrupt();
    aVampire->join();
    delete aVampire;

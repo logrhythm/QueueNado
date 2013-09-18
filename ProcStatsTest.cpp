@@ -6,7 +6,14 @@
 #include <sys/syscall.h> 
 #include <g2log.hpp>
 
-
+TEST_F(ProcStatsTest, ValgrindTest) {
+   ProcStats & procStats(ProcStats::Instance());
+   procStats.ThreadRegister("TEST");
+   int iterations=100;
+   while (iterations-- > 0) {
+            procStats.Update();
+   }
+}
 TEST_F(ProcStatsTest, ConstructSingleton) {
    if (geteuid() == 0) {
       EXPECT_EQ(0, mProcStats.GetUserPercent());
@@ -131,7 +138,7 @@ TEST_F(ProcStatsTest, VerifyCompleteThreadCpuCalculations) {
    procStats.SetTaskPseudoFile({"resources/task.stat100.2"});
    procStats.Update();
    
-   std::unordered_map<std::string, pid_t> registeredThreads;
+   std::map<std::string, pid_t> registeredThreads;
    procStats.GetRegisteredThreads(registeredThreads);
    for(auto& part: registeredThreads) {
       LOG(DEBUG) << "found: " << part.first << ", pid: " << part.second;
@@ -180,7 +187,7 @@ TEST_F(ProcStatsTest, ThreadRegistration) {
       EXPECT_EQ(0, mProcStats.GetThreadUserPercent(syscall(SYS_gettid)));
       EXPECT_EQ(0, mProcStats.GetThreadSystemPercent(syscall(SYS_gettid)));
       mProcStats.Update();
-      std::unordered_map<std::string, pid_t> registeredThreads;
+      std::map<std::string, pid_t> registeredThreads;
       std::stringstream hiddenName;
       hiddenName << threadName << "_" << 0;
       mProcStats.GetRegisteredThreads(registeredThreads);
@@ -201,7 +208,7 @@ TEST_F(ProcStatsTest, ThreadReRegistration) {
    mProcStats.ThreadRegister(threadName);
    std::string nextThreadName = "TestThreadThree";
    mProcStats.ThreadRegister(nextThreadName);
-   std::unordered_map<std::string, pid_t> registeredThreads;
+   std::map<std::string, pid_t> registeredThreads;
    mProcStats.GetRegisteredThreads(registeredThreads);
    std::stringstream hiddenName;
    hiddenName << threadName << "_" << 0;

@@ -20,6 +20,9 @@ public:
       }
       return EthInfo::Initialize();
    }
+   void FreeIFAddrs(struct ifaddrs *) {
+      
+   }
    int GetIFAddrs(struct ifaddrs **ifaddr) {
       if (mFakeGetIFAddrs) {
          if (NULL == mifaddr) {
@@ -42,7 +45,7 @@ public:
    bool mFakeGetIFAddrs;
    struct ifaddrs *mifaddr;
    int mGetIFAddrsRetVal;
-   std::unordered_set<std::string> mFakeInterfaceNames;
+   std::set<std::string> mFakeInterfaceNames;
    bool mFakeIsValid;
    bool mFakeIsValidValue;
 };

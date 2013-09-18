@@ -11,7 +11,7 @@ void * ShotgunAlienTests::ShotgunThread(void * arg) {
    //std::cout << "wait for it" << std::endl;
    sleep(ammo->delay);
    //std::cout << "done waiting" << std::endl;
-   for (int i = 0; i <= ammo->count; i++) {
+   for (int i = 0; i <= ammo->count && !zctx_interrupted; i++) {
        //std::cout << "bang! " << std::endl;
       shotgun->Fire(msg);
    }
@@ -29,7 +29,7 @@ void * ShotgunAlienTests::Buckshothread(void * arg) {
    msg.append("again!");
    fullShot.push_back(msg);
    sleep(1);
-   for (int i = 0; i <= ammo->count; i++) {
+   for (int i = 0; i <= ammo->count && !zctx_interrupted; i++) {
       shotgun.Fire(fullShot);
    }
 }
@@ -74,8 +74,9 @@ TEST_F(ShotgunAlienTests, ShootOneAlienOnce) {
    alien.PrepareToBeShot(ammo->location);
    zthread_new(ShotgunAlienTests::ShotgunThread, ammo);
    std::vector<std::string> reply = alien.GetShot();
-   ASSERT_EQ(1,reply.size());
-   ASSERT_FALSE(reply[0].empty());
+   ASSERT_EQ(2,reply.size());
+   EXPECT_FALSE(reply[0].empty());
+   EXPECT_FALSE(reply[1].empty());
    delete ammo;
 }
 
@@ -89,7 +90,7 @@ TEST_F(ShotgunAlienTests, ShootOneAlienTenThousandTimesTCP) {
    zthread_new(ShotgunAlienTests::ShotgunThread, ammo);
    alien.PrepareToBeShot(ammo->location);
    int failures = 0;
-   for(int i=0; i <= ammo->count; i++) {
+   for(int i=0; i <= ammo->count && !zctx_interrupted; i++) {
        std::vector<std::string> shots;
        alien.GetShot(1000,shots);
 

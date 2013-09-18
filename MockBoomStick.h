@@ -22,7 +22,7 @@ public:
       return BoomStick::Initialize();
    }
 
-   std::string Send(const std::string& command) override {
+   std::string Send(const std::string& command) LR_OVERRIDE {
       if (mReturnString.empty()) {
          return BoomStick::Send(command);
       } else {
@@ -30,15 +30,14 @@ public:
       }
    }
 
-   bool SendAsync(const MessageIdentifier& uuid, const std::string& command) {
+   bool SendAsync(const std::string& uuid, const std::string& command) LR_OVERRIDE {
       if (mReturnString.empty()) {
          return BoomStick::SendAsync(uuid,command);
       } else {
          return true;
       }
    }
-
-   bool GetAsyncReply(const MessageIdentifier& uuid, const unsigned int msToWait, std::string& reply) {
+   bool GetAsyncReply(const std::string& uuid, const unsigned int msToWait, std::string& reply) LR_OVERRIDE {
       if (mReturnString.empty()) {
          return BoomStick::GetAsyncReply(uuid,msToWait,reply);
       } else {
@@ -70,21 +69,6 @@ public:
 
    void CleanOldPendingData() {
       return BoomStick::CleanOldPendingData();
-   }
-
-   /**
-    * Peek into the replies for a given element
-    * @param messageid
-    * @return Empty if it isn't there
-    */
-   std::string GetCachedReply(const MessageIdentifier& messageid) {
-      std::string messageHash = HashMessageId(messageid);
-      if (mUnreadReplies.find(messageHash) != mUnreadReplies.end()) {
-         return mUnreadReplies[messageHash];
-      }
-      return
-      {
-      };
    }
 
    /**

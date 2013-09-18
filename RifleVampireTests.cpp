@@ -77,7 +77,7 @@ void RifleVampireTests::RifleThread(int numberOfMessages,
       //      boost::this_thread::sleep(boost::posix_time::microseconds(sleepInterval));
    }
    //std::cout << "Done Shooting" << std::endl;
-   while (1) {
+   while (!zctx_interrupted) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
    }
 
@@ -107,7 +107,7 @@ void RifleVampireTests::ShootStakeThread(int numberOfMessages,
       //      boost::this_thread::sleep(boost::posix_time::microseconds(sleepInterval));
    }
    //std::cout << "Done Shooting" << std::endl;
-   while (1) {
+   while (!zctx_interrupted) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
    }
 
@@ -129,7 +129,7 @@ void RifleVampireTests::ShootZeroCopyThread(int numberOfMessages,
    std::stringstream ss;
    unsigned int hash(0);
    std::string* zero = new std::string(exampleData);
-   for (int i = 0; i < numberOfMessages; i++) {
+   for (int i = 0; i < numberOfMessages && !zctx_interrupted; i++) {
       std::string* zero = new std::string(exampleData);
       bool result = rifle.FireZeroCopy(zero, zero->size(), TestDeleteString, 10000);
       if (!result) {
@@ -139,7 +139,7 @@ void RifleVampireTests::ShootZeroCopyThread(int numberOfMessages,
       //      boost::this_thread::sleep(boost::posix_time::microseconds(sleepInterval));
    }
    //std::cout << "Done Shooting" << std::endl;
-   while (1) {
+   while (!zctx_interrupted) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
    }
 
@@ -162,7 +162,7 @@ void RifleVampireTests::VampireThread(int numberOfMessages,
    vampire.SetIOThreads(ioThreads);
    vampire.SetOwnSocket(ownSocket);
    ASSERT_TRUE(vampire.PrepareToBeShot());
-   for (int i; i < numberOfMessages; i++) {
+   for (int i; i < numberOfMessages && !zctx_interrupted; i++) {
       std::string bullet;
       if (vampire.GetShot(bullet, 2000)) {
          EXPECT_EQ(bullet, exampleData);
@@ -171,7 +171,7 @@ void RifleVampireTests::VampireThread(int numberOfMessages,
          i--;
       }
    }
-   while (1) {
+   while (!zctx_interrupted) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
    }
 }
@@ -184,13 +184,13 @@ void RifleVampireTests::StakeAVampireThread(int numberOfMessages,
    vampire.SetHighWater(hwm);
    vampire.SetIOThreads(ioThreads);
    ASSERT_TRUE(vampire.PrepareToBeShot());
-   for (int i; i < numberOfMessages; i++) {
+   for (int i; i < numberOfMessages && !zctx_interrupted; i++) {
       std::vector<std::pair<void*, unsigned int> > data;
 
       if (vampire.GetStakes(data, 2000)) {
          auto it = data.begin();
          auto jt = exampleData.begin();
-         for (; it != data.end(); it++, jt++) {
+         for (; it != data.end() && !zctx_interrupted; it++, jt++) {
             EXPECT_EQ(it->first, jt->first);
             EXPECT_EQ(it->second, jt->second);
          }
@@ -199,7 +199,7 @@ void RifleVampireTests::StakeAVampireThread(int numberOfMessages,
          i--;
       }
    }
-   while (1) {
+   while (!zctx_interrupted) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
    }
 }
@@ -220,7 +220,7 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
 
    std::string exampleData(dataSize, 'a');
    std::vector<boost::thread*> theVampires;
-   for (int i = 0; i < nVampires; i++) {
+   for (int i = 0; i < nVampires && !zctx_interrupted; i++) {
       boost::thread* aShooter = new boost::thread(
               &RifleVampireTests::VampireThread, this, nShotsPerVampire, location,
               exampleData, vampireHWM, nIOThreads, !bRifleOwnSocket);
@@ -231,7 +231,7 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
    int fullSize = (nShotsPerVampire * nVampires) + ((vampireHWM * (nVampires)) * 2) + rifleHWM;
    SetExpectedTime(fullSize, exampleData.size() * sizeof (char), expectedSpeed, 20000L);
    StartTimedSection();
-   for (int i = 0; i < fullSize; i++) {
+   for (int i = 0; i < fullSize && !zctx_interrupted; i++) {
       if (!rifle->Fire(exampleData, 500)) {
          std::cout << "Failed to fire... Vampires might all be dead..." << std::endl;
          break;
@@ -239,7 +239,7 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
    }
    std::cout << "Staking Vampires..." << std::endl;
    for (auto it = theVampires.begin();
-           it != theVampires.end(); it++) {
+           it != theVampires.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
       (*it)->join();
       delete *it;
@@ -264,11 +264,11 @@ void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOTh
    std::cout << "Rifle at :" << rifle->GetBinding() << std::endl;
    std::string exampleString(dataSize, 'a');
    std::vector<std::pair< void*, unsigned int> > exampleData;
-   for (int i = 0; i < SIZE_OF_STAKE_BUNDLE; i++) {
+   for (int i = 0; i < SIZE_OF_STAKE_BUNDLE && !zctx_interrupted; i++) {
       exampleData.push_back(make_pair(&exampleString, 1234));
    }
    std::vector<boost::thread*> theVampires;
-   for (int i = 0; i < nVampires; i++) {
+   for (int i = 0; i < nVampires && !zctx_interrupted; i++) {
       boost::thread* aShooter = new boost::thread(&RifleVampireTests::StakeAVampireThread,
               this, nShotsPerVampire, location, exampleData, vampireHWM, nIOThreads);
       theVampires.push_back(aShooter);
@@ -278,7 +278,7 @@ void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOTh
    int fullSize = (nShotsPerVampire * nVampires) + ((vampireHWM * (nVampires)) * 2) + rifleHWM;
    SetExpectedTime(fullSize, exampleData.size() * sizeof (char) * SIZE_OF_STAKE_BUNDLE, expectedSpeed, 20000L);
    StartTimedSection();
-   for (int i = 0; i < fullSize; i++) {
+   for (int i = 0; i < fullSize && !zctx_interrupted; i++) {
       if (!rifle->FireStakes(exampleData, 1500)) {
          std::cout << "Failed to fire at shot " << i << " of fullSize " << fullSize << std::endl;
          std::cout << " ... Vampires might all be dead..." << std::endl;
@@ -287,7 +287,7 @@ void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOTh
    }
    std::cout << "Staking Vampires..." << std::endl;
    for (auto it = theVampires.begin();
-           it != theVampires.end(); it++) {
+           it != theVampires.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
       (*it)->join();
       delete *it;
@@ -316,7 +316,7 @@ void RifleVampireTests::NRiflesOneVampireBenchmarkZeroCopy(int nRifles, int nIOT
    std::string exampleData(dataSize, 'z');
    std::vector<boost::thread*> theRifles;
 
-   for (int i = 0; i < nRifles; i++) {
+   for (int i = 0; i < nRifles && !zctx_interrupted; i++) {
       boost::thread* aShooter = new boost::thread(
               &RifleVampireTests::ShootZeroCopyThread, this, nShotsPerRifle, location,
               exampleData, rifleHWM, nIOThreads, !bVampireOwnSocket);
@@ -329,7 +329,7 @@ void RifleVampireTests::NRiflesOneVampireBenchmarkZeroCopy(int nRifles, int nIOT
            20000L); //transationsPerSection
    StartTimedSection();
    std::string bullet;
-   for (int pktCount = 0; pktCount < (nShotsPerRifle * nRifles); pktCount++) {
+   for (int pktCount = 0; pktCount < (nShotsPerRifle * nRifles) && !zctx_interrupted; pktCount++) {
       if (vampire.GetShot(bullet, 500)) {
          EXPECT_EQ(bullet, exampleData);
       } else {
@@ -339,7 +339,7 @@ void RifleVampireTests::NRiflesOneVampireBenchmarkZeroCopy(int nRifles, int nIOT
 
    std::cout << "Collecting Rifles..." << std::endl;
    for (auto it = theRifles.begin();
-           it != theRifles.end(); it++) {
+           it != theRifles.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
       (*it)->join();
       delete *it;
@@ -367,7 +367,7 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
    std::string exampleData(dataSize, 'z');
    std::vector<boost::thread*> theRifles;
 
-   for (int i = 0; i < nRifles; i++) {
+   for (int i = 0; i < nRifles && !zctx_interrupted; i++) {
       boost::thread* aShooter = new boost::thread(
               &RifleVampireTests::RifleThread, this, nShotsPerRifle, location,
               exampleData, rifleHWM, nIOThreads, !bVampireOwnSocket);
@@ -380,7 +380,7 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
            20000L); //transationsPerSection
    StartTimedSection();
    std::string bullet;
-   for (int pktCount = 0; pktCount < (nShotsPerRifle * nRifles); pktCount++) {
+   for (int pktCount = 0; pktCount < (nShotsPerRifle * nRifles) && !zctx_interrupted; pktCount++) {
       if (vampire.GetShot(bullet, 500)) {
          EXPECT_EQ(bullet, exampleData);
       } else {
@@ -390,7 +390,7 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
 
    std::cout << "Collecting Rifles..." << std::endl;
    for (auto it = theRifles.begin();
-           it != theRifles.end(); it++) {
+           it != theRifles.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
       (*it)->join();
       delete *it;
@@ -399,7 +399,20 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
    std::cout << "Done." << std::endl;
    EXPECT_TRUE(TimedSectionPassed());
 }
+TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCLargeSize) {
+   if (geteuid() == 0) {
+      std::string location = GetIpcLocation();
+      int nVampires = 1;
+      int nIOThreads = 1;
+      int rifleHWM = 1000;
+      int vampireHWM = 500;
+      int dataSize = 65554;
+      int nShotsPerVampire = 200000;
+      int expectedSpeed = 1000;
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+   }
 
+}
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCSmallSize) {
    if (geteuid() == 0) {
       std::string location = GetIpcLocation();
@@ -1098,20 +1111,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPAvgSizeZeroCop
               location, dataSize, nShotsPerRifle, expectedSpeed);
    }
 }
-TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCLargeSize) {
-   if (geteuid() == 0) {
-      std::string location = GetIpcLocation();
-      int nVampires = 1;
-      int nIOThreads = 1;
-      int rifleHWM = 1000;
-      int vampireHWM = 500;
-      int dataSize = 65554;
-      int nShotsPerVampire = 200000;
-      int expectedSpeed = 1000;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
-   }
 
-}
 
 TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireIPCLargeSize) {
    if (geteuid() == 0) {
@@ -1517,7 +1517,7 @@ TEST_F(RifleVampireTests, StopPreparingAlreadyAndJustGoPointer) {
    ASSERT_EQ(bundle.size(), gotBundle.size());
    auto it = bundle.begin();
    auto jt = gotBundle.begin();
-   for (; it != bundle.end() && it != gotBundle.end(); it++, jt++) {
+   for (; it != bundle.end() && it != gotBundle.end() && !zctx_interrupted; it++, jt++) {
       EXPECT_EQ(it->first, jt->first);
       EXPECT_EQ(it->second, jt->second);
    }
@@ -1688,7 +1688,7 @@ TEST_F(RifleVampireTests, ShootVampireMoreThenHeCanHandle) {
    std::string msg("woo");
    int success = 0;
    int failed = 0;
-   for (int i = 0; i <= shots; i++) {
+   for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       if (rifle.Fire(msg, 2)) {
          success++;
       } else {
@@ -1698,7 +1698,7 @@ TEST_F(RifleVampireTests, ShootVampireMoreThenHeCanHandle) {
    std::string bullet;
    int rSuccess = 0;
    int rFailed = 0;
-   for (int i = 0; i <= shots; i++) {
+   for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       if (vampire.GetShot(bullet, 10)) {
          rSuccess++;
       } else {
@@ -1723,7 +1723,7 @@ TEST_F(RifleVampireTests, StakeVampireMoreThenHeCanHandle) {
    std::string msg("woo");
    int success = 0;
    int failed = 0;
-   for (int i = 0; i <= shots; i++) {
+   for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       if (rifle.FireStake(&msg, 2)) {
          success++;
       } else {
@@ -1733,7 +1733,7 @@ TEST_F(RifleVampireTests, StakeVampireMoreThenHeCanHandle) {
    void* stake;
    int rSuccess = 0;
    int rFailed = 0;
-   for (int i = 0; i <= shots; i++) {
+   for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       if (vampire.GetStake(stake, 10)) {
          rSuccess++;
       } else {
@@ -1760,7 +1760,7 @@ TEST_F(RifleVampireTests, StakesVampireMoreThenHeCanHandle) {
    bundle.push_back(make_pair(&msg, 0));
    int success = 0;
    int failed = 0;
-   for (int i = 0; i <= shots; i++) {
+   for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       if (rifle.FireStakes(bundle)) {
          success++;
       } else {
@@ -1769,7 +1769,7 @@ TEST_F(RifleVampireTests, StakesVampireMoreThenHeCanHandle) {
    }
    int rSuccess = 0;
    int rFailed = 0;
-   for (int i = 0; i <= shots; i++) {
+   for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       if (vampire.GetStakes(gotBundle, 10)) {
          rSuccess++;
       } else {
@@ -1864,12 +1864,12 @@ TEST_F(RifleVampireTests, BringDeadVampireBackToLife) {
    vampire.PrepareToBeShot();
    std::string msg("woo");
    int success = 0;
-   for (int i = 0; i <= shots; i++) {
+   for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       ASSERT_TRUE(rifle.Fire(msg));
       success++;
    }
    std::string bullet;
-   for (int i = 0; i <= shots; i++) {
+   for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       EXPECT_TRUE(vampire.GetShot(bullet, 1));
    }
 
@@ -1880,10 +1880,10 @@ TEST_F(RifleVampireTests, BringDeadVampireBackToLife) {
    vampire.PrepareToBeShot();
 
 
-   for (int i = 0; i <= shots; i++) {
+   for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       ASSERT_TRUE(rifle.Fire(msg));
    }
-   for (int i = 0; i <= shots; i++) {
+   for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       EXPECT_TRUE(vampire.GetShot(bullet, 1));
    }
 
