@@ -26,6 +26,7 @@ ElasticSearchTest \
 ConversionTest \
 DiskPacketCaptureTest \
 DiskCleanupTest \
+DiskUsageTest \
 ThreadContainerTest \
 ToolsTest
 
@@ -128,6 +129,12 @@ DiskCleanupTest.cpp
 PacketCaptureTest_LDADD=${DYNAMIC_LIBS}
 PacketCaptureTest_LDFLAGS=${BASE_LIBS}
 PacketCaptureTest_SOURCES=main.cpp PacketCaptureTest.cpp
+
+
+DiskUsageTest_LDADD=${DYNAMIC_LIBS}
+DiskUsageTest_LDFLAGS=${BASE_LIBS}
+DiskUsageTest_SOURCES=main.cpp DiskUsageTest.cpp
+
 
 MsgUuidTest_LDADD=${DYNAMIC_LIBS}
 MsgUuidTest_LDFLAGS=${BASE_LIBS}
