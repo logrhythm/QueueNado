@@ -48,7 +48,7 @@ public:
    mOverrideInternalRepair(false),
    mInternalRepair(true),
    mValidateEthFailCount(0),
-   mMaxIndividualPCap(1000) {
+   mMaxIndividualPCap(1000), 
    mValidBaseConf(true),
    mIgnoreBaseConfValidation(true) {
 }
