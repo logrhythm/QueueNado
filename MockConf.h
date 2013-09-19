@@ -7,6 +7,10 @@
 #pragma once
 #include "Conf.h"
 #include "include/global.h"
+#include "Range.h"
+#include <g2log.hpp>
+#include <functional>
+#include <exception>
 
 class MockConf : public Conf {
 public:
@@ -45,7 +49,9 @@ public:
    mInternalRepair(true),
    mValidateEthFailCount(0),
    mMaxIndividualPCap(1000) {
-   }
+   mValidBaseConf(true),
+   mIgnoreBaseConfValidation(true) {
+}
 
    ~MockConf() {
    }
@@ -259,9 +265,66 @@ public:
       return Conf::ValidateEthConfFields(protoMap, ethInfo);
    }
 
+
    size_t GetPCapIndividualFileLimit() {
       return mMaxIndividualPCap;
    }
+
+   bool ValidateBaseConf(protoMsg::BaseConf& msg) LR_OVERRIDE {
+      if (mIgnoreBaseConfValidation) {
+         return true;
+      }
+      mValidBaseConf = Conf::ValidateBaseConf(msg);
+      return mValidBaseConf;
+   }
+
+   bool CheckNumber(const std::string& number, const Range& range) LR_OVERRIDE {
+         return Conf::CheckNumber(number, range);
+   }
+   
+   void CheckNumberForNegative(const std::string& number) LR_OVERRIDE {
+      try {
+         Conf::CheckNumberForNegative(number);
+         } catch (std::exception e) {
+         LOG(DEBUG) << e.what();
+         mValidBaseConf = false;
+         throw;
+      }
+      mValidBaseConf = true;
+   }
+
+   void CheckNumberForSize(const std::string& number, const Range& range) LR_OVERRIDE {
+      try {
+         Conf::CheckNumberForSize(number, range);
+         } catch (std::exception e) {
+         LOG(DEBUG) << e.what();
+         mValidBaseConf = false;
+         throw;
+      }
+      mValidBaseConf = true;
+   }
+
+   bool CheckString(const std::string& text) LR_OVERRIDE {
+      return Conf::CheckString(text);
+   }
+
+   void CheckStringForSize(const std::string& text) LR_OVERRIDE {
+      try {
+         Conf::CheckStringForSize(text);
+      } catch (std::exception e) {
+         LOG(DEBUG) << e.what();
+         mValidBaseConf = false;
+         throw;
+      }
+      mValidBaseConf = true;
+   }
+   
+   bool CheckBool(const std::string& text) LR_OVERRIDE {
+    mValidBaseConf = Conf::CheckBool(text);
+    return mValidBaseConf;
+   }
+
+
 
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
@@ -309,6 +372,9 @@ public:
    bool mOverrideInternalRepair;
    bool mInternalRepair;
    int mValidateEthFailCount;
+
    size_t mMaxIndividualPCap;
+   bool mValidBaseConf;
+   bool mIgnoreBaseConfValidation;
 
 };
