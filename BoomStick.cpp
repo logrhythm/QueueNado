@@ -454,14 +454,18 @@ void BoomStick::CleanOldPendingData() {
    const auto pendingSize = mPendingReplies.size();
 
    if (!mUnreadAlert && unreadSize >= mUnreadAlertSize) {
+      mUnreadAlert = true;
       LOG(WARNING) << "unread commands has exceeded " << mUnreadAlertSize;
    } else if (mUnreadAlert && unreadSize < mUnreadAlertSize) {
+      mUnreadAlert = false;
       LOG(INFO) << "unread commands has dropped back below our max size " << mUnreadAlertSize;
    }
 
    if (!mPendingAlert && pendingSize >= mPendingAlertSize) {
+      mPendingAlert = true;
       LOG(WARNING) << "pending commands has exceeded " << mPendingAlertSize;
    } else if (mPendingAlert && pendingSize < mPendingAlertSize) {
+      mPendingAlert = false;
       LOG(INFO) << "pending commands has dropped back below our max size " << mPendingAlertSize;
    }
    CleanUnreadReplies();
