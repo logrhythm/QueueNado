@@ -149,7 +149,8 @@ ConfProcessorTests_LDFLAGS=${BASE_LIBS}
 ConfProcessorTests_SOURCES=main.cpp \
         ConfProcessorTests.cpp \
 	QosmosConfTest.cpp \
-	ConfNtpProcessorTests.cpp
+	ConfNtpProcessorTests.cpp \
+	ConfBaseValidationTests.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 CommandProcessorTests_LDADD=${DYNAMIC_LIBS}
@@ -230,7 +231,8 @@ ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=
 
 ToolsTest_LDADD=${DYNAMIC_LIBS}
 ToolsTest_LDFLAGS=${BASE_LIBS}
-ToolsTest_SOURCES=main.cpp ToolsTestMakeUnique.cpp ToolsTestStringFix.cpp EthInfoTest.cpp ToolsTestFileIO.cpp
+
+ToolsTest_SOURCES=main.cpp ToolsTestMakeUnique.cpp ToolsTestStringFix.cpp ToolsTestFileIO.cpp EthInfoTest.cpp ToolsRangeTest.cpp
 ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 JSONEncoderTest_LDADD=${DYNAMIC_LIBS}
