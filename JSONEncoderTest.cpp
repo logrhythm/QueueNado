@@ -44,7 +44,7 @@ TEST_F(JSONEncoderTest, EncodeAnEmptyMessage) {
 
    std::string encodedMessage = encoder.Encode();
 
-   EXPECT_TRUE(StringContains(encodedMessage,"{\"sessionId\": \"\"}"));
+   EXPECT_FALSE(StringContains(encodedMessage,"{\"sessionId\": \"\"}"));
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithAString) {
