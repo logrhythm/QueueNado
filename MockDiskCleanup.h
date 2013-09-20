@@ -138,8 +138,8 @@ public:
       return DiskCleanup::GetListToRemove(fileOrderedByTime, maxToRemove, filesRemoved, spaceRemoved);
    }
 
-   void MarkFilesAsRemovedInES(const std::vector< std::tuple< std::string, std::string> >& filesToRemove, ElasticSearch& es) {
-      DiskCleanup::MarkFilesAsRemovedInES(filesToRemove, es);
+   void MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, ElasticSearch& es) {
+      DiskCleanup::MarkFilesAsRemovedInES(relevantRecords, es);
    }
 
    bool mFailRemoveSearch;

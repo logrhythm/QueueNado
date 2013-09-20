@@ -41,7 +41,7 @@ TEST_F(DiskCleanupTest, ValgrindGetListToRemove) {
          for (auto id : filesToRemove) {
             es.mQueryIdResults.push_back(std::make_pair(std::get<1>(id), "index_1973-11-29"));
          }
-         capture.MarkFilesAsRemovedInES(filesToRemove, es);
+         capture.MarkFilesAsRemovedInES(es.mQueryIdResults, es);
       }
       std::cout << "iteration " << i << std::endl;
       es.mQueryIdResults.clear();
