@@ -38,7 +38,7 @@ protected:
    LR_VIRTUAL bool GetReplyFromCache(const std::string& uuid, std::string& reply);
    LR_VIRTUAL bool CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply);
    LR_VIRTUAL bool ReadFromReadySocket(std::string& foundId, std::string& foundReply);
-   
+
    std::map<std::string, std::string> mUnreadReplies;
    time_t mLastGCTime;
 private:
@@ -50,4 +50,8 @@ private:
    boost::uuids::basic_random_generator<boost::mt19937> m_uuidGen;
    int mSendHWM;
    int mRecvHWM;
+   unsigned int mPendingAlertSize;
+   unsigned int mUnreadAlertSize;
+   bool mUnreadAlert;
+   bool mPendingAlert;
 };
