@@ -266,7 +266,7 @@ TEST_F(DpiMsgLRTests, FlowSessionCount) {
 }
 
 TEST_F(DpiMsgLRTests, GetUuidPair) {
-   EXPECT_EQ("", tDpiMessage.GetUuidPair().second);
+   EXPECT_EQ("none", tDpiMessage.GetUuidPair().second);
    tDpiMessage.set_sessionid("01234567-89ab-cdef-0123456789abcdef");
    EXPECT_EQ("UUID", tDpiMessage.GetUuidPair().first);
    EXPECT_EQ("01234567-89ab-cdef-0123456789abcdef",
