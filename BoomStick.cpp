@@ -302,6 +302,7 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
       } else if (rc == 1) {
          if ((items[0].revents & ZMQ_POLLOUT) != ZMQ_POLLOUT) {
             LOG(WARNING) << "Queue error, cannot send messages the queue is full";
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             success = false;
          } else if (zmsg_send(&msg, mChamber) == 0) {
             success = true;
@@ -312,7 +313,7 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
          }
       } else {
          LOG(WARNING) << "Queue error, timeout waiting for queue to be ready";
-         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+         std::this_thread::sleep_for(std::chrono::milliseconds(10));
          success = false;
       }
    }
