@@ -8,11 +8,13 @@
 TEST_F(RESTBuilderTest, ConstructAQuery) {
    RESTBuilder builder;
 
-   std::string command = builder.RunQueryOnAllIndicies("indexType", "foo:bar");
+   std::string command = builder.RunQueryOnAllIndicies("indexType", "foo:bar", CACHE);
 
    EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar", command);
 
+   command = builder.RunQueryOnAllIndicies("indexType", "foo:bar", NO_CACHE);
 
+   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar&cache=false", command);
 }
 
 TEST_F(RESTBuilderTest, ConstructAIdQuery) {
