@@ -20,13 +20,13 @@ TEST_F(DiskCleanupTest, ValgrindGetListToRemove) {
    size_t filesRemoved(0);
    size_t spaceRemoved(0);
    boost::filesystem::path path = "/usr/local/probe/pcap";
-   for (int i = 0; i < 1 && ! zctx_interrupted; i ++) {
+   for (int i = 0; i < 1 && !zctx_interrupted; i++) {
 
       std::map < std::time_t, std::vector<boost::filesystem::path> > fileOrderedByTime;
-      for (int j = 10000000; j < 11000000; j ++) {
+      for (int j = 10000000; j < 11000000; j++) {
          std::vector<boost::filesystem::path > bucket;
          int bucketDepth = rand() % 10;
-         for (int k = 100; k < 100 + bucketDepth; k ++) {
+         for (int k = 100; k < 100 + bucketDepth; k++) {
             std::string filename = std::to_string(j);
             filename += "1234567890123456789012345";
             filename += std::to_string(k);
@@ -58,7 +58,7 @@ TEST_F(DiskCleanupTest, ValgrindGetOrderedMapOfFiles) {
    size_t filesRemoved(0);
    size_t spaceRemoved(0);
    boost::filesystem::path path = "/usr/local/probe/pcap";
-   for (int i = 0; i < 1 && ! zctx_interrupted; i ++) {
+   for (int i = 0; i < 1 && !zctx_interrupted; i++) {
 
       std::map < std::time_t, std::vector<boost::filesystem::path> > fileOrderedByTime =
               capture.GetOrderedMapOfFiles(path);
@@ -103,16 +103,16 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       std::string makeSmallFile = "touch ";
       makeSmallFile += testDir.str();
-      makeSmallFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";  // 1 empty file
+      makeSmallFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 1 empty file
 
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
       std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
       EXPECT_EQ(aDiskUsed, 0); // 0MB
-      EXPECT_EQ(aTotalFiles, 1); 
+      EXPECT_EQ(aTotalFiles, 1);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles)); // 1 file, limit 1 file
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size:: KByte), 4);
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size:: MB), 0);
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::KByte), 4);
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB), 0);
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup5";
       capture.ResetConf();
@@ -129,7 +129,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup6";
       capture.ResetConf();
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
- 
+
       // 1 byte less than 1 MB. Keep subtracting that from the calculations below
       size_t byte = 1;
 
@@ -139,8 +139,8 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
       std::this_thread::sleep_for(std::chrono::seconds(1));
       // 3 files: 2MB + (4KByte folder overhead) - 1byte
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte), 
-                                  (2<< B_TO_MB_SHIFT) + (4<<B_TO_KB_SHIFT) - byte); 
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
+              (2 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
 
 
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
@@ -149,13 +149,13 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       size_t spaceSaved;
-      EXPECT_EQ(0,capture.RemoveOldestPCapFiles(1, es,spaceSaved));  // 2 files, empty file removed
-
+      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es, spaceSaved)); // 2 files, empty file removed
+      EXPECT_EQ(0, spaceSaved);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       // 2MB + (4KByte folder overhead) - 1byte
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte), 
-                                  (2<< B_TO_MB_SHIFT) + (4<<B_TO_KB_SHIFT) - byte); 
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
+              (2 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
 
 
 
@@ -163,19 +163,20 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       EXPECT_EQ(aTotalFiles, 2);
-      EXPECT_EQ(0,capture.RemoveOldestPCapFiles(1, es,spaceSaved));
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte), 
-                                  (1<< B_TO_MB_SHIFT) + (4<<B_TO_KB_SHIFT) -byte); 
+      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es, spaceSaved));
+      EXPECT_EQ(1 << B_TO_MB_SHIFT, spaceSaved); //left is 1 file: 1MB-1byte + (4KByte folder overhead) 
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
+              (1 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles)); // 1MB limit vs 1MB-1byte + 4KByte
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9"; // 1MB limit, 1 file limit
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      EXPECT_EQ(0,capture.RemoveOldestPCapFiles(1, es,spaceSaved));// 0 files;
-
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte), 
-                                  (0<< B_TO_MB_SHIFT) + (4<<B_TO_KB_SHIFT));
+      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es, spaceSaved)); // 0 files;
+      EXPECT_EQ((1 << B_TO_MB_SHIFT) - byte, spaceSaved); // 
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
+              (0 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT));
 
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
@@ -184,6 +185,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
 }
 
 #ifdef LR_DEBUG
+
 TEST_F(DiskCleanupTest, GetPcapStoreUsage) {
    MockDiskCleanup cleanup(mConf);
    cleanup.mRealFilesSystemAccess = true;
@@ -196,7 +198,7 @@ TEST_F(DiskCleanupTest, GetPcapStoreUsage) {
 
    // Same partition: disk usage for pcap is calulcated on the folder itself
    // free and total should be huge since it is on the root partition
-   DiskCleanup::DiskSpace pcapDisk{0,0,0};
+   DiskCleanup::DiskSpace pcapDisk{0, 0, 0};
    cleanup.GetPcapStoreUsage(pcapDisk, DiskUsage::Size::KByte);
    size_t spaceToCreateADirectory = 4;
    EXPECT_EQ(pcapDisk.Used, spaceToCreateADirectory); // overhead creating dir
@@ -206,14 +208,15 @@ TEST_F(DiskCleanupTest, GetPcapStoreUsage) {
    make1MFileFile += "/1MFile";
    EXPECT_EQ(0, system(make1MFileFile.c_str()));
    size_t usedKByte = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::KByte);
-   EXPECT_EQ(usedKByte, 1024+spaceToCreateADirectory); // including 4: overhead
+   EXPECT_EQ(usedKByte, 1024 + spaceToCreateADirectory); // including 4: overhead
 
    cleanup.GetPcapStoreUsage(pcapDisk, DiskUsage::Size::KByte);
-   EXPECT_EQ(pcapDisk.Used, 1024+spaceToCreateADirectory);
+   EXPECT_EQ(pcapDisk.Used, 1024 + spaceToCreateADirectory);
 }
 #endif
 
 #ifdef LR_DEBUG
+
 TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
    MockDiskCleanup cleanup(mConf);
    cleanup.mRealFilesSystemAccess = true;
@@ -226,25 +229,23 @@ TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
 
    // Same partition: disk usage for pcap is calulcated on the folder itself
    // free and total should be huge since it is on the root partition
-   DiskCleanup::DiskSpace  pcapDiskInKByte{0,0,0};
-   DiskCleanup::DiskSpace  probeDiskInKByte{0,0,0};
+   DiskCleanup::DiskSpace pcapDiskInKByte{0, 0, 0};
+   DiskCleanup::DiskSpace probeDiskInKByte{0, 0, 0};
 
    cleanup.GetPcapStoreUsage(pcapDiskInKByte, DiskUsage::Size::KByte);
    cleanup.GetProbeFileSystemInfo(probeDiskInKByte, DiskUsage::Size::KByte);
-   
+
    // Same partition. For "free" and "total" used memory should be the same for 
    //  GetTotal..., GetProbe... and getPcap
    EXPECT_EQ(pcapDiskInKByte.Free, probeDiskInKByte.Free);
    EXPECT_EQ(pcapDiskInKByte.Total, probeDiskInKByte.Total);
    EXPECT_NE(pcapDiskInKByte.Used, probeDiskInKByte.Used); // pcap is the folder, probe is the partition
-   EXPECT_EQ(pcapDiskInKByte.Used, 4);// folder takes up space
+   EXPECT_EQ(pcapDiskInKByte.Used, 4); // folder takes up space
    EXPECT_NE(probeDiskInKByte.Used, 4); // probe is the whole partition
    EXPECT_TRUE(probeDiskInKByte.Used > 4);
-   
+
 }
 #endif
-
-
 
 TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
 #ifdef LR_DEBUG
@@ -252,9 +253,9 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       MockDiskCleanup capture(mConf);
       capture.mRealFilesSystemAccess = true;
       SendStats sendQueue;
-      DiskCleanup::DiskSpace probeDisk{0,0,0};
-      DiskCleanup::DiskSpace pcapDisk{100,0,0}; // total, free, used
-      
+      DiskCleanup::DiskSpace probeDisk{0, 0, 0};
+      DiskCleanup::DiskSpace pcapDisk{100, 0, 0}; // total, free, used
+
       MockElasticSearch es(false);
       DiskCleanup::PacketCaptureFilesystemDetails previous;
       previous.Writes = 0;
@@ -277,17 +278,17 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       std::string makeSmallFile = "touch ";
       makeSmallFile += testDir.str();
       makeSmallFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
-      EXPECT_EQ(0, system(makeSmallFile.c_str()));  // 1 file, empty
+      EXPECT_EQ(0, system(makeSmallFile.c_str())); // 1 file, empty
       std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
-      
+
       std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
       make1MFileFile += testDir.str();
       make1MFileFile += "/1MFile";
-      EXPECT_EQ(0, system(make1MFileFile.c_str()));  // 2 files, 1MB
+      EXPECT_EQ(0, system(make1MFileFile.c_str())); // 2 files, 1MB
       std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
-      
+
       make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of="; // 1MB-1byte
       make1MFileFile += testDir.str();
       make1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
@@ -299,25 +300,25 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
-      
-      capture.CleanupOldPcapFiles(false, previous, es, sendQueue, currentTime, 
+
+      capture.CleanupOldPcapFiles(false, previous, es, sendQueue, currentTime,
               aDiskUsed, aTotalFiles, probeDisk, pcapDisk); // empty file removed, 2 left
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
       EXPECT_EQ(2, aTotalFiles);
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup8"; 
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup8";
       capture.ResetConf();
-       
+
       Conf copy = capture.GetConf();
       auto fileLimit = copy.GetPcapCaptureFileLimit();
       auto sizeLimit = copy.GetPcapCaptureSizeLimit();
       EXPECT_EQ(copy.GetPcapCaptureLocation(), copy.GetProbeLocation());
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      capture.CleanupOldPcapFiles(false, previous, es, sendQueue, currentTime, 
+      capture.CleanupOldPcapFiles(false, previous, es, sendQueue, currentTime,
               aDiskUsed, aTotalFiles, probeDisk, pcapDisk); // 2MB files removed
-      EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles)); 
+      EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       EXPECT_EQ(aTotalFiles, 0);
-      size_t ByteTotalLeft = (4<<B_TO_KB_SHIFT);// left: 4K folder overhead
+      size_t ByteTotalLeft = (4 << B_TO_KB_SHIFT); // left: 4K folder overhead
       EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte), ByteTotalLeft);
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
@@ -325,7 +326,7 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
       EXPECT_EQ(0, aTotalFiles);
       EXPECT_EQ(0, aDiskUsed);
-      EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles)); 
+      EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       capture.CleanupOldPcapFiles(false, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, probeDisk, pcapDisk);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
@@ -338,9 +339,9 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
    if (geteuid() == 0) {
       std::string makeADir;
       SendStats sendQueue;
-      DiskCleanup::DiskSpace probeDisk{0,0,0};
-      DiskCleanup::DiskSpace pcapDisk{100,0,0}; // total, free, used
-      
+      DiskCleanup::DiskSpace probeDisk{0, 0, 0};
+      DiskCleanup::DiskSpace pcapDisk{100, 0, 0}; // total, free, used
+
       MockElasticSearch es(false);
       DiskCleanup::PacketCaptureFilesystemDetails previous;
       previous.Writes = 0;
@@ -363,7 +364,7 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
       es.mFailUpdateDoc = true;
       es.mQueryIdResults.push_back(std::make_pair("161122fd-6681-42a3-b953-48beb5247172", "index_1973-11-29"));
       size_t spaceSaved;
-      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es,spaceSaved));
+      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es, spaceSaved));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
@@ -383,8 +384,8 @@ TEST_F(DiskCleanupTest, ESFailsToQueryRemoveFile) {
    if (geteuid() == 0) {
       std::string makeADir;
       SendStats sendQueue;
-      DiskCleanup::DiskSpace probeDisk{0,0,0};
-      DiskCleanup::DiskSpace pcapDisk{100,0,0}; // total, free, used
+      DiskCleanup::DiskSpace probeDisk{0, 0, 0};
+      DiskCleanup::DiskSpace pcapDisk{100, 0, 0}; // total, free, used
       MockElasticSearch es(false);
       DiskCleanup::PacketCaptureFilesystemDetails previous;
       previous.Writes = 0;
@@ -408,7 +409,7 @@ TEST_F(DiskCleanupTest, ESFailsToQueryRemoveFile) {
       es.mQueryIdResults.push_back(std::make_pair("161122fd-6681-42a3-b953-48beb5247172", "index_1973-11-29"));
       size_t filesRemoved;
       size_t spaceSaved;
-      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es,spaceSaved));
+      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es, spaceSaved));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
@@ -443,7 +444,7 @@ TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
    std::promise<bool> promisedFinished;
    auto futureResult = promisedFinished.get_future();
    std::thread([](std::promise<bool> finished, MockDiskCleanup & diskCleanup) {
-      DiskCleanup::DiskSpace probeDisk{0,0,0};
+      DiskCleanup::DiskSpace probeDisk{0, 0, 0};
       SendStats sendQueue;
               size_t fsTotalGigs(100);
               MockElasticSearch es(false);
@@ -474,7 +475,7 @@ TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
    std::promise<bool> promisedFinished;
    auto futureResult = promisedFinished.get_future();
    std::thread([](std::promise<bool> finished, MockDiskCleanup & diskCleanup) {
-      DiskCleanup::DiskSpace probeDisk{0,0,0};
+      DiskCleanup::DiskSpace probeDisk{0, 0, 0};
       SendStats sendQueue;
               size_t fsTotalGigs(100);
               MockElasticSearch es(false);
@@ -489,8 +490,8 @@ TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
               diskCleanup.CleanupSearch(false, previous, std::ref(es), sendQueue, probeDisk);
 
       if (probeDisk.Free != probeDisk.Total) {
-         FAIL() << "Not equal as expected: Free = " 
-                << probeDisk.Free << ", Total = " << probeDisk.Total;
+         FAIL() << "Not equal as expected: Free = "
+                 << probeDisk.Free << ", Total = " << probeDisk.Total;
       }
       finished.set_value(true);
    }, std::move(promisedFinished), std::ref(diskCleanup)).detach();
@@ -516,7 +517,7 @@ TEST_F(DiskCleanupTest, FSMath) {
    diskCleanup.mFleSystemInfo.f_blocks = 109 << B_TO_MB_SHIFT;
    diskCleanup.mFleSystemInfo.f_frsize = 1024;
 
-   DiskCleanup::DiskSpace pcapDiskInGB{0,0,0};
+   DiskCleanup::DiskSpace pcapDiskInGB{0, 0, 0};
 
 
    diskCleanup.GetPcapStoreUsage(pcapDiskInGB, DiskUsage::Size::GB);
