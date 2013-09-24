@@ -60,8 +60,8 @@ TEST_F(DiskCleanupTest, ValgrindGetOrderedMapOfFiles) {
    boost::filesystem::path path = "/usr/local/probe/pcap";
    for (int i = 0; i < 1 && !zctx_interrupted; i++) {
 
-      std::map < std::time_t, std::vector<boost::filesystem::path> > fileOrderedByTime =
-              capture.GetOrderedMapOfFiles(path);
+      std::vector< std::tuple< std::string, std::string> >& oldestFiles = 
+                 capture.GetOlderFilesFromPath(path, std::time(NULL));
 
       std::cout << "iteration " << i << std::endl;
    }

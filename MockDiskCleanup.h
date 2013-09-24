@@ -128,8 +128,9 @@ public:
    const Conf& GetConf() { return DiskCleanup::GetConf(); }
 
 
-   std::map < std::time_t, std::vector<boost::filesystem::path> >& GetOrderedMapOfFiles(boost::filesystem::path path) {
-      return DiskCleanup::GetOrderedMapOfFiles(path);
+   std::vector< std::tuple< std::string, std::string> >& 
+                 GetOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime) {
+      return DiskCleanup::GetOlderFilesFromPath(path,oldestTime);
    }
 
    std::vector< std::tuple< std::string, std::string> > GetListToRemove(
