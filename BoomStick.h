@@ -54,4 +54,5 @@ private:
    unsigned int mUnreadAlertSize;
    bool mUnreadAlert;
    bool mPendingAlert;
+   pthread_t mUtilizedThread;
 };
