@@ -26,17 +26,17 @@ public:
       return DiskCleanup::RemoveOldestPCapFiles(1, es, spaceSaved);
    }
 
-   bool TooMuchPCap(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles) {
+   bool TooMuchPCap(size_t& aDiskUsed, size_t& aTotalFiles) {
       return DiskCleanup::TooMuchPCap(aDiskUsed, aTotalFiles);
    }
 
-   void RecalculatePCapDiskUsed(std::atomic<size_t>& aDiskUsed, std::atomic<size_t>& aTotalFiles, DiskSpace& pcapDiskInGB) {
+   void RecalculatePCapDiskUsed(size_t& aDiskUsed, size_t& aTotalFiles, DiskSpace& pcapDiskInGB) {
       DiskCleanup::RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDiskInGB);
    }
 
    void CleanupOldPcapFiles(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
-           std::time_t& currentTime, std::atomic<size_t>& aDiskUsed,
-           std::atomic<size_t>& aTotalFiles,
+           std::time_t& currentTime, size_t& aDiskUsed,
+           size_t& aTotalFiles,
         const DiskSpace& probeDiskInGB,
         DiskSpace& pcapDiskInGB) {
       DiskCleanup::CleanupOldPcapFiles(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, probeDiskInGB, pcapDiskInGB);
@@ -131,12 +131,6 @@ public:
    std::vector< std::tuple< std::string, std::string> >& 
                  GetOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime) {
       return DiskCleanup::GetOlderFilesFromPath(path,oldestTime);
-   }
-
-   std::vector< std::tuple< std::string, std::string> > GetListToRemove(
-           const std::map < std::time_t, std::vector<boost::filesystem::path> >& fileOrderedByTime,
-           const size_t maxToRemove, size_t& filesRemoved, size_t& spaceRemoved) {
-      return DiskCleanup::GetListToRemove(fileOrderedByTime, maxToRemove, filesRemoved, spaceRemoved);
    }
 
    void MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, ElasticSearch& es) {

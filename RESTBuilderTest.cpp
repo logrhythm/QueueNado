@@ -1,6 +1,7 @@
 #include "RESTBuilderTest.h"
 #include "MockBoomStick.h"
 #include "ElasticSearch.h"
+#include "MockRESTSender.h"
 #include <fstream>
 namespace {
    bool StringContains(const std::string& input, const std::string& pattern) {
@@ -44,7 +45,7 @@ TEST_F(RESTBuilderTest, ConstructAQuery) {
 TEST_F(RESTBuilderTest, ConstructAIdQuery) {
    RESTBuilder builder;
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   MockRESTSender sender(transport);
 
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
@@ -77,7 +78,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQuery) {
 TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
    RESTBuilder builder;
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   MockRESTSender sender(transport);
 
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
@@ -99,7 +100,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
 TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
    RESTBuilder builder;
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   MockRESTSender sender(transport);
 
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
@@ -131,8 +132,8 @@ TEST_F(RESTBuilderTest, Construct) {
    RESTBuilder* pBuilder = new RESTBuilder;
    delete pBuilder;
 
-   RESTSender sender(transport);
-   RESTSender* pSender = new RESTSender(transport);
+   MockRESTSender sender(transport);
+   MockRESTSender* pSender = new MockRESTSender(transport);
    delete pSender;
 }
 
@@ -141,7 +142,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    MockBoomStick transport2("tcp://127.0.0.1:9700");
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
-   RESTSender sender(transport);
+   MockRESTSender sender(transport);
    ElasticSearch restQuery(transport2, false);
    ASSERT_TRUE(restQuery.Initialize());
    int shards(3);
@@ -189,7 +190,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
    MockBoomStick transport2("tcp://127.0.0.1:9700");
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
-   RESTSender sender(transport);
+   MockRESTSender sender(transport);
    ElasticSearch restQuery(transport2, false);
    ASSERT_TRUE(restQuery.Initialize());
    int shards(3);
@@ -239,7 +240,7 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    MockBoomStick transport2("tcp://127.0.0.1:9700");
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
-   RESTSender sender(transport);
+   MockRESTSender sender(transport);
    ElasticSearch es(transport2, true);
    ASSERT_TRUE(es.Initialize());
    ElasticSearch esSync(transport, false);
@@ -305,7 +306,7 @@ TEST_F(RESTBuilderTest, GetListOfIndexeNames) {
    MockBoomStick transport2("tcp://127.0.0.1:9700");
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
-   RESTSender sender(transport);
+   MockRESTSender sender(transport);
    std::string reply;
 
    std::string command = builder.GetIndexList();

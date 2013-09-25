@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include "ElasticSearch.h"
 #include "MockBoomStick.h"
+#include "MockRESTSender.h"
 #include <thread>
 #include <memory>
 #include "jansson.h"
@@ -105,7 +106,7 @@ namespace {
    DiskInformation GetDiskInfo() {
       RESTBuilder builder;
       BoomStick transport("tcp://127.0.0.1:9700");
-      RESTSender sender(transport);
+      MockRESTSender sender(transport);
 
       transport.Initialize();
       std::string resultString;
