@@ -195,7 +195,7 @@ SendStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PRO
 
 ProcStatsTest_LDADD=${DYNAMIC_LIBS}
 ProcStatsTest_LDFLAGS=${BASE_LIBS}
-ProcStatsTest_SOURCES=main.cpp ProcStatsTest.cpp
+ProcStatsTest_SOURCES=main.cpp ProcStatsTest.cpp TCMallocStatsTest.cpp
 ProcStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 ProcessManagerTest_LDADD=${DYNAMIC_LIBS}
@@ -274,6 +274,7 @@ nmTest_SOURCES=main.cpp \
  PacketCaptureTest.cpp \
  ProcessManagerTest.cpp \
  ProcStatsTest.cpp \
+ TCMallocStatsTest.cpp \
  QosmosDpiTest.cpp \
  QosmosCodeGeneratorTests.cpp \
  QosmosPacketAllocatorTests.cpp \
