@@ -22,8 +22,8 @@ public:
       return false;
    }
 
-   size_t RemoveOldestPCapFiles(const size_t maxToRemove, ElasticSearch& es, size_t& spaceSaved) {
-      return DiskCleanup::RemoveOldestPCapFiles(1, es, spaceSaved);
+   size_t RemoveOldestPCapFilesInES(const size_t maxToRemove, ElasticSearch& es, size_t& spaceSaved, time_t& oldest) {
+      return DiskCleanup::RemoveOldestPCapFilesInES(1, es, spaceSaved, oldest);
    }
 
    bool TooMuchPCap(size_t& aDiskUsed, size_t& aTotalFiles) {

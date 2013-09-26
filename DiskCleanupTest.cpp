@@ -119,7 +119,8 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       size_t spaceSaved(0);
-      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es, spaceSaved)); // 2 files, empty file removed
+      time_t oldestTime;
+      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved,oldestTime)); // 2 files, empty file removed
       es.mOldestTime = time2;
       EXPECT_EQ(0, spaceSaved);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
@@ -134,7 +135,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       EXPECT_EQ(aTotalFiles, 2);
-      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es, spaceSaved));
+      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved,oldestTime));
       es.mOldestTime = time3;
       EXPECT_EQ(1 << B_TO_MB_SHIFT, spaceSaved); //left is 1 file: 1MB-1byte + (4KByte folder overhead) 
       EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
@@ -145,7 +146,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9"; // 1MB limit, 1 file limit
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es, spaceSaved)); // 0 files;
+      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved,oldestTime)); // 0 files;
       EXPECT_EQ((1 << B_TO_MB_SHIFT) - byte, spaceSaved); // 
       EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
               (0 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT));
@@ -336,7 +337,8 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
       es.mFailUpdateDoc = true;
       es.mQueryIdResults.push_back(std::make_pair("161122fd-6681-42a3-b953-48beb5247172", "index_1973-11-29"));
       size_t spaceSaved;
-      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es, spaceSaved));
+      time_t oldest;
+      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved, oldest));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
@@ -381,7 +383,8 @@ TEST_F(DiskCleanupTest, ESFailsToQueryRemoveFile) {
       es.mQueryIdResults.push_back(std::make_pair("161122fd-6681-42a3-b953-48beb5247172", "index_1973-11-29"));
       size_t filesRemoved;
       size_t spaceSaved;
-      EXPECT_EQ(0, capture.RemoveOldestPCapFiles(1, es, spaceSaved));
+      time_t oldest;
+      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved,oldest));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
