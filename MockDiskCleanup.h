@@ -136,7 +136,10 @@ public:
    void MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, ElasticSearch& es) {
       DiskCleanup::MarkFilesAsRemovedInES(relevantRecords, es);
    }
-
+   size_t BruteForceCleanupOfOldFiles(const boost::filesystem::path& path,
+                     const time_t theOldestTime, size_t& additionalSizeRemoved) {
+      return DiskCleanup::BruteForceCleanupOfOldFiles( path,theOldestTime,additionalSizeRemoved);
+   }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
    int mFileSystemInfoCountdown;

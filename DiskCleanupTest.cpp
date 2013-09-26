@@ -11,12 +11,12 @@
 
 #ifdef LR_DEBUG
 
-TEST_F(DiskCleanupTest, ValgrindGetOrderedMapOfFiles) {
+TEST_F(DiskCleanupTest, DISABLED_ValgrindGetOrderedMapOfFiles) {
    MockElasticSearch es(false);
    es.mUpdateDocAlwaysPasses = true;
 
    MockDiskCleanup capture(mConf);
-   size_t maxToRemove = 50000;
+   size_t maxToRemove = 5000;
    size_t filesRemoved(0);
    size_t spaceRemoved(0);
    boost::filesystem::path path = "/usr/local/probe/pcap";
@@ -69,9 +69,9 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       makeSmallFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 1 empty file
 
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
-      
+      time_t timeFirst = std::time(NULL);
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      es.mOldestTime = std::time(NULL);
+      
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
       EXPECT_EQ(aDiskUsed, 0); // 0MB
       EXPECT_EQ(aTotalFiles, 1);
@@ -87,9 +87,9 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       make1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
       
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
-      
+      time_t timeSecond = std::time(NULL);
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      time_t time2 = std::time(NULL);
+      
       EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB), 1); // 2 files: 1MB + (4KByte folder overhead)
 
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
@@ -105,9 +105,8 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       make1MFileFile += testDir.str();
       make1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
-      
+      time_t timeThird = std::time(NULL);
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      time_t time3 = std::time(NULL);
       // 3 files: 2MB + (4KByte folder overhead) - 1byte
       EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
               (2 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
@@ -119,9 +118,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       size_t spaceSaved(0);
-      time_t oldestTime;
-      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved,oldestTime)); // 2 files, empty file removed
-      es.mOldestTime = time2;
+      EXPECT_EQ(1, capture.BruteForceCleanupOfOldFiles(testDir.str(),timeSecond, spaceSaved)); // 2 files, empty file removed
       EXPECT_EQ(0, spaceSaved);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
@@ -135,9 +132,8 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       EXPECT_EQ(aTotalFiles, 2);
-      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved,oldestTime));
-      es.mOldestTime = time3;
-      EXPECT_EQ(1 << B_TO_MB_SHIFT, spaceSaved); //left is 1 file: 1MB-1byte + (4KByte folder overhead) 
+      EXPECT_EQ(1, capture.BruteForceCleanupOfOldFiles(testDir.str(),timeThird, spaceSaved));
+      EXPECT_EQ(1, spaceSaved); //left is 1 file: 1MB-1byte + (4KByte folder overhead) 
       EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
               (1 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
@@ -146,8 +142,8 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9"; // 1MB limit, 1 file limit
       capture.ResetConf();
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved,oldestTime)); // 0 files;
-      EXPECT_EQ((1 << B_TO_MB_SHIFT) - byte, spaceSaved); // 
+      EXPECT_EQ(1, capture.BruteForceCleanupOfOldFiles(testDir.str(),std::time(NULL), spaceSaved));
+      EXPECT_EQ(1, spaceSaved); // 
       EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
               (0 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT));
 
