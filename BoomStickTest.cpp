@@ -435,11 +435,12 @@ TEST_F(BoomStickTest, DontSearchSocketForever) {
 
 
    std::string id = "foo";
-   ASSERT_TRUE(stick.SendAsync(id, "foo"));
+   
 
    std::promise<bool> promisedFinished;
    auto futureResult = promisedFinished.get_future();
    std::thread([](std::promise<bool>& finished, MockBoomStick & stick, std::string & id) {
+      ASSERT_TRUE(stick.SendAsync(id, "foo"));
       std::string reply;
       EXPECT_FALSE(stick.GetAsyncReply(id, 10, reply));
               finished.set_value(true);
