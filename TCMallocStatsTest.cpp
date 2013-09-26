@@ -1,22 +1,24 @@
 #include <gtest/gtest.h>
 #include <g2log.hpp>
 #include <string>
+#include <iostream> // for disabled test
+#include <vector>
 
 #include "TCMallocStats.h"
-#include <iostream> // for disabled test
-
+#include "MockSendStats.h"
+#include "SendStats.h"
 
 // Disabled since for unit test the TCMALLOC_....REPORT_THRESHOLD is usually not set
-// You can run this test by doing:
+// You can run this test by executing:
 //
-//  sudo TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=16106127360 ./ProcStatsTest  --gtest_also_run_disabled_tests --gtest_filter="*TCMalloc*" 
+//  sudo TCMALLOC_RELEASE_RATE=10 TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=16106127360 ./ProcStatsTest  --gtest_also_run_disabled_tests --gtest_filter="*TCMalloc*" 
 //
 TEST(TCMallocStatsTest, DISABLED_GetEnvReportThreshold) {
   using namespace TCMallocStats;
   auto threshold = AllocReportThreshold();
-  EXPECT_GT(threshold, 0); 
-  LOG(INFO) << "AllocReportThreshold: " << threshold;
-  std::cerr << "AllocReportThreshold: " << threshold << std::endl;
+  auto releaseRate = ReleaseRate();
+  EXPECT_EQ(threshold, 16106127360);
+  EXPECT_EQ(releaseRate, 10); 
 }
 
 
@@ -33,16 +35,44 @@ TEST(TCMallocStatsTest, GetStatus) {
    auto maxTotalThreadCacheBytes = MaxTotalThreadCacheBytes();
    auto currentTotalThreadCacheBytes = CurrentTotalThreadCacheBytes();
    
-   EXPECT_GT(releaseRate, 0);
-   //EXPECT_GT(allocReport, 0); 
-   EXPECT_GT(maxTotalThreadCacheBytes, 0);
+   size_t smallArbitrary = 1000; // bytes
+   EXPECT_GT(releaseRate, 0); // default 1: see disabled test environment variable not set for unit tests
+   //EXPECT_GT(allocReport, 0);  // see disabled  env variable not set in test
+   EXPECT_GT(maxTotalThreadCacheBytes, smallArbitrary);
    
-   EXPECT_GT(currentBytes, 0);
-   EXPECT_GT(heapSize, 0);
-   EXPECT_GT(pageHeapFreeBytes, 0);
-   EXPECT_GT(pageHeapUnmappedBytes, 0);
-   EXPECT_GT(slackBytes, 0);
-   EXPECT_GT(currentTotalThreadCacheBytes, 0);
+   EXPECT_GT(currentBytes, smallArbitrary);
+   EXPECT_GT(heapSize, smallArbitrary);
+   EXPECT_GT(pageHeapFreeBytes, smallArbitrary);
+   //EXPECT_GT(pageHeapUnmappedBytes, 0); // likely zero but not guaranteed 
+   EXPECT_GT(slackBytes, smallArbitrary);
+   EXPECT_GT(currentTotalThreadCacheBytes, smallArbitrary);
    
-   SendToLogAllStats(); // just for visual comparison
+   SendToLogAllStats("TCMallocStatsTest"); // just for visual comparison
+}
+
+
+TEST(TCMallocStatsTest, SendStats) {
+   MockSendStats statForwarder;
+   using namespace TCMallocStats;
+   ForwardStats(statForwarder, {"TCMallocStatsTest"});
+   
+   const auto& results = statForwarder.mSendStatValues;
+   const auto& keys = statForwarder.mSendStatKeys;
+   const size_t TcMallocStatAmount = 4;// number of stats for TCMalloc
+   ASSERT_EQ(results.size(), TcMallocStatAmount); 
+   ASSERT_EQ(keys.size(), TcMallocStatAmount); 
+   EXPECT_EQ(keys[0], "TCMallocStatsTest_ALLOCATED");
+   EXPECT_EQ(keys[1], "TCMallocStatsTest_HEAP_SIZE");
+   EXPECT_EQ(keys[2], "TCMallocStatsTest_SMALL_OBJECT_THREAD_CACHE");
+   EXPECT_EQ(keys[3], "TCMallocStatsTest_SLACK");
+
+   size_t smallArbitrary = 1000;
+   EXPECT_GT(results[0], smallArbitrary);
+   EXPECT_GT(results[1], smallArbitrary);
+   EXPECT_GT(results[2], smallArbitrary);
+   EXPECT_GT(results[3], smallArbitrary);
+   EXPECT_TRUE(results[0] <= TCMallocStats::CurrentAllocatedBytes());
+   EXPECT_TRUE(results[1] <= TCMallocStats::HeapSizeInBytes());
+   EXPECT_TRUE(results[2] <= TCMallocStats::CurrentTotalThreadCacheBytes());
+   EXPECT_TRUE(results[3]  <= TCMallocStats::SlackBytes());
 }
