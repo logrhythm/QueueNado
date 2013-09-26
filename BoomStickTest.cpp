@@ -81,6 +81,7 @@ TEST_F(BoomStickTest, ValgrindSync) {
 }
 TEST_F(BoomStickTest, ValgrindASync) {
    const int targetIter(10000);
+   const int batchSize(500);
    BoomStick stick{mAddress};
 
    MockSkelleton target{mAddress};
@@ -88,21 +89,27 @@ TEST_F(BoomStickTest, ValgrindASync) {
    ASSERT_TRUE(stick.Initialize());
    target.BeginListenAndRepeat();
 
-   int iterations = targetIter;
-   while (!zctx_interrupted && iterations > 0) {
-      std::stringstream ss;
-      ss << iterations;
-      EXPECT_TRUE(stick.SendAsync(ss.str(),"foo"));
-      iterations--;
-   }
-   iterations = targetIter;
-   while (!zctx_interrupted && iterations > 0) {
-      std::stringstream ss;
-      ss << iterations;
-      std::string reply;
-      if (stick.GetAsyncReply(ss.str(),1,reply)) {
-         iterations --;
-         EXPECT_EQ("foo reply", reply);
+   int sendIterations = targetIter;
+   while (!zctx_interrupted && sendIterations > 0) {
+      // Send and receive in batches so the queue high water mark doesn't
+      // throw messages away.
+      int batchIterations = batchSize;
+      while (!zctx_interrupted && batchIterations > 0) {
+         std::stringstream ss;
+         ss << batchIterations;
+         EXPECT_TRUE(stick.SendAsync(ss.str(),"foo"));
+         batchIterations--;
+         sendIterations--;
+      }
+      batchIterations = batchSize;
+      while (!zctx_interrupted && batchIterations > 0) {
+         std::stringstream ss;
+         ss << batchIterations;
+         std::string reply;
+         if (stick.GetAsyncReply(ss.str(),1,reply)) {
+            batchIterations--;
+            EXPECT_EQ("foo reply", reply);
+         }
       }
    }
    target.EndListendAndRepeat();
@@ -155,7 +162,7 @@ TEST_F(BoomStickTest, SimpleSendNoListener) {
 
 }
 
-TEST_F(BoomStickTest, AsyncSendMultipleTimesOnOneIdFails) {
+TEST_F(BoomStickTest, AsyncSendMultipleTimesOnOneId) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
 
@@ -165,7 +172,12 @@ TEST_F(BoomStickTest, AsyncSendMultipleTimesOnOneIdFails) {
    target.BeginListenAndRepeat();
    std::string id = stick.GetUuid();
    ASSERT_TRUE(stick.SendAsync(id, "foo1"));
-   ASSERT_FALSE(stick.SendAsync(id, "foo2"));
+   ASSERT_TRUE(stick.SendAsync(id, "foo2"));
+
+   std::string reply;
+   ASSERT_TRUE(stick.GetAsyncReply(id,1,reply));
+   EXPECT_EQ("foo1 reply", reply);
+   ASSERT_FALSE(stick.GetAsyncReply(id,1,reply));
 
    target.EndListendAndRepeat();
 
