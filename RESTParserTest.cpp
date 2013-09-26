@@ -1,4 +1,4 @@
-#include "RESTSenderTest.h"
+#include "RESTParserTest.h"
 #include "MockBoomStick.h"
 #include <algorithm>
 #include "FileIO.h"
@@ -13,14 +13,14 @@ namespace {
    }
 }
 #ifdef LR_DEBUG
-TEST_F(RESTSenderTest, GetListOfClusterNames) {
+TEST_F(RESTParserTest, GetListOfClusterNames) {
    DiskInformation info;
    SingleDiskInfo singleInfo;
    info["a"] = singleInfo;
    info["b"] = singleInfo;
    info["c"] = singleInfo;
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   RESTParser sender(transport);
 
    std::vector<std::string> names = sender.GetAllClusterNamesFromDiskInfo(info);
 
@@ -33,9 +33,9 @@ TEST_F(RESTSenderTest, GetListOfClusterNames) {
    EXPECT_TRUE(std::find(names.begin(), names.end(), findme) != names.end());
 }
 
-TEST_F(RESTSenderTest, BadReqeust) {
+TEST_F(RESTParserTest, BadReqeust) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   RESTParser sender(transport);
    std::string reply = "400|BAD_REQUEST|{\"error\":\"SearchPhaseExecutionException\"}";
    EXPECT_TRUE(sender.BadReqeust(reply));
    reply = "200|OK|{}";
@@ -43,7 +43,7 @@ TEST_F(RESTSenderTest, BadReqeust) {
    
 }
 
-TEST_F(RESTSenderTest, GetSingleDiskInfo) {
+TEST_F(RESTParserTest, GetSingleDiskInfo) {
    DiskInformation info;
    SingleDiskInfo singleInfo;
    std::get<0>(singleInfo)["a"] = "A";
@@ -53,7 +53,7 @@ TEST_F(RESTSenderTest, GetSingleDiskInfo) {
    std::get<1>(singleInfo)["nA"] = 2;
    info["b"] = singleInfo;
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   RESTParser sender(transport);
 
    SingleDiskInfo retrievedInfo;
    ASSERT_TRUE(sender.GetAClustersDiskInfo("b", info,retrievedInfo));
@@ -66,7 +66,7 @@ TEST_F(RESTSenderTest, GetSingleDiskInfo) {
 
 }
 
-TEST_F(RESTSenderTest, GetSpecificDiskInfo) {
+TEST_F(RESTParserTest, GetSpecificDiskInfo) {
    DiskInformation info;
    SingleDiskInfo singleInfo;
    std::get<0>(singleInfo)["disk_write_size"] = "589.8gb";
@@ -89,7 +89,7 @@ TEST_F(RESTSenderTest, GetSpecificDiskInfo) {
    info[clusterName] = singleInfo;
 
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   RESTParser sender(transport);
    EXPECT_EQ("589.8gb", sender.GetDiskWriteSize(clusterName, info));
    EXPECT_EQ("106.1gb", sender.GetDiskReadSize(clusterName, info));
    EXPECT_EQ("/dev/mapper/vg_robert2-lv_home", sender.GetDiskDevice(clusterName, info));
@@ -125,7 +125,7 @@ TEST_F(RESTSenderTest, GetSpecificDiskInfo) {
    EXPECT_EQ(0, sender.GetDiskTotalInBytes(clusterName, info));
 }
 
-TEST_F(RESTSenderTest, ParseForSessionIds) {
+TEST_F(RESTParserTest, ParseForSessionIds) {
    using namespace FileIO;
    
    auto results = ReadAsciiFileContent("resources/filteredQueryTest");
@@ -133,7 +133,7 @@ TEST_F(RESTSenderTest, ParseForSessionIds) {
    auto reply = results.result;
    
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   RESTParser sender(transport);
    
    auto ids = sender.GetSessionIdsFromQuery(reply);
    
@@ -156,7 +156,7 @@ TEST_F(RESTSenderTest, ParseForSessionIds) {
 }
 
 #else
-TEST_F(RESTSenderTest, emptyTest) {
+TEST_F(RESTParserTest, emptyTest) {
    EXPECT_TRUE(true);
 }
 #endif
