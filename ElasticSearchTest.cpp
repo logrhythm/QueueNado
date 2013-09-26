@@ -425,7 +425,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRefreshDiskInfo) {
 TEST_F(ElasticSearchTest, ValgrindTestASyncRefreshDiskInfo) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, true);
+   ElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
