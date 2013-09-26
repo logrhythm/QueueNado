@@ -20,7 +20,7 @@ TEST_F(RESTParserTest, GetListOfClusterNames) {
    info["b"] = singleInfo;
    info["c"] = singleInfo;
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTParser sender(transport);
+   RESTParser sender;
 
    std::vector<std::string> names = sender.GetAllClusterNamesFromDiskInfo(info);
 
@@ -35,7 +35,7 @@ TEST_F(RESTParserTest, GetListOfClusterNames) {
 
 TEST_F(RESTParserTest, BadReqeust) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTParser sender(transport);
+   RESTParser sender;
    std::string reply = "400|BAD_REQUEST|{\"error\":\"SearchPhaseExecutionException\"}";
    EXPECT_TRUE(sender.BadReqeust(reply));
    reply = "200|OK|{}";
@@ -53,7 +53,7 @@ TEST_F(RESTParserTest, GetSingleDiskInfo) {
    std::get<1>(singleInfo)["nA"] = 2;
    info["b"] = singleInfo;
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTParser sender(transport);
+   RESTParser sender;
 
    SingleDiskInfo retrievedInfo;
    ASSERT_TRUE(sender.GetAClustersDiskInfo("b", info,retrievedInfo));
@@ -89,7 +89,7 @@ TEST_F(RESTParserTest, GetSpecificDiskInfo) {
    info[clusterName] = singleInfo;
 
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTParser sender(transport);
+   RESTParser sender;
    EXPECT_EQ("589.8gb", sender.GetDiskWriteSize(clusterName, info));
    EXPECT_EQ("106.1gb", sender.GetDiskReadSize(clusterName, info));
    EXPECT_EQ("/dev/mapper/vg_robert2-lv_home", sender.GetDiskDevice(clusterName, info));
@@ -133,7 +133,7 @@ TEST_F(RESTParserTest, ParseForSessionIds) {
    auto reply = results.result;
    
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTParser sender(transport);
+   RESTParser sender;
    
    auto ids = sender.GetSessionIdsFromQuery(reply);
    

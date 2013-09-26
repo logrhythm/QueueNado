@@ -1,7 +1,7 @@
 #include "RESTBuilderTest.h"
 #include "MockBoomStick.h"
 #include "ElasticSearch.h"
-#include "MockRESTParser.h"
+#include "RESTParser.h"
 #include <fstream>
 namespace {
    bool StringContains(const std::string& input, const std::string& pattern) {
@@ -45,7 +45,7 @@ TEST_F(RESTBuilderTest, ConstructAQuery) {
 TEST_F(RESTBuilderTest, ConstructAIdQuery) {
    RESTBuilder builder;
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   MockRESTParser sender(transport);
+   RESTParser sender;
 
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
@@ -62,7 +62,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQuery) {
            "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
    std::string reply;
-   ASSERT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    std::vector<std::pair<std::string, std::string> > ids = sender.GetDocIds(reply);
    ASSERT_EQ(4, ids.size());
    for (auto id : ids) {
@@ -78,7 +78,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQuery) {
 TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
    RESTBuilder builder;
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   MockRESTParser sender(transport);
+   RESTParser sender;
 
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
@@ -87,7 +87,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
    transport.mReturnString = "{\"took\":8,\"timed_out\":false,\"_shards\":"
            "{\"total\":50,\"successful\":50,\"failed\":0},\"hits\":{\"total\":0,\"max_score\":null,\"hits\":[]}}";
    std::string reply;
-   ASSERT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    std::vector<std::pair<std::string, std::string> > ids = sender.GetDocIds(reply);
    ASSERT_EQ(0, ids.size());
 
@@ -100,7 +100,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
 TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
    RESTBuilder builder;
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   MockRESTParser sender(transport);
+   RESTParser sender();
 
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
@@ -117,7 +117,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
            "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
    std::string reply;
-   ASSERT_FALSE(sender.Send(command, reply));
+   reply = transport.Send(command);
 
    ElasticSearch restQuery(transport, false);
    std::vector<std::pair<std::string, std::string> > idsFromESObject;
@@ -132,8 +132,8 @@ TEST_F(RESTBuilderTest, Construct) {
    RESTBuilder* pBuilder = new RESTBuilder;
    delete pBuilder;
 
-   MockRESTParser sender(transport);
-   MockRESTParser* pSender = new MockRESTParser(transport);
+   RESTParser sender;
+   RESTParser* pSender = new RESTParser;
    delete pSender;
 }
 
@@ -142,7 +142,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    MockBoomStick transport2("tcp://127.0.0.1:9700");
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
-   MockRESTParser sender(transport);
+   RESTParser sender;
    ElasticSearch restQuery(transport2, false);
    ASSERT_TRUE(restQuery.Initialize());
    int shards(3);
@@ -152,7 +152,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    EXPECT_EQ("PUT|/indexName/|{\"settings\":{\"index\":{\"number_of_shards\":3,\"number_of_replicas\":5}}}", command);
    std::string reply;
    transport2.mReturnString = transport.mReturnString = "{\"ok\":true,\"acknowledged\":true}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
    EXPECT_TRUE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
@@ -160,7 +160,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    EXPECT_TRUE(restQuery.CreateIndex("indexName", shards, replicas));
 
    transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexAlreadyExistsException[[indexName] Alread exists]\",\"status\":400}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_FALSE(restQuery.CreateIndex("indexName", shards, replicas));
@@ -171,14 +171,14 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    command = builder.GetIndexDeletion("indexName");
 
    EXPECT_EQ("DELETE|/indexName/", command);
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_TRUE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_TRUE(restQuery.DeleteIndex("indexName"));
 
    EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
    transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_FALSE(restQuery.DeleteIndex("indexName"));
@@ -190,7 +190,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
    MockBoomStick transport2("tcp://127.0.0.1:9700");
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
-   MockRESTParser sender(transport);
+   RESTParser sender;
    ElasticSearch restQuery(transport2, false);
    ASSERT_TRUE(restQuery.Initialize());
    int shards(3);
@@ -200,7 +200,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
    EXPECT_EQ("POST|/indexName/_close", command);
    std::string reply;
    transport2.mReturnString = transport.mReturnString = "{\"ok\":true,\"acknowledged\":true}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
    EXPECT_TRUE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
@@ -208,7 +208,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
    EXPECT_TRUE(restQuery.IndexClose("indexName"));
 
    transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
 
@@ -220,7 +220,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
 
    EXPECT_EQ("POST|/indexName/_open", command);
    transport2.mReturnString = transport.mReturnString = "{\"ok\":true,\"acknowledged\":true}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_TRUE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
 
@@ -228,7 +228,7 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
 
    EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
    transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_FALSE(restQuery.IndexOpen("indexName"));
@@ -240,7 +240,7 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    MockBoomStick transport2("tcp://127.0.0.1:9700");
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
-   MockRESTParser sender(transport);
+   RESTParser sender;
    ElasticSearch es(transport2, true);
    ASSERT_TRUE(es.Initialize());
    ElasticSearch esSync(transport, false);
@@ -253,13 +253,13 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    std::string reply;
    transport.mReturnString = "{\"ok\":true,\"_index\":\"indexName\",\"_type\":\"typeName\",\"_id\":\"abc_123\",\"_version\":1}";
 
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_EQ(transport.mReturnString, reply);
 
    EXPECT_TRUE(es.AddDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
 
    transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOK(reply));
    EXPECT_EQ(transport.mReturnString, reply);
    EXPECT_TRUE(es.AddDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
@@ -269,11 +269,11 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    EXPECT_EQ("POST|/indexName/typeName/abc_123/_update|{ \"doc\":{\"test\":\"data\"}}", command);
    transport.mReturnString = "{\"ok\":true,\"_index\":\"indexName\",\"_type\":\"typeName\","
            "\"_id\":\"abc_123\",\"_version\":3}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_EQ(transport.mReturnString, reply);
    EXPECT_TRUE(esSync.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
    transport.mReturnString = "{\"error\":\"DocumentMissingException[[indexName][4] [typeName][abc_123]: document missing]\",\"status\":404}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOK(reply));
    EXPECT_EQ(transport.mReturnString, reply);
    EXPECT_FALSE(esSync.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
@@ -284,18 +284,18 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    transport.mReturnString = "{\"ok\":true,\"found\":true,\"_index\":\"indexName\","
            "\"_type\":\"typeName\",\"_id\":\"abc_123\",\"_version\":1}";
 
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_TRUE(sender.IsOkAndFound(reply));
    EXPECT_TRUE(es.DeleteDoc("indexName", "typeName", "abc_123"));
    transport.mReturnString = "{\"ok\":true,\"found\":false,\"_index\":\"indexName\","
            "\"_type\":\"typeName\",\"_id\":\"abc_123\",\"_version\":1}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_TRUE(es.DeleteDoc("indexName", "typeName", "abc_123"));
    transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOK(reply));
    EXPECT_EQ(transport.mReturnString, reply);
    EXPECT_TRUE(es.DeleteDoc("indexName", "typeName", "abc_123"));
@@ -306,7 +306,7 @@ TEST_F(RESTBuilderTest, GetListOfIndexeNames) {
    MockBoomStick transport2("tcp://127.0.0.1:9700");
    ASSERT_TRUE(transport.Initialize());
    RESTBuilder builder;
-   MockRESTParser sender(transport);
+   RESTParser sender;
    std::string reply;
 
    std::string command = builder.GetIndexList();
@@ -316,7 +316,7 @@ TEST_F(RESTBuilderTest, GetListOfIndexeNames) {
    goodResult.close();
    ASSERT_FALSE(transport.mReturnString.empty());
 
-   EXPECT_TRUE(sender.Send(command, reply));
+   reply = transport.Send(command);
 
    std::set<std::string> indexes = sender.GetOrderedListOfIndexes(reply);
 
