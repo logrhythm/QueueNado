@@ -383,10 +383,6 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
 }
 #ifdef LR_DEBUG
 
-TEST_F(DiskCleanupTest, RemoveFilesNoLongerInES) {
-
-}
-
 TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
    if (geteuid() == 0) {
       std::string makeADir;
@@ -555,7 +551,4 @@ TEST_F(DiskCleanupTest, DontDeleteTheLastIndex) {
    EXPECT_EQ("network_12345", oldestIndex);
 }
 
-TEST_F(DiskCleanupTest, GetOldestTimeShouldntBeNowOnFailure) {
-
-}
 #endif

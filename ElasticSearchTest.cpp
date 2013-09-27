@@ -17,24 +17,24 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", "{something: true}"));
    }
    count = 0;
    target.mDrowzy = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", "{something: true}"));
    }
    count = 0;
    target.mDrowzy = false;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", "{something: true}"));
    }
    target.mReplyMessage.clear();
    target.mEmptyReplies = true;
    count = 0;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", "{something: true}"));
    }
 }
@@ -49,24 +49,24 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncAddDoc) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    count = 0;
    target.mDrowzy = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    count = 0;
    target.mDrowzy = false;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    target.mReplyMessage.clear();
    target.mEmptyReplies = true;
    count = 0;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
 }
@@ -81,25 +81,25 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncUpdateDoc) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    count = 0;
    target.mDrowzy = true;
-    target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
-   count = 0;  
+   count = 0;
    target.mDrowzy = false;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    target.mReplyMessage.clear();
    target.mEmptyReplies = true;
    count = 0;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
 }
@@ -114,24 +114,24 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncUpdateDoc) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    count = 0;
    target.mDrowzy = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    count = 0;
    target.mDrowzy = false;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
    target.mReplyMessage.clear();
    target.mEmptyReplies = true;
    count = 0;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
 }
@@ -139,7 +139,7 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncUpdateDoc) {
 TEST_F(ElasticSearchTest, g2LogMemoryGrowTest) {
    int count = 0;
 
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       LOG(DEBUG) << "Lets fill up memory !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
    }
 }
@@ -166,14 +166,14 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
            "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
 
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
       EXPECT_FALSE(recordsToUpdate.empty());
    }
    target.mReplyMessage = "{\"took\":8,\"timed_out\":false,\"_shards\":"
            "{\"total\":50,\"successful\":50,\"failed\":0},\"hits\":{\"total\":0,\"max_score\":null,\"hits\":[]}}";
    count = 0;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
       EXPECT_TRUE(recordsToUpdate.empty());
    }
@@ -188,14 +188,14 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_4\",\"_score\":12.650732},"
            "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
       EXPECT_TRUE(recordsToUpdate.empty());
    }
    target.mReplyMessage.clear();
    target.mEmptyReplies = true;
    count = 0;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
       EXPECT_TRUE(recordsToUpdate.empty());
    }
@@ -214,7 +214,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncGetListOfIndexeNames) {
    std::fstream goodResult("resources/goodClusterStatus", std::ios_base::in);
    goodResult >> target.mReplyMessage;
    goodResult.close();
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       indexNames = es.GetListOfIndexeNames();
       EXPECT_FALSE(indexNames.empty());
    }
@@ -241,7 +241,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncCreateIndex) {
    //   target.mReplyMessage.clear();
    count = 0;
    target.mEmptyReplies = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.CreateIndex("test", 1, 1));
    }
 }
@@ -261,18 +261,18 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncDeleteIndex) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"acknowledged\":true}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.DeleteIndex("test"));
    }
    count = 0;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.DeleteIndex("test"));
    }
    target.mReplyMessage.clear();
    count = 0;
    target.mEmptyReplies = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.DeleteIndex("test"));
    }
 }
@@ -292,18 +292,18 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncIndexClose) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"acknowledged\":true}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.IndexClose("test"));
    }
    count = 0;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.IndexClose("test"));
    }
    target.mReplyMessage.clear();
    count = 0;
    target.mEmptyReplies = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.IndexClose("test"));
    }
 }
@@ -323,18 +323,18 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncIndexOpen) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"acknowledged\":true}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.IndexOpen("test"));
    }
    count = 0;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.IndexOpen("test"));
    }
    target.mReplyMessage.clear();
    count = 0;
    target.mEmptyReplies = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.IndexOpen("test"));
    }
 }
@@ -354,18 +354,18 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncDeleteDoc) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.DeleteDoc("test", "meta", "123456789012345678901234567890123456"));
    }
    count = 0;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.DeleteDoc("test", "meta", "123456789012345678901234567890123456"));
    }
    target.mReplyMessage.clear();
    count = 0;
    target.mEmptyReplies = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.DeleteDoc("test", "meta", "123456789012345678901234567890123456"));
    }
 }
@@ -380,18 +380,18 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncDeleteDoc) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.DeleteDoc("test", "meta", "123456789012345678901234567890123456"));
    }
    count = 0;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.DeleteDoc("test", "meta", "123456789012345678901234567890123456"));
    }
    target.mReplyMessage.clear();
    count = 0;
    target.mEmptyReplies = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.DeleteDoc("test", "meta", "123456789012345678901234567890123456"));
    }
 }
@@ -406,18 +406,18 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRefreshDiskInfo) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123}]}}}}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.RefreshDiskInfo());
    }
    count = 0;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.RefreshDiskInfo());
    }
    target.mReplyMessage.clear();
    count = 0;
    target.mEmptyReplies = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.RefreshDiskInfo());
    }
 }
@@ -432,18 +432,18 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncRefreshDiskInfo) {
    target.BeginListenAndRepeat();
    int count = 0;
    target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123}]}}}}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.RefreshDiskInfo());
    }
    count = 0;
    target.mReplyMessage = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.RefreshDiskInfo());
    }
    target.mReplyMessage.clear();
    count = 0;
    target.mEmptyReplies = true;
-   while (count ++ < targetIterations && ! zctx_interrupted) {
+   while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.RefreshDiskInfo());
    }
 }
@@ -531,6 +531,66 @@ TEST_F(ElasticSearchTest, AsyncDoesnotSendReplies) {
    EXPECT_FALSE(es.ReplySent());
 }
 
+TEST_F(ElasticSearchTest, RunQueryGetIds) {
+}
+
+TEST_F(ElasticSearchTest, GetOldestNFiles) {
+
+}
+
+TEST_F(ElasticSearchTest, GetDiskInfo) {
+}
+
+TEST_F(ElasticSearchTest, DocCommandAsync) {
+
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, true);
+   
+   es.mReturnSendAndForgetCommandToWorker = true;
+   es.mRealSendAndForgetCommandToWorker = false;
+   EXPECT_TRUE(es.DocCommand("foo"));
+   EXPECT_FALSE(es.mRanSendAndGetReplyCommandToWorker);
+   EXPECT_TRUE(es.mRanSendAndForgetCommandToWorker);
+   
+}
+TEST_F(ElasticSearchTest, DocCommandAsyncFails) {
+
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, true);
+   
+   es.mReturnSendAndForgetCommandToWorker = false;
+   es.mRealSendAndForgetCommandToWorker = false;
+   EXPECT_FALSE(es.DocCommand("foo"));
+   EXPECT_FALSE(es.mRanSendAndGetReplyCommandToWorker);
+   EXPECT_TRUE(es.mRanSendAndForgetCommandToWorker);
+   
+}
+TEST_F(ElasticSearchTest, DocCommandSyncFails) {
+
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = false;
+   
+   EXPECT_FALSE(es.DocCommand("foo"));
+   EXPECT_TRUE(es.mRanSendAndGetReplyCommandToWorker);
+   EXPECT_FALSE(es.mRanSendAndForgetCommandToWorker);
+}
+TEST_F(ElasticSearchTest, DocCommandSync) {
+
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = true;
+   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":false}";
+   
+   EXPECT_TRUE(es.DocCommand("foo"));
+   EXPECT_TRUE(es.mRanSendAndGetReplyCommandToWorker);
+   EXPECT_FALSE(es.mRanSendAndForgetCommandToWorker);
+   es.mSendAndGetReplyReply = "{\"ok\":false,\"timed_out\":false}";
+   EXPECT_FALSE(es.DocCommand("foo"));
+   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":true}";
+}
 #else
 
 TEST_F(ElasticSearchTest, empty) {

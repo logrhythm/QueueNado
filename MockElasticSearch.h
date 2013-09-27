@@ -11,7 +11,22 @@ public:
 
    MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport, async), mFakeIndexList(true),
    mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true),
-   RunQueryGetIdsAlwaysPasses(false), RunQueryGetIdsAlwaysFails(false), mBulkUpdateResult(false) {
+   RunQueryGetIdsAlwaysPasses(false), RunQueryGetIdsAlwaysFails(false), mBulkUpdateResult(false),
+   mRealSendAndExpectOkAndAck(true),
+   mRealSendAndExpectOkAndFound(true),
+   mRealSendAndForgetCommandToWorker(true),
+   mRealSendAndGetReplyCommandToWorker(true),
+   mRealGetDiskInfo(true),
+   mRanSendAndExpectOkAndAck(false),
+   mRanSendAndExpectOkAndFound(false),
+   mRanSendAndForgetCommandToWorker(false),
+   mRanSendAndGetReplyCommandToWorker(false),
+   mRanGetDiskInfo(false),
+   mReturnSendAndExpectOkAndAck(false),
+   mReturnSendAndExpectOkAndFound(false),
+   mReturnSendAndForgetCommandToWorker(false),
+   mReturnSendAndGetReplyCommandToWorker(false),
+   mReturnGetDiskInfo(false){
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -28,7 +43,17 @@ public:
 
    MockElasticSearch(BoomStick& transport, bool async) : mMyTransport(""), ElasticSearch(transport, async), mFakeIndexList(true),
    mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true),
-   RunQueryGetIdsAlwaysPasses(false), RunQueryGetIdsAlwaysFails(false) {
+   RunQueryGetIdsAlwaysPasses(false), RunQueryGetIdsAlwaysFails(false),
+   mRealSendAndExpectOkAndAck(true),
+   mRealSendAndExpectOkAndFound(true),
+   mRealSendAndForgetCommandToWorker(true),
+   mRealSendAndGetReplyCommandToWorker(true),
+   mRealGetDiskInfo(true),
+   mRanSendAndExpectOkAndAck(false),
+   mRanSendAndExpectOkAndFound(false),
+   mRanSendAndForgetCommandToWorker(false),
+   mRanSendAndGetReplyCommandToWorker(false),
+   mRanGetDiskInfo(false) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -116,7 +141,7 @@ public:
 
    std::vector<std::tuple< std::string, std::string> > GetOldestNFiles(const unsigned int numberOfFiles,
            const std::string& path, IdsAndIndexes& relevantRecords, time_t& oldestTime) {
-      
+
       oldestTime = mOldestTime;
       return mOldestFiles;
    }
@@ -124,7 +149,47 @@ public:
    bool BulkUpdate(const IdsAndIndexes& idsAndIndex, const std::string& indexType, const std::string& jsonData) {
       return mBulkUpdateResult;
    }
-   
+
+   bool SendAndExpectOkAndAck(const std::string& command) {
+      mRanSendAndExpectOkAndAck = true;
+      if (mRealSendAndExpectOkAndAck) {
+         return ElasticSearch::SendAndExpectOkAndAck(command);
+      }
+      return mReturnSendAndExpectOkAndAck;
+   }
+
+   bool SendAndExpectOkAndFound(const std::string& command) {
+      mRanSendAndExpectOkAndFound = true;
+      if (mRealSendAndExpectOkAndFound) {
+         return ElasticSearch::SendAndExpectOkAndFound(command);
+      }
+      return mReturnSendAndExpectOkAndFound;
+   }
+
+   bool SendAndForgetCommandToWorker(const std::string& command) {
+      mRanSendAndForgetCommandToWorker = true;
+      if (mRealSendAndForgetCommandToWorker) {
+         return ElasticSearch::SendAndForgetCommandToWorker(command);
+      }
+      return mReturnSendAndForgetCommandToWorker;
+   }
+
+   bool SendAndGetReplyCommandToWorker(const std::string& command, std::string& reply) {
+      mRanSendAndGetReplyCommandToWorker = true;
+      if (mRealSendAndGetReplyCommandToWorker) {
+         return ElasticSearch::SendAndGetReplyCommandToWorker(command, reply);
+      }
+      reply = mSendAndGetReplyReply;
+      return mReturnSendAndGetReplyCommandToWorker;
+   }
+
+   bool GetDiskInfo(DiskInformation& diskInfo) {
+      mRanGetDiskInfo = true;
+      if (mRealGetDiskInfo) {
+         return ElasticSearch::GetDiskInfo(diskInfo);
+      }
+      return false;
+   }
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;
@@ -138,7 +203,23 @@ public:
    bool RunQueryGetIdsAlwaysFails;
    time_t mOldestTime;
    bool mBulkUpdateResult;
-   std::vector<std::tuple< std::string, std::string> > mOldestFiles;     
-
+   std::vector<std::tuple< std::string, std::string> > mOldestFiles;
+   bool mRealSendAndExpectOkAndAck;
+   bool mRealSendAndExpectOkAndFound;
+   bool mRealSendAndForgetCommandToWorker;
+   bool mRealSendAndGetReplyCommandToWorker;
+   bool mRealGetDiskInfo;
+   bool mRanSendAndExpectOkAndAck;
+   bool mRanSendAndExpectOkAndFound;
+   bool mRanSendAndForgetCommandToWorker;
+   bool mRanSendAndGetReplyCommandToWorker;
+   bool mRanGetDiskInfo;
+   bool mReturnSendAndExpectOkAndAck;
+   bool mReturnSendAndExpectOkAndFound;
+   bool mReturnSendAndForgetCommandToWorker;
+   bool mReturnSendAndGetReplyCommandToWorker;
+   bool mReturnGetDiskInfo;
+   std::string mSendAndGetReplyReply;
+   
 };
 #endif
