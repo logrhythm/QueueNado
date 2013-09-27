@@ -11,7 +11,7 @@ public:
 
    MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport, async), mFakeIndexList(true),
    mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true),
-   RunQueryGetIdsAlwaysPasses(false), RunQueryGetIdsAlwaysFails(false) {
+   RunQueryGetIdsAlwaysPasses(false), RunQueryGetIdsAlwaysFails(false), mBulkUpdateResult(false) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -116,11 +116,14 @@ public:
 
    std::vector<std::tuple< std::string, std::string> > GetOldestNFiles(const unsigned int numberOfFiles,
            const std::string& path, IdsAndIndexes& relevantRecords, time_t& oldestTime) {
-      std::vector<std::tuple< std::string, std::string> > oldestFiles;     
+      
       oldestTime = mOldestTime;
-      return oldestFiles;
+      return mOldestFiles;
    }
 
+   bool BulkUpdate(const IdsAndIndexes& idsAndIndex, const std::string& indexType, const std::string& jsonData) {
+      return mBulkUpdateResult;
+   }
    
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
@@ -134,6 +137,8 @@ public:
    std::vector<std::pair<std::string, std::string> > mQueryIdResults;
    bool RunQueryGetIdsAlwaysFails;
    time_t mOldestTime;
+   bool mBulkUpdateResult;
+   std::vector<std::tuple< std::string, std::string> > mOldestFiles;     
 
 };
 #endif
