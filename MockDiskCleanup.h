@@ -156,8 +156,13 @@ public:
    size_t IterationTargetToRemove(const size_t aTotalFiles) {
       return DiskCleanup::IterationTargetToRemove(aTotalFiles);
    }
-   LR_VIRTUAL bool LastIterationAmount(const size_t targetToRemove) {
+
+   bool LastIterationAmount(const size_t targetToRemove) {
       return DiskCleanup::LastIterationAmount(targetToRemove);
+   }
+
+   size_t CleanupMassiveOvershoot(const size_t targetToRemove, const size_t aTotalFiles) {
+      return DiskCleanup::CleanupMassiveOvershoot(targetToRemove, aTotalFiles);
    }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;

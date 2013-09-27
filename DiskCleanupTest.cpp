@@ -29,10 +29,10 @@ TEST_F(DiskCleanupTest, WayTooManyFiles) {
    EXPECT_FALSE(cleanup.WayTooManyFiles(0));
    EXPECT_FALSE(cleanup.WayTooManyFiles(59999));
    EXPECT_FALSE(cleanup.WayTooManyFiles(60000));
-   
+
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup0"; // file limit 0
    cleanup.ResetConf();
-   
+
    EXPECT_FALSE(cleanup.WayTooManyFiles(0)); // Don't add more to 100% of the files when we have a target of 0
 }
 
@@ -42,7 +42,7 @@ TEST_F(DiskCleanupTest, IterationTargetToRemove) {
    EXPECT_EQ(1000, cleanup.IterationTargetToRemove(1));
    EXPECT_EQ(1000, cleanup.IterationTargetToRemove(49999));
    EXPECT_EQ(1001, cleanup.IterationTargetToRemove(50001));
-   
+
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup0"; // file limit 0
    cleanup.ResetConf();
    EXPECT_EQ(0, cleanup.IterationTargetToRemove(0));
@@ -64,13 +64,29 @@ TEST_F(DiskCleanupTest, LastIterationAmount) {
    EXPECT_TRUE(cleanup.LastIterationAmount(1));
    EXPECT_FALSE(cleanup.LastIterationAmount(2));
    EXPECT_FALSE(cleanup.LastIterationAmount(1001));
-   
+
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup0"; // file limit 0
    cleanup.ResetConf();
    EXPECT_TRUE(cleanup.LastIterationAmount(0));
    EXPECT_TRUE(cleanup.LastIterationAmount(1));
    EXPECT_TRUE(cleanup.LastIterationAmount(2));
    EXPECT_TRUE(cleanup.LastIterationAmount(1001));
+}
+
+TEST_F(DiskCleanupTest, CleanupMassiveOvershoot) {
+   MockDiskCleanup cleanup(mConf);
+   mConf.mConfLocation = "resources/test.yaml.DiskCleanup0"; // file limit 0
+   cleanup.ResetConf();
+   EXPECT_EQ(100, cleanup.CleanupMassiveOvershoot(0, 1000));
+   EXPECT_EQ(110, cleanup.CleanupMassiveOvershoot(10, 1000));
+   EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(901, 1000));
+   EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(10000, 1000));
+   mConf.mConfLocation = "resources/test.yaml.DiskCleanup1"; // file limit 30000
+   cleanup.ResetConf();
+   EXPECT_EQ(100, cleanup.CleanupMassiveOvershoot(0, 30000+1000));
+   EXPECT_EQ(110, cleanup.CleanupMassiveOvershoot(10, 30000+1000));
+   EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(901, 30000+1000));
+   EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(10000, 30000+1000));
 }
 
 TEST_F(DiskCleanupTest, DISABLED_ValgrindGetOrderedMapOfFiles) {
