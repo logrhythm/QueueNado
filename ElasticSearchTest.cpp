@@ -532,50 +532,90 @@ TEST_F(ElasticSearchTest, AsyncDoesnotSendReplies) {
 }
 
 TEST_F(ElasticSearchTest, RunQueryGetIds) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   const std::string indexType("foo");
+   const std::string query("bar");
+   std::vector<std::pair<std::string, std::string> > recordsToUpdate;
+   const int recordsToQuery(1000);
+   const bool cache(true);
+
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = true;
+   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":false}";
+
+   EXPECT_TRUE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
+   
+   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":true}";
+   EXPECT_FALSE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
+   
+   es.mSendAndGetReplyReply = "BAD_REQUEST";
+   EXPECT_TRUE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
+}
+
+TEST_F(ElasticSearchTest, RunQueryGetIdsFailed) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   const std::string indexType("foo");
+   const std::string query("bar");
+   std::vector<std::pair<std::string, std::string> > recordsToUpdate;
+   const int recordsToQuery(1000);
+   const bool cache(true);
+   
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = false;
+   EXPECT_FALSE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
 }
 
 TEST_F(ElasticSearchTest, GetOldestNFiles) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, true);
 
 }
 
 TEST_F(ElasticSearchTest, GetDiskInfo) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, true);
 }
 
 TEST_F(ElasticSearchTest, DocCommandAsync) {
 
    MockBoomStick transport("tcp://127.0.0.1:9700");
    MockElasticSearch es(transport, true);
-   
+
    es.mReturnSendAndForgetCommandToWorker = true;
    es.mRealSendAndForgetCommandToWorker = false;
    EXPECT_TRUE(es.DocCommand("foo"));
    EXPECT_FALSE(es.mRanSendAndGetReplyCommandToWorker);
    EXPECT_TRUE(es.mRanSendAndForgetCommandToWorker);
-   
+
 }
+
 TEST_F(ElasticSearchTest, DocCommandAsyncFails) {
 
    MockBoomStick transport("tcp://127.0.0.1:9700");
    MockElasticSearch es(transport, true);
-   
+
    es.mReturnSendAndForgetCommandToWorker = false;
    es.mRealSendAndForgetCommandToWorker = false;
    EXPECT_FALSE(es.DocCommand("foo"));
    EXPECT_FALSE(es.mRanSendAndGetReplyCommandToWorker);
    EXPECT_TRUE(es.mRanSendAndForgetCommandToWorker);
-   
+
 }
+
 TEST_F(ElasticSearchTest, DocCommandSyncFails) {
 
    MockBoomStick transport("tcp://127.0.0.1:9700");
    MockElasticSearch es(transport, false);
    es.mRealSendAndGetReplyCommandToWorker = false;
    es.mReturnSendAndGetReplyCommandToWorker = false;
-   
+
    EXPECT_FALSE(es.DocCommand("foo"));
    EXPECT_TRUE(es.mRanSendAndGetReplyCommandToWorker);
    EXPECT_FALSE(es.mRanSendAndForgetCommandToWorker);
 }
+
 TEST_F(ElasticSearchTest, DocCommandSync) {
 
    MockBoomStick transport("tcp://127.0.0.1:9700");
@@ -583,7 +623,7 @@ TEST_F(ElasticSearchTest, DocCommandSync) {
    es.mRealSendAndGetReplyCommandToWorker = false;
    es.mReturnSendAndGetReplyCommandToWorker = true;
    es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":false}";
-   
+
    EXPECT_TRUE(es.DocCommand("foo"));
    EXPECT_TRUE(es.mRanSendAndGetReplyCommandToWorker);
    EXPECT_FALSE(es.mRanSendAndForgetCommandToWorker);

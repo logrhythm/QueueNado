@@ -124,8 +124,9 @@ public:
       mSocketClass->mReplySent = set;
    }
 
-   bool RunQueryGetIds(const std::string& indexType, const std::string& query,
-           std::vector<std::pair<std::string, std::string> > & matches) {
+   bool RunQueryGetIds(const std::string& indexName, const std::string& query, 
+      std::vector<std::pair<std::string, std::string> >& recordsToUpdate, const int recordsToQuery=40,
+      const bool cache=NO_CACHE)  {
       if (RunQueryGetIdsAlwaysPasses) {
          return true;
       }
@@ -133,9 +134,9 @@ public:
          return false;
       }
       if (mQueryIdResults.empty()) {
-         return ElasticSearch::RunQueryGetIds(indexType, query, matches);
+         return ElasticSearch::RunQueryGetIds(indexName, query, recordsToUpdate, recordsToQuery, cache);
       }
-      matches = mQueryIdResults;
+      recordsToUpdate = mQueryIdResults;
       return true;
    }
 
