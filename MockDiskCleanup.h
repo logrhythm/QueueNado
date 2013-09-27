@@ -37,8 +37,8 @@ public:
    void CleanupOldPcapFiles(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
            std::time_t& currentTime, size_t& aDiskUsed,
            size_t& aTotalFiles,
-        const DiskSpace& probeDiskInGB,
-        DiskSpace& pcapDiskInGB) {
+           const DiskSpace& probeDiskInGB,
+           DiskSpace& pcapDiskInGB) {
       DiskCleanup::CleanupOldPcapFiles(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, probeDiskInGB, pcapDiskInGB);
    }
 
@@ -62,35 +62,35 @@ public:
       return false;
    }
 
-   void GetPcapStoreUsage(DiskSpace& pcapDiskInGB, 
-                          const DiskUsage::Size size) {
-         if (mRealFilesSystemAccess) {
-            DiskCleanup::GetPcapStoreUsage(pcapDiskInGB, size);
-         }  else {
-            struct statvfs mockStatvs;
-            mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
-            mockStatvs.f_frsize = mFleSystemInfo.f_frsize;
-            mockStatvs.f_blocks = mFleSystemInfo.f_blocks;
-            mockStatvs.f_bfree = mFleSystemInfo.f_bfree;
-            mockStatvs.f_bavail = 1;
-            mockStatvs.f_files = 1;
-            mockStatvs.f_ffree = 1;
-            mockStatvs.f_favail = 1;
-            MockDiskUsage disk(mockStatvs);
+   void GetPcapStoreUsage(DiskSpace& pcapDiskInGB,
+           const DiskUsage::Size size) {
+      if (mRealFilesSystemAccess) {
+         DiskCleanup::GetPcapStoreUsage(pcapDiskInGB, size);
+      } else {
+         struct statvfs mockStatvs;
+         mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
+         mockStatvs.f_frsize = mFleSystemInfo.f_frsize;
+         mockStatvs.f_blocks = mFleSystemInfo.f_blocks;
+         mockStatvs.f_bfree = mFleSystemInfo.f_bfree;
+         mockStatvs.f_bavail = 1;
+         mockStatvs.f_files = 1;
+         mockStatvs.f_ffree = 1;
+         mockStatvs.f_favail = 1;
+         MockDiskUsage disk(mockStatvs);
 
-            disk.Update();
-            pcapDiskInGB.Free = disk.DiskFree(size);
-            pcapDiskInGB.Total = disk.DiskTotal(size); 
-            pcapDiskInGB.Used = disk.DiskUsed(size); 
-         }
+         disk.Update();
+         pcapDiskInGB.Free = disk.DiskFree(size);
+         pcapDiskInGB.Total = disk.DiskTotal(size);
+         pcapDiskInGB.Used = disk.DiskUsed(size);
+      }
    }
 
-   void GetProbeFileSystemInfo(DiskSpace& probeDiskInGB, 
-                               const DiskUsage::Size size) {
+   void GetProbeFileSystemInfo(DiskSpace& probeDiskInGB,
+           const DiskUsage::Size size) {
       if (!mFailFileSystemInfo) {
          if (mRealFilesSystemAccess) {
-            DiskCleanup::GetProbeFileSystemInfo(probeDiskInGB,size);
-         }  else {
+            DiskCleanup::GetProbeFileSystemInfo(probeDiskInGB, size);
+         } else {
             struct statvfs mockStatvs;
             mockStatvs.f_bsize = mFleSystemInfo.f_bsize;
             mockStatvs.f_frsize = mFleSystemInfo.f_frsize;
@@ -104,8 +104,8 @@ public:
 
             disk.Update();
             probeDiskInGB.Free = disk.DiskFree(size);
-            probeDiskInGB.Total = disk.DiskTotal(size); 
-            probeDiskInGB.Used = disk.DiskUsed(size); 
+            probeDiskInGB.Total = disk.DiskTotal(size);
+            probeDiskInGB.Used = disk.DiskUsed(size);
          }
       }
       if (mFileSystemInfoCountdown-- == 1) {
@@ -114,31 +114,50 @@ public:
       return;
    }
 
-   void CleanupSearch(bool canSendStats, PacketCaptureFilesystemDetails& previous, 
+   void CleanupSearch(bool canSendStats, PacketCaptureFilesystemDetails& previous,
            ElasticSearch& es, SendStats& sendQueue, DiskSpace& probeDiskUsage) {
       return DiskCleanup::CleanupSearch(canSendStats, previous, es, sendQueue, probeDiskUsage);
    }
-
 
    std::string GetOldestIndex(ElasticSearch& es) {
       return DiskCleanup::GetOldestIndex(es);
    }
 
+   const Conf& GetConf() {
+      return DiskCleanup::GetConf();
+   }
 
-   const Conf& GetConf() { return DiskCleanup::GetConf(); }
-
-
-   std::vector< std::tuple< std::string, std::string> >& 
-                 GetOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime) {
-      return DiskCleanup::GetOlderFilesFromPath(path,oldestTime);
+   std::vector< std::tuple< std::string, std::string> >&
+   GetOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime) {
+      return DiskCleanup::GetOlderFilesFromPath(path, oldestTime);
    }
 
    void MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, ElasticSearch& es) {
       DiskCleanup::MarkFilesAsRemovedInES(relevantRecords, es);
    }
+
    size_t BruteForceCleanupOfOldFiles(const boost::filesystem::path& path,
-                     const time_t theOldestTime, size_t& additionalSizeRemoved) {
-      return DiskCleanup::BruteForceCleanupOfOldFiles( path,theOldestTime,additionalSizeRemoved);
+           const time_t theOldestTime, size_t& additionalSizeRemoved) {
+      return DiskCleanup::BruteForceCleanupOfOldFiles(path, theOldestTime, additionalSizeRemoved);
+   }
+
+   bool TimeForBruteForceCleanup() {
+      return DiskCleanup::TimeForBruteForceCleanup();
+   }
+
+   void SetLastForcedClean(const time_t newTime) {
+      DiskCleanup::SetLastForcedClean(newTime);
+   }
+
+   bool WayTooManyFiles(const size_t aTotalFiles) {
+      return DiskCleanup::WayTooManyFiles(aTotalFiles);
+   }
+
+   size_t IterationTargetToRemove(const size_t aTotalFiles) {
+      return DiskCleanup::IterationTargetToRemove(aTotalFiles);
+   }
+   LR_VIRTUAL bool LastIterationAmount(const size_t targetToRemove) {
+      return DiskCleanup::LastIterationAmount(targetToRemove);
    }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
