@@ -175,9 +175,9 @@ TEST_F(BoomStickTest, AsyncSendMultipleTimesOnOneId) {
    ASSERT_TRUE(stick.SendAsync(id, "foo2"));
 
    std::string reply;
-   ASSERT_TRUE(stick.GetAsyncReply(id,1,reply));
+   ASSERT_TRUE(stick.GetAsyncReply(id,10,reply));
    EXPECT_EQ("foo1 reply", reply);
-   ASSERT_FALSE(stick.GetAsyncReply(id,1,reply));
+   ASSERT_FALSE(stick.GetAsyncReply(id,10,reply));
 
    target.EndListendAndRepeat();
 
