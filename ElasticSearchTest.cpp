@@ -83,12 +83,35 @@ TEST_F(ElasticSearchTest, BulkUpdateFailures) {
    ids.emplace_back("test1","testa");
    ids.emplace_back("test2","testb");
    MockBoomStick stick{mAddress};
-   MockElasticSearch es1(stick,true);
-   ASSERT_TRUE(es1.Initialize());
-   EXPECT_FALSE(es1.BulkUpdate(ids,"testing","{\"this\":\"that\"}"));
    MockElasticSearch es2(stick,false);
+   es2.mFakeBulkUpdate = false;
    EXPECT_FALSE(es2.BulkUpdate(ids,"testing","{\"this\":\"that\"}"));
 }
+TEST_F(ElasticSearchTest, DeleteDocFailures) {
+
+   MockBoomStick stick{mAddress};
+   MockElasticSearch es2(stick,false);
+   
+   EXPECT_FALSE(es2.DeleteDoc("test","testing","123456789012345678901234567890123456"));
+}
+TEST_F(ElasticSearchTest, DeleteDoc) {
+ 
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   IdsAndIndexes ids;
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   ASSERT_TRUE(es.DeleteDoc("test","testing","123456789012345678901234567890123456"));
+   EXPECT_EQ("DELETE|/test/testing/123456789012345678901234567890123456"
+           ,target.mLastRequest);
+   
+}
+
 TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};

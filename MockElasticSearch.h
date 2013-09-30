@@ -26,7 +26,8 @@ public:
    mReturnSendAndExpectOkAndFound(false),
    mReturnSendAndForgetCommandToWorker(false),
    mReturnSendAndGetReplyCommandToWorker(false),
-   mReturnGetDiskInfo(false){
+   mReturnGetDiskInfo(false),
+   mFakeBulkUpdate(true){
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -87,19 +88,19 @@ public:
       if (mFakeDeleteIndex) {
          return mFakeDeleteValue;
       }
-      ElasticSearch::DeleteIndex(indexName);
+      return ElasticSearch::DeleteIndex(indexName);
    }
 
    LR_VIRTUAL bool IndexClose(const std::string& indexName) {
-      ElasticSearch::IndexClose(indexName);
+      return ElasticSearch::IndexClose(indexName);
    }
 
    LR_VIRTUAL bool IndexOpen(const std::string& indexName) {
-      ElasticSearch::IndexOpen(indexName);
+      return ElasticSearch::IndexOpen(indexName);
    }
 
    LR_VIRTUAL bool AddDoc(const std::string& indexName, const std::string& indexType, const std::string& id, const std::string& jsonData) {
-      ElasticSearch::AddDoc(indexName, indexType, id, jsonData);
+      return ElasticSearch::AddDoc(indexName, indexType, id, jsonData);
    }
 
    LR_VIRTUAL bool UpdateDoc(const std::string& indexName, const std::string& indexType, const std::string& id, const std::string& jsonData) {
@@ -109,11 +110,11 @@ public:
       if (mUpdateDocAlwaysPasses) {
          return true;
       }
-      ElasticSearch::UpdateDoc(indexName, indexType, id, jsonData);
+      return ElasticSearch::UpdateDoc(indexName, indexType, id, jsonData);
    }
 
    LR_VIRTUAL bool DeleteDoc(const std::string& indexName, const std::string& indexType, const std::string& id) {
-      ElasticSearch::DeleteDoc(indexName, indexType, id);
+      return ElasticSearch::DeleteDoc(indexName, indexType, id);
    }
 
    bool ReplySent() {
@@ -148,7 +149,10 @@ public:
    }
 
    bool BulkUpdate(const IdsAndIndexes& idsAndIndex, const std::string& indexType, const std::string& jsonData) {
-      return mBulkUpdateResult;
+      if (mFakeBulkUpdate) {
+         return mBulkUpdateResult;
+      }
+      return ElasticSearch::BulkUpdate(idsAndIndex,indexType,jsonData);
    }
 
    bool SendAndExpectOkAndAck(const std::string& command) {
@@ -212,6 +216,7 @@ public:
    bool mReturnSendAndForgetCommandToWorker;
    bool mReturnSendAndGetReplyCommandToWorker;
    bool mReturnGetDiskInfo;
+   bool mFakeBulkUpdate;
    std::string mSendAndGetReplyReply;
    
 };
