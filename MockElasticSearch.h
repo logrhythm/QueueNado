@@ -159,14 +159,6 @@ public:
       return mReturnSendAndExpectOkAndAck;
    }
 
-   bool SendAndExpectOkAndFound(const std::string& command) {
-      mRanSendAndExpectOkAndFound = true;
-      if (mRealSendAndExpectOkAndFound) {
-         return ElasticSearch::SendAndExpectOkAndFound(command);
-      }
-      return mReturnSendAndExpectOkAndFound;
-   }
-
    bool SendAndForgetCommandToWorker(const std::string& command) {
       mRanSendAndForgetCommandToWorker = true;
       if (mRealSendAndForgetCommandToWorker) {
