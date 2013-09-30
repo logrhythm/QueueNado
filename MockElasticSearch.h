@@ -187,6 +187,20 @@ public:
       }
       return false;
    }
+   
+   void BoostDiskInfo() {
+      /*typedef std::map<std::string, std::string>*/
+      DiskInfoStrings diskInfo;
+      /*typedef std::map<std::string, uint64_t>*/
+      DiskInfoIntegers diskInts;
+      /*typedef std::tuple< DiskInfoStrings, DiskInfoIntegers>*/
+      SingleDiskInfo foo(diskInfo,diskInts);
+      
+      /*typedef std::map<std::string, SingleDiskInfo >*/
+      for (int i = 0 ; i < 100 ; i++ ) {
+         mDiskInfo[std::to_string(i)] = foo;
+      }
+   }
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;

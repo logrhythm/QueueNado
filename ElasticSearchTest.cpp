@@ -111,7 +111,34 @@ TEST_F(ElasticSearchTest, DeleteDoc) {
            ,target.mLastRequest);
    
 }
+TEST_F(ElasticSearchTest, RefreshDiskInfoFailures) {
+   IdsAndIndexes ids;
+   ids.emplace_back("test1","testa");
+   ids.emplace_back("test2","testb");
+   MockBoomStick stick{mAddress};
+   MockElasticSearch es2(stick,false);
+   EXPECT_FALSE(es2.RefreshDiskInfo());
+   MockElasticSearch es1(stick,true);
+   ASSERT_TRUE(es1.Initialize());
+   es1.BoostDiskInfo(); // to exercise a log path
+   EXPECT_FALSE(es1.RefreshDiskInfo());
+   es2.BoostDiskInfo();
 
+}
+TEST_F(ElasticSearchTest, RefreshDiskInfo) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123}]}}}}";
+   
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   
+}
 TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
