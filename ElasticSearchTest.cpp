@@ -20,6 +20,31 @@ TEST_F(ElasticSearchTest, DoNothingFor31Seconds) {
    
 }
 
+TEST_F(ElasticSearchTest, TransportCannotInit) {
+   MockBoomStick stick{mAddress};
+   stick.mFailsInit = true;
+   ElasticSearch es(stick,false);
+   ASSERT_FALSE(es.Initialize());
+   
+}
+
+TEST_F(ElasticSearchTest, TransportCannotCreateContext) {
+   MockBoomStick stick{mAddress};
+   stick.mFailsGetNewContext = true;
+   ElasticSearch es(stick,false);
+   ASSERT_FALSE(es.Initialize());
+   
+}
+
+TEST_F(ElasticSearchTest, SendAndForgetFailures) {
+ 
+   MockBoomStick stick{mAddress};
+   MockElasticSearch es1(stick,false);
+   ASSERT_TRUE(es1.Initialize());
+   ASSERT_FALSE(es1.SendAndForgetCommandToWorker("foo"));
+   MockElasticSearch es2(stick,true);
+   ASSERT_FALSE(es2.SendAndForgetCommandToWorker("bar"));
+}
 TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
