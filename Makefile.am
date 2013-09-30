@@ -79,7 +79,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
 DYNAMIC_LIBS=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log \
-             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem
+             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal 
 
 ZMQTest_LDADD=${DYNAMIC_LIBS}
 ZMQTest_LDFLAGS=${BASE_LIBS}
