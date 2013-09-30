@@ -545,10 +545,10 @@ TEST_F(ElasticSearchTest, RunQueryGetIds) {
    es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":false}";
 
    EXPECT_TRUE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
-   
+
    es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":true}";
    EXPECT_FALSE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
-   
+
    es.mSendAndGetReplyReply = "BAD_REQUEST";
    EXPECT_TRUE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
 }
@@ -561,21 +561,59 @@ TEST_F(ElasticSearchTest, RunQueryGetIdsFailed) {
    std::vector<std::pair<std::string, std::string> > recordsToUpdate;
    const int recordsToQuery(1000);
    const bool cache(true);
-   
+
    es.mRealSendAndGetReplyCommandToWorker = false;
    es.mReturnSendAndGetReplyCommandToWorker = false;
    EXPECT_FALSE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
 }
 
+TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   std::vector<std::tuple< std::string, std::string> > oldestFiles;
+   const unsigned int numberOfFiles(100);
+   const std::string path("/tmp");
+   IdsAndIndexes relevantRecords;
+   time_t oldestTime = 123456789;
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = false;
+   oldestFiles.emplace_back("foo", "bar");
+   relevantRecords.emplace_back("foo", "bar");
+   oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
+   EXPECT_EQ(0,oldestTime);
+   EXPECT_TRUE(oldestFiles.empty());
+   EXPECT_TRUE(relevantRecords.empty());
+   
+}
 TEST_F(ElasticSearchTest, GetOldestNFiles) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   MockElasticSearch es(transport, true);
-
+   MockElasticSearch es(transport, false);
+   std::vector<std::tuple< std::string, std::string> > oldestFiles;
+   const unsigned int numberOfFiles(100);
+   const std::string path("/tmp");
+   IdsAndIndexes relevantRecords;
+   time_t oldestTime = 123456789;
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = true;
+   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":false}";
+   oldestFiles.emplace_back("foo", "bar");
+   relevantRecords.emplace_back("foo", "bar");
+   oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
+   EXPECT_NE(0,oldestTime);
+   EXPECT_TRUE(oldestFiles.empty());
+   EXPECT_TRUE(relevantRecords.empty());
+   
+   es.mSendAndGetReplyReply.clear();
+   oldestFiles.emplace_back("foo", "bar");
+   relevantRecords.emplace_back("foo", "bar");
+   oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
+   EXPECT_EQ(0,oldestTime);
+   EXPECT_TRUE(oldestFiles.empty());
+   EXPECT_TRUE(relevantRecords.empty());
 }
-
 TEST_F(ElasticSearchTest, GetDiskInfo) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   MockElasticSearch es(transport, true);
+   MockElasticSearch es(transport, false);
 }
 
 TEST_F(ElasticSearchTest, DocCommandAsync) {
