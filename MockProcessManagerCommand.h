@@ -2,6 +2,8 @@
 #include "ProcessManager.h"
 #include "Conf.h"
 #include <g2log.hpp>
+#include <string>
+#include <vector>
 
 class MockProcessManagerCommand : public ProcessManager {
 public:
@@ -25,6 +27,15 @@ public:
    const std::string& getRunArgs() {
       return mRunArgs;
    }
+   
+   const std::vector<std::string>& getTotalRunCommands() {
+      return mTotalRunCommands;
+   }
+
+   const std::vector<std::string>& getTotalRunArgs() {
+      return mTotalRunArgs;
+   }
+   
 
    virtual void setInit(bool init) {
       mInit = init;
@@ -52,6 +63,9 @@ public:
       mRunCommand = execPath;
       mRunArgs.clear();
       mRunArgs = args;
+      mTotalRunCommands.push_back(mRunCommand);
+      mTotalRunArgs.push_back(mRunArgs);
+      
       protoMsg::ProcessReply reply;
       reply.set_success(mSuccess);
       reply.set_returncode(mReturnCode);
@@ -70,5 +84,8 @@ public:
    std::string mResult;
    std::string mRunCommand;
    std::string mRunArgs;
+   std::vector<std::string>  mTotalRunCommands;
+   std::vector<std::string>  mTotalRunArgs;
+   
    private:
 };
