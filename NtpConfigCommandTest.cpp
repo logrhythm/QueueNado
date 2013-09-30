@@ -126,12 +126,11 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveMaster__ExpectingValidCmd) {
    EXPECT_EQ(allCmds[1], "ntpdate");
    EXPECT_EQ(allArgs[1], "-q 10.128.64.251"); 
 
-   EXPECT_EQ(allCmds[3], "ntpdate");
-   EXPECT_EQ(allArgs[3], "-s 10.128.64.251");
+   EXPECT_EQ(allCmds[2], "ntpdate");
+   EXPECT_EQ(allArgs[2], "-s 10.128.64.251");
 
-
-   EXPECT_EQ(allCmds[4], "service");
-   EXPECT_EQ(allArgs[4], "ntpd start");
+   EXPECT_EQ(allCmds[3], "service");
+   EXPECT_EQ(allArgs[3], "ntpd start");
    
    auto cmd = autoManagedManager->getRunCommand();
    auto cmdArgs = autoManagedManager->getRunArgs();
@@ -238,6 +237,39 @@ TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd) {
       ASSERT_TRUE(reply.success());
    }
 } 
+
+TEST_F(NtpConfigCommandTest, ThrowTests) {
+   protoMsg::Ntp ntp;
+   ntp.set_master_server("10.128.64.251");
+   ntp.set_backup_server("10.128.64.252");
+   cmd.set_stringargone(ntp.SerializeAsString());
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   autoManagedManager->mSuccess = true;
+   // IsServerAlive should NEVER throw internally 
+   EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.251"));
+   EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.252"));
+   autoManagedManager->mSuccess = false;
+   EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.251"));
+   EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.252"));
+   
+   
+   autoManagedManager->mSuccess = true;
+   EXPECT_NO_THROW(doIt.ForceTimeSync("10.128.64.251"));
+   autoManagedManager->mSuccess = false;
+   EXPECT_NO_THROW(doIt.ForceTimeSync("10.128.64.251"));
+   
+   autoManagedManager->mSuccess = true;
+   EXPECT_NO_THROW(doIt.TriggerNtpdChange());
+   autoManagedManager->mSuccess = false;
+   EXPECT_ANY_THROW( doIt.TriggerNtpdChange());
+   EXPECT_EQ(doIt.throwCounter, 0);
+   
+   doIt.willFakeThrow = true;
+   EXPECT_NO_THROW( doIt.TriggerNtpdChange()); // throws are caught
+   EXPECT_EQ(doIt.throwCounter, 3); // IsAny server alive + ForceTimeSync + restart
+}
+
+
 
 //
 // Do not execute this test or other "REAL" tests below it

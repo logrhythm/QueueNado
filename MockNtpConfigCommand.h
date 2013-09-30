@@ -14,10 +14,14 @@
 struct MockNtpConfigCommand : public NtpConfigCommand {
 
    MockNtpConfigCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager)
-   : NtpConfigCommand(request, processManager) {
+   : NtpConfigCommand(request, processManager), throwCounter(0), willFakeThrow(false) {
    }
 
    ~MockNtpConfigCommand() {
+   }
+   
+   LR_VIRTUAL void TriggerNtpdChange() LR_OVERRIDE {
+      return NtpConfigCommand::TriggerNtpdChange();
    }
 
    protoMsg::ProcessReply IsServerAlive(const std::string& server) LR_OVERRIDE {
@@ -54,6 +58,23 @@ struct MockNtpConfigCommand : public NtpConfigCommand {
       return reply;
    }
 
-
+   void ReportUnexpectedResult(protoMsg::ProcessReply& result,
+                      const std::string& command, const std::string commandArgs) LR_OVERRIDE{
+      if(false == willFakeThrow) {
+         NtpConfigCommand::ReportUnexpectedResult(result, command, commandArgs);
+         return;
+      }
+      
+      try{
+         NtpConfigCommand::ReportUnexpectedResult(result, command, commandArgs);
+      } catch(...) {
+         throwCounter++;
+         return;
+      } 
+   }
+   
+   
    std::string oneServerAlive;
+   size_t throwCounter;
+   bool willFakeThrow;
 };
