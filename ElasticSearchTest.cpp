@@ -112,9 +112,7 @@ TEST_F(ElasticSearchTest, DeleteDoc) {
    
 }
 TEST_F(ElasticSearchTest, RefreshDiskInfoFailures) {
-   IdsAndIndexes ids;
-   ids.emplace_back("test1","testa");
-   ids.emplace_back("test2","testb");
+
    MockBoomStick stick{mAddress};
    MockElasticSearch es2(stick,false);
    EXPECT_FALSE(es2.RefreshDiskInfo());
@@ -122,7 +120,6 @@ TEST_F(ElasticSearchTest, RefreshDiskInfoFailures) {
    ASSERT_TRUE(es1.Initialize());
    es1.BoostDiskInfo(); // to exercise a log path
    EXPECT_FALSE(es1.RefreshDiskInfo());
-   es2.BoostDiskInfo();
 
 }
 TEST_F(ElasticSearchTest, RefreshDiskInfo) {
@@ -137,6 +134,93 @@ TEST_F(ElasticSearchTest, RefreshDiskInfo) {
    target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123}]}}}}";
    
    ASSERT_TRUE(es.RefreshDiskInfo());
+   
+}
+
+TEST_F(ElasticSearchTest, GetClusterNames) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123}]}}}}";
+   std::vector<std::string> clusterNames = es.GetClusterNames();
+   EXPECT_TRUE(clusterNames.empty());
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   clusterNames = es.GetClusterNames();
+   ASSERT_EQ(1,clusterNames.size());
+   EXPECT_EQ("foo",clusterNames[0]);
+   
+}
+TEST_F(ElasticSearchTest, GetTotalWrites) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_writes\": 12345}]}}}}";
+   uint64_t clusterWrites= es.GetTotalWrites("foo");
+   EXPECT_EQ(0,clusterWrites);
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   clusterWrites = es.GetTotalWrites("foo");
+   ASSERT_EQ(12345,clusterWrites);
+   
+}
+TEST_F(ElasticSearchTest, GetTotalReads) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_reads\": 12345}]}}}}";
+   uint64_t clusterWrites= es.GetTotalReads("foo");
+   EXPECT_EQ(0,clusterWrites);
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   clusterWrites = es.GetTotalReads("foo");
+   ASSERT_EQ(12345,clusterWrites);
+   
+}
+TEST_F(ElasticSearchTest, GetTotalWriteBytes) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_write_size_in_bytes\": 12345}]}}}}";
+   uint64_t clusterWrites= es.GetTotalWriteBytes("foo");
+   EXPECT_EQ(0,clusterWrites);
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   clusterWrites = es.GetTotalWriteBytes("foo");
+   ASSERT_EQ(12345,clusterWrites);
+   
+}
+TEST_F(ElasticSearchTest, GetTotalReadBytes) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_read_size_in_bytes\": 12345}]}}}}";
+   uint64_t clusterWrites= es.GetTotalReadBytes("foo");
+   EXPECT_EQ(0,clusterWrites);
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   clusterWrites = es.GetTotalReadBytes("foo");
+   ASSERT_EQ(12345,clusterWrites);
    
 }
 TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
