@@ -828,6 +828,53 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    EXPECT_EQ(0,oldestTime);
    EXPECT_TRUE(oldestFiles.empty());
    EXPECT_TRUE(relevantRecords.empty());
+   
+   es.mSendAndGetReplyReply = "OK|200|"
+           "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
+           "\"hits\":{\"total\":8735564,\"max_score\":null,"
+              "\"hits\":"
+                 "["
+                    "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
+                    "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
+                    "{"
+                       "\"timeUpdated\":\"2013/09/30 00:00:00\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+                    "},"
+                    "\"sort\":[1380499200000]"
+                    "}"
+                 "]"
+              "}"
+           "}";
+                                                  
+   oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
+   EXPECT_EQ(1380495600,oldestTime);
+   ASSERT_FALSE(oldestFiles.empty());
+   EXPECT_EQ("/tmp/f4d63941-af67-4b76-8e68-ba0f0b5366ff",
+           std::get<0>(oldestFiles[0]));
+   EXPECT_EQ("f4d63941-af67-4b76-8e68-ba0f0b5366ff",
+           std::get<1>(oldestFiles[0]));
+   ASSERT_FALSE(relevantRecords.empty());
+   EXPECT_EQ("network_2013_09_30",
+           std::get<1>(relevantRecords[0]));
+   EXPECT_EQ("f4d63941-af67-4b76-8e68-ba0f0b5366ff",
+           std::get<0>(relevantRecords[0]));
+   
+   es.mSendAndGetReplyReply = "OK|200|"
+           "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
+           "\"hits\":{\"total\":8735564,\"max_score\":null,"
+              "\"hits\":"
+                 "["
+                    "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
+                    "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
+                    "{"
+                       "\"timeUpdated\":\"NIL/NIL\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+                    "},"
+                    "\"sort\":[1380499200000]"
+                    "}"
+                 "]"
+              "}"
+           "}";
+   oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
+   EXPECT_EQ(0,oldestTime);
 }
 TEST_F(ElasticSearchTest, GetDiskInfo) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
