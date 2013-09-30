@@ -81,6 +81,7 @@ public:
             // Last one is the actual message
             char* msgChar = zmsg_popstr(msg);
             std::string reply = msgChar;
+            mLastRequest = reply;
             free(msgChar);
             if (mReplyMessage.empty() && !mEmptyReplies) {
                reply += " reply";
@@ -139,6 +140,7 @@ public:
    }
 
    std::string mReplyMessage;
+   std::string mLastRequest;
    bool mEmptyReplies;
    bool mDrowzy;
 private:

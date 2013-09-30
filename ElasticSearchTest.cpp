@@ -53,6 +53,42 @@ TEST_F(ElasticSearchTest, GetListOfIndexeNamesFailures) {
    ASSERT_TRUE(returnSet.empty());
 }
 
+TEST_F(ElasticSearchTest, BulkUpdate) {
+ 
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   IdsAndIndexes ids;
+   
+   ids.emplace_back("test1","testa");
+   ids.emplace_back("test2","testb");
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   ASSERT_TRUE(es.BulkUpdate(ids,"testing","{\"this\":\"that\"}"));
+   EXPECT_EQ("POST|/_bulk|"
+   "{ \"update\" : { \"_id\" : \"test1\", \"_type\" : \"testing\", \"_index\" : \"testa\"}}\n"
+   "{ \"doc\" : {\"this\":\"that\"}}\n"
+   "{ \"update\" : { \"_id\" : \"test2\", \"_type\" : \"testing\", \"_index\" : \"testb\"}}\n"
+   "{ \"doc\" : {\"this\":\"that\"}}\n"
+           ,target.mLastRequest);
+   
+   
+}
+TEST_F(ElasticSearchTest, BulkUpdateFailures) {
+   IdsAndIndexes ids;
+   ids.emplace_back("test1","testa");
+   ids.emplace_back("test2","testb");
+   MockBoomStick stick{mAddress};
+   MockElasticSearch es1(stick,true);
+   ASSERT_TRUE(es1.Initialize());
+   EXPECT_FALSE(es1.BulkUpdate(ids,"testing","{\"this\":\"that\"}"));
+   MockElasticSearch es2(stick,false);
+   EXPECT_FALSE(es2.BulkUpdate(ids,"testing","{\"this\":\"that\"}"));
+}
 TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
