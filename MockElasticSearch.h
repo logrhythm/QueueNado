@@ -27,7 +27,8 @@ public:
    mReturnSendAndForgetCommandToWorker(false),
    mReturnSendAndGetReplyCommandToWorker(false),
    mReturnGetDiskInfo(false),
-   mFakeBulkUpdate(true){
+   mFakeBulkUpdate(true),
+   mFakeGetOldestNFiles(true) {
       mMockListOfIndexes.insert("kibana-int");
       mMockListOfIndexes.insert("network_1999_01_01");
       mMockListOfIndexes.insert("network_2012_12_31");
@@ -125,9 +126,9 @@ public:
       mSocketClass->mReplySent = set;
    }
 
-   bool RunQueryGetIds(const std::string& indexName, const std::string& query, 
-      std::vector<std::pair<std::string, std::string> >& recordsToUpdate, const int recordsToQuery=40,
-      const bool cache=NO_CACHE)  {
+   bool RunQueryGetIds(const std::string& indexName, const std::string& query,
+           std::vector<std::pair<std::string, std::string> >& recordsToUpdate, const int recordsToQuery = 40,
+           const bool cache = NO_CACHE) {
       if (RunQueryGetIdsAlwaysPasses) {
          return true;
       }
@@ -143,16 +144,18 @@ public:
 
    std::vector<std::tuple< std::string, std::string> > GetOldestNFiles(const unsigned int numberOfFiles,
            const std::string& path, IdsAndIndexes& relevantRecords, time_t& oldestTime) {
-
-      oldestTime = mOldestTime;
-      return mOldestFiles;
+      if (mFakeGetOldestNFiles) {
+         oldestTime = mOldestTime;
+         return mOldestFiles;
+      }
+      return ElasticSearch::GetOldestNFiles(numberOfFiles, path, relevantRecords, oldestTime);
    }
 
    bool BulkUpdate(const IdsAndIndexes& idsAndIndex, const std::string& indexType, const std::string& jsonData) {
       if (mFakeBulkUpdate) {
          return mBulkUpdateResult;
       }
-      return ElasticSearch::BulkUpdate(idsAndIndex,indexType,jsonData);
+      return ElasticSearch::BulkUpdate(idsAndIndex, indexType, jsonData);
    }
 
    bool SendAndExpectOkAndAck(const std::string& command) {
@@ -187,17 +190,17 @@ public:
       }
       return false;
    }
-   
+
    void BoostDiskInfo() {
       /*typedef std::map<std::string, std::string>*/
       DiskInfoStrings diskInfo;
       /*typedef std::map<std::string, uint64_t>*/
       DiskInfoIntegers diskInts;
       /*typedef std::tuple< DiskInfoStrings, DiskInfoIntegers>*/
-      SingleDiskInfo foo(diskInfo,diskInts);
-      
+      SingleDiskInfo foo(diskInfo, diskInts);
+
       /*typedef std::map<std::string, SingleDiskInfo >*/
-      for (int i = 0 ; i < 100 ; i++ ) {
+      for (int i = 0; i < 100; i++) {
          mDiskInfo[std::to_string(i)] = foo;
       }
    }
@@ -231,7 +234,8 @@ public:
    bool mReturnSendAndGetReplyCommandToWorker;
    bool mReturnGetDiskInfo;
    bool mFakeBulkUpdate;
+   bool mFakeGetOldestNFiles;
    std::string mSendAndGetReplyReply;
-   
+
 };
 #endif

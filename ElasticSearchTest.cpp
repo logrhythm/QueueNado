@@ -793,6 +793,7 @@ TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
    time_t oldestTime = 123456789;
    es.mRealSendAndGetReplyCommandToWorker = false;
    es.mReturnSendAndGetReplyCommandToWorker = false;
+   es.mFakeGetOldestNFiles = false;
    oldestFiles.emplace_back("foo", "bar");
    relevantRecords.emplace_back("foo", "bar");
    oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
@@ -811,11 +812,12 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    time_t oldestTime = 123456789;
    es.mRealSendAndGetReplyCommandToWorker = false;
    es.mReturnSendAndGetReplyCommandToWorker = true;
+   es.mFakeGetOldestNFiles = false;
    es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":false}";
    oldestFiles.emplace_back("foo", "bar");
    relevantRecords.emplace_back("foo", "bar");
    oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
-   EXPECT_NE(0,oldestTime);
+   EXPECT_EQ(0,oldestTime);
    EXPECT_TRUE(oldestFiles.empty());
    EXPECT_TRUE(relevantRecords.empty());
    
