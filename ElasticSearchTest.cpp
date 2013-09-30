@@ -7,18 +7,7 @@
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
 
-TEST_F(ElasticSearchTest, DoNothingFor31Seconds) {
-   BoomStick stick{mAddress};
-   MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
-   ASSERT_TRUE(target.Initialize());
-   ASSERT_TRUE(stick.Initialize());
-   ASSERT_TRUE(es.Initialize());
-   target.BeginListenAndRepeat();
-   
-   std::this_thread::sleep_for(std::chrono::seconds(31));
-   
-}
+
 
 TEST_F(ElasticSearchTest, TransportCannotInit) {
    MockBoomStick stick{mAddress};
@@ -45,6 +34,25 @@ TEST_F(ElasticSearchTest, SendAndForgetFailures) {
    MockElasticSearch es2(stick,true);
    ASSERT_FALSE(es2.SendAndForgetCommandToWorker("bar"));
 }
+
+
+TEST_F(ElasticSearchTest, GetListOfIndexeNamesFailures) {
+ 
+   MockBoomStick stick{mAddress};
+   MockElasticSearch es1(stick,true);
+   es1.mFakeIndexList = false;
+   ASSERT_TRUE(es1.Initialize());
+   std::set<std::string> returnSet;
+   returnSet.insert("removeMe");
+   returnSet = es1.GetListOfIndexeNames();
+   ASSERT_TRUE(returnSet.empty());
+   returnSet.insert("removeMe");
+   MockElasticSearch es2(stick,false);
+   es2.mFakeIndexList = false;
+   returnSet = es2.GetListOfIndexeNames();
+   ASSERT_TRUE(returnSet.empty());
+}
+
 TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
@@ -707,6 +715,19 @@ TEST_F(ElasticSearchTest, DocCommandSync) {
    EXPECT_FALSE(es.DocCommand("foo"));
    es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":true}";
 }
+TEST_F(ElasticSearchTest, DoNothingFor31Seconds) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   std::this_thread::sleep_for(std::chrono::seconds(31));
+   
+}
+
 #else
 
 TEST_F(ElasticSearchTest, empty) {
