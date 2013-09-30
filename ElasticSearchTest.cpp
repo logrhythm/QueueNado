@@ -7,6 +7,19 @@
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
 
+TEST_F(ElasticSearchTest, DoNothingFor31Seconds) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   std::this_thread::sleep_for(std::chrono::seconds(31));
+   
+}
+
 TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
