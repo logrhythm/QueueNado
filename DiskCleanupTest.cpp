@@ -104,6 +104,36 @@ TEST_F(DiskCleanupTest, RemoveFiles) {
    EXPECT_TRUE(stat(path.c_str(), &filestat) == 0);
 }
 
+TEST_F(DiskCleanupTest, GetOlderFilesFromPath) {
+   MockDiskCleanup cleanup(mConf);
+      PathAndFileNames filesToFind;
+   std::string path;
+   path += testDir.str();
+   path += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+   std::string makeSmallFile = "touch ";
+   makeSmallFile += path;
+   
+   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(),std::time(NULL));  
+   EXPECT_TRUE(filesToFind.empty());
+   
+   EXPECT_EQ(0, system(makeSmallFile.c_str())); 
+   cleanup.mFakeIsShutdown = true;
+   cleanup.mIsShutdownResult = true;
+   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(),std::time(NULL));  
+   EXPECT_TRUE(filesToFind.empty());
+   
+   cleanup.mFakeIsShutdown = false;
+   filesToFind = cleanup.GetOlderFilesFromPath("/thisPathIsGarbage",0);  
+   EXPECT_TRUE(filesToFind.empty());
+   
+   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(),std::time(NULL));  
+   ASSERT_FALSE(filesToFind.empty());
+   EXPECT_TRUE(std::get<0>(filesToFind[0]) == path);
+   EXPECT_TRUE(std::get<1>(filesToFind[0]) == "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+   
+   
+}
+
 TEST_F(DiskCleanupTest, TimeToForceAClean) {
    MockDiskCleanup cleanup(mConf);
 
