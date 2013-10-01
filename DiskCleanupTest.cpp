@@ -11,6 +11,43 @@
 
 #ifdef LR_DEBUG
 
+TEST_F(DiskCleanupTest, MarkFileAsRemovedInES) {
+   MockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   MockElasticSearch es(transport, false);
+   IdsAndIndexes recordsToUpdate;
+
+   EXPECT_FALSE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, es));
+   recordsToUpdate.emplace_back("123456789012345678901234567890123456", "foo");
+   es.mFakeBulkUpdate = true;
+   es.mBulkUpdateResult = false;
+   EXPECT_FALSE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, es));
+   es.mBulkUpdateResult = true;
+   EXPECT_TRUE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, es));
+}
+
+TEST_F(DiskCleanupTest, RemoveFile) {
+   MockDiskCleanup cleanup(mConf);
+
+   std::string path;
+   path += testDir.str();
+   path += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 1 empty file
+
+   mConf.mConf.mPCapCaptureLocation = testDir.str();
+   std::string makeADir;
+   ASSERT_EQ(0, system(makeADir.c_str()));
+   std::string makeSmallFile = "touch ";
+   makeSmallFile += path;
+
+   EXPECT_EQ(0, system(makeSmallFile.c_str()));
+   struct stat filestat;
+   EXPECT_TRUE(stat(path.c_str(),&filestat)==0);
+   EXPECT_TRUE(cleanup.RemoveFile(path));
+   EXPECT_FALSE(stat(path.c_str(),&filestat)==0);
+   EXPECT_TRUE(cleanup.RemoveFile(path)); // Missing is ok
+   EXPECT_FALSE(stat(path.c_str(),&filestat)==0);
+}
+
 TEST_F(DiskCleanupTest, TimeToForceAClean) {
    MockDiskCleanup cleanup(mConf);
 
@@ -83,10 +120,10 @@ TEST_F(DiskCleanupTest, CleanupMassiveOvershoot) {
    EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(10000, 1000));
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup1"; // file limit 30000
    cleanup.ResetConf();
-   EXPECT_EQ(100, cleanup.CleanupMassiveOvershoot(0, 30000+1000));
-   EXPECT_EQ(110, cleanup.CleanupMassiveOvershoot(10, 30000+1000));
-   EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(901, 30000+1000));
-   EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(10000, 30000+1000));
+   EXPECT_EQ(100, cleanup.CleanupMassiveOvershoot(0, 30000 + 1000));
+   EXPECT_EQ(110, cleanup.CleanupMassiveOvershoot(10, 30000 + 1000));
+   EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(901, 30000 + 1000));
+   EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(10000, 30000 + 1000));
 }
 
 TEST_F(DiskCleanupTest, DISABLED_ValgrindGetOrderedMapOfFiles) {

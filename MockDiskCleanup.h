@@ -132,8 +132,8 @@ public:
       return DiskCleanup::GetOlderFilesFromPath(path, oldestTime);
    }
 
-   void MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, ElasticSearch& es) {
-      DiskCleanup::MarkFilesAsRemovedInES(relevantRecords, es);
+   bool MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, ElasticSearch& es) {
+      return DiskCleanup::MarkFilesAsRemovedInES(relevantRecords, es);
    }
 
    size_t BruteForceCleanupOfOldFiles(const boost::filesystem::path& path,
@@ -163,6 +163,10 @@ public:
 
    size_t CleanupMassiveOvershoot(const size_t targetToRemove, const size_t aTotalFiles) {
       return DiskCleanup::CleanupMassiveOvershoot(targetToRemove, aTotalFiles);
+   }
+   
+   bool RemoveFile(const std::string& path) {
+      return DiskCleanup::RemoveFile(path);
    }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
