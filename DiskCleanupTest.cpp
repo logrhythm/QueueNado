@@ -41,11 +41,60 @@ TEST_F(DiskCleanupTest, RemoveFile) {
 
    EXPECT_EQ(0, system(makeSmallFile.c_str()));
    struct stat filestat;
-   EXPECT_TRUE(stat(path.c_str(),&filestat)==0);
+   EXPECT_TRUE(stat(path.c_str(), &filestat) == 0);
    EXPECT_TRUE(cleanup.RemoveFile(path));
-   EXPECT_FALSE(stat(path.c_str(),&filestat)==0);
+   EXPECT_FALSE(stat(path.c_str(), &filestat) == 0);
    EXPECT_TRUE(cleanup.RemoveFile(path)); // Missing is ok
-   EXPECT_FALSE(stat(path.c_str(),&filestat)==0);
+   EXPECT_FALSE(stat(path.c_str(), &filestat) == 0);
+}
+
+TEST_F(DiskCleanupTest, RemoveFiles) {
+   MockDiskCleanup cleanup(mConf);
+   PathAndFileNames filesToRemove;
+   size_t spaceSavedInMB(99999);
+   struct stat filestat;
+   std::string path;
+   path += testDir.str();
+   path += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 1 empty file
+
+   mConf.mConf.mPCapCaptureLocation = testDir.str();
+   std::string makeADir;
+   ASSERT_EQ(0, system(makeADir.c_str()));
+   std::string makeSmallFile = "touch ";
+   makeSmallFile += path;
+
+   EXPECT_EQ(0, system(makeSmallFile.c_str()));
+
+   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB));
+   EXPECT_EQ(0, spaceSavedInMB);
+   spaceSavedInMB = 999999;
+   filesToRemove.emplace_back(path, "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+   EXPECT_TRUE(stat(path.c_str(), &filestat) == 0);
+   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB));
+   EXPECT_EQ(0, spaceSavedInMB);
+   EXPECT_FALSE(stat(path.c_str(), &filestat) == 0);
+   spaceSavedInMB = 999999;
+   cleanup.mFakeRemove = true;
+   cleanup.mRemoveResult = false;
+   EXPECT_EQ(0, system(makeSmallFile.c_str()));
+   EXPECT_EQ(1, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB));
+   EXPECT_EQ(0, spaceSavedInMB);
+
+   cleanup.mFakeRemove = false;
+
+   std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
+   path = testDir.str();
+   path += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
+   make1MFileFile += path;
+   
+   EXPECT_EQ(0, system(make1MFileFile.c_str()));
+   
+   filesToRemove.clear();
+   filesToRemove.emplace_back(path, "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M");
+   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB));
+   EXPECT_EQ(1, spaceSavedInMB);
+
+   EXPECT_FALSE(stat(path.c_str(), &filestat) == 0);
 }
 
 TEST_F(DiskCleanupTest, TimeToForceAClean) {

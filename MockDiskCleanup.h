@@ -8,7 +8,7 @@ public:
 
    MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
-   mRealFilesSystemAccess(false) {
+   mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true) {
       mFleSystemInfo.f_bfree = 1;
       mFleSystemInfo.f_frsize = 1;
       mFleSystemInfo.f_blocks = 1;
@@ -166,7 +166,13 @@ public:
    }
    
    bool RemoveFile(const std::string& path) {
+      if ( mFakeRemove) {
+         return mRemoveResult;
+      }
       return DiskCleanup::RemoveFile(path);
+   }
+   int RemoveFiles(const PathAndFileNames& filesToRemove, size_t& spaceSavedInMB) {
+      return DiskCleanup::RemoveFiles(filesToRemove,spaceSavedInMB);
    }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
@@ -174,4 +180,6 @@ public:
    bool mSucceedRemoveSearch;
    struct statvfs mFleSystemInfo;
    bool mRealFilesSystemAccess;
+   bool mFakeRemove;
+   bool mRemoveResult;
 };
