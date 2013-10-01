@@ -33,7 +33,7 @@ struct MockNtpConfigCommand : public NtpConfigCommand {
          reply.set_success(true);
          reply.set_returncode(0);
       } else {
-         reply.set_success(false);
+         reply.set_success(true); //the ping command always give true even if it does not reply correctly
          reply.set_returncode(-1);
       }
 

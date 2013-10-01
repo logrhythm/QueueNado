@@ -238,32 +238,90 @@ TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd) {
    }
 } 
 
-TEST_F(NtpConfigCommandTest, ThrowTests) {
+TEST_F(NtpConfigCommandTest, ThrowTestsIsServerAlive) {
    protoMsg::Ntp ntp;
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
    MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   
    autoManagedManager->mSuccess = true;
-   // IsServerAlive should NEVER throw internally 
-   EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.251"));
-   EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.252"));
+   autoManagedManager->mReturnCode = 0;
+   protoMsg::ProcessReply reply; 
+   
+   //Success IsServerAlive
+   //    IsServerAlive should NEVER throw internally 
+   EXPECT_NO_THROW(reply = doIt.IsServerAlive("10.128.64.251"));
+   EXPECT_TRUE(reply.success() && (reply.returncode() ==0));
+   EXPECT_NO_THROW(reply = doIt.IsServerAlive("10.128.64.252"));
+   EXPECT_TRUE(reply.success() && (reply.returncode() ==0));
+   
+   // Failures
    autoManagedManager->mSuccess = false;
-   EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.251"));
+   autoManagedManager->mReturnCode = 0; // unlikely scenario. it would be the opposite
+   EXPECT_NO_THROW(reply = doIt.IsServerAlive("10.128.64.251"));
+   EXPECT_TRUE(!reply.success() && (reply.returncode() ==0));
    EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.252"));
-   
+   EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
    
    autoManagedManager->mSuccess = true;
-   EXPECT_NO_THROW(doIt.ForceTimeSync("10.128.64.251"));
+   autoManagedManager->mReturnCode = 256; // likely scenario ntpdate -q fails with return "success"
+   EXPECT_NO_THROW(reply = doIt.IsServerAlive("10.128.64.251"));
+   EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
+   EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.252"));
+   EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
+}
+
+TEST_F(NtpConfigCommandTest, ThrowTestsForceTimeSync) {
+   protoMsg::Ntp ntp;
+   ntp.set_master_server("10.128.64.251");
+   ntp.set_backup_server("10.128.64.252");
+   cmd.set_stringargone(ntp.SerializeAsString());
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   
+ 
+   protoMsg::ProcessReply reply; 
+   
+   // Sucess ForceTimeSync
+   autoManagedManager->mSuccess = true;
+   autoManagedManager->mReturnCode = 0;
+   EXPECT_NO_THROW(reply = doIt.ForceTimeSync("10.128.64.251"));
+   EXPECT_TRUE(reply.success() && (reply.returncode() ==0));
+   
+   // Failures
    autoManagedManager->mSuccess = false;
-   EXPECT_NO_THROW(doIt.ForceTimeSync("10.128.64.251"));
-   
+   autoManagedManager->mReturnCode = 0;
+   EXPECT_NO_THROW(reply = doIt.ForceTimeSync("10.128.64.251"));
+   EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
+
+   // OR:  success but failed return code
    autoManagedManager->mSuccess = true;
+   autoManagedManager->mReturnCode = 256;
+   EXPECT_NO_THROW(reply = doIt.ForceTimeSync("10.128.64.251"));
+   EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
+}
+
+
+TEST_F(NtpConfigCommandTest, ThrowTestsTriggerNtpdChange) {
+   protoMsg::Ntp ntp;
+   ntp.set_master_server("10.128.64.251");
+   ntp.set_backup_server("10.128.64.252");
+   cmd.set_stringargone(ntp.SerializeAsString());
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   
+   //  for ntp a "failed" ntpdate -q  will still result in "success" but with nonzero return
+   autoManagedManager->mSuccess = true;
+   autoManagedManager->mReturnCode = 0;
    EXPECT_NO_THROW(doIt.TriggerNtpdChange());
-   autoManagedManager->mSuccess = false;
+   
+   // Trigger throw from highLevel ntp change
+   autoManagedManager->mSuccess = true;
+   autoManagedManager->mReturnCode = 1; // same as failure
    EXPECT_ANY_THROW( doIt.TriggerNtpdChange());
    EXPECT_EQ(doIt.throwCounter, 0);
-   
+
+   // Trigger throw and count them   
+   doIt.throwCounter = 0;
    doIt.willFakeThrow = true;
    EXPECT_NO_THROW( doIt.TriggerNtpdChange()); // throws are caught
    EXPECT_EQ(doIt.throwCounter, 3); // IsAny server alive + ForceTimeSync + restart
