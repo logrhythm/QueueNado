@@ -8,7 +8,8 @@ public:
 
    MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
-   mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true) {
+   mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
+           mIsShutdownResult(false) {
       mFleSystemInfo.f_bfree = 1;
       mFleSystemInfo.f_frsize = 1;
       mFleSystemInfo.f_blocks = 1;
@@ -19,6 +20,9 @@ public:
    }
 
    bool IsShutdown() {
+      if (mFakeIsShutdown) {
+         return mIsShutdownResult;
+      }
       return false;
    }
 
@@ -182,4 +186,6 @@ public:
    bool mRealFilesSystemAccess;
    bool mFakeRemove;
    bool mRemoveResult;
+   bool mFakeIsShutdown;
+   bool mIsShutdownResult;
 };

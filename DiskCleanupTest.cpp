@@ -95,6 +95,13 @@ TEST_F(DiskCleanupTest, RemoveFiles) {
    EXPECT_EQ(1, spaceSavedInMB);
 
    EXPECT_FALSE(stat(path.c_str(), &filestat) == 0);
+   
+   EXPECT_EQ(0, system(make1MFileFile.c_str()));
+   cleanup.mFakeIsShutdown = true;
+   cleanup.mIsShutdownResult = true;
+   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB));
+   EXPECT_EQ(0, spaceSavedInMB);
+   EXPECT_TRUE(stat(path.c_str(), &filestat) == 0);
 }
 
 TEST_F(DiskCleanupTest, TimeToForceAClean) {
