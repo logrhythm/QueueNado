@@ -130,8 +130,7 @@ TEST_F(DiskCleanupTest, GetOlderFilesFromPath) {
    ASSERT_FALSE(filesToFind.empty());
    EXPECT_TRUE(std::get<0>(filesToFind[0]) == path);
    EXPECT_TRUE(std::get<1>(filesToFind[0]) == "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-   
-   
+     
 }
 
 TEST_F(DiskCleanupTest, TimeToForceAClean) {

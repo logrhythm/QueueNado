@@ -20,11 +20,12 @@ TEST_F(RESTBuilderTest, GetFilteredQuerySortedByTime) {
    
    std::string command = builder.GetOldestNDocuments("captured:true",100,true);
    
-   EXPECT_TRUE(StringContains(command, "\"query\": \"captured:true\""));
+   EXPECT_TRUE(StringContains(command, "\"query\":\"captured:true\""));
    
-   EXPECT_TRUE(StringContains(command, "\"timeUpdated\": {\"order\": \"asc\"}"));
-   EXPECT_TRUE(StringContains(command, "\"size\": 100"));
-   EXPECT_TRUE(StringContains(command, "\"_cache\": true"));
+   EXPECT_TRUE(StringContains(command, "\"timeUpdated\": "));
+   EXPECT_TRUE(StringContains(command, "\"order\" : \"asc\""));
+   EXPECT_TRUE(StringContains(command, "\"size\":100"));
+   EXPECT_TRUE(StringContains(command, "\"_cache\":true"));
    EXPECT_TRUE(StringContains(command, "GET|/_all/meta/_search|"));
    
    
@@ -49,7 +50,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQuery) {
 
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
-   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar|{ \"fields\" : [] }", command);
+   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar&cache=false|{ \"fields\" : [], \"size\" : 40}", command);
 
    transport.mReturnString = "{\"took\":10,\"timed_out\":false,\"_shards\":{\"total\":50,"
            "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
@@ -71,6 +72,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQuery) {
 
    ElasticSearch restQuery(transport, false);
    std::vector<std::pair<std::string, std::string> > idsFromESObject;
+   ASSERT_TRUE(restQuery.Initialize());
    EXPECT_TRUE(restQuery.RunQueryGetIds("indexType", "foo:bar", idsFromESObject));
    EXPECT_EQ(ids, idsFromESObject);
 }
@@ -82,7 +84,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
 
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
-   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar|{ \"fields\" : [] }", command);
+   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar&cache=false|{ \"fields\" : [], \"size\" : 40}", command);
 
    transport.mReturnString = "{\"took\":8,\"timed_out\":false,\"_shards\":"
            "{\"total\":50,\"successful\":50,\"failed\":0},\"hits\":{\"total\":0,\"max_score\":null,\"hits\":[]}}";
@@ -92,6 +94,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
    ASSERT_EQ(0, ids.size());
 
    ElasticSearch restQuery(transport, false);
+   ASSERT_TRUE(restQuery.Initialize());
    std::vector<std::pair<std::string, std::string> > idsFromESObject;
    EXPECT_TRUE(restQuery.RunQueryGetIds("indexType", "foo:bar", idsFromESObject));
    EXPECT_EQ(ids, idsFromESObject);
@@ -104,7 +107,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
 
    std::string command = builder.RunQueryOnlyForDocIds("indexType", "foo:bar");
 
-   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar|{ \"fields\" : [] }", command);
+   EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar&cache=false|{ \"fields\" : [], \"size\" : 40}", command);
 
    transport.mReturnString = "{\"took\":10,\"timed_out\":true,\"_shards\":{\"total\":50,"
            "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
