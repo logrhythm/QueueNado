@@ -258,7 +258,6 @@ std::string BoomStick::Send(const std::string& command) {
    } else {
       CHECK(mUtilizedThread == pthread_self());
    }
-   LOG(DEBUG) << "BoomStick Send :" << pthread_self();
    if (!SendAsync(uuid, command)) {
       return
       {
