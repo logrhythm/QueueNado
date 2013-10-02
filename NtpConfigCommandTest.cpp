@@ -16,8 +16,19 @@
 
 TEST_F(NtpConfigCommandTest, DoesItCompileAndLink) {
    MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   
+   protoMsg::CommandRequest requestMsg;
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_NTP_CONFIG); 
+   std::unique_ptr<Command> cmd(NtpConfigCommand::Construct(requestMsg));
+   ASSERT_NE(cmd.get(), nullptr);
    SUCCEED();
 }
+
+TEST_F(NtpConfigCommandTest, Construct) {
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   SUCCEED();
+}
+
 
 TEST_F(NtpConfigCommandTest, InValidCommand) {
    protoMsg::Ntp ntp;

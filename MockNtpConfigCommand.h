@@ -19,7 +19,7 @@ struct MockNtpConfigCommand : public NtpConfigCommand {
 
    ~MockNtpConfigCommand() {
    }
-   
+
    LR_VIRTUAL void TriggerNtpdChange() LR_OVERRIDE {
       return NtpConfigCommand::TriggerNtpdChange();
    }
@@ -40,12 +40,11 @@ struct MockNtpConfigCommand : public NtpConfigCommand {
       return reply;
    }
 
-
    protoMsg::ProcessReply ForceTimeSync(const std::string & server) LR_OVERRIDE {
       if (oneServerAlive.empty()) {
          return NtpConfigCommand::ForceTimeSync(server);
       }
-      
+
       protoMsg::ProcessReply reply = NtpConfigCommand::ForceTimeSync(server);
       if (oneServerAlive == server) {
          reply.set_success(true);
@@ -59,21 +58,22 @@ struct MockNtpConfigCommand : public NtpConfigCommand {
    }
 
    void ReportUnexpectedResult(protoMsg::ProcessReply& result,
-                      const std::string& command, const std::string commandArgs) LR_OVERRIDE{
-      if(false == willFakeThrow) {
-         NtpConfigCommand::ReportUnexpectedResult(result, command, commandArgs);
+           const std::string& command, const std::string& commandArgs,
+           const std::string& report) LR_OVERRIDE {
+      if (false == willFakeThrow) {
+         NtpConfigCommand::ReportUnexpectedResult(result, command, commandArgs, report);
          return;
       }
-      
-      try{
-         NtpConfigCommand::ReportUnexpectedResult(result, command, commandArgs);
-      } catch(...) {
+
+      try {
+         NtpConfigCommand::ReportUnexpectedResult(result, command, commandArgs, report);
+      } catch (...) {
          throwCounter++;
          return;
-      } 
+      }
    }
-   
-   
+
+
    std::string oneServerAlive;
    size_t throwCounter;
    bool willFakeThrow;
