@@ -64,6 +64,12 @@ namespace {
    }
 }
 
+TEST_F(BoomStickTest, SharedSocketTest) {
+   //https://code.google.com/p/googletest/wiki/AdvancedGuide#Death_Tests
+   // give the socket to a running Skelleton then run a send and verify Death
+   
+}
+
 TEST_F(BoomStickTest, ValgrindSync) {
    BoomStick stick{mAddress};
 
