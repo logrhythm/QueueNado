@@ -3,9 +3,28 @@
 #include "DpiMsgLRTest.h"
 #include "g2log.hpp"
 #include "czmq.h"
+#include <pcap/pcap.h>
 
 using namespace networkMonitor;
 using namespace std;
+
+
+TEST_F(DpiMsgLRTests, EstimatePCapFileSize) {
+   DpiMsgLR testMsg;
+   
+   testMsg.set_sessionid("123456789012345678901234567890123456");
+   testMsg.set_packettotal(0);
+   testMsg.set_bytessource(0);
+   testMsg.set_bytesdest(0);
+   
+   EXPECT_EQ(sizeof(pcap_file_header),testMsg.TheoreticalPCapFileSize());
+   testMsg.set_packettotal(10);
+   EXPECT_EQ(sizeof(pcap_file_header)+10*sizeof(pcap_pkthdr),testMsg.TheoreticalPCapFileSize());
+   testMsg.set_bytessource(100);
+   EXPECT_EQ(sizeof(pcap_file_header)+10*sizeof(pcap_pkthdr)+100,testMsg.TheoreticalPCapFileSize());
+   testMsg.set_bytesdest(1000);
+   EXPECT_EQ(sizeof(pcap_file_header)+10*sizeof(pcap_pkthdr)+100+1000,testMsg.TheoreticalPCapFileSize());
+}
 TEST_F(DpiMsgLRTests, EncodeJSonValgrind ) {
    DpiMsgLR testMsg;
    

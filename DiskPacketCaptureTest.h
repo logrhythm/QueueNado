@@ -13,13 +13,26 @@ public:
    };
 protected:
 
-   virtual void SetUp() {
+    virtual void SetUp() {
+      testDir << "/tmp/DiskPacketCaptureTest";
+ 
+     std::string makeADir;
+      makeADir = "rm -rf ";
+      makeADir += testDir.str();
+      system(makeADir.c_str());
 
-   };
+      makeADir = "mkdir -p ";
+      makeADir += testDir.str();
+      system(makeADir.c_str());
+    };
+ 
+    virtual void TearDown() {
 
-   virtual void TearDown() {
-
-   };
+      std::string makeADir = "";
+      makeADir = "rm -rf ";
+      makeADir += testDir.str();
+      ASSERT_EQ(0, system(makeADir.c_str()));
+    };
 
    void StartTimedSection(const double expectedTimePerTransaction, const unsigned int totalTransactions) {
       t_expectedTime = expectedTimePerTransaction * totalTransactions * 1000000.0;
@@ -47,7 +60,7 @@ protected:
    timeval t_endTime;
    unsigned int t_totalTransactions;
 private:
-
+   std::stringstream testDir;
 };
 
 

@@ -18,7 +18,106 @@
 
 #include "tempFileCreate.h"
 
+TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
+   conf.mPCapCaptureLocation = testDir.str();
+   conf.mMaxIndividualPCap = 10; // MB
+   conf.mPCapCaptureMemoryLimit = 99999;
+   conf.mPcapCaptureMaxPackets = 99999999;
+   conf.mPCapCaptureSizeLimit = 999999999;
+   const size_t testPacketSize = 1024 * 1024;
+   MockDiskPacketCapture capture(conf);
 
+   ASSERT_TRUE(capture.Initialize(false));
+   networkMonitor::DpiMsgLR testMessage;
+   struct upacket packet;
+
+   testMessage.set_sessionid("123456789012345678901234567890123456");
+   testMessage.set_packettotal(0);
+   testMessage.set_packetsdelta(0);
+   testMessage.set_bytessource(0);
+   testMessage.set_bytesdest(0);
+   testMessage.set_bytestotal(0);
+   testMessage.set_bytestotaldelta(0);
+
+
+
+   packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
+   packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
+   packet.p->len = (testPacketSize);
+   for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
+      testMessage.set_packettotal(testMessage.packettotal() + 1);
+      testMessage.set_packetsdelta(testMessage.packetsdelta() + 1);
+      if (i % 2 == 0) {
+         testMessage.set_bytessource(testMessage.bytessource() + packet.p->len);
+      } else {
+         testMessage.set_bytesdest(testMessage.bytesdest() + packet.p->len);
+      }
+      capture.SavePacket(&testMessage, &packet);
+      capture.WriteSavedSessionToDisk(&testMessage);
+   }
+
+   EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage.packettotal());
+   EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage.bytessource() + testMessage.bytesdest());
+   struct stat statbuf;
+
+   std::string testFile = testDir.str() + "/" + testMessage.sessionid();
+   ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
+   EXPECT_TRUE(conf.mMaxIndividualPCap * testPacketSize >= statbuf.st_size);
+   EXPECT_TRUE((conf.mMaxIndividualPCap - 1) * testPacketSize <= statbuf.st_size);
+   free(packet.p->data);
+   free(packet.p);
+}
+
+TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitFlushedFile) {
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
+   conf.mPCapCaptureLocation = testDir.str();
+   conf.mMaxIndividualPCap = 10; // MB
+   conf.mPCapCaptureMemoryLimit = 99999;
+   conf.mPcapCaptureMaxPackets = 99999999;
+   conf.mPCapCaptureSizeLimit = 999999999;
+   const size_t testPacketSize = 1024 * 1024;
+   MockDiskPacketCapture capture(conf);
+
+   ASSERT_TRUE(capture.Initialize(false));
+   networkMonitor::DpiMsgLR testMessage;
+   struct upacket packet;
+
+   testMessage.set_sessionid("123456789012345678901234567890123456");
+   testMessage.set_packettotal(0);
+   testMessage.set_packetsdelta(0);
+   testMessage.set_bytessource(9 * testPacketSize);
+   testMessage.set_bytesdest(0);
+   testMessage.set_bytestotal(0);
+   testMessage.set_bytestotaldelta(0);
+
+
+
+   packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
+   packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
+   packet.p->len = (testPacketSize);
+   for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
+      testMessage.set_packettotal(testMessage.packettotal() + 1);
+      testMessage.set_packetsdelta(testMessage.packetsdelta() + 1);
+      if (i % 2 == 0) {
+         testMessage.set_bytessource(testMessage.bytessource() + packet.p->len);
+      } else {
+         testMessage.set_bytesdest(testMessage.bytesdest() + packet.p->len);
+      }
+      capture.SavePacket(&testMessage, &packet);
+      capture.WriteSavedSessionToDisk(&testMessage);
+   }
+   struct stat statbuf;
+
+   std::string testFile = testDir.str() + "/" + testMessage.sessionid();
+   ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
+   EXPECT_TRUE(testPacketSize >= statbuf.st_size);
+   EXPECT_TRUE(0 <= statbuf.st_size);
+   free(packet.p->data);
+   free(packet.p);
+}
 
 TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
    MockConf conf;
@@ -169,7 +268,7 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
       EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
       struct upacket packet;
       ctb_pkt p;
-      packet.p = & p;
+      packet.p = &p;
       unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
       p.data = data;
@@ -228,7 +327,7 @@ TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit) {
       EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
       struct upacket packet;
       ctb_pkt p;
-      packet.p = & p;
+      packet.p = &p;
       unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
       p.data = data;
@@ -251,7 +350,7 @@ TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit) {
       ASSERT_EQ(1, capture.mFilesWritten.size());
       // cleanup is an unordered map, the flow that gets picked could very based on the 
       // pointer hash
-      if ("FlowOne" == * capture.mFilesWritten.begin()) {
+      if ("FlowOne" == *capture.mFilesWritten.begin()) {
          EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
          EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowTwo"));
       } else {
@@ -265,6 +364,7 @@ TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit) {
 #endif
 }
 #ifdef LR_DEBUG
+
 TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
 
 
@@ -286,9 +386,9 @@ TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
       EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
       struct upacket packet;
       ctb_pkt p;
-      packet.p = & p;
+      packet.p = &p;
 
-      unsigned char* data = new unsigned char[(1024*1024*10) - sizeof (struct pcap_pkthdr)];
+      unsigned char* data = new unsigned char[(1024 * 1024 * 10) - sizeof (struct pcap_pkthdr)];
       p.len = 2 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
       p.data = data;
       networkMonitor::DpiMsgLR dpiMsg;
@@ -327,6 +427,7 @@ TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
 }
 #endif
 #ifdef LR_DEBUG
+
 TEST_F(DiskPacketCaptureTest, PacketCaptureDisabled) {
 
 
@@ -348,9 +449,9 @@ TEST_F(DiskPacketCaptureTest, PacketCaptureDisabled) {
       EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
       struct upacket packet;
       ctb_pkt p;
-      packet.p = & p;
+      packet.p = &p;
 
-      unsigned char* data = new unsigned char[(1024*1024*10) - sizeof (struct pcap_pkthdr)];
+      unsigned char* data = new unsigned char[(1024 * 1024 * 10) - sizeof (struct pcap_pkthdr)];
       p.len = 2 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
       p.data = data;
       networkMonitor::DpiMsgLR dpiMsg;
