@@ -59,8 +59,9 @@ protected:
    size_t t_packetSize;
    timeval t_endTime;
    unsigned int t_totalTransactions;
-private:
    std::stringstream testDir;
+private:
+
 };
 
 
