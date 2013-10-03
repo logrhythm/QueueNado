@@ -173,18 +173,19 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
       unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
       p.data = data;
-      networkMonitor::DpiMsgLR dpiMsg;
-      dpiMsg.set_sessionid("FlowOne");
-      capture.SavePacket(&dpiMsg, &packet);
+      networkMonitor::DpiMsgLR dpiMsg1;
+      dpiMsg1.set_sessionid("FlowOne");
+      capture.SavePacket(&dpiMsg1, &packet);
       EXPECT_EQ(1, capture.NewTotalMemory(0));
       EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr) - sizeof (struct pcap_pkthdr) - 1;
-      capture.SavePacket(&dpiMsg, &packet);
+      capture.SavePacket(&dpiMsg1, &packet);
       EXPECT_EQ(1, capture.NewTotalMemory(0));
       EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
       p.len = 1;
-      dpiMsg.set_sessionid("FlowTwo");
-      capture.SavePacket(&dpiMsg, &packet);
+      networkMonitor::DpiMsgLR dpiMsg2;
+      dpiMsg2.set_sessionid("FlowTwo");
+      capture.SavePacket(&dpiMsg2, &packet);
       EXPECT_EQ(2, capture.NewTotalMemory(0));
       EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
       EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
@@ -192,7 +193,7 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
       conf.mPCapCaptureMemoryLimit = 2;
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
       capture.mFailFlush = true;
-      capture.SavePacket(&dpiMsg, &packet);
+      capture.SavePacket(&dpiMsg2, &packet);
       EXPECT_EQ(2, capture.NewTotalMemory(0));
       EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
       EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
@@ -200,7 +201,7 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
       conf.mPCapCaptureMemoryLimit = 3;
       EXPECT_EQ(3, capture.NewTotalMemory((1024 * 1024)));
 
-      capture.RemoveDataFromRunningPackets("FlowOne");
+      capture.RemoveDataFromRunningPackets(&dpiMsg1);
       EXPECT_EQ(0, capture.NewTotalMemory(0));
       EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
 
