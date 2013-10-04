@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 #include "RESTBuilder.h"
-#include "RESTSender.h"
+#include "RESTParser.h"
 class RESTBuilderTest : public ::testing::Test
 {
 public:
