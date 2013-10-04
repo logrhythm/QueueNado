@@ -79,7 +79,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
 DYNAMIC_LIBS=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log \
-             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem
+             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal 
 
 ZMQTest_LDADD=${DYNAMIC_LIBS}
 ZMQTest_LDFLAGS=${BASE_LIBS}
@@ -195,7 +195,7 @@ SendStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PRO
 
 ProcStatsTest_LDADD=${DYNAMIC_LIBS}
 ProcStatsTest_LDFLAGS=${BASE_LIBS}
-ProcStatsTest_SOURCES=main.cpp ProcStatsTest.cpp
+ProcStatsTest_SOURCES=main.cpp ProcStatsTest.cpp TCMallocStatsTest.cpp
 ProcStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 ProcessManagerTest_LDADD=${DYNAMIC_LIBS}
@@ -274,6 +274,7 @@ nmTest_SOURCES=main.cpp \
  PacketCaptureTest.cpp \
  ProcessManagerTest.cpp \
  ProcStatsTest.cpp \
+ TCMallocStatsTest.cpp \
  QosmosDpiTest.cpp \
  QosmosCodeGeneratorTests.cpp \
  QosmosPacketAllocatorTests.cpp \

@@ -3,6 +3,7 @@
 #include "SendStats.h"
 #include "include/global.h"
 #include <vector>
+#include <string>
 
 class MockSendStats : public SendStats {
 public:
@@ -16,9 +17,11 @@ public:
 
    std::time_t mDummyTimeStamp;
    std::vector<int64_t> mSendStatValues;
+   std::vector<std::string> mSendStatKeys;
 
    bool SendStat(const std::string& key, const int64_t statValue,
            const bool repeatStat) LR_OVERRIDE {
+      mSendStatKeys.push_back(key);
       mSendStatValues.push_back(statValue);
       return SendStats::SendStat(key, statValue, repeatStat);
 
