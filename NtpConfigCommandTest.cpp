@@ -49,15 +49,12 @@ TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd) {
    const auto& allCmds = autoManagedManager->getTotalRunCommands();   
    const auto& allArgs = autoManagedManager->getTotalRunArgs();
    ASSERT_EQ(allCmds.size(), allArgs.size());
-   ASSERT_EQ(allCmds.size(), 1);
-   
-   EXPECT_EQ(allCmds[0], "service");
-   EXPECT_EQ(allArgs[0], "ntpd stop");
-   
+   ASSERT_EQ(allCmds.size(), 0); // previously ntpd would stop for blank ntpd servers. That is no longer the case
+      
    auto lastCmd = autoManagedManager->getRunCommand();
    auto lastArgs = autoManagedManager->getRunArgs();
-   ASSERT_EQ(lastCmd, std::string("service"));
-   ASSERT_EQ(lastArgs, std::string("ntpd stop"));
+   ASSERT_EQ(lastCmd, std::string(""));
+   ASSERT_EQ(lastArgs, std::string(""));
    // Nothing to do since no servers were valid or active
 }
 
@@ -335,7 +332,7 @@ TEST_F(NtpConfigCommandTest, ThrowTestsTriggerNtpdChange) {
    doIt.throwCounter = 0;
    doIt.willFakeThrow = true;
    EXPECT_NO_THROW( doIt.TriggerNtpdChange()); // throws are caught
-   EXPECT_EQ(doIt.throwCounter, 3); // IsAny server alive + ForceTimeSync + restart
+   EXPECT_EQ(doIt.throwCounter, 2); // start + (delayed throw) ntpdate sync
 }
 
 
