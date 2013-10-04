@@ -25,9 +25,9 @@ public:
    mSiemDebug(false),
    mIntermediateFlowEnabled(false),
    mUnknownCaptureEnabled(false),
-   mPCapCaptureFileLimit(0),
-   mPCapCaptureSizeLimit(0),
-   mPCapCaptureMemoryLimit(0),
+   mPCapCaptureFileLimit(999999),
+   mPCapCaptureSizeLimit(999999),
+   mPCapCaptureMemoryLimit(999999),
    mSyslogEnabled(true),
    mReportEverything(false),
    mDpiThreads(3),
@@ -44,7 +44,8 @@ public:
    mOverrideInternalRepair(false),
    mInternalRepair(true),
    mValidateEthFailCount(0),
-   mMaxIndividualPCap(1000) {
+   mMaxIndividualPCap(1000),
+   mPcapCaptureMaxPackets(999999)  {
    }
 
    ~MockConf() {
@@ -262,7 +263,9 @@ public:
    size_t GetPCapIndividualFileLimit() {
       return mMaxIndividualPCap;
    }
-
+   size_t GetPcapCaptureMaxPackets() LR_OVERRIDE {
+      return mPcapCaptureMaxPackets;
+   }
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;
@@ -310,5 +313,6 @@ public:
    bool mInternalRepair;
    int mValidateEthFailCount;
    size_t mMaxIndividualPCap;
+   size_t mPcapCaptureMaxPackets;
 
 };
