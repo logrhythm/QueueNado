@@ -76,7 +76,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libsystem \
          -I/usr/local/probe/include
 
-DYNAMIC_LIBS=-lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
+DYNAMIC_LIBS=-ltcmalloc_minimal -lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log \
              -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem
@@ -194,7 +194,7 @@ SendStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PRO
 
 ProcStatsTest_LDADD=${DYNAMIC_LIBS}
 ProcStatsTest_LDFLAGS=${BASE_LIBS}
-ProcStatsTest_SOURCES=main.cpp ProcStatsTest.cpp
+ProcStatsTest_SOURCES=main.cpp ProcStatsTest.cpp TCMallocStatsTest.cpp
 ProcStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 ProcessManagerTest_LDADD=${DYNAMIC_LIBS}
