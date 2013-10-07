@@ -160,6 +160,7 @@ CommandProcessorTests_SOURCES=main.cpp \
         CommandFactoryTests.cpp \
         UpgradeCommandTest.h  \
         ShutdownCommandTest.cpp  \
+        DriveInfoCommandTest.cpp  \
         NetworkConfigCommandTest.h  \
         NtpConfigCommandTest.cpp \
         NtpConfigCommandTest.h \
@@ -297,6 +298,7 @@ nmTest_SOURCES=main.cpp \
  RESTBuilderTest.cpp \
  ElasticSearchTest.cpp \
  ThreadContainerTest.cpp \
+ DriveInfoCommandTest.cpp \
  ToolsTestMakeUnique.cpp \
  ToolsTestStringFix.cpp
 
