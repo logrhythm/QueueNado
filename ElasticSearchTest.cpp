@@ -6,7 +6,7 @@
 
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
-
+//http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 TEST_F(ElasticSearchTest, ValidateHighReturnCodesSuccess) {
    BoomStick stick{mAddress};
    int code = 300;
