@@ -2,6 +2,7 @@
 #include "DriveInfoCommandTest.h"
 #include "MockDriveInfoCommand.h"
 #include "DriveInfo.h"
+#include "MockConf.h"
 
 #ifdef LR_DEBUG
 TEST_F(DriveInfoCommandTest,GetSingleDiskParted) {
@@ -9,65 +10,65 @@ TEST_F(DriveInfoCommandTest,GetSingleDiskParted) {
    
    std::string testDriveId("sde");
    
-   EXPECT_EQ("/sbin/parted -s /dev/sde print", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ(" -s /dev/sde print", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "_";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = ".";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "/";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "\\";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "\"";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "*";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "?";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "(";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = ")";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "^";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "$";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "#";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "!";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "@";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "-";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "=";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "+";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "|";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "{";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "}";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "[";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "]";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "'";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = ":";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = ";";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "<";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = ">";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "~";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
    testDriveId = "`";
-   EXPECT_EQ("", command.GetSingleDiskParted(testDriveId));
+   EXPECT_EQ("", command.GetSingleDiskPartedArgs(testDriveId));
 }
 
 TEST_F(DriveInfoCommandTest,GetValidDriveInfoFromPartedOutput) {
@@ -150,6 +151,25 @@ TEST_F(DriveInfoCommandTest,GetEmptyDriveInfoFromPartedOutput) {
    ASSERT_TRUE(invalidDiskInfo.mPartitions.size() == 0);
 
    
+}
+
+TEST_F(DriveInfoCommandTest, TestToGetSomething) {
+   protoMsg::CommandRequest request;
+   MockConf conf;
+   
+   request.set_type(::protoMsg::CommandRequest_CommandType_DRIVEINFO);
+   
+   Command* testCommand = DriveInfoCommand::Construct(request);
+   
+   protoMsg::CommandReply reply = testCommand->Execute(conf);
+   
+   ASSERT_TRUE(reply.success());
+   
+   for (int i = 0 ; i < reply.arrayresult_size() ; i++) {
+      LOG(DEBUG) << reply.arrayresult(i);
+   }
+   
+   delete testCommand;
 }
 #else 
 
