@@ -26,6 +26,7 @@ TEST_F(ConversionTest, convertNBytesStrings) {
    EXPECT_EQ(123,converter.ReadKBytesFromNBytesString("123kB"));
    EXPECT_TRUE(123L<<KB_TO_MB_SHIFT==converter.ReadKBytesFromNBytesString("123MB")); 
    EXPECT_TRUE(123L<<KB_TO_GB_SHIFT==converter.ReadKBytesFromNBytesString("123GB"));
+   EXPECT_TRUE(123L<<KB_TO_TB_SHIFT==converter.ReadKBytesFromNBytesString("123TB"));
    
    EXPECT_EQ(1,converter.ReadMBytesFromNBytesString("123"));
    EXPECT_EQ(1,converter.ReadMBytesFromNBytesString("123kB"));
@@ -43,6 +44,19 @@ TEST_F(ConversionTest, convertNBytesStrings) {
    EXPECT_EQ(0,converter.ReadGBytesFromNBytesString("0MB")); 
    EXPECT_EQ(123L,converter.ReadGBytesFromNBytesString("123GB"));
    EXPECT_EQ(123L<<GB_TO_TB_SHIFT,converter.ReadGBytesFromNBytesString("123TB"));
+}
+TEST_F(ConversionTest, convertNBytesStringsWithDecimals) {
+   Conversion converter;
+   
+   EXPECT_EQ((12L<<B_TO_GB_SHIFT)+300L*(1L<<KB_TO_GB_SHIFT),converter.ReadBytesFromNBytesString("12.3GB"));
+   
+   EXPECT_EQ((12L<<KB_TO_GB_SHIFT)+300L*(1L<<MB_TO_GB_SHIFT),converter.ReadKBytesFromNBytesString("12.3GB"));
+   
+   EXPECT_EQ((12L<<KB_TO_TB_SHIFT)+300L*(1L<<KB_TO_GB_SHIFT),converter.ReadKBytesFromNBytesString("12.3TB"));
+   
+   EXPECT_EQ((12L<<MB_TO_TB_SHIFT)+300L*(1L<<MB_TO_GB_SHIFT),converter.ReadMBytesFromNBytesString("12.3TB"));
+   
+   EXPECT_EQ((12L<<GB_TO_TB_SHIFT)+300L*(1L),converter.ReadGBytesFromNBytesString("12.3TB"));
 }
 TEST_F(ConversionTest, convertArray32) {
 #ifdef LR_DEBUG

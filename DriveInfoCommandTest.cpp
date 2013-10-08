@@ -86,6 +86,7 @@ Number  Start   End    Size   Type     File system  Flags\r\n\
    EXPECT_TRUE(validDiskInfo.mDevice == "/dev/sda");
    EXPECT_TRUE(validDiskInfo.mModel == "DELL PERC H700 (scsi)");
    EXPECT_TRUE(validDiskInfo.mTotalCapacityInMB == (146<<GB_TO_MB_SHIFT));
+   EXPECT_TRUE(validDiskInfo.mTable == "msdos");
    ASSERT_TRUE(validDiskInfo.mPartitions.size() == 2);
    EXPECT_TRUE(validDiskInfo.mPartitions[0].mNumber == 1);
    EXPECT_EQ(1049,validDiskInfo.mPartitions[0].mStartInKb);
@@ -100,6 +101,44 @@ Number  Start   End    Size   Type     File system  Flags\r\n\
    EXPECT_TRUE(validDiskInfo.mPartitions[1].mFileSystem == ""); 
    EXPECT_TRUE(validDiskInfo.mPartitions[0].mFlags == "boot");
    EXPECT_TRUE(validDiskInfo.mPartitions[1].mFlags == "lvm"); 
+   
+   
+}
+TEST_F(DriveInfoCommandTest,GetValidDriveInfoFromPartedOutputDAS) {
+   
+   std::string diskFoundPartedOutput("Model: DELL PERC H810 (scsi)\r\n\
+Disk /dev/sdc: 26.4TB\r\n\
+Sector size (logical/physical): 512B/512B\r\n\
+Partition Table: gpt\r\n\
+\r\n\
+Number  Start   End     Size    File system  Name     Flags\r\n\
+ 1      1049kB  13.2TB  13.2TB  ext4         primary\r\n\
+ 2      13.2TB  26.4TB  13.2TB  ext4         primary\r\n\
+\r\n\
+\r\n\
+");
+   
+   DriveInfo validDiskInfo(diskFoundPartedOutput);
+   EXPECT_TRUE(validDiskInfo.mDevice == "/dev/sdc");
+   EXPECT_TRUE(validDiskInfo.mModel == "DELL PERC H810 (scsi)");
+   EXPECT_TRUE(validDiskInfo.mTotalCapacityInMB == (26<<TB_TO_MB_SHIFT) + 400*(1<<GB_TO_MB_SHIFT));
+   EXPECT_TRUE(validDiskInfo.mTable == "gpt");
+   ASSERT_TRUE(validDiskInfo.mPartitions.size() == 2);
+   EXPECT_TRUE(validDiskInfo.mPartitions[0].mNumber == 1);
+   EXPECT_EQ(1049,validDiskInfo.mPartitions[0].mStartInKb);
+   EXPECT_EQ(validDiskInfo.mPartitions[1].mStartInKb,(13L<<TB_TO_KB_SHIFT)+ 200*(1L<<TB_TO_MB_SHIFT));
+   EXPECT_EQ(validDiskInfo.mPartitions[0].mEndInKb,(13L<<TB_TO_KB_SHIFT)+ 200*(1L<<TB_TO_MB_SHIFT));
+   EXPECT_EQ(validDiskInfo.mPartitions[1].mEndInKb,(26L<<TB_TO_KB_SHIFT)+ 400*(1L<<TB_TO_MB_SHIFT));
+   EXPECT_EQ(validDiskInfo.mPartitions[0].mSizeInKb,(13L<<TB_TO_KB_SHIFT)+200*(1L<<TB_TO_MB_SHIFT));   
+   EXPECT_EQ(validDiskInfo.mPartitions[1].mSizeInKb,(13L<<TB_TO_KB_SHIFT)+ 200*(1L<<TB_TO_MB_SHIFT));   
+   EXPECT_TRUE(validDiskInfo.mPartitions[0].mType == "primary");
+   EXPECT_TRUE(validDiskInfo.mPartitions[1].mType == "primary");   
+   EXPECT_TRUE(validDiskInfo.mPartitions[0].mFileSystem == "ext4");
+   EXPECT_TRUE(validDiskInfo.mPartitions[1].mFileSystem == "ext4"); 
+   EXPECT_TRUE(validDiskInfo.mPartitions[0].mFlags == "");
+   EXPECT_TRUE(validDiskInfo.mPartitions[1].mFlags == ""); 
+   
+   
 }
 
 TEST_F(DriveInfoCommandTest,GetEmptyDriveInfoFromPartedOutput) {
