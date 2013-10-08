@@ -88,8 +88,7 @@ Number  Start   End    Size   Type     File system  Flags\r\n\
    EXPECT_TRUE(validDiskInfo.mTotalCapacityInMB == (146<<GB_TO_MB_SHIFT));
    ASSERT_TRUE(validDiskInfo.mPartitions.size() == 2);
    EXPECT_TRUE(validDiskInfo.mPartitions[0].mNumber == 1);
-   EXPECT_TRUE(validDiskInfo.mPartitions[1].mNumber == 2);
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mStartInKb == 1049);
+   EXPECT_EQ(1049,validDiskInfo.mPartitions[0].mStartInKb);
    EXPECT_TRUE(validDiskInfo.mPartitions[1].mStartInKb == (525<<MB_TO_KB_SHIFT));
    EXPECT_TRUE(validDiskInfo.mPartitions[0].mEndInKb == (525<<MB_TO_KB_SHIFT));
    EXPECT_TRUE(validDiskInfo.mPartitions[1].mEndInKb == (146<<GB_TO_KB_SHIFT));
