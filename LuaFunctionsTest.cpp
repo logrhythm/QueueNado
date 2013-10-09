@@ -349,7 +349,7 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    std::stringstream testDir;
    testDir << "/tmp/TooMuchPcap." << pthread_self();
 
-   conf.mPCapCaptureLocation = testDir.str();
+   conf.mPCapCaptureLocations.push_back(testDir.str());
 
    std::string makeADir = "mkdir -p ";
    makeADir += testDir.str();

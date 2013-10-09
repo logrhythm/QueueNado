@@ -18,10 +18,86 @@
 
 #include "tempFileCreate.h"
 
+
+// System test -- for now not disabled
+TEST_F(DiskPacketCaptureTest, SystemTest_VerifyGetCaptureFirstLocation) {
+   Conf conf;
+   const auto& first = conf.GetFirstPcapCaptureLocation();
+   ASSERT_TRUE((first == "/pcap0/" || first == "/usr/local/probe/pcap/")) 
+           << "PCAP first storage location: " << first;
+}
+
+
+TEST_F(DiskPacketCaptureTest, SystemTest_GetCaptureFirstLocationExpectNoThrow) {
+   MockConf conf;
+   std::string unlikelyDir = {"/yalla/123/#@123/"};
+   conf.mPCapCaptureLocations.push_back(unlikelyDir);
+   auto first = conf.GetFirstPcapCaptureLocation();
+   ASSERT_EQ(first, unlikelyDir);
+   conf.mOverrideGetPcapCaptureLocations = false; // use real calculations
+    
+   std::vector<std::string> locations;
+   EXPECT_NO_THROW(locations = conf.GetPcapCaptureLocations());
+   ASSERT_EQ(locations.size(), 1);
+   ASSERT_EQ(locations[0], unlikelyDir);
+}
+
+
+TEST_F(DiskPacketCaptureTest, TestVerifyGetCaptureOneLocation) {
+   MockConf conf;
+   // Verify test setup
+   EXPECT_EQ("", conf.GetFirstPcapCaptureLocation());
+   EXPECT_EQ(0, conf.GetPcapCaptureLocations().size());
+   
+   
+   conf.mOverrideGetPcapCaptureLocations = false; // use real calculations
+   ASSERT_EQ(conf.mPCapCaptureLocations.size(), 0);
+   conf.mPCapCaptureLocations.push_back("/tmp/pcap0/");
+   EXPECT_EQ("/tmp/pcap0/", conf.GetFirstPcapCaptureLocation());
+   auto locations = conf.GetPcapCaptureLocations();
+   ASSERT_EQ(locations.size(), 1);
+   EXPECT_EQ("/tmp/pcap0/", locations[0]);
+}
+
+TEST_F(DiskPacketCaptureTest, TestVerifyGetCaptureManyLocations) {
+   MockConf conf;
+      
+   const std::string baseDir = testDir.str();
+   std::vector<std::string> putLocations;
+   for(int idx = 0; idx < 100; ++idx) {
+      std::string dir = baseDir;
+      dir.append("/pcap").append(std::to_string(idx)).append({"/"});
+      putLocations.push_back(dir);
+   }
+   for(const auto& dir : putLocations) {
+      std::string mkdir = {"mkdir -p "};
+      mkdir.append(dir); // auto cleanup at test exit: Ref DiskPacketCaptureTest::TearDown
+      system(mkdir.c_str());
+   }
+   
+   // Verify that we see all the created pcap storage directories
+   conf.mOverrideGetPcapCaptureLocations = false; // use real calculations
+   conf.mPCapCaptureLocations.clear();
+   conf.mPCapCaptureLocations.push_back(putLocations[0]); // first location
+   auto locations = conf.GetPcapCaptureLocations();
+   ASSERT_EQ(locations.size(), putLocations.size());
+   size_t count = 0;
+   for(auto& put: putLocations)
+   {
+      ASSERT_EQ(put, locations[count++]);
+   }
+   EXPECT_TRUE(std::equal(putLocations.begin(), putLocations.end(), locations.begin()));
+   
+   // sanity check
+   putLocations.pop_back();
+   putLocations.push_back("123");
+   EXPECT_FALSE(std::equal(putLocations.begin(), putLocations.end(), locations.begin()));
+}
+
 TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
-   conf.mPCapCaptureLocation = testDir.str();
+   conf.mPCapCaptureLocations.push_back(testDir.str());
    conf.mMaxIndividualPCap = 10; // MB
    conf.mPCapCaptureMemoryLimit = 99999;
    conf.mPcapCaptureMaxPackets = 99999999;
@@ -73,7 +149,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
 TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitFlushedFile) {
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
-   conf.mPCapCaptureLocation = testDir.str();
+   conf.mPCapCaptureLocations.push_back(testDir.str());
    conf.mMaxIndividualPCap = 10; // MB
    conf.mPCapCaptureMemoryLimit = 99999;
    conf.mPcapCaptureMaxPackets = 99999999;
@@ -226,11 +302,165 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
    conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
 
-   conf.mPCapCaptureLocation = "testLocation";
+   conf.mPCapCaptureLocations.push_back("testLocation");
    std::string fileName = capture.BuildFilenameWithPath("TestUUID");
    ASSERT_EQ("testLocation/TestUUID", fileName);
 #endif
 }
+
+TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
+   MockDiskPacketCapture capture(conf);
+
+   conf.mPCapCaptureLocations.push_back("testLocation0");
+   size_t count0 =0;
+   for(size_t idx = 0; idx < 10; ++idx) {
+      size_t index = idx % 1; // size of one
+      std::string fileName = capture.BuildFilenameWithPath("TestUUID");
+      std::string expected = "testLocation";
+      expected.append(std::to_string(index)).append("/TestUUID");
+      ASSERT_EQ(expected, fileName);
+      if(0 == index) {++count0;}   
+   }
+   ASSERT_EQ(count0, 10);      
+#endif
+}
+
+TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin2) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
+   MockDiskPacketCapture capture(conf);
+
+   conf.mPCapCaptureLocations.push_back("testLocation");
+   for(size_t idx = 0; idx < 10; ++idx) {
+      std::string fileName;
+      EXPECT_NO_THROW(fileName = capture.BuildFilenameWithPath("TestUUID"));
+      ASSERT_EQ("testLocation/TestUUID", fileName);
+   }    
+#endif
+}
+
+
+TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobin) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
+   MockDiskPacketCapture capture(conf);
+
+   conf.mPCapCaptureLocations.push_back("testLocation0");
+   conf.mPCapCaptureLocations.push_back("testLocation1");
+   size_t count0 =0, count1=0;
+   for(size_t idx = 0; idx < 10; ++idx) {
+      size_t index = idx % 2;
+      
+      std::string fileName = capture.BuildFilenameWithPath("TestUUID");
+      std::string expected = "testLocation";
+      expected.append(std::to_string(index)).append("/TestUUID");
+      ASSERT_EQ(expected, fileName);
+      if(0 == index) {
+         ++count0;
+      }
+      if(1 == index) {
+         ++count1;
+      }  
+   }
+   ASSERT_EQ(count0, count1);
+   ASSERT_EQ(count0, 5);      
+#endif
+}
+
+TEST_F(DiskPacketCaptureTest, GetFilenamesOddRoundRobin) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
+   MockDiskPacketCapture capture(conf);
+
+   conf.mPCapCaptureLocations.push_back("testLocation0");
+   conf.mPCapCaptureLocations.push_back("testLocation1");
+   conf.mPCapCaptureLocations.push_back("testLocation2");
+
+   size_t count0 =0, count1=0, count2=0;
+   for(size_t idx = 0; idx < 10; ++idx) {
+      size_t index = idx % 3;
+      if(0 == index) {
+         ++count0;
+      }
+      if(1 == index) {
+         ++count1;
+      }
+      if(2 == index) {
+         ++count2;
+      }      
+      std::string fileName = capture.BuildFilenameWithPath("TestUUID");
+      std::string expected = "testLocation";
+      expected.append(std::to_string(index)).append("/TestUUID");
+      ASSERT_EQ(expected, fileName);
+     
+   }
+   ASSERT_TRUE((count1 == count2)) << count0 << ": " << count1 << ": " << count2;
+   ASSERT_EQ(count0, 4);      
+   ASSERT_EQ(count1, 3);      
+#endif
+}
+
+
+TEST_F(DiskPacketCaptureTest, GetFilenamesAvoidDuplicates) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   tempFileCreate tempFile(conf);
+   tempFile.Init();
+   conf.mUnknownCaptureEnabled = true;
+   MockDiskPacketCapture capture(conf);
+   
+   std::string base = tempFile.mTestDir.str();
+   std::string mkdir = {"mkdir -p "};
+   auto dir1 = base, dir2 = base, dir3=base;
+   auto mkdir1 = mkdir, mkdir2 = mkdir, mkdir3=mkdir;
+   dir1.append("/testLocation0/");
+   dir2.append("/testLocation1/");
+   dir3.append("/testLocation2/");
+   mkdir1.append(dir1);
+   mkdir2.append(dir2);
+   mkdir3.append(dir3);
+   EXPECT_EQ(0, system(mkdir1.c_str()));
+   EXPECT_EQ(0, system(mkdir2.c_str()));
+   EXPECT_EQ(0, system(mkdir3.c_str()));
+   
+   conf.mPCapCaptureLocations.clear();
+   conf.mOverrideGetPcapCaptureLocations = false; // use real logic
+   conf.mPCapCaptureLocations.push_back(dir1);
+   EXPECT_EQ(conf.GetPcapCaptureLocations().size(), 3); 
+   std::string fileName1 = capture.BuildFilenameWithPath("TestUUID");   
+   std::string fileName2 = capture.BuildFilenameWithPath("TestUUID");
+   std::string fileName3 = capture.BuildFilenameWithPath("TestUUID");
+   
+   // Make sure the filenames goes in different buckets since no file exists in 
+   // buckets
+   EXPECT_NE(fileName1, fileName2);
+   EXPECT_NE(fileName1, fileName3);
+   EXPECT_NE(fileName2, fileName3);
+   
+   // Make sure that the filenames go in the same bucket if the uuid 
+   //      exist in a bucket
+   std::string touch = {"touch "};
+   touch.append(fileName1);
+   system(touch.c_str());
+   fileName1 = capture.BuildFilenameWithPath("TestUUID");   
+   fileName2 = capture.BuildFilenameWithPath("TestUUID");
+   fileName3 = capture.BuildFilenameWithPath("TestUUID");
+   EXPECT_EQ(fileName1, fileName2);
+   EXPECT_EQ(fileName1, fileName3);
+   EXPECT_EQ(fileName2, fileName3);
+#endif
+}
+
+
+
+
+
 
 TEST_F(DiskPacketCaptureTest, Initialize) {
 #ifdef LR_DEBUG
@@ -240,11 +470,15 @@ TEST_F(DiskPacketCaptureTest, Initialize) {
    {
       tempFileCreate tempFile(conf);
       ASSERT_TRUE(tempFile.Init());
-      conf.mPCapCaptureLocation = "testLocation";
+      conf.mPCapCaptureLocations.clear();
+      conf.mPCapCaptureLocations.push_back("testLocation");
       ASSERT_FALSE(capture.Initialize());
-      conf.mPCapCaptureLocation = tempFile.mTestDir.str();
+      conf.mPCapCaptureLocations.clear();
+      conf.mPCapCaptureLocations.push_back(tempFile.mTestDir.str());
       ASSERT_TRUE(capture.Initialize());
-      conf.mPCapCaptureLocation = "/etc/passwd";
+      conf.mPCapCaptureLocations.clear();
+      conf.mPCapCaptureLocations.push_back("/etc/passwd");
+      
       ASSERT_FALSE(capture.Initialize());
    }
 #endif 
@@ -255,7 +489,9 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
-   conf.mPCapCaptureLocation = "testLocation";
+   conf.mPCapCaptureLocations.push_back("testLocation");
+   ASSERT_FALSE(capture.Initialize());
+   
    conf.mPCapCaptureFileLimit = 10000;
    conf.mPCapCaptureSizeLimit = 10000;
    conf.mPCapCaptureMemoryLimit = 10;
@@ -309,12 +545,93 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
 #endif
 }
 
+
+TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit_FlushingToManyLocations) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
+   MockDiskPacketCapture capture(conf);
+   conf.mPCapCaptureLocations.push_back("testLocation"); 
+   conf.mPCapCaptureFileLimit = 10000;
+   conf.mPCapCaptureSizeLimit = 10000;
+   conf.mPCapCaptureMemoryLimit = 10;
+   {
+      tempFileCreate tempFile(conf);
+      ASSERT_TRUE(tempFile.Init());
+      ASSERT_TRUE(capture.Initialize());
+
+      EXPECT_EQ(0, capture.NewTotalMemory(0));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("notThere"));
+      struct upacket packet;
+      ctb_pkt p;
+      packet.p = &p;
+      unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
+      p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
+      p.data = data;
+      networkMonitor::DpiMsgLR dpiMsg;
+      dpiMsg.set_sessionid("FlowOne");
+      EXPECT_EQ(0, capture.NewTotalMemory(0));
+      capture.SavePacket(&dpiMsg, &packet);
+      EXPECT_EQ(1, capture.NewTotalMemory(0));
+      ASSERT_EQ(0, capture.mFilesWritten.size()); // Not yet flushed
+
+      
+      dpiMsg.set_sessionid("FlowTwo");
+      capture.SavePacket(&dpiMsg, &packet);
+      
+      // Verify that all is still kept in memory and not flushed
+      ASSERT_EQ(0, capture.mFilesWritten.size()); 
+      EXPECT_EQ(2, capture.NewTotalMemory(0));
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowTwo")); 
+
+      
+      capture.mFailFlush = false;
+      // The next one will force some flow to be flushed to disk
+      conf.mPCapCaptureMemoryLimit = 0; 
+      EXPECT_EQ(0, conf.GetPcapCaptureMemoryLimit());
+
+
+      // 
+      dpiMsg.set_sessionid("FlowTwo");
+      capture.SavePacket(&dpiMsg, &packet);
+      EXPECT_EQ(1, capture.NewTotalMemory(0)); // FlowOne still left
+      ASSERT_EQ(1, capture.mFilesWritten.size()); // FlowTwo flushed
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne")); // not flushed
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo")); // flushed
+
+      // Post: thread-id used in SavePacket
+      // Any attempt to save a packet when we are over the limit will result in a discarded package
+      // This is because the previous save of FlowTwo erased the pointed to flow for this thread
+      // 
+      // Since we are doing it in the same thread we must ensure that new packets end up in the 
+      //'bigFlows' (to be flushed)
+      // I.e. 1) Raise the bar so that it is not discareded but added to the bigflows
+      //      2) Save packets 
+      //      3) Lower the bar and save another packet --> which triggers the flush of the file (and the erase mentioned above)
+      conf.mPCapCaptureMemoryLimit = 10; 
+      dpiMsg.set_sessionid("FlowOne");
+      capture.SavePacket(&dpiMsg, &packet); // 1 -> 2
+      capture.SavePacket(&dpiMsg, &packet); // 2 -> 3
+      EXPECT_EQ(3, capture.CurrentMemoryForFlow("FlowOne")); // not flushed
+      conf.mPCapCaptureMemoryLimit = 1; 
+      capture.SavePacket(&dpiMsg, &packet); // FlowOne is now also flushed
+
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne")); // not flushed
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo")); // flushed
+      ASSERT_EQ(2, capture.mFilesWritten.size()); // FlowTwo flushed
+
+   }
+   ASSERT_FALSE(capture.Initialize());
+#endif
+}
+
 TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit) {
 #ifdef LR_DEBUG
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
-   conf.mPCapCaptureLocation = "testLocation";
+   conf.mPCapCaptureLocations.push_back("testLocation"); 
    conf.mPCapCaptureFileLimit = 10000;
    conf.mPCapCaptureSizeLimit = 10000;
    conf.mPCapCaptureMemoryLimit = 10;
@@ -372,7 +689,7 @@ TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
    conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
 
-   conf.mPCapCaptureLocation = "testLocation";
+   conf.mPCapCaptureLocations.push_back("testLocation");
    conf.mPCapCaptureFileLimit = 10000;
    conf.mPCapCaptureSizeLimit = 10000;
    conf.mPCapCaptureMemoryLimit = 5;
@@ -435,7 +752,7 @@ TEST_F(DiskPacketCaptureTest, PacketCaptureDisabled) {
    conf.mUnknownCaptureEnabled = false;
    MockDiskPacketCapture capture(conf);
 
-   conf.mPCapCaptureLocation = "testLocation";
+   conf.mPCapCaptureLocations.push_back("testLocation");
    conf.mPCapCaptureFileLimit = 10000;
    conf.mPCapCaptureSizeLimit = 10000;
    conf.mPCapCaptureMemoryLimit = 5;
