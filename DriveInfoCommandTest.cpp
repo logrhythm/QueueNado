@@ -2,6 +2,7 @@
 #include "DriveInfoCommandTest.h"
 #include "MockDriveInfoCommand.h"
 #include "DriveInfo.h"
+#include "Crowbar.h"
 #include "MockConf.h"
 
 #ifdef LR_DEBUG
@@ -153,7 +154,7 @@ TEST_F(DriveInfoCommandTest,GetEmptyDriveInfoFromPartedOutput) {
    
 }
 
-TEST_F(DriveInfoCommandTest, TestToGetSomething) {
+TEST_F(DriveInfoCommandTest, DISABLED_TestToGetSomething) {
    protoMsg::CommandRequest request;
    MockConf conf;
    
@@ -170,6 +171,34 @@ TEST_F(DriveInfoCommandTest, TestToGetSomething) {
    }
    
    delete testCommand;
+}
+/**
+ * This test requires a running manager
+ * @param 
+ */
+TEST_F(DriveInfoCommandTest, TestWithSocket) {
+ 
+   protoMsg::CommandRequest request;
+   request.set_type(::protoMsg::CommandRequest_CommandType_DRIVEINFO);
+   Crowbar sender("tcp://127.0.0.1:5556");
+   ASSERT_TRUE(sender.Wield());
+   
+   std::vector<std::string> swings;
+   std::vector<std::string> results;
+   
+   swings.emplace_back(request.SerializeAsString());
+   
+   ASSERT_TRUE(sender.Flurry(swings));
+   ASSERT_TRUE(sender.BlockForKill(results));
+   protoMsg::CommandReply reply;
+   ASSERT_TRUE(!results.empty());
+   reply.ParseFromString(results[0]);
+   ASSERT_TRUE(reply.success());
+   
+   for (int i = 0 ; i < reply.arrayresult_size() ; i++) {
+      LOG(DEBUG) << reply.arrayresult(i);
+   }
+   
 }
 #else 
 
