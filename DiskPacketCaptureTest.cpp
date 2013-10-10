@@ -55,9 +55,8 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
          testMessage.set_bytesdest(testMessage.bytesdest() + packet.p->len);
       }
       capture.SavePacket(&testMessage, &packet);
-      capture.WriteSavedSessionToDisk(&testMessage);
    }
-   EXPECT_FALSE(capture.WriteSavedSessionToDisk(&testMessage));
+   EXPECT_TRUE(capture.WriteSavedSessionToDisk(&testMessage));
    EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage.packettotal());
    EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage.bytessource() + testMessage.bytesdest());
    struct stat statbuf;
