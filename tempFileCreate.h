@@ -8,6 +8,11 @@ public:
    tempFileCreate(MockConf& conf) : mConf(conf) {
       mTestDir << "/tmp/TooMuchPcap." << pthread_self();
    }
+   
+    
+   tempFileCreate(MockConf& conf, const std::string& directory) : mConf(conf) {
+      mTestDir << directory << "." << pthread_self();
+   }
 
    ~tempFileCreate() {
       std::string makeADir = "rm -rf ";

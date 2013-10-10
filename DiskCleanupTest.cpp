@@ -1,7 +1,7 @@
 #include "DiskCleanupTest.h"
 #include "DiskCleanup.h"
 #include "DiskPacketCapture.h"
-
+#include "tempFileCreate.h"
 #include "SendStats.h"
 #include "MockConf.h"
 #include "MockElasticSearch.h"
@@ -33,7 +33,7 @@ TEST_F(DiskCleanupTest, RemoveFile) {
    path += testDir.str();
    path += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 1 empty file
 
-   mConf.mConf.mPCapCaptureLocation = testDir.str();
+   mConf.mConf.mPCapCaptureLocations.push_back(testDir.str());
    std::string makeADir;
    ASSERT_EQ(0, system(makeADir.c_str()));
    std::string makeSmallFile = "touch ";
@@ -57,7 +57,7 @@ TEST_F(DiskCleanupTest, RemoveFiles) {
    path += testDir.str();
    path += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 1 empty file
 
-   mConf.mConf.mPCapCaptureLocation = testDir.str();
+   mConf.mConf.mPCapCaptureLocations.push_back(testDir.str());
    std::string makeADir;
    ASSERT_EQ(0, system(makeADir.c_str()));
    std::string makeSmallFile = "touch ";
@@ -105,8 +105,8 @@ TEST_F(DiskCleanupTest, RemoveFiles) {
 }
 
 TEST_F(DiskCleanupTest, GetOlderFilesFromPath) {
-   MockDiskCleanup cleanup(mConf);
-      PathAndFileNames filesToFind;
+   MockDiskCleanup cleanup(mConf);   
+   PathAndFileNames filesToFind;
    std::string path;
    path += testDir.str();
    path += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
@@ -117,14 +117,16 @@ TEST_F(DiskCleanupTest, GetOlderFilesFromPath) {
    EXPECT_TRUE(filesToFind.empty());
    
    EXPECT_EQ(0, system(makeSmallFile.c_str())); 
+   std::this_thread::sleep_for(std::chrono::seconds(1)); // increase timestamp
    cleanup.mFakeIsShutdown = true;
    cleanup.mIsShutdownResult = true;
    filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(),std::time(NULL));  
-   EXPECT_TRUE(filesToFind.empty());
+   EXPECT_TRUE(filesToFind.empty()); // does not check due to shutdown
    
    cleanup.mFakeIsShutdown = false;
    filesToFind = cleanup.GetOlderFilesFromPath("/thisPathIsGarbage",0);  
    EXPECT_TRUE(filesToFind.empty());
+   
    
    filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(),std::time(NULL));  
    ASSERT_FALSE(filesToFind.empty());
@@ -248,7 +250,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, ignored);
       ASSERT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
 
-      mConf.mConf.mPCapCaptureLocation = testDir.str();
+      mConf.mConf.mPCapCaptureLocations.push_back(testDir.str());
 
       std::string makeADir;
 
@@ -355,15 +357,16 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
 
 #ifdef LR_DEBUG
 
-TEST_F(DiskCleanupTest, GetPcapStoreUsage) {
+TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageSamePartition) {
    MockDiskCleanup cleanup(mConf);
    cleanup.mRealFilesSystemAccess = true;
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
    cleanup.ResetConf();
-   Conf copy = cleanup.GetConf();
-
-   EXPECT_EQ(copy.GetPcapCaptureLocation(), "/tmp/TooMuchPcap");
-   EXPECT_EQ(copy.GetProbeLocation(), "/tmp/TooMuchPcap");
+   Conf& conf = cleanup.GetConf();
+   EXPECT_EQ(conf.GetFirstPcapCaptureLocation(), "/tmp/TooMuchPcap/");
+   EXPECT_EQ(conf.GetPcapCaptureLocations()[0], "/tmp/TooMuchPcap/");
+   
+   EXPECT_EQ(conf.GetProbeLocation(), "/tmp/TooMuchPcap");
 
    // Same partition: disk usage for pcap is calulcated on the folder itself
    // free and total should be huge since it is on the root partition
@@ -371,7 +374,7 @@ TEST_F(DiskCleanupTest, GetPcapStoreUsage) {
    cleanup.GetPcapStoreUsage(pcapDisk, DiskUsage::Size::KByte);
    size_t spaceToCreateADirectory = 4;
    EXPECT_EQ(pcapDisk.Used, spaceToCreateADirectory); // overhead creating dir
-
+           
    std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
    make1MFileFile += testDir.str();
    make1MFileFile += "/1MFile";
@@ -385,16 +388,87 @@ TEST_F(DiskCleanupTest, GetPcapStoreUsage) {
 #endif
 
 #ifdef LR_DEBUG
+// Could also be DISABLED since it used two partitions for verifying that the actual
+// partition calculation is OK. On our test system (Jenkins?) all is on the
+// same partition so in this case we do not run this test
+//
+// There is no point in mocking this and using folders on the same partition
+// since the test is for verifying how it works on partitions
+TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
+   DiskUsage home("/home/tmp/TooMuchPcap");
+   DiskUsage root("/tmp/TooMuchPcap");
+   if (home.FileSystemID() != root.FileSystemID()) {
+      MockDiskCleanup cleanup(mConf);
+      cleanup.mRealFilesSystemAccess = true;
+      cleanup.mUseMockConf = true;
+      auto& mockedConf = cleanup.mMockedConf;
+      tempFileCreate scopedHome(cleanup.mMockedConf, "/home/tmp/TooMuchPcap");
+      tempFileCreate scopedRoot(cleanup.mMockedConf, "/tmp/TooMuchPcap");
 
+      ASSERT_TRUE(scopedHome.Init());
+      ASSERT_TRUE(scopedRoot.Init());
+
+      mockedConf.mPCapCaptureLocations.clear();
+      mockedConf.mPCapCaptureLocations.push_back(scopedHome.mTestDir.str());
+      mockedConf.mPCapCaptureLocations.push_back(scopedRoot.mTestDir.str());
+
+
+
+      ASSERT_EQ(mockedConf.GetPcapCaptureLocations().size(), 2);
+      ASSERT_EQ(mockedConf.GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
+      ASSERT_EQ(mockedConf.GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
+      EXPECT_EQ(mockedConf.GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
+      Conf& conf = cleanup.GetConf();
+      EXPECT_EQ(conf.GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
+      EXPECT_EQ(conf.GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
+      EXPECT_EQ(conf.GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
+      EXPECT_EQ(mockedConf.GetProbeLocation(), "/usr/local/probe/");
+
+
+      // Using 2 different partitions for pcaps
+      DiskCleanup::DiskSpace pcapDisk{0, 0, 0};
+      auto size = DiskUsage::Size::MB;
+      cleanup.GetPcapStoreUsage(pcapDisk, size); // high granularity in case something changes on the system
+      DiskUsage atRoot{scopedRoot.mTestDir.str()};
+      DiskUsage atHome(scopedHome.mTestDir.str());
+
+      auto isFree = atRoot.DiskFree(size) + atHome.DiskFree(size);
+      auto isUsed = atRoot.DiskUsed(size) + atHome.DiskUsed(size);
+      auto isTotal = atRoot.DiskTotal(size) + atHome.DiskTotal(size);
+      EXPECT_EQ(pcapDisk.Free, isFree) << ". home: " << atHome.DiskFree(size) << ". root:" << atRoot.DiskFree(size);
+      EXPECT_EQ(pcapDisk.Used, isUsed) << ". home: " << atHome.DiskUsed(size) << ". root:" << atRoot.DiskUsed(size);
+      EXPECT_EQ(pcapDisk.Total, isTotal) << ". home: " << atHome.DiskTotal(size) << ". root:" << atRoot.DiskTotal(size);
+
+
+      // Sanity check. Add a 10MFile and see that increments happen
+      std::string make1MFileFile = "dd bs=1024 count=10240 if=/dev/zero of=";
+      make1MFileFile += scopedHome.mTestDir.str();
+      make1MFileFile += "/10MFile";
+      EXPECT_EQ(0, system(make1MFileFile.c_str()));
+      DiskUsage atHome2(scopedHome.mTestDir.str());
+      size_t usedMByte = atHome2.DiskUsed(size);
+      cleanup.GetPcapStoreUsage(pcapDisk, size);
+      EXPECT_EQ(pcapDisk.Used, isUsed + 10);
+      EXPECT_EQ(pcapDisk.Used, usedMByte + atRoot.DiskUsed(size));
+   }
+}
+#endif
+
+
+
+
+
+#ifdef LR_DEBUG
 TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
    MockDiskCleanup cleanup(mConf);
    cleanup.mRealFilesSystemAccess = true;
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
    cleanup.ResetConf();
-   Conf copy = cleanup.GetConf();
+   Conf& conf = cleanup.GetConf();
 
-   EXPECT_EQ(copy.GetPcapCaptureLocation(), "/tmp/TooMuchPcap");
-   EXPECT_EQ(copy.GetProbeLocation(), "/tmp/TooMuchPcap");
+   
+   EXPECT_EQ(conf.GetPcapCaptureLocations()[0], "/tmp/TooMuchPcap/");
+   EXPECT_EQ(conf.GetProbeLocation(), "/tmp/TooMuchPcap");
 
    // Same partition: disk usage for pcap is calulcated on the folder itself
    // free and total should be huge since it is on the root partition
@@ -413,6 +487,149 @@ TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
    EXPECT_NE(probeDiskInKByte.Used, 4); // probe is the whole partition
    EXPECT_TRUE(probeDiskInKByte.Used > 4);
 
+}
+#endif
+
+#ifdef LR_DEBUG
+TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
+   MockDiskCleanup cleanup(mConf);
+   cleanup.mRealFilesSystemAccess = true;
+   mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
+   cleanup.ResetConf();
+   Conf& conf = cleanup.GetConf();
+
+   EXPECT_EQ(conf.GetFirstPcapCaptureLocation(), "/tmp/TooMuchPcap/");
+   EXPECT_EQ(conf.GetPcapCaptureLocations()[0], "/tmp/TooMuchPcap/");
+   EXPECT_EQ(conf.GetProbeLocation(), "/tmp/TooMuchPcap");
+
+   // Same partition: disk usage for pcap is calulcated on the folder itself
+   // free and total should be huge since it is on the root partition
+   DiskCleanup::DiskSpace pcapDisk{0, 0, 0};
+   size_t diskUsed_1_MB;
+   size_t totalFiles;
+   cleanup.RecalculatePCapDiskUsed(diskUsed_1_MB, totalFiles, pcapDisk);   
+   EXPECT_EQ(totalFiles, 0);
+   size_t usedMB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB);
+   EXPECT_EQ(usedMB, 0);
+   EXPECT_EQ(usedMB, diskUsed_1_MB);
+   
+   std::string make10MFile = "dd bs=1024 count=10240 if=/dev/zero of=";
+   make10MFile += testDir.str();
+   make10MFile += "/10MFile";
+   EXPECT_EQ(0, system(make10MFile.c_str()));
+   cleanup.RecalculatePCapDiskUsed(diskUsed_1_MB, totalFiles, pcapDisk);  
+   EXPECT_EQ(totalFiles, 1);
+   usedMB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB);
+   EXPECT_EQ(usedMB, 10);
+   EXPECT_EQ(usedMB, diskUsed_1_MB);
+   
+   cleanup.GetPcapStoreUsage(pcapDisk, DiskUsage::Size::KByte);
+   size_t spaceToCreateADirectory = 4;
+   EXPECT_EQ(pcapDisk.Used, 10240 + spaceToCreateADirectory);
+}
+#endif
+
+
+
+#ifdef LR_DEBUG
+
+// Could potentially also be DISABLED
+// This test will only run if the access to /home and /tmp are on separate
+// partitions.
+// 
+// Mocking so that 'folders' on the same partion is used is not much of a point
+// since it is the actual partition calculations and checks that are important
+TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedManyPartitions) {
+   DiskUsage home("/home/tmp/TooMuchPcap");
+   DiskUsage root("/tmp/TooMuchPcap");
+   if (home.FileSystemID() != root.FileSystemID()) {
+      MockDiskCleanup cleanup(mConf);
+      cleanup.mRealFilesSystemAccess = true;
+      cleanup.mUseMockConf = true;
+      auto& mockedConf = cleanup.mMockedConf;
+      tempFileCreate scopedHome(mockedConf, "/home/tmp/TooMuchPcap");
+      tempFileCreate scopedRoot(mockedConf, "/tmp/TooMuchPcap");
+      ASSERT_TRUE(scopedHome.Init());
+      ASSERT_TRUE(scopedRoot.Init());
+      mockedConf.mPCapCaptureLocations.clear();
+      mockedConf.mPCapCaptureLocations.push_back(scopedHome.mTestDir.str());
+      mockedConf.mPCapCaptureLocations.push_back(scopedRoot.mTestDir.str());
+
+      // Verify setup
+      ASSERT_EQ(mockedConf.GetPcapCaptureLocations().size(), 2);
+      ASSERT_EQ(mockedConf.GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
+      ASSERT_EQ(mockedConf.GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
+      EXPECT_EQ(mockedConf.GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
+
+      Conf& conf = cleanup.GetConf();
+      EXPECT_EQ(conf.GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
+      EXPECT_EQ(conf.GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
+      EXPECT_EQ(conf.GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
+      EXPECT_NE(scopedRoot.mTestDir.str(), scopedHome.mTestDir.str());
+      EXPECT_EQ(mockedConf.GetProbeLocation(), "/usr/local/probe/");
+
+      // Using 2 different partitions for pcaps
+      // Verify that RecalculatePCapDiskUsed is using both partitions
+      DiskCleanup::DiskSpace pcapDisk{0, 0, 0};
+      size_t used_1_a;
+      size_t totalFiles;
+      cleanup.RecalculatePCapDiskUsed(used_1_a, totalFiles, pcapDisk);
+      EXPECT_EQ(totalFiles, 0);
+      DiskUsage atRoot{scopedRoot.mTestDir.str()};
+      DiskUsage atHome(scopedHome.mTestDir.str());
+      auto size = DiskUsage::Size::MB;
+      // Measure disk usage before we add anything
+      size_t usedMB_1 = atHome.DiskUsed(size);
+      size_t usedMB_2 = atRoot.DiskUsed(size);
+      EXPECT_EQ(usedMB_1 + usedMB_2, used_1_a);
+
+      // Add 1 file of 10MB to the 'home' partition
+      std::string make10MFile = "dd bs=1024 count=10240 if=/dev/zero of=";
+      make10MFile += scopedHome.mTestDir.str();
+      make10MFile += "/10MFile";
+      EXPECT_EQ(0, system(make10MFile.c_str()));
+
+      // Verify that the 10MB file was written to first location
+      size_t used_1_b;
+      cleanup.RecalculatePCapDiskUsed(used_1_b, totalFiles, pcapDisk);
+      EXPECT_EQ(totalFiles, 1);
+      DiskCleanup::DiskSpace extraCheck;
+      cleanup.GetPcapStoreUsage(extraCheck, size);
+      EXPECT_EQ(extraCheck.Used, used_1_b);
+      atHome.Update();
+      atRoot.Update();
+      usedMB_1 = atHome.DiskUsed(size);
+      usedMB_2 = atRoot.DiskUsed(size);
+      EXPECT_EQ(usedMB_1 + usedMB_2, 10 + used_1_a);
+      EXPECT_EQ(usedMB_1 + usedMB_2, used_1_b);
+
+
+      // Create another 10MB file and save it to the other location
+      make10MFile = "dd bs=1024 count=10240 if=/dev/zero of=";
+      make10MFile += scopedRoot.mTestDir.str();
+      make10MFile += "/10MFile";
+      EXPECT_EQ(0, system(make10MFile.c_str()));
+      size_t used_1_c;
+      cleanup.RecalculatePCapDiskUsed(used_1_c, totalFiles, pcapDisk);
+      EXPECT_EQ(totalFiles, 2);
+      atHome.Update();
+      atRoot.Update();
+      usedMB_1 = atHome.DiskUsed(size);
+      usedMB_2 = atRoot.DiskUsed(size);
+      EXPECT_EQ(usedMB_1 + usedMB_2, 20 + used_1_a);
+      EXPECT_EQ(usedMB_1 + usedMB_2, used_1_c);
+
+      // Verify that both files were actually created 
+      // in the separate directories and that they are on separate partitions
+      std::string path1 = scopedHome.mTestDir.str();
+      std::string path2 = scopedRoot.mTestDir.str();
+      path1.append("/10MFile");
+      path2.append("/10MFile");
+
+      EXPECT_TRUE(boost::filesystem::exists(path1));
+      EXPECT_TRUE(boost::filesystem::exists(path2));
+      EXPECT_NE(atHome.FileSystemID(), atRoot.FileSystemID());
+   }
 }
 #endif
 
@@ -476,10 +693,10 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup10";
       capture.ResetConf();
 
-      Conf copy = capture.GetConf();
-      auto fileLimit = copy.GetPcapCaptureFileLimit();
-      auto sizeLimit = copy.GetPcapCaptureSizeLimit();
-      EXPECT_EQ(copy.GetPcapCaptureLocation(), copy.GetProbeLocation());
+      Conf& conf = capture.GetConf();
+      auto fileLimit = conf.GetPcapCaptureFileLimit();
+      auto sizeLimit = conf.GetPcapCaptureSizeLimit();
+      EXPECT_NE(conf.GetPcapCaptureLocations()[0], conf.GetProbeLocation());
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       es.mOldestFiles.emplace_back(testDir.str() + "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1");
       capture.CleanupOldPcapFiles(false, previous, es, sendQueue, currentTime,
@@ -504,7 +721,6 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
 #endif
 }
 #ifdef LR_DEBUG
-
 TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
    if (geteuid() == 0) {
       std::string makeADir;
@@ -525,10 +741,16 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
       makeSmallFile += testDir.str();
       makeSmallFile += "/161122fd-6681-42a3-b953-48beb5247172";
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
+      EXPECT_TRUE(boost::filesystem::exists("/tmp/TooMuchPcap/161122fd-6681-42a3-b953-48beb5247172"));
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
+      ASSERT_EQ(mConf.GetConf().GetFirstPcapCaptureLocation(), "/tmp/TooMuchPcap/");
       capture.ResetConf();
+      ASSERT_EQ(capture.GetConf().GetFirstPcapCaptureLocation(), "/tmp/TooMuchPcap/");
+      ASSERT_EQ(capture.GetConf().GetPcapCaptureLocations()[0], "/tmp/TooMuchPcap/");
+      
       std::this_thread::sleep_for(std::chrono::seconds(1));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
+      EXPECT_EQ(aTotalFiles, 1);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       es.mBulkUpdateResult = false;
       es.mOldestFiles.emplace_back(testDir.str() + "/161122fd-6681-42a3-b953-48beb5247172", "161122fd-6681-42a3-b953-48beb5247172");
@@ -537,15 +759,97 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
       time_t oldest;
       EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved, oldest));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
+      EXPECT_FALSE(boost::filesystem::exists("/tmp/TooMuchPcap/161122fd-6681-42a3-b953-48beb5247172"));
+      EXPECT_EQ(aTotalFiles, 0);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
-
+     
       EXPECT_EQ(0, system(makeSmallFile.c_str()));
       std::this_thread::sleep_for(std::chrono::seconds(1));
+      EXPECT_TRUE(boost::filesystem::exists("/tmp/TooMuchPcap/161122fd-6681-42a3-b953-48beb5247172"));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
+      EXPECT_EQ(aTotalFiles, 1);
       EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
       capture.CleanupOldPcapFiles(false, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, probeDisk, pcapDisk);
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
       EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
+      EXPECT_EQ(aTotalFiles, 0);
+   }
+}
+
+TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
+   if (geteuid() == 0) {
+      std::string makeADir;
+      SendStats sendQueue;
+      DiskCleanup::DiskSpace probeDisk{0, 0, 0};
+      DiskCleanup::DiskSpace pcapDisk{100, 0, 0}; // total, free, used
+      MockElasticSearch es(false);
+      DiskCleanup::PacketCaptureFilesystemDetails previous;
+      previous.Writes = 0;
+      previous.Reads = 0;
+      previous.WriteBytes = 0;
+      previous.ReadBytes = 0;
+      std::time_t currentTime = std::time(NULL);
+      size_t aDiskUsed(0);
+      size_t aTotalFiles(0);
+      MockDiskCleanup capture(mConf);
+      
+      // Fake two capture locations
+      EXPECT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap0"));
+      EXPECT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap1"));
+      
+      std::string makeFile1 = "touch ";
+      std::string makeFile2 = makeFile1;
+      std::string file1 = "/tmp/TooMuchPcap/pcap0/161122fd-6681-42a3-b953-48beb5247172";
+      std::string file2 = "/tmp/TooMuchPcap/pcap1/161122fd-6681-42a3-b953-48beb5247174";      
+      makeFile1 += file1;
+      makeFile2 += file2;
+      EXPECT_EQ(0, system(makeFile1.c_str()));
+      EXPECT_EQ(0, system(makeFile2.c_str()));
+      EXPECT_TRUE(boost::filesystem::exists(file1));
+      EXPECT_TRUE(boost::filesystem::exists(file2));
+      
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup11";
+      EXPECT_EQ(mConf.GetConf().GetFirstPcapCaptureLocation(), "/tmp/TooMuchPcap/pcap0/");
+      capture.ResetConf();
+      EXPECT_EQ(capture.GetConf().GetFirstPcapCaptureLocation(), "/tmp/TooMuchPcap/pcap0/");
+      auto locations = capture.GetConf().GetPcapCaptureLocations();
+      ASSERT_EQ(locations.size(), 2);
+      EXPECT_EQ(capture.GetConf().GetPcapCaptureLocations()[0], "/tmp/TooMuchPcap/pcap0/");
+      EXPECT_EQ(capture.GetConf().GetPcapCaptureLocations()[1], "/tmp/TooMuchPcap/pcap1/");
+      
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
+      EXPECT_EQ(aTotalFiles, 2);
+      EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
+      es.mBulkUpdateResult = false;
+      es.mOldestFiles.emplace_back(file1, "161122fd-6681-42a3-b953-48beb5247172");
+      es.mOldestFiles.emplace_back(file2, "161122fd-6681-42a3-b953-48beb52471724");
+      size_t filesRemoved;
+      size_t spaceSaved;
+      time_t oldest;
+      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved, oldest));
+      capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
+      EXPECT_FALSE(boost::filesystem::exists(file1));
+      EXPECT_FALSE(boost::filesystem::exists(file2));
+      EXPECT_EQ(aTotalFiles, 0);
+      EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
+     
+      // Create two files. One in each directory
+      // Verify that cleanup works in both directories
+      EXPECT_EQ(0, system(makeFile1.c_str()));
+      EXPECT_EQ(0, system(makeFile2.c_str()));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      EXPECT_TRUE(boost::filesystem::exists(file1));
+      EXPECT_TRUE(boost::filesystem::exists(file2));
+      capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
+      EXPECT_EQ(aTotalFiles, 2);
+      EXPECT_TRUE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
+      capture.CleanupOldPcapFiles(false, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, probeDisk, pcapDisk);
+      capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
+      EXPECT_FALSE(capture.TooMuchPCap(aDiskUsed, aTotalFiles));
+      EXPECT_EQ(aTotalFiles, 0);
+      EXPECT_FALSE(boost::filesystem::exists(file1));
+      EXPECT_FALSE(boost::filesystem::exists(file2)); 
    }
 }
 
@@ -637,7 +941,6 @@ TEST_F(DiskCleanupTest, RemoveGetsTheOldestMatch) {
 
 TEST_F(DiskCleanupTest, FSMath) {
    MockDiskCleanup diskCleanup(mConf);
-   auto location = mConf.mConf.GetPcapCaptureLocation();
    diskCleanup.mFleSystemInfo.f_bfree = 100 << B_TO_MB_SHIFT;
    diskCleanup.mFleSystemInfo.f_frsize = 1024;
    diskCleanup.mFleSystemInfo.f_blocks = 109 << B_TO_MB_SHIFT;

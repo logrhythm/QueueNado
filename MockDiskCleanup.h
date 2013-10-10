@@ -1,7 +1,8 @@
 #pragma once
 #include "DiskCleanup.h"
+#include "MockDiskUsage.h"
+#include "MockConf.h"
 #include <sys/statvfs.h>
-#include <MockDiskUsage.h>
 
 class MockDiskCleanup : public DiskCleanup {
 public:
@@ -9,7 +10,7 @@ public:
    MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
    mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
-           mIsShutdownResult(false) {
+           mIsShutdownResult(false), mUseMockConf(false) {
       mFleSystemInfo.f_bfree = 1;
       mFleSystemInfo.f_frsize = 1;
       mFleSystemInfo.f_blocks = 1;
@@ -127,8 +128,11 @@ public:
       return DiskCleanup::GetOldestIndex(es);
    }
 
-   const Conf& GetConf() {
-      return DiskCleanup::GetConf();
+   Conf& GetConf() LR_OVERRIDE {
+      if(false == mUseMockConf) {
+         return DiskCleanup::GetConf();
+      }
+      return mMockedConf;
    }
 
    std::vector< std::tuple< std::string, std::string> >&
@@ -188,4 +192,6 @@ public:
    bool mRemoveResult;
    bool mFakeIsShutdown;
    bool mIsShutdownResult;
+   bool mUseMockConf;
+   MockConf mMockedConf;
 };
