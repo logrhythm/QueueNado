@@ -82,6 +82,7 @@ Partition Table: msdos\r\n\
 Number  Start   End    Size   Type     File system  Flags\r\n\
  1      1049kB  525MB  524MB  primary  ext4         boot\r\n\
  2      525MB   146GB  146GB  primary               lvm\r\n\
+ 3      1049kB  898GB  898GB  primary  ext4\r\n\
 ");
    
    DriveInfo validDiskInfo(diskFoundPartedOutput);
@@ -89,7 +90,7 @@ Number  Start   End    Size   Type     File system  Flags\r\n\
    EXPECT_TRUE(validDiskInfo.model() == "DELL PERC H700 (scsi)");
    EXPECT_TRUE(validDiskInfo.capacityinmb() == (146<<GB_TO_MB_SHIFT));
    EXPECT_TRUE(validDiskInfo.table() == "msdos");
-   ASSERT_TRUE(validDiskInfo.partitions_size() == 2);
+   ASSERT_TRUE(validDiskInfo.partitions_size() == 3);
    EXPECT_TRUE(validDiskInfo.partitions(0).number() == 1);
    EXPECT_TRUE(validDiskInfo.partitions(1).number() == 2);
    EXPECT_EQ(1049,validDiskInfo.partitions(0).startinkb());
@@ -102,8 +103,10 @@ Number  Start   End    Size   Type     File system  Flags\r\n\
    EXPECT_TRUE(validDiskInfo.partitions(1).type() == "primary");   
    EXPECT_TRUE(validDiskInfo.partitions(0).filesystem() == "ext4");
    EXPECT_TRUE(validDiskInfo.partitions(1).filesystem() == ""); 
+   EXPECT_TRUE(validDiskInfo.partitions(2).filesystem() == "ext4"); 
    EXPECT_TRUE(validDiskInfo.partitions(0).flags() == "boot");
    EXPECT_TRUE(validDiskInfo.partitions(1).flags() == "lvm"); 
+   EXPECT_TRUE(validDiskInfo.partitions(2).flags() == ""); 
    
    
 }
