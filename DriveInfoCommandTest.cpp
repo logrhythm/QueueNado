@@ -85,24 +85,25 @@ Number  Start   End    Size   Type     File system  Flags\r\n\
 ");
    
    DriveInfo validDiskInfo(diskFoundPartedOutput);
-   EXPECT_TRUE(validDiskInfo.mDevice == "/dev/sda");
-   EXPECT_TRUE(validDiskInfo.mModel == "DELL PERC H700 (scsi)");
-   EXPECT_TRUE(validDiskInfo.mTotalCapacityInMB == (146<<GB_TO_MB_SHIFT));
-   EXPECT_TRUE(validDiskInfo.mTable == "msdos");
-   ASSERT_TRUE(validDiskInfo.mPartitions.size() == 2);
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mNumber == 1);
-   EXPECT_EQ(1049,validDiskInfo.mPartitions[0].mStartInKb);
-   EXPECT_TRUE(validDiskInfo.mPartitions[1].mStartInKb == (525<<MB_TO_KB_SHIFT));
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mEndInKb == (525<<MB_TO_KB_SHIFT));
-   EXPECT_TRUE(validDiskInfo.mPartitions[1].mEndInKb == (146<<GB_TO_KB_SHIFT));
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mSizeInKb == (524<<MB_TO_KB_SHIFT));
-   EXPECT_TRUE(validDiskInfo.mPartitions[1].mSizeInKb == (146<<GB_TO_KB_SHIFT));   
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mType == "primary");
-   EXPECT_TRUE(validDiskInfo.mPartitions[1].mType == "primary");   
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mFileSystem == "ext4");
-   EXPECT_TRUE(validDiskInfo.mPartitions[1].mFileSystem == ""); 
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mFlags == "boot");
-   EXPECT_TRUE(validDiskInfo.mPartitions[1].mFlags == "lvm"); 
+   EXPECT_TRUE(validDiskInfo.device() == "/dev/sda");
+   EXPECT_TRUE(validDiskInfo.model() == "DELL PERC H700 (scsi)");
+   EXPECT_TRUE(validDiskInfo.capacityinmb() == (146<<GB_TO_MB_SHIFT));
+   EXPECT_TRUE(validDiskInfo.table() == "msdos");
+   ASSERT_TRUE(validDiskInfo.partitions_size() == 2);
+   EXPECT_TRUE(validDiskInfo.partitions(0).number() == 1);
+   EXPECT_TRUE(validDiskInfo.partitions(1).number() == 2);
+   EXPECT_EQ(1049,validDiskInfo.partitions(0).startinkb());
+   EXPECT_TRUE(validDiskInfo.partitions(1).startinkb() == (525<<MB_TO_KB_SHIFT));
+   EXPECT_TRUE(validDiskInfo.partitions(0).endinkb() == (525<<MB_TO_KB_SHIFT));
+   EXPECT_TRUE(validDiskInfo.partitions(1).endinkb() == (146<<GB_TO_KB_SHIFT));
+   EXPECT_TRUE(validDiskInfo.partitions(0).sizeinkb() == (524<<MB_TO_KB_SHIFT));
+   EXPECT_TRUE(validDiskInfo.partitions(1).sizeinkb() == (146<<GB_TO_KB_SHIFT));   
+   EXPECT_TRUE(validDiskInfo.partitions(0).type() == "primary");
+   EXPECT_TRUE(validDiskInfo.partitions(1).type() == "primary");   
+   EXPECT_TRUE(validDiskInfo.partitions(0).filesystem() == "ext4");
+   EXPECT_TRUE(validDiskInfo.partitions(1).filesystem() == ""); 
+   EXPECT_TRUE(validDiskInfo.partitions(0).flags() == "boot");
+   EXPECT_TRUE(validDiskInfo.partitions(1).flags() == "lvm"); 
    
    
 }
@@ -121,24 +122,25 @@ Number  Start   End     Size    File system  Name     Flags\r\n\
 ");
    
    DriveInfo validDiskInfo(diskFoundPartedOutput);
-   EXPECT_TRUE(validDiskInfo.mDevice == "/dev/sdc");
-   EXPECT_TRUE(validDiskInfo.mModel == "DELL PERC H810 (scsi)");
-   EXPECT_TRUE(validDiskInfo.mTotalCapacityInMB == (26<<TB_TO_MB_SHIFT) + 400*(1<<GB_TO_MB_SHIFT));
-   EXPECT_TRUE(validDiskInfo.mTable == "gpt");
-   ASSERT_TRUE(validDiskInfo.mPartitions.size() == 2);
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mNumber == 1);
-   EXPECT_EQ(1049,validDiskInfo.mPartitions[0].mStartInKb);
-   EXPECT_EQ(validDiskInfo.mPartitions[1].mStartInKb,(13L<<TB_TO_KB_SHIFT)+ 200*(1L<<TB_TO_MB_SHIFT));
-   EXPECT_EQ(validDiskInfo.mPartitions[0].mEndInKb,(13L<<TB_TO_KB_SHIFT)+ 200*(1L<<TB_TO_MB_SHIFT));
-   EXPECT_EQ(validDiskInfo.mPartitions[1].mEndInKb,(26L<<TB_TO_KB_SHIFT)+ 400*(1L<<TB_TO_MB_SHIFT));
-   EXPECT_EQ(validDiskInfo.mPartitions[0].mSizeInKb,(13L<<TB_TO_KB_SHIFT)+200*(1L<<TB_TO_MB_SHIFT));   
-   EXPECT_EQ(validDiskInfo.mPartitions[1].mSizeInKb,(13L<<TB_TO_KB_SHIFT)+ 200*(1L<<TB_TO_MB_SHIFT));   
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mType == "primary");
-   EXPECT_TRUE(validDiskInfo.mPartitions[1].mType == "primary");   
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mFileSystem == "ext4");
-   EXPECT_TRUE(validDiskInfo.mPartitions[1].mFileSystem == "ext4"); 
-   EXPECT_TRUE(validDiskInfo.mPartitions[0].mFlags == "");
-   EXPECT_TRUE(validDiskInfo.mPartitions[1].mFlags == ""); 
+   EXPECT_TRUE(validDiskInfo.device() == "/dev/sdc");
+   EXPECT_TRUE(validDiskInfo.model() == "DELL PERC H810 (scsi)");
+   EXPECT_TRUE(validDiskInfo.capacityinmb() == (26<<TB_TO_MB_SHIFT) + 400*(1<<GB_TO_MB_SHIFT));
+   EXPECT_TRUE(validDiskInfo.table() == "gpt");
+   ASSERT_TRUE(validDiskInfo.partitions_size() == 2);
+   EXPECT_TRUE(validDiskInfo.partitions(0).number() == 1);
+   EXPECT_TRUE(validDiskInfo.partitions(1).number() == 2);
+   EXPECT_EQ(1049,validDiskInfo.partitions(0).startinkb());
+   EXPECT_EQ(validDiskInfo.partitions(1).startinkb(),(13L<<TB_TO_KB_SHIFT)+ 200*(1L<<TB_TO_MB_SHIFT));
+   EXPECT_EQ(validDiskInfo.partitions(0).endinkb(),(13L<<TB_TO_KB_SHIFT)+ 200*(1L<<TB_TO_MB_SHIFT));
+   EXPECT_EQ(validDiskInfo.partitions(1).endinkb(),(26L<<TB_TO_KB_SHIFT)+ 400*(1L<<TB_TO_MB_SHIFT));
+   EXPECT_EQ(validDiskInfo.partitions(0).sizeinkb(),(13L<<TB_TO_KB_SHIFT)+200*(1L<<TB_TO_MB_SHIFT));   
+   EXPECT_EQ(validDiskInfo.partitions(1).sizeinkb(),(13L<<TB_TO_KB_SHIFT)+ 200*(1L<<TB_TO_MB_SHIFT));   
+   EXPECT_TRUE(validDiskInfo.partitions(0).type() == "primary");
+   EXPECT_TRUE(validDiskInfo.partitions(1).type() == "primary");   
+   EXPECT_TRUE(validDiskInfo.partitions(0).filesystem() == "ext4");
+   EXPECT_TRUE(validDiskInfo.partitions(1).filesystem() == "ext4"); 
+   EXPECT_TRUE(validDiskInfo.partitions(0).flags() == "");
+   EXPECT_TRUE(validDiskInfo.partitions(1).flags() == ""); 
    
    
 }
@@ -146,10 +148,10 @@ Number  Start   End     Size    File system  Name     Flags\r\n\
 TEST_F(DriveInfoCommandTest,GetEmptyDriveInfoFromPartedOutput) {
    std::string diskNotFoundPartedOutput("Error: Could not stat device /dev/sdf - No such file or directory.");
    DriveInfo invalidDiskInfo(diskNotFoundPartedOutput);
-   EXPECT_TRUE(invalidDiskInfo.mDevice == "");
-   EXPECT_TRUE(invalidDiskInfo.mModel == "");
-   EXPECT_TRUE(invalidDiskInfo.mTotalCapacityInMB == 0);
-   ASSERT_TRUE(invalidDiskInfo.mPartitions.size() == 0);
+   EXPECT_TRUE(invalidDiskInfo.device() == "");
+   EXPECT_TRUE(invalidDiskInfo.model() == "");
+   EXPECT_TRUE(invalidDiskInfo.capacityinmb() == 0);
+   ASSERT_TRUE(invalidDiskInfo.partitions_size() == 0);
 
    
 }
@@ -166,9 +168,8 @@ TEST_F(DriveInfoCommandTest, DISABLED_TestToGetSomething) {
    
    ASSERT_TRUE(reply.success());
    
-   for (int i = 0 ; i < reply.arrayresult_size() ; i++) {
-      LOG(DEBUG) << reply.arrayresult(i);
-   }
+   protoMsg::DrivesInfo drives;
+   ASSERT_TRUE(drives.ParseFromString(reply.result()));
    
    delete testCommand;
 }
@@ -195,9 +196,8 @@ TEST_F(DriveInfoCommandTest, TestWithSocket) {
    reply.ParseFromString(results[0]);
    ASSERT_TRUE(reply.success());
    
-   for (int i = 0 ; i < reply.arrayresult_size() ; i++) {
-      LOG(DEBUG) << reply.arrayresult(i);
-   }
+   protoMsg::DrivesInfo drives;
+   ASSERT_TRUE(drives.ParseFromString(reply.result()));
    
 }
 #else 
