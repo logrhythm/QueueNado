@@ -57,7 +57,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
       capture.SavePacket(&testMessage, &packet);
       capture.WriteSavedSessionToDisk(&testMessage);
    }
-
+   EXPECT_FALSE(capture.WriteSavedSessionToDisk(&testMessage));
    EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage.packettotal());
    EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage.bytessource() + testMessage.bytesdest());
    struct stat statbuf;
@@ -66,6 +66,25 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
    EXPECT_TRUE(conf.mMaxIndividualPCap * testPacketSize >= statbuf.st_size);
    EXPECT_TRUE((conf.mMaxIndividualPCap - 1) * testPacketSize <= statbuf.st_size);
+   
+   remove(testFile.c_str());
+   for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
+      testMessage.set_packettotal(testMessage.packettotal() + 1);
+      testMessage.set_packetsdelta(testMessage.packetsdelta() + 1);
+      if (i % 2 == 0) {
+         testMessage.set_bytessource(testMessage.bytessource() + packet.p->len);
+      } else {
+         testMessage.set_bytesdest(testMessage.bytesdest() + packet.p->len);
+      }
+      capture.SavePacket(&testMessage, &packet);
+      EXPECT_FALSE(capture.WriteSavedSessionToDisk(&testMessage));
+   }
+   
+   EXPECT_EQ(2*(conf.mMaxIndividualPCap + 2), testMessage.packettotal());
+   EXPECT_EQ(2*(conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage.bytessource() + testMessage.bytesdest());
+
+   ASSERT_NE(0, stat(testFile.c_str(), &statbuf));
+   
    free(packet.p->data);
    free(packet.p);
 }
