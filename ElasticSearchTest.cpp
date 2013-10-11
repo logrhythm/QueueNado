@@ -875,7 +875,7 @@ TEST_F(ElasticSearchTest, RunQueryGetIds) {
 
    es.mRealSendAndGetReplyCommandToWorker = false;
    es.mReturnSendAndGetReplyCommandToWorker = true;
-   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":false}";
+   es.mSendAndGetReplyReply = "200|ok|{\"ok\":true,\"timed_out\":false}";
 
    EXPECT_TRUE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
 
