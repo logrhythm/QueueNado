@@ -25,6 +25,7 @@ TEST_F(DiskPacketCaptureTest, SystemTest_VerifyGetCaptureFirstLocation) {
    const auto& first = conf.GetFirstPcapCaptureLocation();
    ASSERT_TRUE((first == "/pcap0/" || first == "/usr/local/probe/pcap/")) 
            << "PCAP first storage location: " << first;
+   LOG(INFO) << "pcap location is: " <<  first;
 }
 
 
