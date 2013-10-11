@@ -512,6 +512,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
       EXPECT_TRUE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
       EXPECT_FALSE(recordsToUpdate.empty());
    }
+   recordsToUpdate.clear();
    target.mReplyMessage = "200|ok|{\"took\":8,\"timed_out\":false,\"_shards\":"
       "{\"total\":50,\"successful\":50,\"failed\":0},\"hits\":{\"total\":0,\"max_score\":null,\"hits\":[]}}";
    count = 0;
@@ -519,12 +520,14 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
       EXPECT_TRUE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
       EXPECT_TRUE(recordsToUpdate.empty());
    }
+   recordsToUpdate.clear();
    count = 0;
-   target.mReplyMessage = "504|ok|{\"took\":10,\"timed_out\":true}";
+   target.mReplyMessage = "504|timeout|{\"took\":10,\"timed_out\":true}";
    while (count++ < targetIterations && !zctx_interrupted) {
-      EXPECT_TRUE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
+      EXPECT_FALSE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
       EXPECT_TRUE(recordsToUpdate.empty());
    }
+   recordsToUpdate.clear();
    target.mReplyMessage.clear();
    target.mEmptyReplies = true;
    count = 0;
@@ -813,9 +816,11 @@ TEST_F(ElasticSearchTest, ReplyNotReadyIsFalseBadIsTrue) {
    transport.mReturnString = "FAILFAILFAIL";
    transport.mReturnSocketEmpty = true;
    EXPECT_EQ(es.AttemptToGetReplyFromSearch(id, reply), -1);
+   id = transport.GetUuid();
    transport.mReturnSocketEmpty = false;
    transport.mReturnString = "FAILFAILFAIL";
    EXPECT_EQ(es.AttemptToGetReplyFromSearch(id, reply), 444);
+   id = 'woo';
    transport.mReturnString = "200|ok|{\"ok\":true}";
    EXPECT_EQ(es.AttemptToGetReplyFromSearch(id, reply), 200);
 }
@@ -871,7 +876,7 @@ TEST_F(ElasticSearchTest, RunQueryGetIds) {
    const std::string query("bar");
    std::vector<std::pair<std::string, std::string> > recordsToUpdate;
    const int recordsToQuery(1000);
-   const bool cache(true);
+   const bool cache(false);
 
    es.mRealSendAndGetReplyCommandToWorker = false;
    es.mReturnSendAndGetReplyCommandToWorker = true;
@@ -879,7 +884,7 @@ TEST_F(ElasticSearchTest, RunQueryGetIds) {
 
    EXPECT_TRUE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
 
-   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":true}";
+   es.mSendAndGetReplyReply = "503|timeout|{\"ok\":true,\"timed_out\":true}";
    EXPECT_FALSE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
 
    es.mSendAndGetReplyReply = "BAD_REQUEST";
