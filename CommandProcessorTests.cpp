@@ -453,7 +453,7 @@ TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RebootCommandTest reboot = RebootCommandTest(cmd, processManager);
+   RebootCommandTest reboot(cmd, processManager);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = reboot.Execute(conf);
@@ -563,7 +563,7 @@ TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RebootCommandTest reboot = RebootCommandTest(cmd, processManager);
+   RebootCommandTest reboot(cmd, processManager);
    bool exception = false;
    try {
       reboot.DoTheReboot();
@@ -583,7 +583,7 @@ TEST_F(CommandProcessorTests, RebootCommandFailSuccessDoTheUpgrade) {
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RebootCommandTest reboot = RebootCommandTest(cmd, processManager);
+   RebootCommandTest reboot(cmd, processManager);
    bool exception = false;
    try {
       reboot.DoTheReboot();

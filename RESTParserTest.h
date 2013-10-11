@@ -1,11 +1,11 @@
 #pragma once
 
 #include "gtest/gtest.h"
-#include "RESTSender.h"
-class RESTSenderTest : public ::testing::Test
+#include "RESTParser.h"
+class RESTParserTest : public ::testing::Test
 {
 public:
-    RESTSenderTest(){};
+    RESTParserTest(){};
 
 protected:
 	virtual void SetUp() {}

@@ -6,6 +6,7 @@
 
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
+
 //http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 TEST_F(ElasticSearchTest, ValidateHighReturnCodesSuccess) {
    BoomStick stick{mAddress};
@@ -134,6 +135,220 @@ TEST_F(ElasticSearchTest, FinishedCodesInternalTimeout) {
    ++code;
 }
 
+TEST_F(ElasticSearchTest, TransportCannotInit) {
+   MockBoomStick stick{mAddress};
+   stick.mFailsInit = true;
+   ElasticSearch es(stick,false);
+   ASSERT_FALSE(es.Initialize());
+   
+}
+
+TEST_F(ElasticSearchTest, TransportCannotCreateContext) {
+   MockBoomStick stick{mAddress};
+   stick.mFailsGetNewContext = true;
+   ElasticSearch es(stick,false);
+   ASSERT_FALSE(es.Initialize());
+   
+}
+
+TEST_F(ElasticSearchTest, SendAndForgetFailures) {
+ 
+   MockBoomStick stick{mAddress};
+   MockElasticSearch es1(stick,false);
+   ASSERT_TRUE(es1.Initialize());
+   ASSERT_FALSE(es1.SendAndForgetCommandToWorker("foo"));
+   MockElasticSearch es2(stick,true);
+   ASSERT_FALSE(es2.SendAndForgetCommandToWorker("bar"));
+}
+
+
+TEST_F(ElasticSearchTest, GetListOfIndexeNamesFailures) {
+ 
+   MockBoomStick stick{mAddress};
+   MockElasticSearch es1(stick,true);
+   es1.mFakeIndexList = false;
+   ASSERT_TRUE(es1.Initialize());
+   std::set<std::string> returnSet;
+   returnSet.insert("removeMe");
+   returnSet = es1.GetListOfIndexeNames();
+   ASSERT_TRUE(returnSet.empty());
+   returnSet.insert("removeMe");
+   MockElasticSearch es2(stick,false);
+   es2.mFakeIndexList = false;
+   returnSet = es2.GetListOfIndexeNames();
+   ASSERT_TRUE(returnSet.empty());
+}
+
+TEST_F(ElasticSearchTest, BulkUpdate) {
+ 
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   IdsAndIndexes ids;
+   
+   ids.emplace_back("test1","testa");
+   ids.emplace_back("test2","testb");
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   ASSERT_TRUE(es.BulkUpdate(ids,"testing","{\"this\":\"that\"}"));
+   EXPECT_EQ("POST|/_bulk|"
+   "{ \"update\" : { \"_id\" : \"test1\", \"_type\" : \"testing\", \"_index\" : \"testa\"}}\n"
+   "{ \"doc\" : {\"this\":\"that\"}}\n"
+   "{ \"update\" : { \"_id\" : \"test2\", \"_type\" : \"testing\", \"_index\" : \"testb\"}}\n"
+   "{ \"doc\" : {\"this\":\"that\"}}\n"
+           ,target.mLastRequest);
+   
+   
+}
+TEST_F(ElasticSearchTest, BulkUpdateFailures) {
+   IdsAndIndexes ids;
+   ids.emplace_back("test1","testa");
+   ids.emplace_back("test2","testb");
+   MockBoomStick stick{mAddress};
+   MockElasticSearch es2(stick,false);
+   es2.mFakeBulkUpdate = false;
+   EXPECT_FALSE(es2.BulkUpdate(ids,"testing","{\"this\":\"that\"}"));
+}
+TEST_F(ElasticSearchTest, DeleteDocFailures) {
+
+   MockBoomStick stick{mAddress};
+   MockElasticSearch es2(stick,false);
+   
+   EXPECT_FALSE(es2.DeleteDoc("test","testing","123456789012345678901234567890123456"));
+}
+TEST_F(ElasticSearchTest, DeleteDoc) {
+ 
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   IdsAndIndexes ids;
+   target.mReplyMessage = "{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
+   ASSERT_TRUE(es.DeleteDoc("test","testing","123456789012345678901234567890123456"));
+   EXPECT_EQ("DELETE|/test/testing/123456789012345678901234567890123456"
+           ,target.mLastRequest);
+   
+}
+TEST_F(ElasticSearchTest, RefreshDiskInfoFailures) {
+
+   MockBoomStick stick{mAddress};
+   MockElasticSearch es2(stick,false);
+   EXPECT_FALSE(es2.RefreshDiskInfo());
+   MockElasticSearch es1(stick,true);
+   ASSERT_TRUE(es1.Initialize());
+   es1.BoostDiskInfo(); // to exercise a log path
+   EXPECT_FALSE(es1.RefreshDiskInfo());
+
+}
+TEST_F(ElasticSearchTest, RefreshDiskInfo) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123}]}}}}";
+   
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   
+}
+
+TEST_F(ElasticSearchTest, GetClusterNames) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123}]}}}}";
+   std::vector<std::string> clusterNames = es.GetClusterNames();
+   EXPECT_TRUE(clusterNames.empty());
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   clusterNames = es.GetClusterNames();
+   ASSERT_EQ(1,clusterNames.size());
+   EXPECT_EQ("foo",clusterNames[0]);
+   
+}
+TEST_F(ElasticSearchTest, GetTotalWrites) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_writes\": 12345}]}}}}";
+   uint64_t clusterWrites= es.GetTotalWrites("foo");
+   EXPECT_EQ(0,clusterWrites);
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   clusterWrites = es.GetTotalWrites("foo");
+   ASSERT_EQ(12345,clusterWrites);
+   
+}
+TEST_F(ElasticSearchTest, GetTotalReads) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_reads\": 12345}]}}}}";
+   uint64_t clusterWrites= es.GetTotalReads("foo");
+   EXPECT_EQ(0,clusterWrites);
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   clusterWrites = es.GetTotalReads("foo");
+   ASSERT_EQ(12345,clusterWrites);
+   
+}
+TEST_F(ElasticSearchTest, GetTotalWriteBytes) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_write_size_in_bytes\": 12345}]}}}}";
+   uint64_t clusterWrites= es.GetTotalWriteBytes("foo");
+   EXPECT_EQ(0,clusterWrites);
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   clusterWrites = es.GetTotalWriteBytes("foo");
+   ASSERT_EQ(12345,clusterWrites);
+   
+}
+TEST_F(ElasticSearchTest, GetTotalReadBytes) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "200|ok|{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_read_size_in_bytes\": 12345}]}}}}";
+   uint64_t clusterWrites= es.GetTotalReadBytes("foo");
+   EXPECT_EQ(0,clusterWrites);
+   ASSERT_TRUE(es.RefreshDiskInfo());
+   clusterWrites = es.GetTotalReadBytes("foo");
+   ASSERT_EQ(12345,clusterWrites);
+   
+}
 TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
@@ -332,7 +547,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncGetListOfIndexeNames) {
    std::fstream goodResult("resources/goodClusterStatus", std::ios_base::in);
    goodResult >> target.mReplyMessage;
    goodResult.close();
-   while (count++ < targetIterations && !zctx_interrupted) {
+   while (count ++ < targetIterations && ! zctx_interrupted) {
       indexNames = es.GetListOfIndexeNames();
       EXPECT_FALSE(indexNames.empty());
    }
@@ -359,7 +574,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncCreateIndex) {
    //   target.mReplyMessage.clear();
    count = 0;
    target.mEmptyReplies = true;
-   while (count++ < targetIterations && !zctx_interrupted) {
+   while (count ++ < targetIterations && ! zctx_interrupted) {
       EXPECT_FALSE(es.CreateIndex("test", 1, 1));
    }
 }
@@ -647,6 +862,206 @@ TEST_F(ElasticSearchTest, AsyncDoesnotSendReplies) {
    EXPECT_FALSE(es.ReplySent());
    EXPECT_TRUE(es.DeleteDoc("foo", "bar", "baz"));
    EXPECT_FALSE(es.ReplySent());
+}
+
+TEST_F(ElasticSearchTest, RunQueryGetIds) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   const std::string indexType("foo");
+   const std::string query("bar");
+   std::vector<std::pair<std::string, std::string> > recordsToUpdate;
+   const int recordsToQuery(1000);
+   const bool cache(true);
+
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = true;
+   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":false}";
+
+   EXPECT_TRUE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
+
+   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":true}";
+   EXPECT_FALSE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
+
+   es.mSendAndGetReplyReply = "BAD_REQUEST";
+   EXPECT_TRUE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
+}
+
+TEST_F(ElasticSearchTest, RunQueryGetIdsFailed) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   const std::string indexType("foo");
+   const std::string query("bar");
+   std::vector<std::pair<std::string, std::string> > recordsToUpdate;
+   const int recordsToQuery(1000);
+   const bool cache(true);
+
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = false;
+   EXPECT_FALSE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
+}
+
+TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   std::vector<std::tuple< std::string, std::string> > oldestFiles;
+   const unsigned int numberOfFiles(100);
+   const std::string path("/tmp");
+   IdsAndIndexes relevantRecords;
+   time_t oldestTime = 123456789;
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = false;
+   es.mFakeGetOldestNFiles = false;
+   oldestFiles.emplace_back("foo", "bar");
+   relevantRecords.emplace_back("foo", "bar");
+   oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
+   EXPECT_EQ(0,oldestTime);
+   EXPECT_TRUE(oldestFiles.empty());
+   EXPECT_TRUE(relevantRecords.empty());
+   
+}
+TEST_F(ElasticSearchTest, GetOldestNFiles) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   std::vector<std::tuple< std::string, std::string> > oldestFiles;
+   const unsigned int numberOfFiles(100);
+   const std::string path("/tmp");
+   IdsAndIndexes relevantRecords;
+   time_t oldestTime = 123456789;
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = true;
+   es.mFakeGetOldestNFiles = false;
+   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":false}";
+   oldestFiles.emplace_back("foo", "bar");
+   relevantRecords.emplace_back("foo", "bar");
+   oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
+   EXPECT_EQ(0,oldestTime);
+   EXPECT_TRUE(oldestFiles.empty());
+   EXPECT_TRUE(relevantRecords.empty());
+   
+   es.mSendAndGetReplyReply.clear();
+   oldestFiles.emplace_back("foo", "bar");
+   relevantRecords.emplace_back("foo", "bar");
+   oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
+   EXPECT_EQ(0,oldestTime);
+   EXPECT_TRUE(oldestFiles.empty());
+   EXPECT_TRUE(relevantRecords.empty());
+   
+   es.mSendAndGetReplyReply = "OK|200|"
+           "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
+           "\"hits\":{\"total\":8735564,\"max_score\":null,"
+              "\"hits\":"
+                 "["
+                    "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
+                    "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
+                    "{"
+                       "\"timeUpdated\":\"2013/09/30 00:00:00\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+                    "},"
+                    "\"sort\":[1380499200000]"
+                    "}"
+                 "]"
+              "}"
+           "}";
+                                                  
+   oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
+   EXPECT_EQ(1380495600,oldestTime);
+   ASSERT_FALSE(oldestFiles.empty());
+   EXPECT_EQ("/tmp/f4d63941-af67-4b76-8e68-ba0f0b5366ff",
+           std::get<0>(oldestFiles[0]));
+   EXPECT_EQ("f4d63941-af67-4b76-8e68-ba0f0b5366ff",
+           std::get<1>(oldestFiles[0]));
+   ASSERT_FALSE(relevantRecords.empty());
+   EXPECT_EQ("network_2013_09_30",
+           std::get<1>(relevantRecords[0]));
+   EXPECT_EQ("f4d63941-af67-4b76-8e68-ba0f0b5366ff",
+           std::get<0>(relevantRecords[0]));
+   
+   es.mSendAndGetReplyReply = "OK|200|"
+           "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
+           "\"hits\":{\"total\":8735564,\"max_score\":null,"
+              "\"hits\":"
+                 "["
+                    "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
+                    "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
+                    "{"
+                       "\"timeUpdated\":\"NIL/NIL\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+                    "},"
+                    "\"sort\":[1380499200000]"
+                    "}"
+                 "]"
+              "}"
+           "}";
+   oldestFiles = es.GetOldestNFiles(numberOfFiles,path,relevantRecords,oldestTime);
+   EXPECT_EQ(0,oldestTime);
+}
+TEST_F(ElasticSearchTest, GetDiskInfo) {
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+}
+
+TEST_F(ElasticSearchTest, DocCommandAsync) {
+
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, true);
+
+   es.mReturnSendAndForgetCommandToWorker = true;
+   es.mRealSendAndForgetCommandToWorker = false;
+   EXPECT_TRUE(es.DocCommand("foo"));
+   EXPECT_FALSE(es.mRanSendAndGetReplyCommandToWorker);
+   EXPECT_TRUE(es.mRanSendAndForgetCommandToWorker);
+
+}
+
+TEST_F(ElasticSearchTest, DocCommandAsyncFails) {
+
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, true);
+
+   es.mReturnSendAndForgetCommandToWorker = false;
+   es.mRealSendAndForgetCommandToWorker = false;
+   EXPECT_FALSE(es.DocCommand("foo"));
+   EXPECT_FALSE(es.mRanSendAndGetReplyCommandToWorker);
+   EXPECT_TRUE(es.mRanSendAndForgetCommandToWorker);
+
+}
+
+TEST_F(ElasticSearchTest, DocCommandSyncFails) {
+
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = false;
+
+   EXPECT_FALSE(es.DocCommand("foo"));
+   EXPECT_TRUE(es.mRanSendAndGetReplyCommandToWorker);
+   EXPECT_FALSE(es.mRanSendAndForgetCommandToWorker);
+}
+
+TEST_F(ElasticSearchTest, DocCommandSync) {
+
+   MockBoomStick transport("tcp://127.0.0.1:9700");
+   MockElasticSearch es(transport, false);
+   es.mRealSendAndGetReplyCommandToWorker = false;
+   es.mReturnSendAndGetReplyCommandToWorker = true;
+   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":false}";
+
+   EXPECT_TRUE(es.DocCommand("foo"));
+   EXPECT_TRUE(es.mRanSendAndGetReplyCommandToWorker);
+   EXPECT_FALSE(es.mRanSendAndForgetCommandToWorker);
+   es.mSendAndGetReplyReply = "{\"ok\":false,\"timed_out\":false}";
+   EXPECT_FALSE(es.DocCommand("foo"));
+   es.mSendAndGetReplyReply = "{\"ok\":true,\"timed_out\":true}";
+}
+TEST_F(ElasticSearchTest, DoNothingFor31Seconds) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   std::this_thread::sleep_for(std::chrono::seconds(31));
+   
 }
 
 #else

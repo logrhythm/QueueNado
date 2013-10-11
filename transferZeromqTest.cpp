@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include "ElasticSearch.h"
 #include "MockBoomStick.h"
+#include "RESTParser.h"
 #include <thread>
 #include <memory>
 #include "jansson.h"
@@ -105,18 +106,18 @@ namespace {
    DiskInformation GetDiskInfo() {
       RESTBuilder builder;
       BoomStick transport("tcp://127.0.0.1:9700");
-      RESTSender sender(transport);
+      RESTParser sender;
 
       transport.Initialize();
       std::string resultString;
-      sender.Send(builder.GetDiskInfo(), resultString);
+      resultString = transport.Send(builder.GetDiskInfo());
 
       return sender.GetDiskInformation(resultString);
    }
 
    void PrintDiskInfo() {
       BoomStick transport("tcp://127.0.0.1:9700");
-      RESTSender sender(transport);
+      RESTParser sender;
       auto diskInfo = GetDiskInfo();
       std::vector<std::string> clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfo);
       for (const auto& hostName : clusterNames) {
@@ -219,7 +220,7 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTest) {
    std::cout << dataSent << " total bytes sent " << std::endl;
    auto diskInfoPost = GetDiskInfo();
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   RESTParser sender;
    std::vector<std::string> clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfoPre);
    for (const auto& hostName : clusterNames) {
       std::cout << hostName << " : " << std::endl;
@@ -271,7 +272,7 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTestMedium) {
    std::cout << dataSent << " total bytes sent " << std::endl;
    auto diskInfoPost = GetDiskInfo();
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   RESTParser sender;
    std::vector<std::string> clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfoPre);
    for (const auto& hostName : clusterNames) {
       std::cout << hostName << " : " << std::endl;
@@ -324,7 +325,7 @@ TEST_F(transferZeromqTest, SingleThreadSpeedTestBigData) {
    std::cout << dataSent << " total bytes sent " << std::endl;
    auto diskInfoPost = GetDiskInfo();
    MockBoomStick transport("tcp://127.0.0.1:9700");
-   RESTSender sender(transport);
+   RESTParser sender;
    std::vector<std::string> clusterNames = sender.GetAllClusterNamesFromDiskInfo(diskInfoPre);
    for (const auto& hostName : clusterNames) {
       std::cout << hostName << " : " << std::endl;

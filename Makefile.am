@@ -79,7 +79,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
 DYNAMIC_LIBS=-ltcmalloc_minimal -lnm -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log \
-             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem
+             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal 
 
 ZMQTest_LDADD=${DYNAMIC_LIBS}
 ZMQTest_LDFLAGS=${BASE_LIBS}
@@ -149,7 +149,8 @@ ConfProcessorTests_LDFLAGS=${BASE_LIBS}
 ConfProcessorTests_SOURCES=main.cpp \
         ConfProcessorTests.cpp \
 	QosmosConfTest.cpp \
-	ConfNtpProcessorTests.cpp
+	ConfNtpProcessorTests.cpp \
+	ConfBaseValidationTests.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 CommandProcessorTests_LDADD=${DYNAMIC_LIBS}
@@ -230,7 +231,8 @@ ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=
 
 ToolsTest_LDADD=${DYNAMIC_LIBS}
 ToolsTest_LDFLAGS=${BASE_LIBS}
-ToolsTest_SOURCES=main.cpp ToolsTestMakeUnique.cpp ToolsTestStringFix.cpp EthInfoTest.cpp ToolsTestFileIO.cpp
+
+ToolsTest_SOURCES=main.cpp ToolsTestMakeUnique.cpp ToolsTestStringFix.cpp ToolsTestFileIO.cpp EthInfoTest.cpp ToolsRangeTest.cpp
 ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 JSONEncoderTest_LDADD=${DYNAMIC_LIBS}
@@ -245,7 +247,7 @@ transferZeromqTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\
 
 RESTBuilderTest_LDADD=${DYNAMIC_LIBS}
 RESTBuilderTest_LDFLAGS=${BASE_LIBS}
-RESTBuilderTest_SOURCES=main.cpp RESTBuilderTest.cpp RESTSenderTest.cpp
+RESTBuilderTest_SOURCES=main.cpp RESTBuilderTest.cpp RESTParserTest.cpp
 RESTBuilderTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 ElasticSearchTest_LDADD=${DYNAMIC_LIBS}
@@ -272,6 +274,7 @@ nmTest_SOURCES=main.cpp \
  PacketCaptureTest.cpp \
  ProcessManagerTest.cpp \
  ProcStatsTest.cpp \
+ TCMallocStatsTest.cpp \
  QosmosDpiTest.cpp \
  QosmosCodeGeneratorTests.cpp \
  QosmosPacketAllocatorTests.cpp \

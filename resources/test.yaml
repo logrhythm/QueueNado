@@ -15,13 +15,13 @@ packetRecvQueueSize: 50
 dpiMsgRecvQueueSize: 15000
 qosmosIPDefragmentationEnabled: false
 logDir: /usr/local/nm/logs
-dpiThreads: 99
+dpiThreads: 8
 statsIntervalSeconds: 1
 scriptDir: ../scripts
 qosmos512BytePool: 512
 logBufferSize: 2048
 multiThreadQosmos: false
-pcapETimeout: 123
+pcapETimeout: 30
 qosmos64BytePool: 64
 qosmosExpirePerCallback: 123
 qosmos256BytePool: 256
