@@ -28,7 +28,8 @@ DiskPacketCaptureTest \
 DiskCleanupTest \
 DiskUsageTest \
 ThreadContainerTest \
-ToolsTest
+ToolsTest \
+SyslogReporterTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/ \
@@ -302,5 +303,10 @@ nmTest_SOURCES=main.cpp \
  ThreadContainerTest.cpp \
  ToolsTestMakeUnique.cpp \
  ToolsTestStringFix.cpp
+
+SyslogReporterTest_LDADD=${DYNAMIC_LIBS}
+SyslogReporterTest_LDFLAGS=${BASE_LIBS}
+SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp
+SyslogReporterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine
