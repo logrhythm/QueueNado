@@ -364,6 +364,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin2) {
    for(unsigned char digit = 0; digit < max; ++digit) {
       std::string uuid = {};
       uuid += digit;
+      uuid += digit;
       std::string fileName = {};
       EXPECT_NO_THROW(fileName = capture.BuildFilenameWithPath(uuid));
       ASSERT_EQ("testLocation/" + uuid, fileName);
@@ -372,42 +373,6 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin2) {
 }
 
 
-TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobin) {
-#ifdef LR_DEBUG
-   MockConf conf;
-   conf.mUnknownCaptureEnabled = true;
-   MockDiskPacketCapture capture(conf);
-
-   conf.mPCapCaptureLocations.push_back("testLocation0");
-   conf.mPCapCaptureLocations.push_back("testLocation1");
-   
-   
-   const auto max = std::numeric_limits<unsigned char>::max(); // fancy way of writing 255
-   size_t count0 =0, count1=0;
-   for(unsigned char digit = 0; digit < max; ++digit) {
-      std::string uuid = {};
-      uuid += digit;
-      std::string fileName = {};
-      EXPECT_NO_THROW(fileName = capture.BuildFilenameWithPath(uuid));
-      size_t bucket = digit % 2;
-      if(0 == bucket) {
-         ++count0;
-      } else if(1 == bucket) {
-         ++count1;
-      } else{
-         EXPECT_TRUE(false) << "bucket: " << bucket;
-      }
-      
-      std::string checkName = "testLocation";
-      checkName.append(std::to_string(bucket)).append("/").append(uuid);
-      EXPECT_EQ(checkName, fileName);
-   }
-   EXPECT_EQ(count1, 127);
-   EXPECT_EQ(count0, 128);
-   EXPECT_EQ(count0+count1,  max);
-
-#endif
-}
 
 TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
 #ifdef LR_DEBUG
@@ -445,48 +410,12 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
       LOG(INFO) << "bucket: " << count.first << " : " << count.second;
       ASSERT_NE(0, count.second);
    }
+   ASSERT_EQ(counters.size(), buckets-1);
 
 #endif
 }
 
 
-TEST_F(DiskPacketCaptureTest, GetFilenamesOddRoundRobin) {
-#ifdef LR_DEBUG
-   MockConf conf;
-   conf.mUnknownCaptureEnabled = true;
-   MockDiskPacketCapture capture(conf);
-
-   conf.mPCapCaptureLocations.push_back("testLocation0");
-   conf.mPCapCaptureLocations.push_back("testLocation1");
-   conf.mPCapCaptureLocations.push_back("testLocation2");
-
-  const auto max = std::numeric_limits<unsigned char>::max(); // fancy way of writing 255
-   size_t count0 =0, count1=0, count2 = 0;
-   for(unsigned char digit = 0; digit < max; ++digit) {
-      std::string uuid = {};
-      uuid += digit;
-      std::string fileName = {};
-      EXPECT_NO_THROW(fileName = capture.BuildFilenameWithPath(uuid));
-      size_t bucket = digit % 3;
-      if(0 == bucket) {
-         ++count0;
-      } else if(1 == bucket) {
-         ++count1;
-      } else if(2 == bucket){
-         ++count2;
-      } else {
-         EXPECT_TRUE(false) << "bucket: " << bucket;
-      }
-      
-      std::string checkName = "testLocation";
-      checkName.append(std::to_string(bucket)).append("/").append(uuid);
-      ASSERT_EQ(checkName, fileName);
-   }
-   
-   EXPECT_EQ(count1, count0);
-   EXPECT_EQ(count2, 85);
-#endif
-}
 
 // Identical UUID must be created in the same bucket
 TEST_F(DiskPacketCaptureTest, GetFilenamesAvoidDuplicates) {
