@@ -5,6 +5,7 @@
 #include "pcap/pcap.h"
 #include <thread>
 #include <future>
+#include <map>
 
 #ifdef LR_DEBUG
 #include "MockConf.h"
@@ -17,7 +18,7 @@
 #ifdef LR_DEBUG
 
 #include "tempFileCreate.h"
-
+#include "MsgUuid.h"
 
 // System test -- for now not disabled
 TEST_F(DiskPacketCaptureTest, SystemTest_VerifyGetCaptureFirstLocation) {
@@ -407,6 +408,47 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobin) {
 
 #endif
 }
+
+TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
+   MockDiskPacketCapture capture(conf);
+   auto& generator = networkMonitor::MsgUuid::Instance();
+
+
+   std::string base = {"testLocation"};
+   const size_t buckets = 128;
+   for(int i = 0; i < buckets; ++i) {
+      std::string location = base;
+      location.append(std::to_string(i));
+      conf.mPCapCaptureLocations.push_back(location);
+   }
+   
+   
+   const auto max = 2040;
+   std::map<int, int> counters;
+   for(auto loop = 0; loop < max; ++loop) {
+      std::string uuid = generator.GetMsgUuid();
+      size_t digit = 10 * (uuid[uuid.size()-2]); // 1st digit 
+      digit += uuid[uuid.size()-1];
+      std::string fileName = {};
+      EXPECT_NO_THROW(fileName = capture.BuildFilenameWithPath(uuid));
+      size_t whichBucket = digit % buckets;
+      
+      counters[whichBucket]++;
+      std::string checkName = "testLocation";
+      checkName.append(std::to_string(whichBucket)).append("/").append(uuid);
+      ASSERT_EQ(checkName, fileName);
+   }
+   for( auto& count: counters) {
+      LOG(INFO) << "bucket: " << count.first << " : " << count.second;
+      ASSERT_NE(0, count.second);
+   }
+
+#endif
+}
+
 
 TEST_F(DiskPacketCaptureTest, GetFilenamesOddRoundRobin) {
 #ifdef LR_DEBUG
