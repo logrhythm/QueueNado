@@ -542,7 +542,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
    target.mEmptyReplies = true;
    count = 0;
    while (count++ < targetIterations && !zctx_interrupted) {
-      EXPECT_TRUE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
+      EXPECT_FALSE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
       EXPECT_TRUE(recordsToUpdate.empty());
    }
 }
@@ -890,7 +890,7 @@ TEST_F(ElasticSearchTest, RunQueryGetIds) {
 
    es.mRealSendAndGetReplyCommandToWorker = false;
    es.mReturnSendAndGetReplyCommandToWorker = true;
-   EXPECT_TRUE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
+   EXPECT_FALSE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
    es.mSendAndGetReplyReply = "200|ok|{\"ok\":true,\"timed_out\":false}";
 
    EXPECT_TRUE(es.RunQueryGetIds(indexType, query, recordsToUpdate, recordsToQuery, cache));
