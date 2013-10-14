@@ -27,23 +27,23 @@ TEST_F(RESTBuilderTest, GetIndexOptimize) {
    
    std::string command = builder.GetIndexOptimize(index,segments,onlyExpungeDeletes,flushAfter,waitForFinish);
    
-   EXPECT_EQ("POST|/thisIndex/_optimize?max_num_segments=123&only_expunge_deletes=false&flush=true&wait_for_merge=true");
+   EXPECT_EQ("POST|/thisIndex/_optimize?max_num_segments=123&only_expunge_deletes=false&flush=true&wait_for_merge=true",command);
 
    onlyExpungeDeletes=true;
    command = builder.GetIndexOptimize(index,segments,onlyExpungeDeletes,flushAfter,waitForFinish);
    
-   EXPECT_EQ("POST|/thisIndex/_optimize?max_num_segments=123&only_expunge_deletes=true&flush=true&wait_for_merge=true");
+   EXPECT_EQ("POST|/thisIndex/_optimize?max_num_segments=123&only_expunge_deletes=true&flush=true&wait_for_merge=true",command);
    flushAfter = false;
    command = builder.GetIndexOptimize(index,segments,onlyExpungeDeletes,flushAfter,waitForFinish);
    
-   EXPECT_EQ("POST|/thisIndex/_optimize?max_num_segments=123&only_expunge_deletes=true&flush=false&wait_for_merge=true");
+   EXPECT_EQ("POST|/thisIndex/_optimize?max_num_segments=123&only_expunge_deletes=true&flush=false&wait_for_merge=true",command);
    waitForFinish = false;
    command = builder.GetIndexOptimize(index,segments,onlyExpungeDeletes,flushAfter,waitForFinish);
    
-   EXPECT_EQ("POST|/thisIndex/_optimize?max_num_segments=123&only_expunge_deletes=true&flush=false&wait_for_merge=false");
+   EXPECT_EQ("POST|/thisIndex/_optimize?max_num_segments=123&only_expunge_deletes=true&flush=false&wait_for_merge=false",command);
 
    command = builder.GetIndexOptimize(index);
-   EXPECT_EQ("POST|/thisIndex/_optimize?max_num_segments=1&only_expunge_deletes=false&flush=true&wait_for_merge=true");
+   EXPECT_EQ("POST|/thisIndex/_optimize?max_num_segments=1&only_expunge_deletes=false&flush=true&wait_for_merge=true",command);
 
    
 }

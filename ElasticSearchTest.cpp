@@ -9,6 +9,36 @@
 
 //http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
+TEST_F(ElasticSearchTest,OptimizeIndexFailure) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "404|missing|{\"error\":\"IndexMissingException[[network_] missing]\",\"status\":404}";
+   ASSERT_FALSE(es.OptimizeIndex("testing"));
+   EXPECT_EQ("POST|/testing/_optimize?max_num_segments=1&only_expunge_deletes=false&flush=true&wait_for_merge=true"
+           , target.mLastRequest);
+}
+
+TEST_F(ElasticSearchTest,OptimizeIndexSuccess) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   target.mReplyMessage = "200|ok|{\"ok\":true,\"_shards\":{\"total\":2,\"successful\":2,\"failed\":0}}";
+   ASSERT_TRUE(es.OptimizeIndex("testing"));
+   EXPECT_EQ("POST|/testing/_optimize?max_num_segments=1&only_expunge_deletes=false&flush=true&wait_for_merge=true"
+           , target.mLastRequest);
+}
+
 TEST_F(ElasticSearchTest, ValidateHighReturnCodesSuccess) {
    BoomStick stick{mAddress};
    int code = 300;

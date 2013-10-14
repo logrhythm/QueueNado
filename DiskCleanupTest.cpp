@@ -164,12 +164,14 @@ TEST_F(DiskCleanupTest, IterationTargetToRemove) {
    EXPECT_EQ(1000, cleanup.IterationTargetToRemove(1));
    EXPECT_EQ(1000, cleanup.IterationTargetToRemove(49999));
    EXPECT_EQ(1001, cleanup.IterationTargetToRemove(50001));
+   EXPECT_EQ(100000, cleanup.IterationTargetToRemove(5000100));
 
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup0"; // file limit 0
    cleanup.ResetConf();
    EXPECT_EQ(0, cleanup.IterationTargetToRemove(0));
    EXPECT_EQ(1, cleanup.IterationTargetToRemove(1));
    EXPECT_EQ(50100, cleanup.IterationTargetToRemove(50100));
+
 }
 
 TEST_F(DiskCleanupTest, LastIterationAmount) {
