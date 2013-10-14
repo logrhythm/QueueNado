@@ -75,11 +75,10 @@ TEST_F(ElasticSearchTest, ValidateCodesInternalTimeoutFailure) {
    BoomStick stick{mAddress};
    int code = -1;
    std::string reply;
-   reply += code;
+   reply += std::to_string(code);
    reply += "|info|{}";
    ElasticSearchSocket esSocket(stick, true);
    EXPECT_FALSE(esSocket.IsFailure(code));
-   ++code;
 }
 
 ///FINISHED///
@@ -87,12 +86,12 @@ TEST_F(ElasticSearchTest, ValidateCodesInternalTimeoutFailure) {
 TEST_F(ElasticSearchTest, FinishedHighReturnCodes) {
    BoomStick stick{mAddress};
    int code = 300;
-   std::string reply;
-   reply += code;
-   reply += "|info|{}";
+
    ElasticSearchSocket esSocket(stick, true);
    while (code <= 600) {
-
+      std::string reply;
+      reply += std::to_string(code);
+      reply += "|info|{}";
       EXPECT_TRUE(esSocket.IsFinished(code, reply));
 
       ++code;
@@ -102,11 +101,12 @@ TEST_F(ElasticSearchTest, FinishedHighReturnCodes) {
 TEST_F(ElasticSearchTest, FinishedLowReturnCodes) {
    BoomStick stick{mAddress};
    int code = 0;
-   std::string reply;
-   reply += code;
-   reply += "|info|{}";
+
    ElasticSearchSocket esSocket(stick, true);
    while (code < 200) {
+      std::string reply;
+      reply += std::to_string(code);
+      reply += "|info|{}";
       EXPECT_TRUE(esSocket.IsFinished(code, reply));
       ++code;
    }
@@ -115,11 +115,12 @@ TEST_F(ElasticSearchTest, FinishedLowReturnCodes) {
 TEST_F(ElasticSearchTest, FinishedCodes) {
    BoomStick stick{mAddress};
    int code = 200;
-   std::string reply;
-   reply += code;
-   reply += "|info|{}";
+
    ElasticSearchSocket esSocket(stick, true);
    while (code < 300) {
+      std::string reply;
+      reply += std::to_string(code);
+      reply += "|info|{}";
       EXPECT_TRUE(esSocket.IsFinished(code, reply));
       ++code;
    }
@@ -129,11 +130,10 @@ TEST_F(ElasticSearchTest, FinishedCodesInternalTimeout) {
    BoomStick stick{mAddress};
    int code = -1;
    std::string reply;
-   reply += code;
+   reply += std::to_string(code);
    reply += "|info|{}";
    ElasticSearchSocket esSocket(stick, true);
    EXPECT_FALSE(esSocket.IsFinished(code, reply));
-   ++code;
 }
 
 TEST_F(ElasticSearchTest, TransportCannotInit) {
@@ -190,17 +190,17 @@ TEST_F(ElasticSearchTest, BulkUpdate) {
    target.BeginListenAndRepeat();
 
    IdsAndIndexes ids;
-   
-   ids.emplace_back("test1","testa");
-   ids.emplace_back("test2","testb");
+
+   ids.emplace_back("test1", "testa");
+   ids.emplace_back("test2", "testb");
    target.mReplyMessage = "200|ok|{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
-   ASSERT_TRUE(es.BulkUpdate(ids,"testing","{\"this\":\"that\"}"));
+   ASSERT_TRUE(es.BulkUpdate(ids, "testing", "{\"this\":\"that\"}"));
    EXPECT_EQ("POST|/_bulk|"
-      "{ \"update\" : { \"_id\" : \"test1\", \"_type\" : \"testing\", \"_index\" : \"testa\"}}\n"
-      "{ \"doc\" : {\"this\":\"that\"}}\n"
-      "{ \"update\" : { \"_id\" : \"test2\", \"_type\" : \"testing\", \"_index\" : \"testb\"}}\n"
-      "{ \"doc\" : {\"this\":\"that\"}}\n"
-      , target.mLastRequest);
+           "{ \"update\" : { \"_id\" : \"test1\", \"_type\" : \"testing\", \"_index\" : \"testa\"}}\n"
+           "{ \"doc\" : {\"this\":\"that\"}}\n"
+           "{ \"update\" : { \"_id\" : \"test2\", \"_type\" : \"testing\", \"_index\" : \"testb\"}}\n"
+           "{ \"doc\" : {\"this\":\"that\"}}\n"
+           , target.mLastRequest);
 
 
 }
@@ -235,9 +235,9 @@ TEST_F(ElasticSearchTest, DeleteDoc) {
 
    IdsAndIndexes ids;
    target.mReplyMessage = "200|ok|{\"ok\":true,\"_index\":\"test\",\"_type\":\"meta\",\"_id\":\"123456789012345678901234567890123456\",\"_version\":1}";
-   ASSERT_TRUE(es.DeleteDoc("test","testing","123456789012345678901234567890123456"));
+   ASSERT_TRUE(es.DeleteDoc("test", "testing", "123456789012345678901234567890123456"));
    EXPECT_EQ("DELETE|/test/testing/123456789012345678901234567890123456"
-      , target.mLastRequest);
+           , target.mLastRequest);
 
 }
 
@@ -263,7 +263,7 @@ TEST_F(ElasticSearchTest, RefreshDiskInfo) {
    target.BeginListenAndRepeat();
 
    target.mReplyMessage = "200|ok|{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123}]}}}}";
-   
+
    ASSERT_TRUE(es.RefreshDiskInfo());
 
 }
@@ -297,8 +297,8 @@ TEST_F(ElasticSearchTest, GetTotalWrites) {
    target.BeginListenAndRepeat();
 
    target.mReplyMessage = "200|ok|{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_writes\": 12345}]}}}}";
-   uint64_t clusterWrites= es.GetTotalWrites("foo");
-   EXPECT_EQ(0,clusterWrites);
+   uint64_t clusterWrites = es.GetTotalWrites("foo");
+   EXPECT_EQ(0, clusterWrites);
    ASSERT_TRUE(es.RefreshDiskInfo());
    clusterWrites = es.GetTotalWrites("foo");
    ASSERT_EQ(12345, clusterWrites);
@@ -315,8 +315,8 @@ TEST_F(ElasticSearchTest, GetTotalReads) {
    target.BeginListenAndRepeat();
 
    target.mReplyMessage = "200|ok|{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_reads\": 12345}]}}}}";
-   uint64_t clusterWrites= es.GetTotalReads("foo");
-   EXPECT_EQ(0,clusterWrites);
+   uint64_t clusterWrites = es.GetTotalReads("foo");
+   EXPECT_EQ(0, clusterWrites);
    ASSERT_TRUE(es.RefreshDiskInfo());
    clusterWrites = es.GetTotalReads("foo");
    ASSERT_EQ(12345, clusterWrites);
@@ -333,8 +333,8 @@ TEST_F(ElasticSearchTest, GetTotalWriteBytes) {
    target.BeginListenAndRepeat();
 
    target.mReplyMessage = "200|ok|{\"nodes\": {\"disk1\":{\"name\": \"foo\", \"fs\" : { \"data\": [{\"foo\": 123, \"disk_write_size_in_bytes\": 12345}]}}}}";
-   uint64_t clusterWrites= es.GetTotalWriteBytes("foo");
-   EXPECT_EQ(0,clusterWrites);
+   uint64_t clusterWrites = es.GetTotalWriteBytes("foo");
+   EXPECT_EQ(0, clusterWrites);
    ASSERT_TRUE(es.RefreshDiskInfo());
    clusterWrites = es.GetTotalWriteBytes("foo");
    ASSERT_EQ(12345, clusterWrites);
@@ -508,15 +508,15 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
    int count = 0;
    std::vector<std::pair<std::string, std::string> > recordsToUpdate;
    target.mReplyMessage = "200|ok|{\"took\":10,\"timed_out\":false,\"_shards\":{\"total\":50,"
-      "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
-      "\"hits\":[{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
-      "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_2\",\"_score\":12.653517},"
-      "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
-      "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_3\",\"_score\":12.650981},"
-      "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
-      "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_4\",\"_score\":12.650732},"
-      "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
-      "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
+           "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
+           "\"hits\":[{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_2\",\"_score\":12.653517},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_3\",\"_score\":12.650981},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_4\",\"_score\":12.650732},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
 
    while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
@@ -524,7 +524,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
    }
    recordsToUpdate.clear();
    target.mReplyMessage = "200|ok|{\"took\":8,\"timed_out\":false,\"_shards\":"
-      "{\"total\":50,\"successful\":50,\"failed\":0},\"hits\":{\"total\":0,\"max_score\":null,\"hits\":[]}}";
+           "{\"total\":50,\"successful\":50,\"failed\":0},\"hits\":{\"total\":0,\"max_score\":null,\"hits\":[]}}";
    count = 0;
    while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.RunQueryGetIds("meta", "foo: bar", recordsToUpdate));
@@ -964,49 +964,49 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    EXPECT_TRUE(relevantRecords.empty());
 
    es.mSendAndGetReplyReply = "200|ok|"
-      "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
-      "\"hits\":{\"total\":8735564,\"max_score\":null,"
-      "\"hits\":"
-      "["
-      "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
-      "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
-      "{"
-      "\"timeUpdated\":\"2013/09/30 00:00:00\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
-      "},"
-      "\"sort\":[1380499200000]"
-      "}"
-      "]"
-      "}"
-      "}";
+           "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
+           "\"hits\":{\"total\":8735564,\"max_score\":null,"
+           "\"hits\":"
+           "["
+           "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
+           "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
+           "{"
+           "\"timeUpdated\":\"2013/09/30 00:00:00\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "},"
+           "\"sort\":[1380499200000]"
+           "}"
+           "]"
+           "}"
+           "}";
 
    oldestFiles = es.GetOldestNFiles(numberOfFiles, path, relevantRecords, oldestTime);
    EXPECT_EQ(1380495600, oldestTime);
    ASSERT_FALSE(oldestFiles.empty());
    EXPECT_EQ("/tmp/f4d63941-af67-4b76-8e68-ba0f0b5366ff",
-      std::get<0>(oldestFiles[0]));
+           std::get<0>(oldestFiles[0]));
    EXPECT_EQ("f4d63941-af67-4b76-8e68-ba0f0b5366ff",
-      std::get<1>(oldestFiles[0]));
+           std::get<1>(oldestFiles[0]));
    ASSERT_FALSE(relevantRecords.empty());
    EXPECT_EQ("network_2013_09_30",
-      std::get<1>(relevantRecords[0]));
+           std::get<1>(relevantRecords[0]));
    EXPECT_EQ("f4d63941-af67-4b76-8e68-ba0f0b5366ff",
-      std::get<0>(relevantRecords[0]));
+           std::get<0>(relevantRecords[0]));
 
    es.mSendAndGetReplyReply = "200|ok|"
-      "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
-      "\"hits\":{\"total\":8735564,\"max_score\":null,"
-      "\"hits\":"
-      "["
-      "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
-      "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
-      "{"
-      "\"timeUpdated\":\"NIL/NIL\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
-      "},"
-      "\"sort\":[1380499200000]"
-      "}"
-      "]"
-      "}"
-      "}";
+           "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
+           "\"hits\":{\"total\":8735564,\"max_score\":null,"
+           "\"hits\":"
+           "["
+           "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
+           "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
+           "{"
+           "\"timeUpdated\":\"NIL/NIL\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "},"
+           "\"sort\":[1380499200000]"
+           "}"
+           "]"
+           "}"
+           "}";
    oldestFiles = es.GetOldestNFiles(numberOfFiles, path, relevantRecords, oldestTime);
    EXPECT_EQ(0, oldestTime);
 }
