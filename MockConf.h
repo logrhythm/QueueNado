@@ -81,7 +81,7 @@ public:
       return mSyslogName;
    }
 
-   std::string getSyslogConfName(void) LR_OVERRIDE {
+   std::string getSyslogConfigFile(void) LR_OVERRIDE {
       return mSyslogConfName;
    }
 
