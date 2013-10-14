@@ -375,7 +375,6 @@ bool BoomStick::CheckForMessagePending(const std::string& messageHash, const uns
    }
    if (!zsocket_poll(mChamber, msToWait)) {
       reply = "socket timed out";
-      LOG(WARNING) << "Socket Timed out :" << pthread_self();
       return false;
    }
    return true;
