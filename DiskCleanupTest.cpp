@@ -125,7 +125,8 @@ TEST_F(DiskCleanupTest, GetOlderFilesFromPath) {
    cleanup.mFakeIsShutdown = false;
    filesToFind = cleanup.GetOlderFilesFromPath("/thisPathIsGarbage",0);  
    EXPECT_TRUE(filesToFind.empty());
-   
+   std::this_thread::sleep_for(std::chrono::seconds(1));
+
    filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(),std::time(NULL));  
    ASSERT_FALSE(filesToFind.empty());
    EXPECT_TRUE(std::get<0>(filesToFind[0]) == path);
@@ -211,6 +212,7 @@ TEST_F(DiskCleanupTest, CleanupMassiveOvershoot) {
    EXPECT_EQ(110, cleanup.CleanupMassiveOvershoot(10, 30000 + 1000));
    EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(901, 30000 + 1000));
    EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(10000, 30000 + 1000));
+   EXPECT_EQ(100000, cleanup.CleanupMassiveOvershoot(1, 1000000000 ));
 }
 
 TEST_F(DiskCleanupTest, DISABLED_ValgrindGetOrderedMapOfFiles) {
