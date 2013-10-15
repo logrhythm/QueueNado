@@ -175,8 +175,12 @@ public:
       }
       return DiskCleanup::RemoveFile(path);
    }
-   int RemoveFiles(const PathAndFileNames& filesToRemove, size_t& spaceSavedInMB) {
-      return DiskCleanup::RemoveFiles(filesToRemove,spaceSavedInMB);
+   int RemoveFiles(const PathAndFileNames& filesToRemove, size_t& spaceSavedInMB, size_t& filesNotFound) {
+      return DiskCleanup::RemoveFiles(filesToRemove,spaceSavedInMB,filesNotFound);
+   }
+   size_t CalculateNewTotalFiles(const size_t oldTotal, 
+        const size_t targetRemoved, const size_t failedRemoved) {
+      return DiskCleanup::CalculateNewTotalFiles(oldTotal,targetRemoved,failedRemoved);
    }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
