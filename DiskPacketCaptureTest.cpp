@@ -40,8 +40,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    testMessage.set_bytesdest(0);
    testMessage.set_bytestotal(0);
    testMessage.set_bytestotaldelta(0);
-
-
+   testMessage.set_captured(true);
 
    packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
    packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
@@ -59,13 +58,14 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    EXPECT_TRUE(capture.WriteSavedSessionToDisk(&testMessage));
    EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage.packettotal());
    EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage.bytessource() + testMessage.bytesdest());
+   EXPECT_TRUE(testMessage.written());
    struct stat statbuf;
 
    std::string testFile = testDir.str() + "/" + testMessage.sessionid();
    ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
    EXPECT_TRUE(conf.mMaxIndividualPCap * testPacketSize >= statbuf.st_size);
    EXPECT_TRUE((conf.mMaxIndividualPCap - 1) * testPacketSize <= statbuf.st_size);
-   
+
    remove(testFile.c_str());
    for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
       testMessage.set_packettotal(testMessage.packettotal() + 1);
@@ -78,12 +78,13 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
       capture.SavePacket(&testMessage, &packet);
       EXPECT_FALSE(capture.WriteSavedSessionToDisk(&testMessage));
    }
-   
-   EXPECT_EQ(2*(conf.mMaxIndividualPCap + 2), testMessage.packettotal());
-   EXPECT_EQ(2*(conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage.bytessource() + testMessage.bytesdest());
+   EXPECT_FALSE(testMessage.written());
+   EXPECT_FALSE(testMessage.captured());
+   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2), testMessage.packettotal());
+   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage.bytessource() + testMessage.bytesdest());
 
    ASSERT_NE(0, stat(testFile.c_str(), &statbuf));
-   
+
    free(packet.p->data);
    free(packet.p);
 }
@@ -110,7 +111,8 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitFlushedFile) {
    testMessage.set_bytesdest(0);
    testMessage.set_bytestotal(0);
    testMessage.set_bytestotaldelta(0);
-
+   testMessage.set_captured(true);
+   testMessage.set_written(true);
 
 
    packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
@@ -127,12 +129,12 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitFlushedFile) {
       capture.SavePacket(&testMessage, &packet);
       capture.WriteSavedSessionToDisk(&testMessage);
    }
+   EXPECT_FALSE(testMessage.written());
+   EXPECT_FALSE(testMessage.captured());
    struct stat statbuf;
 
    std::string testFile = testDir.str() + "/" + testMessage.sessionid();
-   ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
-   EXPECT_TRUE(testPacketSize >= statbuf.st_size);
-   EXPECT_TRUE(0 <= statbuf.st_size);
+   ASSERT_NE(0, stat(testFile.c_str(), &statbuf));
    free(packet.p->data);
    free(packet.p);
 }

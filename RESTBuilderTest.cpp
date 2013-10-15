@@ -52,7 +52,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQuery) {
 
    EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar&cache=false|{ \"fields\" : [], \"size\" : 40}", command);
 
-   transport.mReturnString = "{\"took\":10,\"timed_out\":false,\"_shards\":{\"total\":50,"
+   transport.mReturnString = "200|ok|{\"took\":10,\"timed_out\":false,\"_shards\":{\"total\":50,"
            "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
            "\"hits\":[{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_2\",\"_score\":12.653517},"
@@ -86,7 +86,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryNothingFound) {
 
    EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar&cache=false|{ \"fields\" : [], \"size\" : 40}", command);
 
-   transport.mReturnString = "{\"took\":8,\"timed_out\":false,\"_shards\":"
+   transport.mReturnString = "200|ok|{\"took\":8,\"timed_out\":false,\"_shards\":"
            "{\"total\":50,\"successful\":50,\"failed\":0},\"hits\":{\"total\":0,\"max_score\":null,\"hits\":[]}}";
    std::string reply;
    reply = transport.Send(command);
@@ -109,7 +109,7 @@ TEST_F(RESTBuilderTest, ConstructAIdQueryTimedOut) {
 
    EXPECT_EQ("GET|/_all/indexType/_search?q=foo:bar&cache=false|{ \"fields\" : [], \"size\" : 40}", command);
 
-   transport.mReturnString = "{\"took\":10,\"timed_out\":true,\"_shards\":{\"total\":50,"
+   transport.mReturnString = "503|timeout|{\"took\":10,\"timed_out\":true,\"_shards\":{\"total\":50,"
            "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
            "\"hits\":[{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_2\",\"_score\":12.653517},"
@@ -154,9 +154,9 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
 
    EXPECT_EQ("PUT|/indexName/|{\"settings\":{\"index\":{\"number_of_shards\":3,\"number_of_replicas\":5}}}", command);
    std::string reply;
-   transport2.mReturnString = transport.mReturnString = "{\"ok\":true,\"acknowledged\":true}";
+   transport2.mReturnString = transport.mReturnString = "200|ok|{\"ok\":true,\"acknowledged\":true}";
    reply = transport.Send(command);
-   EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
+   EXPECT_EQ("200|ok|{\"ok\":true,\"acknowledged\":true}", reply);
    EXPECT_TRUE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
 
@@ -169,7 +169,7 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    EXPECT_FALSE(restQuery.CreateIndex("indexName", shards, replicas));
    EXPECT_EQ(transport.mReturnString, reply);
    transport.mReturnString.clear();
-   transport2.mReturnString = transport.mReturnString = "{\"ok\":true,\"acknowledged\":true}";
+   transport2.mReturnString = transport.mReturnString = "200|ok|{\"ok\":true,\"acknowledged\":true}";
 
    command = builder.GetIndexDeletion("indexName");
 
@@ -179,8 +179,8 @@ TEST_F(RESTBuilderTest, CreateAndDeleteIndex) {
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_TRUE(restQuery.DeleteIndex("indexName"));
 
-   EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
-   transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   EXPECT_EQ("200|ok|{\"ok\":true,\"acknowledged\":true}", reply);
+   transport2.mReturnString = transport.mReturnString = "404|missing|{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
    reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
@@ -202,15 +202,15 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
 
    EXPECT_EQ("POST|/indexName/_close", command);
    std::string reply;
-   transport2.mReturnString = transport.mReturnString = "{\"ok\":true,\"acknowledged\":true}";
+   transport2.mReturnString = transport.mReturnString = "200|ok|{\"ok\":true,\"acknowledged\":true}";
    reply = transport.Send(command);
-   EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
+   EXPECT_EQ("200|ok|{\"ok\":true,\"acknowledged\":true}", reply);
    EXPECT_TRUE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
 
    EXPECT_TRUE(restQuery.IndexClose("indexName"));
 
-   transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   transport2.mReturnString = transport.mReturnString = "404|missing|{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
    reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
@@ -222,15 +222,15 @@ TEST_F(RESTBuilderTest, OpenAndCloseIndex) {
    command = builder.GetIndexOpen("indexName");
 
    EXPECT_EQ("POST|/indexName/_open", command);
-   transport2.mReturnString = transport.mReturnString = "{\"ok\":true,\"acknowledged\":true}";
+   transport2.mReturnString = transport.mReturnString = "200|ok|{\"ok\":true,\"acknowledged\":true}";
    reply = transport.Send(command);
    EXPECT_TRUE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
 
    EXPECT_TRUE(restQuery.IndexOpen("indexName"));
 
-   EXPECT_EQ("{\"ok\":true,\"acknowledged\":true}", reply);
-   transport2.mReturnString = transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   EXPECT_EQ("200|ok|{\"ok\":true,\"acknowledged\":true}", reply);
+   transport2.mReturnString = transport.mReturnString = "404|missing|{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
    reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
@@ -254,14 +254,14 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    
    EXPECT_EQ("PUT|/indexName/typeName/abc_123|{\"test\":\"data\"}", command);
    std::string reply;
-   transport.mReturnString = "{\"ok\":true,\"_index\":\"indexName\",\"_type\":\"typeName\",\"_id\":\"abc_123\",\"_version\":1}";
+   transport.mReturnString = "200|ok|{\"ok\":true,\"_index\":\"indexName\",\"_type\":\"typeName\",\"_id\":\"abc_123\",\"_version\":1}";
 
    reply = transport.Send(command);
    EXPECT_EQ(transport.mReturnString, reply);
 
    EXPECT_TRUE(es.AddDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
 
-   transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   transport.mReturnString = "404|missing|{{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
    reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOK(reply));
    EXPECT_EQ(transport.mReturnString, reply);
@@ -270,12 +270,12 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    
    command = builder.GetUpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}");
    EXPECT_EQ("POST|/indexName/typeName/abc_123/_update|{ \"doc\":{\"test\":\"data\"}}", command);
-   transport.mReturnString = "{\"ok\":true,\"_index\":\"indexName\",\"_type\":\"typeName\","
+   transport.mReturnString = "200|ok|{\"ok\":true,\"_index\":\"indexName\",\"_type\":\"typeName\","
            "\"_id\":\"abc_123\",\"_version\":3}";
    reply = transport.Send(command);
    EXPECT_EQ(transport.mReturnString, reply);
    EXPECT_TRUE(esSync.UpdateDoc("indexName", "typeName", "abc_123", "{\"test\":\"data\"}"));
-   transport.mReturnString = "{\"error\":\"DocumentMissingException[[indexName][4] [typeName][abc_123]: document missing]\",\"status\":404}";
+   transport.mReturnString = "404|missing|{\"error\":\"DocumentMissingException[[indexName][4] [typeName][abc_123]: document missing]\",\"status\":404}";
    reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOK(reply));
    EXPECT_EQ(transport.mReturnString, reply);
@@ -284,20 +284,20 @@ TEST_F(RESTBuilderTest, AddDocUpdateDocDeleteDoc) {
    command = builder.GetDeleteDoc("indexName", "typeName", "abc_123");
 
    EXPECT_EQ("DELETE|/indexName/typeName/abc_123", command);
-   transport.mReturnString = "{\"ok\":true,\"found\":true,\"_index\":\"indexName\","
+   transport.mReturnString = "200|ok|{\"ok\":true,\"found\":true,\"_index\":\"indexName\","
            "\"_type\":\"typeName\",\"_id\":\"abc_123\",\"_version\":1}";
 
    reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_TRUE(sender.IsOkAndFound(reply));
    EXPECT_TRUE(es.DeleteDoc("indexName", "typeName", "abc_123"));
-   transport.mReturnString = "{\"ok\":true,\"found\":false,\"_index\":\"indexName\","
+   transport.mReturnString = "404|missing|{\"ok\":true,\"found\":false,\"_index\":\"indexName\","
            "\"_type\":\"typeName\",\"_id\":\"abc_123\",\"_version\":1}";
    reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOkAndAck(reply));
    EXPECT_FALSE(sender.IsOkAndFound(reply));
    EXPECT_TRUE(es.DeleteDoc("indexName", "typeName", "abc_123"));
-   transport.mReturnString = "{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
+   transport.mReturnString = "404|missing|{\"error\":\"IndexMissingException[[indexName] missing]\",\"status\":404}";
    reply = transport.Send(command);
    EXPECT_FALSE(sender.IsOK(reply));
    EXPECT_EQ(transport.mReturnString, reply);
