@@ -166,6 +166,7 @@ TEST_F(DiskCleanupTest, IterationTargetToRemove) {
    EXPECT_EQ(1000, cleanup.IterationTargetToRemove(49999));
    EXPECT_EQ(1001, cleanup.IterationTargetToRemove(50001));
    EXPECT_EQ(100000, cleanup.IterationTargetToRemove(5000100));
+   EXPECT_EQ(100000, cleanup.IterationTargetToRemove(1000000000 ));
 
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup0"; // file limit 0
    cleanup.ResetConf();
@@ -212,7 +213,6 @@ TEST_F(DiskCleanupTest, CleanupMassiveOvershoot) {
    EXPECT_EQ(110, cleanup.CleanupMassiveOvershoot(10, 30000 + 1000));
    EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(901, 30000 + 1000));
    EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(10000, 30000 + 1000));
-   EXPECT_EQ(100000, cleanup.CleanupMassiveOvershoot(1, 1000000000 ));
 }
 
 TEST_F(DiskCleanupTest, DISABLED_ValgrindGetOrderedMapOfFiles) {
