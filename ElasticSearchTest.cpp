@@ -136,6 +136,30 @@ TEST_F(ElasticSearchTest, FinishedCodesInternalTimeout) {
    EXPECT_FALSE(esSocket.IsFinished(code, reply));
 }
 
+TEST_F(ElasticSearchTest, TransportAlreadyHasMessagesOnItNoReply) {
+   MockBoomStick stick{mAddress};
+   stick.mReturnString = "test123";
+   MockElasticSearch es(stick, false);
+   ASSERT_TRUE(es.Initialize());
+   
+   std::string reply;
+   EXPECT_TRUE(es.SendAndGetReplyCommandToWorker("test",reply));
+   EXPECT_TRUE("test123"==reply);
+   zmsg_t* message = zmsg_new();
+   zmsg_addmem(message, "broken", 6);
+   zmsg_addmem(message, "command", 7);
+   ASSERT_EQ(0,es.HiddenWorkerSend(&message));
+   stick.mReturnString = "321tset";
+   EXPECT_TRUE(es.SendAndGetReplyCommandToWorker("test",reply));
+   EXPECT_TRUE("321tset"==reply);
+   message = zmsg_new();
+   zmsg_addmem(message, "broken", 6);
+   zmsg_addmem(message, "command", 7);
+   ASSERT_EQ(0,es.HiddenWorkerSend(&message));
+   stick.mReturnString.clear();
+   es.SetSocketTimeout(1);
+   EXPECT_FALSE(es.SendAndGetReplyCommandToWorker("test",reply));
+}
 TEST_F(ElasticSearchTest, TransportCannotInit) {
    MockBoomStick stick{mAddress};
    stick.mFailsInit = true;
@@ -143,7 +167,6 @@ TEST_F(ElasticSearchTest, TransportCannotInit) {
    ASSERT_FALSE(es.Initialize());
 
 }
-
 TEST_F(ElasticSearchTest, TransportCannotCreateContext) {
    MockBoomStick stick{mAddress};
    stick.mFailsGetNewContext = true;
@@ -1070,16 +1093,16 @@ TEST_F(ElasticSearchTest, DocCommandSync) {
    es.mSendAndGetReplyReply = "200|ok|{\"ok\":true,\"timed_out\":true}";
 }
 
-TEST_F(ElasticSearchTest, DoNothingFor31Seconds) {
+TEST_F(ElasticSearchTest, DoNothingForTimeoutSeconds) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   MockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-
-   std::this_thread::sleep_for(std::chrono::seconds(31));
+   es.SetSocketTimeout(999);
+   std::this_thread::sleep_for(std::chrono::seconds(1));
 
 }
 

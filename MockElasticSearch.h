@@ -204,6 +204,12 @@ public:
          mDiskInfo[std::to_string(i)] = foo;
       }
    }
+   int HiddenWorkerSend(zmsg_t** message) {
+      return zmsg_send(message, mWorkerThread);
+   }
+   void SetSocketTimeout(const size_t newTimeout) {
+      mSocketTimeout = newTimeout;
+   }
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;
