@@ -17,8 +17,8 @@ public:
 
    }
 
-   void ZSocketSend(void* socket, const std::string& reply) {
-      ElasticSearchSocket::ZSocketSend(socket,reply);
+   void ZSocketSend(void* socket, const std::string& uuid, const std::string& reply) {
+      ElasticSearchSocket::ZSocketSend(socket,uuid, reply);
       mReplySent = true;
    }
    MockBoomStick mMyTransport;

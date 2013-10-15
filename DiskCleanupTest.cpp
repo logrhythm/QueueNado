@@ -64,20 +64,20 @@ TEST_F(DiskCleanupTest, RemoveFiles) {
    makeSmallFile += path;
 
    EXPECT_EQ(0, system(makeSmallFile.c_str()));
-
-   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB));
+   size_t filesNotFound;
+   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB,filesNotFound));
    EXPECT_EQ(0, spaceSavedInMB);
    spaceSavedInMB = 999999;
    filesToRemove.emplace_back(path, "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
    EXPECT_TRUE(stat(path.c_str(), &filestat) == 0);
-   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB));
+   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB,filesNotFound));
    EXPECT_EQ(0, spaceSavedInMB);
    EXPECT_FALSE(stat(path.c_str(), &filestat) == 0);
    spaceSavedInMB = 999999;
    cleanup.mFakeRemove = true;
    cleanup.mRemoveResult = false;
    EXPECT_EQ(0, system(makeSmallFile.c_str()));
-   EXPECT_EQ(1, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB));
+   EXPECT_EQ(1, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB,filesNotFound));
    EXPECT_EQ(0, spaceSavedInMB);
 
    cleanup.mFakeRemove = false;
@@ -86,52 +86,52 @@ TEST_F(DiskCleanupTest, RemoveFiles) {
    path = testDir.str();
    path += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
    make1MFileFile += path;
-   
+
    EXPECT_EQ(0, system(make1MFileFile.c_str()));
-   
+
    filesToRemove.clear();
    filesToRemove.emplace_back(path, "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M");
-   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB));
+   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB,filesNotFound));
    EXPECT_EQ(1, spaceSavedInMB);
 
    EXPECT_FALSE(stat(path.c_str(), &filestat) == 0);
-   
+
    EXPECT_EQ(0, system(make1MFileFile.c_str()));
    cleanup.mFakeIsShutdown = true;
    cleanup.mIsShutdownResult = true;
-   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB));
+   EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB,filesNotFound));
    EXPECT_EQ(0, spaceSavedInMB);
    EXPECT_TRUE(stat(path.c_str(), &filestat) == 0);
 }
 
 TEST_F(DiskCleanupTest, GetOlderFilesFromPath) {
    MockDiskCleanup cleanup(mConf);
-      PathAndFileNames filesToFind;
+   PathAndFileNames filesToFind;
    std::string path;
    path += testDir.str();
    path += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
    std::string makeSmallFile = "touch ";
    makeSmallFile += path;
-   
-   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(),std::time(NULL));  
+
+   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(), std::time(NULL));
    EXPECT_TRUE(filesToFind.empty());
-   
-   EXPECT_EQ(0, system(makeSmallFile.c_str())); 
+
+   EXPECT_EQ(0, system(makeSmallFile.c_str()));
    cleanup.mFakeIsShutdown = true;
    cleanup.mIsShutdownResult = true;
-   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(),std::time(NULL));  
+   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(), std::time(NULL));
    EXPECT_TRUE(filesToFind.empty());
-   
+
    cleanup.mFakeIsShutdown = false;
-   filesToFind = cleanup.GetOlderFilesFromPath("/thisPathIsGarbage",0);  
+   filesToFind = cleanup.GetOlderFilesFromPath("/thisPathIsGarbage", 0);
    EXPECT_TRUE(filesToFind.empty());
    std::this_thread::sleep_for(std::chrono::seconds(1));
 
-   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(),std::time(NULL));  
+   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(), std::time(NULL));
    ASSERT_FALSE(filesToFind.empty());
    EXPECT_TRUE(std::get<0>(filesToFind[0]) == path);
    EXPECT_TRUE(std::get<1>(filesToFind[0]) == "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-     
+
 }
 
 TEST_F(DiskCleanupTest, TimeToForceAClean) {
@@ -159,8 +159,23 @@ TEST_F(DiskCleanupTest, WayTooManyFiles) {
    EXPECT_FALSE(cleanup.WayTooManyFiles(0)); // Don't add more to 100% of the files when we have a target of 0
 }
 
+TEST_F(DiskCleanupTest, CalculateNewTotalFiles) {
+
+   MockDiskCleanup cleanup(mConf);
+   EXPECT_EQ(0, cleanup.CalculateNewTotalFiles(0, 0, 0));
+   EXPECT_EQ(0, cleanup.CalculateNewTotalFiles(0, 0, 1));
+   EXPECT_EQ(0, cleanup.CalculateNewTotalFiles(0, 1, 0));
+   EXPECT_EQ(0, cleanup.CalculateNewTotalFiles(0, 1, 1));
+   EXPECT_EQ(1, cleanup.CalculateNewTotalFiles(1, 0, 0));
+   EXPECT_EQ(1, cleanup.CalculateNewTotalFiles(1, 0, 1));
+   EXPECT_EQ(0, cleanup.CalculateNewTotalFiles(1, 1, 0));
+   EXPECT_EQ(1, cleanup.CalculateNewTotalFiles(1, 1, 1));
+}
+
 TEST_F(DiskCleanupTest, IterationTargetToRemove) {
    MockDiskCleanup cleanup(mConf);
+   mConf.mConfLocation = "resources/test.yaml.DiskCleanup11"; // file limit 30000000
+   cleanup.ResetConf();
    EXPECT_EQ(0, cleanup.IterationTargetToRemove(0));
    EXPECT_EQ(1000, cleanup.IterationTargetToRemove(1));
    EXPECT_EQ(1000, cleanup.IterationTargetToRemove(49999));
@@ -211,7 +226,7 @@ TEST_F(DiskCleanupTest, CleanupMassiveOvershoot) {
    EXPECT_EQ(110, cleanup.CleanupMassiveOvershoot(10, 30000 + 1000));
    EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(901, 30000 + 1000));
    EXPECT_EQ(1000, cleanup.CleanupMassiveOvershoot(10000, 30000 + 1000));
-   EXPECT_EQ(100000, cleanup.CleanupMassiveOvershoot(1, 1000000000 ));
+   EXPECT_EQ(100000, cleanup.CleanupMassiveOvershoot(1, 1000000000));
 }
 
 TEST_F(DiskCleanupTest, DISABLED_ValgrindGetOrderedMapOfFiles) {
