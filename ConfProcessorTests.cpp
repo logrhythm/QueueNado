@@ -1175,7 +1175,7 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
    EXPECT_EQ("UDP", conf.getSyslogProtocol());
    
    EXPECT_TRUE(conf.getReportEveythingEnabled());
-   }
+}
 
 TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    protoMsg::SyslogConf msg;
@@ -1184,8 +1184,8 @@ TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    msg.set_reporteverything("");
    msg.set_sysloglogagentport("");
    msg.set_syslogprotocol("");
-   
-   
+
+
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
@@ -1195,10 +1195,10 @@ TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    EXPECT_EQ("local4", conf.getSyslogFacility());
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
    EXPECT_EQ("TCP", conf.getSyslogProtocol());
-   
+
    EXPECT_TRUE(conf.getScrubPasswordsEnabled());
    EXPECT_FALSE(conf.getReportEveythingEnabled());
-   }
+}
 
 
 
