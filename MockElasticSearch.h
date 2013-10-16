@@ -73,7 +73,9 @@ public:
    virtual ~MockElasticSearch() {
 
    }
-
+   bool Initialize() {
+      return ElasticSearch::Initialize();
+   }
    LR_VIRTUAL std::set<std::string> GetListOfIndexeNames() {
       if (mFakeIndexList) {
          return mMockListOfIndexes;
@@ -210,6 +212,10 @@ public:
    void SetSocketTimeout(const size_t newTimeout) {
       mSocketTimeout = newTimeout;
    }
+   bool OptimizeIndex(const std::string& index) {
+      mOptimizedIndexes.insert(index);
+      return ElasticSearch::OptimizeIndex(index);
+   }
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;
@@ -242,6 +248,7 @@ public:
    bool mFakeBulkUpdate;
    bool mFakeGetOldestNFiles;
    std::string mSendAndGetReplyReply;
+   std::set<std::string> mOptimizedIndexes;
 
 };
 #endif

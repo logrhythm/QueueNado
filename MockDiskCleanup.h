@@ -182,6 +182,13 @@ public:
         const size_t targetRemoved, const size_t failedRemoved) {
       return DiskCleanup::CalculateNewTotalFiles(oldTotal,targetRemoved,failedRemoved);
    }
+   void OptimizeIndexes(const std::set<std::string>& allIndexes,
+        const std::set<std::string> excludes, ElasticSearch& es) {
+      DiskCleanup::OptimizeIndexes(allIndexes,excludes,es);
+   }
+   std::set<std::string> GetIndexesThatAreActive() {
+      return DiskCleanup::GetIndexesThatAreActive();
+   }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
    int mFileSystemInfoCountdown;

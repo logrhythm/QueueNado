@@ -11,6 +11,52 @@
 
 #ifdef LR_DEBUG
 
+TEST_F(DiskCleanupTest, OptimizeThreadFailsWhenESBorked) {
+   MockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   MockElasticSearch es(transport, false);
+   
+   // This will be done with google mock, later
+   
+}
+TEST_F(DiskCleanupTest, OptimizeIndexes) {
+   MockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   MockElasticSearch es(transport, false);
+   ASSERT_TRUE(es.Initialize());
+   transport.mReturnString = "200|ok|{}";
+   
+   std::set<std::string> allIndexes;
+   std::set<std::string> excludes;
+   
+   cleanup.OptimizeIndexes(allIndexes,excludes,es);
+   EXPECT_TRUE(es.mOptimizedIndexes.empty());
+   allIndexes.insert("test1");
+   cleanup.OptimizeIndexes(allIndexes,excludes,es);
+   EXPECT_TRUE(es.mOptimizedIndexes.find("test1")!=es.mOptimizedIndexes.end());
+   es.mOptimizedIndexes.clear();
+   allIndexes.insert("test2");
+   excludes.instert("test2");
+   EXPECT_TRUE(es.mOptimizedIndexes.find("test1")!=es.mOptimizedIndexes.end());
+   EXPECT_FALSE(es.mOptimizedIndexes.find("test2")!=es.mOptimizedIndexes.end());
+}
+
+TEST_F(DiskCleanupTest, GetIndexesThatAreActive) {
+   MockDiskCleanup cleanup(mConf);
+   std::time_t now(std::time(NULL));
+   
+   networkMonitor::DpiMsgLR todayMsg;
+   todayMsg.set_timeupdated(now);
+   
+   std::set<std::string> excludes = cleanup.GetIndexesThatAreActive();
+
+   EXPECT_TRUE(excludes.find("kibana-int") != excludes.end());
+   EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
+   todayMsg.set_timeupdated(now-(24*60*60));
+   EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
+   todayMsg.set_timeupdated(now-(48*60*60));
+   EXPECT_FALSE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
+}
 TEST_F(DiskCleanupTest, MarkFileAsRemovedInES) {
    MockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");
