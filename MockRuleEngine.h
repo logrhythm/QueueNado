@@ -13,10 +13,8 @@ namespace networkMonitor {
    class MockRuleEngine : public RuleEngine {
    public:
 
-      MockRuleEngine(ConfSlave& slave, std::string& name, int option,
-              int facility, int priority, bool master,
-              unsigned int threadNumber) : RuleEngine(slave, name, option, facility,
-      priority, master, threadNumber), mSiemMode(false), mSyslogEnabled(true),
+      MockRuleEngine(ConfSlave& slave, unsigned int threadNumber) 
+         : RuleEngine(slave, threadNumber), mSiemMode(false), 
       mMaxLineLength(2048), mScriptsDir("../scripts"),
       mStatsQueueName("ipc:///tmp/statsAccumulatorQ.ipc"),
       mDpiRcvrQueue("ipc:///tmp/dpilrmsgtest.ipc"),
@@ -55,9 +53,6 @@ namespace networkMonitor {
       }
       bool SiemDebugModeEnabled() {
          return mSiemDebugMode;
-      }
-      bool SyslogEnabled() {
-         return mSyslogEnabled;
       }
 
       unsigned int MaxLineLength() {
@@ -126,9 +121,7 @@ namespace networkMonitor {
       unsigned int GetFilenameField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override {
          return RuleEngine::GetFilenameField(nextField, dpiMsg, threshold,formattedFieldData);
       }
-      void RestartSyslogDaemon() {
-         
-      }
+
       void SetElasticSearchTarget(const std::string& target) {
          RuleEngine::mElasticSearchTarget = target;
          RuleEngine::mTransferElasticSearch.SetBinding(target);
@@ -147,8 +140,14 @@ namespace networkMonitor {
          mEsMessage = dpiMsg;
          return true;
       }
+      void SendToSyslogReporter(const std::string& syslogMsg){
+         syslogSent.push_back(syslogMsg);
+      }
+      std::vector<std::string>& GetSyslogSent() {
+         return syslogSent;
+      }
+
       bool mSiemMode;
-      bool mSyslogEnabled;
       unsigned int mMaxLineLength;
       std::string mScriptsDir;
       std::string mStatsQueueName;
@@ -157,6 +156,7 @@ namespace networkMonitor {
       bool mSiemDebugMode;
       bool mSentUpdate;
       DpiMsgLR mEsMessage;
+      std::vector<std::string> syslogSent;
    };
 
 }
