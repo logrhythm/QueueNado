@@ -11,18 +11,32 @@
 
 #ifdef LR_DEBUG
 
-TEST_F(DiskCleanupTest, OptimizeThreadFailsWhenESBorked) {
-   MockDiskCleanup cleanup(mConf);
+TEST_F(DiskCleanupTest, OptimizeThreadObeysShutdown) {
+   GMockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    MockElasticSearch es(transport, false);
    
-   // This will be done with google mock, later
+   cleanup.DelegateIsShutdownAlwaysTrue();
+   cleanup.OptimizeThread(es);
+   EXPECT_EQ(1,cleanup.returnBools.callsToReturnTrue);
+}
+TEST_F(DiskCleanupTest, OptimizeThreadFailsWhenESBorked) {
+   GMockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   GMockElasticSearch es(transport, false);
    
+   cleanup.DelegateIsShutdownAlwaysTrue();
+   es.DelegateInitializeToAlwaysFail();
+   cleanup.OptimizeThread(es);
+   EXPECT_CALL(cleanup, IsShutdown())
+      .Times(0);
+   EXPECT_EQ(0,cleanup.returnBools.callsToReturnTrue);
 }
 TEST_F(DiskCleanupTest, OptimizeIndexes) {
    MockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    MockElasticSearch es(transport, false);
+
    ASSERT_TRUE(es.Initialize());
    transport.mReturnString = "200|ok|{}";
    
@@ -36,7 +50,8 @@ TEST_F(DiskCleanupTest, OptimizeIndexes) {
    EXPECT_TRUE(es.mOptimizedIndexes.find("test1")!=es.mOptimizedIndexes.end());
    es.mOptimizedIndexes.clear();
    allIndexes.insert("test2");
-   excludes.instert("test2");
+   excludes.insert("test2");
+   cleanup.OptimizeIndexes(allIndexes,excludes,es);
    EXPECT_TRUE(es.mOptimizedIndexes.find("test1")!=es.mOptimizedIndexes.end());
    EXPECT_FALSE(es.mOptimizedIndexes.find("test2")!=es.mOptimizedIndexes.end());
 }

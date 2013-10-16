@@ -2,14 +2,16 @@
 #include "DiskCleanup.h"
 #include <sys/statvfs.h>
 #include <MockDiskUsage.h>
+#include "BoolReturns.h"
+#include "gmock/gmock.h"
 
 class MockDiskCleanup : public DiskCleanup {
 public:
 
    MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
-   mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
-           mIsShutdownResult(false) {
+   mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true), mFakeIsShutdown(false),
+   mIsShutdownResult(false) {
       mFleSystemInfo.f_bfree = 1;
       mFleSystemInfo.f_frsize = 1;
       mFleSystemInfo.f_blocks = 1;
@@ -19,7 +21,7 @@ public:
    virtual ~MockDiskCleanup() {
    }
 
-   bool IsShutdown() {
+   virtual bool IsShutdown() {
       if (mFakeIsShutdown) {
          return mIsShutdownResult;
       }
@@ -168,26 +170,33 @@ public:
    size_t CleanupMassiveOvershoot(const size_t targetToRemove, const size_t aTotalFiles) {
       return DiskCleanup::CleanupMassiveOvershoot(targetToRemove, aTotalFiles);
    }
-   
+
    bool RemoveFile(const std::string& path) {
-      if ( mFakeRemove) {
+      if (mFakeRemove) {
          return mRemoveResult;
       }
       return DiskCleanup::RemoveFile(path);
    }
+
    int RemoveFiles(const PathAndFileNames& filesToRemove, size_t& spaceSavedInMB, size_t& filesNotFound) {
-      return DiskCleanup::RemoveFiles(filesToRemove,spaceSavedInMB,filesNotFound);
+      return DiskCleanup::RemoveFiles(filesToRemove, spaceSavedInMB, filesNotFound);
    }
-   size_t CalculateNewTotalFiles(const size_t oldTotal, 
-        const size_t targetRemoved, const size_t failedRemoved) {
-      return DiskCleanup::CalculateNewTotalFiles(oldTotal,targetRemoved,failedRemoved);
+
+   size_t CalculateNewTotalFiles(const size_t oldTotal,
+           const size_t targetRemoved, const size_t failedRemoved) {
+      return DiskCleanup::CalculateNewTotalFiles(oldTotal, targetRemoved, failedRemoved);
    }
+
    void OptimizeIndexes(const std::set<std::string>& allIndexes,
-        const std::set<std::string> excludes, ElasticSearch& es) {
-      DiskCleanup::OptimizeIndexes(allIndexes,excludes,es);
+           const std::set<std::string> excludes, ElasticSearch& es) {
+      DiskCleanup::OptimizeIndexes(allIndexes, excludes, es);
    }
+
    std::set<std::string> GetIndexesThatAreActive() {
       return DiskCleanup::GetIndexesThatAreActive();
+   }
+   LR_VIRTUAL void OptimizeThread(ElasticSearch& es) {
+      return DiskCleanup::OptimizeThread(es);
    }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
@@ -200,3 +209,22 @@ public:
    bool mFakeIsShutdown;
    bool mIsShutdownResult;
 };
+using ::testing::_;
+using ::testing::Invoke;
+
+class GMockDiskCleanup : public MockDiskCleanup {
+public:
+
+   GMockDiskCleanup(networkMonitor::ConfSlave& conf) : MockDiskCleanup(conf) {
+   }
+
+   MOCK_METHOD0(IsShutdown, bool());
+
+   void DelegateIsShutdownAlwaysTrue() {
+      ON_CALL(*this, IsShutdown())
+              .WillByDefault(Invoke(&returnBools, &BoolReturns::ReturnTrue));
+   }
+
+   BoolReturns returnBools;
+};
+
