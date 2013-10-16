@@ -279,7 +279,7 @@ void ValidateAllFieldsSetInvalidOnX(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_commandqueue(invalidText) : msg.set_commandqueue(validText);
    (index++ == shouldFail) ? msg.set_enableintermediateflows(invalidBool) : msg.set_enableintermediateflows(validBool);
    (index++ == shouldFail) ? msg.set_enablepacketcapture(invalidBool) : msg.set_enablepacketcapture(validBool);
-   (index++ == shouldFail) ? msg.set_capturefilelimit("999999") : msg.set_capturefilelimit("1000000");
+   (index++ == shouldFail) ? msg.set_capturefilelimit("999") : msg.set_capturefilelimit("1000000");
    (index++ == shouldFail) ? msg.set_capturesizelimit("999") : msg.set_capturesizelimit("1000");
    (index++ == shouldFail) ? msg.set_capturememorylimit("999") : msg.set_capturememorylimit("1000");
    (index++ == shouldFail) ? msg.set_capturemaxpackets("999999") : msg.set_capturemaxpackets("1000000");
