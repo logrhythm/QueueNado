@@ -29,7 +29,7 @@ public:
 protected:
 
    explicit MockTestCommand(const protoMsg::CommandRequest& request) :
-   mSuccess(true), mRequest(request) {
+   mResult("TestCommand"), mSuccess(true), mRequest(request) {
 
    }
 
