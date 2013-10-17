@@ -23,6 +23,35 @@
 #include "RestartSyslogCommandTest.h"
 #include "NetInterfaceMsg.pb.h"
 #include "ShutdownMsg.pb.h"
+#include "MockTestCommand.h"
+#ifdef LR_DEBUG
+
+TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
+   
+   MockConf conf;
+   conf.mCommandQueue = "tcp://127.0.0.1:";
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+   MockCommandProcessor testProcessor(conf);
+   EXPECT_TRUE(testProcessor.Initialize());
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST,MockTestCommand::Construct);
+   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+   Crowbar sender(conf.getCommandQueue());
+   ASSERT_TRUE(sender.Wield());
+   protoMsg::CommandRequest requestMsg;
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
+   requestMsg.set_async(true);
+   sender.Swing(requestMsg.SerializeAsString());
+   std::string reply;
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   protoMsg::CommandReply replyMsg;
+   replyMsg.ParseFromString(reply);
+   EXPECT_TRUE(replyMsg.success());
+   
+   raise(SIGTERM);
+}
+
+#endif
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
