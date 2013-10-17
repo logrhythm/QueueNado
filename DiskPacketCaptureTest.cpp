@@ -321,8 +321,8 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
    MockDiskPacketCapture capture(conf);
 
    conf.mPCapCaptureLocations.push_back("testLocation");
-   std::string fileName = capture.BuildFilenameWithPath("TestUUID");
-   ASSERT_EQ("testLocation/TestUUID", fileName);
+   std::string fileName = capture.BuildFilenameWithPath("TestUUID00");
+   ASSERT_EQ("testLocation/TestUUID00", fileName);
    
    fileName = capture.BuildFilenameWithPath("");
    ASSERT_EQ("", fileName);
@@ -341,9 +341,9 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin) {
    size_t count0 =0;
    for(size_t idx = 0; idx <= 0xF; ++idx) {
       size_t index = idx % 1; // size of one
-      std::string fileName = capture.BuildFilenameWithPath("TestUUID");
+      std::string fileName = capture.BuildFilenameWithPath("TestUUID11");
       std::string expected = "testLocation";
-      expected.append(std::to_string(index)).append("/TestUUID");
+      expected.append(std::to_string(index)).append("/TestUUID11");
       ASSERT_EQ(expected, fileName);
       if(0 == index) {++count0;}   
    }
@@ -408,7 +408,6 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
    auto locations = conf.GetPcapCaptureLocations();
    ASSERT_EQ(locations.size(), 256);
    ASSERT_EQ(counters.size(), buckets);
-
 #endif
 }
 
@@ -482,9 +481,9 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesAvoidDuplicates) {
    conf.mOverrideGetPcapCaptureLocations = false; // use real logic
    conf.mPCapCaptureLocations.push_back(dir1);
    EXPECT_EQ(conf.GetPcapCaptureLocations().size(), 3); 
-   std::string fileName1 = capture.BuildFilenameWithPath("TestUUID");   
-   std::string fileName2 = capture.BuildFilenameWithPath("TestUUID");
-   std::string fileName3 = capture.BuildFilenameWithPath("TestUUID");
+   std::string fileName1 = capture.BuildFilenameWithPath("DoesNotHaveHexButWorks");   
+   std::string fileName2 = capture.BuildFilenameWithPath("DoesNotHaveHexButWorks");
+   std::string fileName3 = capture.BuildFilenameWithPath("DoesNotHaveHexButWorks");
    
    // Make sure the filenames goes in the same hashed buckets since no file exists in 
    // buckets
@@ -495,10 +494,10 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesAvoidDuplicates) {
    // Make sure that the filenames go in the same bucket no matter if it existed or not
    std::string touch = {"touch "};
    touch.append(fileName1);
-   system(touch.c_str());
-   fileName1 = capture.BuildFilenameWithPath("TestUUID");   
-   fileName2 = capture.BuildFilenameWithPath("TestUUID");
-   fileName3 = capture.BuildFilenameWithPath("TestUUID");
+   EXPECT_EQ(0, system(touch.c_str()));
+   fileName1 = capture.BuildFilenameWithPath("DoesNotHaveHexButWorks");   
+   fileName2 = capture.BuildFilenameWithPath("DoesNotHaveHexButWorks");
+   fileName3 = capture.BuildFilenameWithPath("DoesNotHaveHexButWorks");
    EXPECT_EQ(fileName1, fileName2);
    EXPECT_EQ(fileName1, fileName3);
    EXPECT_EQ(fileName2, fileName3);
