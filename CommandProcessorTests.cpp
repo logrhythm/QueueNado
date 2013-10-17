@@ -49,9 +49,9 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
    EXPECT_TRUE(replyMsg.success());
    unsigned int count(0);
    protoMsg::CommandReply realReply;
-   do {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+   do { 
       realReply = Command::GetStatus(testProcessor.mRunningAsyncCommands[replyMsg.result()]);
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
    } while (!realReply.success() && !zctx_interrupted && count++ < 100);
    EXPECT_TRUE(realReply.result()== "TestCommand");
    EXPECT_TRUE(realReply.success());
