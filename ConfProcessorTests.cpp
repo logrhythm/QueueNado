@@ -1020,12 +1020,16 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    int pcapBSize = conf.getPCAPBuffsize();
    int dpiSend = conf.GetDPIMsgSendQueueSize();
    int dpiRecv = conf.GetDPIMsgRecvQueueSize();
+   int syslogSend = conf.GetSyslogSendQueueSize();
+   int syslogRecv = conf.GetSyslogRecvQueueSize();
    //Expect the defaults that are in the #define
    EXPECT_EQ(PACKET_SEND_QUEUE_SIZE, packetSend);
    EXPECT_EQ(PACKET_RECV_QUEUE_SIZE, packetRecv);
    EXPECT_EQ(PCAP_BUFFER_SIZE, pcapBSize);
    EXPECT_EQ(DPI_MSG_SEND_QUEUE_SIZE, dpiSend);
    EXPECT_EQ(DPI_MSG_RECV_QUEUE_SIZE, dpiRecv);
+   EXPECT_EQ(SYSLOG_SEND_QUEUE_SIZE, syslogSend);
+   EXPECT_EQ(SYSLOG_RECV_QUEUE_SIZE, syslogRecv);
    EXPECT_EQ(MAX_SYSLOG_LINE_RFC_5426, conf.getSyslogMaxLineLength());
    EXPECT_FALSE(conf.getQosmosDebugModeEnabled());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.getDpiHalfSessions());
@@ -1071,6 +1075,8 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ(100, conf.GetPacketSendQueueSize());
    EXPECT_EQ(15000, conf.GetDPIMsgRecvQueueSize());
    EXPECT_EQ(30000, conf.GetDPIMsgSendQueueSize());
+   EXPECT_EQ(800, conf.GetSyslogRecvQueueSize());
+   EXPECT_EQ(500, conf.GetSyslogSendQueueSize());
    EXPECT_EQ(1, conf.getStatsIntervalSeconds());
    EXPECT_TRUE(conf.getQosmosDebugModeEnabled());
    EXPECT_TRUE(conf.SiemLogging());
