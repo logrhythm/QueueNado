@@ -32,7 +32,7 @@ TEST_F(DiskPacketCaptureTest, SystemTest_VerifyGetCaptureFirstLocation) {
 
 TEST_F(DiskPacketCaptureTest, SystemTest_GetCaptureFirstLocationExpectNoThrow) {
    MockConf conf;
-   std::string unlikelyDir = {"/yalla/123/#@123/"};
+   std::string unlikelyDir = {"/yalla/abc/abc123/"};
    conf.mPCapCaptureLocations.push_back(unlikelyDir);
    auto first = conf.GetFirstPcapCaptureLocation();
    ASSERT_EQ(first, unlikelyDir);
@@ -61,16 +61,19 @@ TEST_F(DiskPacketCaptureTest, TestVerifyGetCaptureOneLocation) {
    EXPECT_EQ("/tmp/pcap0/", locations[0]);
 }
 
-TEST_F(DiskPacketCaptureTest, TestVerifyGetCaptureManyLocations) {
+TEST_F(DiskPacketCaptureTest,  ConfCreatesCorrectCaptureLocations) {
    MockConf conf;
       
+   // Create FF locations 
    const std::string baseDir = testDir.str();
    std::vector<std::string> putLocations;
-   for(int idx = 0; idx < 100; ++idx) {
+   for(int idx = 0; idx <= 0xFF; ++idx) {
       std::string dir = baseDir;
       dir.append("/pcap").append(std::to_string(idx)).append({"/"});
       putLocations.push_back(dir);
    }
+   // Creates capture directories that should be seen by the Conf::GetPcapCaptureLocations
+   ASSERT_EQ(putLocations.size(), 256); // i.e. 256 = 0xFF +1 locations
    for(const auto& dir : putLocations) {
       std::string mkdir = {"mkdir -p "};
       mkdir.append(dir); // auto cleanup at test exit: Ref DiskPacketCaptureTest::TearDown
@@ -88,12 +91,7 @@ TEST_F(DiskPacketCaptureTest, TestVerifyGetCaptureManyLocations) {
    {
       ASSERT_EQ(put, locations[count++]);
    }
-   EXPECT_TRUE(std::equal(putLocations.begin(), putLocations.end(), locations.begin()));
-   
-   // sanity check
-   putLocations.pop_back();
-   putLocations.push_back("123");
-   EXPECT_FALSE(std::equal(putLocations.begin(), putLocations.end(), locations.begin()));
+   EXPECT_TRUE(std::equal(putLocations.begin(), putLocations.end(), locations.begin()));  
 }
 
 TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
@@ -341,7 +339,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin) {
 
    conf.mPCapCaptureLocations.push_back("testLocation0");
    size_t count0 =0;
-   for(size_t idx = 0; idx < 10; ++idx) {
+   for(size_t idx = 0; idx <= 0xF; ++idx) {
       size_t index = idx % 1; // size of one
       std::string fileName = capture.BuildFilenameWithPath("TestUUID");
       std::string expected = "testLocation";
@@ -349,7 +347,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin) {
       ASSERT_EQ(expected, fileName);
       if(0 == index) {++count0;}   
    }
-   ASSERT_EQ(count0, 10);      
+   ASSERT_EQ(count0, 16);      
 #endif
 }
 
@@ -360,11 +358,8 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin2) {
    MockDiskPacketCapture capture(conf);
 
    conf.mPCapCaptureLocations.push_back("testLocation");
-   const auto max = std::numeric_limits<unsigned char>::max(); // fancy way of writing 255
-   for(unsigned char digit = 0; digit < max; ++digit) {
-      std::string uuid = {};
-      uuid += digit;
-      uuid += digit;
+   for(size_t digit = 0; digit <= 0xFF; ++digit) {
+      std::string uuid = MockUuidGenerator::GetMsgUuid(digit); 
       std::string fileName = {};
       EXPECT_NO_THROW(fileName = capture.BuildFilenameWithPath(uuid));
       ASSERT_EQ("testLocation/" + uuid, fileName);
@@ -380,26 +375,26 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
    conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
    auto& generator = networkMonitor::MsgUuid::Instance();
-
-
+   
    std::string base = {"testLocation"};
-   const size_t buckets = 128;
-   for(int i = 0; i < buckets; ++i) {
+   const size_t buckets = 256;
+   for(int i = 0; i <= 0xFF; ++i) {
       std::string location = base;
       location.append(std::to_string(i));
       conf.mPCapCaptureLocations.push_back(location);
    }
    
-   
    const auto max = 2040;
    std::map<int, int> counters;
    for(auto loop = 0; loop < max; ++loop) {
+      
+      
       std::string uuid = generator.GetMsgUuid();
-      size_t digit = 10 * (uuid[uuid.size()-2]); // 1st digit 
-      digit += uuid[uuid.size()-1];
+      std::size_t digitFromHex = 0;
+      EXPECT_NO_THROW(digitFromHex = std::stoul(&uuid[uuid.size()-2], 0, 16));              
       std::string fileName = {};
       EXPECT_NO_THROW(fileName = capture.BuildFilenameWithPath(uuid));
-      size_t whichBucket = digit % buckets;
+      size_t whichBucket = digitFromHex % buckets;
       
       counters[whichBucket]++;
       std::string checkName = "testLocation";
@@ -410,11 +405,54 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
       LOG(INFO) << "bucket: " << count.first << " : " << count.second;
       ASSERT_NE(0, count.second);
    }
-   ASSERT_EQ(counters.size(), buckets-1);
+   auto locations = conf.GetPcapCaptureLocations();
+   ASSERT_EQ(locations.size(), 256);
+   ASSERT_EQ(counters.size(), buckets);
 
 #endif
 }
 
+TEST_F(DiskPacketCaptureTest, GetFilenamesMaxRoundRobin) {
+#ifdef LR_DEBUG
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;  
+   MockDiskPacketCapture capture(conf);
+
+   
+   for(size_t digit = 0; digit <= 0xFF; ++digit) {
+      std::string dir = "testLocation";
+      dir.append(std::to_string(digit));
+      conf.mPCapCaptureLocations.push_back(dir);        
+   }
+   std::vector<std::string> locations = conf.GetPcapCaptureLocations();
+   ASSERT_EQ(locations.size(), 256);
+   std::map<size_t, size_t> counters;
+      
+   for(size_t digit = 0; digit <= 0xFF; ++digit) {
+      std::string uuid = MockUuidGenerator::GetMsgUuid(digit); 
+      
+      // Mimic the convertion in DiskPacketCapture to verify it works as intended
+      std::size_t digitFromHex = 0;
+      EXPECT_NO_THROW(digitFromHex = std::stoul(&uuid[uuid.size()-2], 0, 16));  
+      std::string fileName = {};
+      EXPECT_NO_THROW(fileName = capture.BuildFilenameWithPath(uuid));
+      size_t bucket = digitFromHex % 256;      
+      ++counters[bucket];
+      std::string checkName = "testLocation";
+      checkName.append(std::to_string(bucket)).append("/").append(uuid);
+      ASSERT_EQ(checkName, fileName);
+   }
+   ASSERT_EQ(counters.size(), 256);
+   size_t total = 0;
+   size_t idx = 0;
+   for(const auto& count: counters) {
+      ASSERT_EQ(count.first, idx++); // make sure that all the buckets exist 0-255
+      total += count.second; // add total saved
+      ASSERT_EQ(count.second, 1); // only one saved per bucket
+   }
+   EXPECT_EQ(256, total);
+#endif
+}
 
 
 // Identical UUID must be created in the same bucket

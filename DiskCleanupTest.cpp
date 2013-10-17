@@ -367,7 +367,7 @@ TEST_F(DiskCleanupTest, TooMuchPCapsAtManyLocations) {
 
       MockDiskCleanup capture(mConf);
       capture.mRealFilesSystemAccess = true;
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup11";
+      mConf.mConfLocation = "resources/test.yaml.GetPcapStoreUsage1";
       ASSERT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap0"));
       ASSERT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap1"));
       capture.ResetConf();
@@ -878,7 +878,7 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
       EXPECT_TRUE(boost::filesystem::exists(file1));
       EXPECT_TRUE(boost::filesystem::exists(file2));
       
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup11";
+      mConf.mConfLocation = "resources/test.yaml.GetPcapStoreUsage1";
       EXPECT_EQ(mConf.GetConf().GetFirstPcapCaptureLocation(), "/tmp/TooMuchPcap/pcap0/");
       capture.ResetConf();
       EXPECT_EQ(capture.GetConf().GetFirstPcapCaptureLocation(), "/tmp/TooMuchPcap/pcap0/");

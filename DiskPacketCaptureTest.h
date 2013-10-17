@@ -1,10 +1,21 @@
 #pragma once
 
 #include <sys/time.h>
-
+#include <sstream>
+#include <string>
+#include <iomanip>
 #include "gtest/gtest.h"
 #include "boost/lexical_cast.hpp"
 #include <csignal>
+
+namespace MockUuidGenerator {
+  
+   std::string GetMsgUuid(size_t value) { 
+      std::stringstream ss;
+      ss << "xyz" << std::setfill('0') << std::setw(2) << std::hex << value;
+      return ss.str();
+   }
+}
 
 class DiskPacketCaptureTest : public ::testing::Test {
 public:
