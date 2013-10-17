@@ -18,7 +18,8 @@ namespace networkMonitor {
       mMaxLineLength(2048), mScriptsDir("../scripts"),
       mStatsQueueName("ipc:///tmp/statsAccumulatorQ.ipc"),
       mDpiRcvrQueue("ipc:///tmp/dpilrmsgtest.ipc"),
-      mDpiMsgQueueSize(1000), mSiemDebugMode(false), mSentUpdate(false) {
+      mDpiMsgQueueSize(1000), mSiemDebugMode(false), mSentUpdate(false),
+      mInterceptSyslog(true) {
       };
 
       bool GetSyslogMessages(IndexedFieldPairs& formattedFieldData, std::vector<std::string>& messages, unsigned int dynamicStart) {
@@ -140,11 +141,21 @@ namespace networkMonitor {
          mEsMessage = dpiMsg;
          return true;
       }
+      void SetSyslogIntercept(bool val) {
+         mInterceptSyslog = val;
+      }
       void SendToSyslogReporter(const std::string& syslogMsg){
-         syslogSent.push_back(syslogMsg);
+         if (mInterceptSyslog) {
+            syslogSent.push_back(syslogMsg);
+         } else {
+            RuleEngine::SendToSyslogReporter(syslogMsg);
+         }
       }
       std::vector<std::string>& GetSyslogSent() {
          return syslogSent;
+      }
+      bool InitializeSyslogSendQueue() {
+         return RuleEngine::InitializeSyslogSendQueue();
       }
 
       bool mSiemMode;
@@ -155,6 +166,7 @@ namespace networkMonitor {
       int mDpiMsgQueueSize;
       bool mSiemDebugMode;
       bool mSentUpdate;
+      bool mInterceptSyslog;
       DpiMsgLR mEsMessage;
       std::vector<std::string> syslogSent;
    };
