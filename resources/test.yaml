@@ -30,3 +30,5 @@ qosmosTCPReAssemblyEnabled: false
 dbUrl: localhost:9160
 qosmos128BytePool: 128
 syslogQueue: ipc:///tmp/syslogQ.ipc
+syslogRecvQueueSize: 800
+syslogSendQueueSize: 500

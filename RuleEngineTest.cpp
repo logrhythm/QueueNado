@@ -10,6 +10,7 @@
 #include "MockConfSlave.h"
 #include "DpiMsgLR.h"
 #include "luajit-2.0/lua.hpp"
+#include "Vampire.h"
 
 using namespace networkMonitor;
 
@@ -2017,6 +2018,29 @@ TEST_F(RuleEngineTest, EmptyLongFieldsTest) {
    ASSERT_EQ(0, results.size());
 
    tDpiMessage.Clear();
+#endif
+}
+
+TEST_F(RuleEngineTest, SyslogSendingQueue) {
+#ifdef LR_DEBUG
+   MockRuleEngine re(conf, 0);
+
+   re.SetSyslogIntercept(false);
+   std::string testNoCrash("Call SendToSyslogReporter with uninitialized queue");
+   re.SendToSyslogReporter(testNoCrash);
+   EXPECT_TRUE(re.InitializeSyslogSendQueue());
+   std::string queueName = conf.GetConf().getSyslogQueue();
+   Vampire rcvQueue(queueName);
+   rcvQueue.SetHighWater(100);
+   rcvQueue.SetIOThreads(1);
+   rcvQueue.SetOwnSocket(true);
+   EXPECT_TRUE(rcvQueue.PrepareToBeShot());
+   std::string testSendMsg("Test Message");
+   re.SendToSyslogReporter(testSendMsg);
+   std::string testRcvMsg;
+   EXPECT_TRUE(rcvQueue.GetShot(testRcvMsg, 500));
+   EXPECT_EQ(testSendMsg, testRcvMsg);
+
 #endif
 }
 

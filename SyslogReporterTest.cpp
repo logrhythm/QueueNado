@@ -34,6 +34,7 @@ void SyslogReporterTest::ShootZeroCopySyslogThread(int numberOfMessages,
 }
 
 
+#ifdef LR_DEBUG
 TEST_F(SyslogReporterTest, InstantiateSyslogReporter) {
    MockSyslogReporter syslogReporter(mConfSlave, syslogName, syslogOption, 
          syslogFacility, syslogPriority);
@@ -54,6 +55,7 @@ TEST_F(SyslogReporterTest, StartStopSyslogReporter) {
    boost::thread* srThread = syslogReporter.Start(); 
    boost::this_thread::sleep(boost::posix_time::milliseconds(100));
    EXPECT_NE(syslogReporter.GetThreadId(), 0);
+   boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
    syslogReporter.Join();
 }
 
@@ -65,8 +67,8 @@ TEST_F(SyslogReporterTest, SendMsgToSyslogReporter) {
 
    std::string queueName = mConfSlave.GetConf().getSyslogQueue();
 
-   int numSyslogSenders = 4;
-   int numSyslogMsgs = 10;
+   int numSyslogSenders = 100;
+   int numSyslogMsgs = 10000;
    std::vector<boost::thread*> theSyslogSenders;
    std::string syslogMsg(" EVT:001 49f7c7f9-73c1-4c6f-9585-fca792087297:00 10.128.20.60,10.128.64.251,58177,53,f0:1f:af:0b:dc:2d,f0:f7:55:dc:a8:7f,17,793,98/98,172/172,1/1,1381436188,1381436247,59/59,process=dns");
 
@@ -79,7 +81,7 @@ TEST_F(SyslogReporterTest, SendMsgToSyslogReporter) {
       theSyslogSenders.push_back(aSender);
    }
 
-   boost::this_thread::sleep(boost::posix_time::seconds(1));
+   boost::this_thread::sleep(boost::posix_time::seconds(10));
 
    for (auto it = theSyslogSenders.begin();
            it != theSyslogSenders.end() && !zctx_interrupted; it++) {
@@ -192,3 +194,11 @@ TEST_F(SyslogReporterTest, SendStatTime) {
    EXPECT_TRUE(syslogReporter.IsSendStatTime());
 
 }
+
+#else
+
+TEST_F(SyslogReporterTest, EmptyTestForProductionBuild) {
+   EXPECT_TRUE(true);
+}
+
+#endif
