@@ -142,7 +142,7 @@ TEST_F(LuaFunctionsTest, LuaGetMACInfoFromDpi) {
    dpiMsg.set_sessionid("uuid");
    dpiMsg.set_ipdest(ipDst);
    dpiMsg.set_ipsource(ipSrc);
-   vector<unsigned char> ethSrc;
+   std::vector<unsigned char> ethSrc;
    ethSrc.push_back(0x00);
    ethSrc.push_back(0x50);
    ethSrc.push_back(0x56);
@@ -150,7 +150,7 @@ TEST_F(LuaFunctionsTest, LuaGetMACInfoFromDpi) {
    ethSrc.push_back(0x00);
    ethSrc.push_back(0x1C);
    dpiMsg.SetEthSrc(ethSrc);
-   vector<unsigned char> ethDst;
+   std::vector<unsigned char> ethDst;
    ethDst.push_back(0x10);
    ethDst.push_back(0x52);
    ethDst.push_back(0x36);
@@ -612,7 +612,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
    dpiMsg.set_sessionid(testUuid.c_str());
 
    string testEthSrc("00:22:19:08:2c:00");
-   vector<unsigned char> ethSrc;
+   std::vector<unsigned char> ethSrc;
    ethSrc.push_back(0x00);
    ethSrc.push_back(0x22);
    ethSrc.push_back(0x19);
@@ -623,7 +623,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
 
    string testEthDst("f0:f7:55:dc:a8:00");
 
-   vector<unsigned char> ethDst;
+   std::vector<unsigned char> ethDst;
    ethDst.push_back(0xf0);
    ethDst.push_back(0xf7);
    ethDst.push_back(0x55);
@@ -1008,8 +1008,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaTime) {
 
 TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
 #ifdef LR_DEBUG
-   MockRuleEngine mRuleEngine(conf, syslogName, syslogOption,
-           syslogFacility, syslogPriority, true, 0);
+   MockRuleEngine mRuleEngine(conf, 0);
    mRuleEngine.mSiemMode = true;
    mRuleEngine.mSiemDebugMode = false;
 
@@ -1021,7 +1020,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    dpiMsg.set_sessionid(testUuid.c_str());
 
    string testEthSrc("00:22:19:08:2c:00");
-   vector<unsigned char> ethSrc;
+   std::vector<unsigned char> ethSrc;
    ethSrc.push_back(0x00);
    ethSrc.push_back(0x22);
    ethSrc.push_back(0x19);
@@ -1032,7 +1031,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
 
    string testEthDst("f0:f7:55:dc:a8:00");
 
-   vector<unsigned char> ethDst;
+   std::vector<unsigned char> ethDst;
    ethDst.push_back(0xf0);
    ethDst.push_back(0xf7);
    ethDst.push_back(0x55);
@@ -1105,23 +1104,22 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    lua_pushlightuserdata(luaState, &mRuleEngine);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState));
 
-   //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
+   //std::cout << "SyslogOutput: " << mRuleEngine.GetSyslogSent().size() << std::endl;
    // Did the data show up in the syslog output
-   ASSERT_EQ(2, sysLogOutput.size());
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:003 "));
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,567/6789,234/12345,33/99,123,456,222/333"));
-   EXPECT_NE(std::string::npos, sysLogOutput[1].find("EVT:003 "));
-   EXPECT_NE(std::string::npos, sysLogOutput[1].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,1101/7890,11111/23456,25/124,123,567,111/444"));
+   ASSERT_EQ(2, mRuleEngine.GetSyslogSent().size());
+   EXPECT_NE(std::string::npos, mRuleEngine.GetSyslogSent()[0].find("EVT:003 "));
+   EXPECT_NE(std::string::npos, mRuleEngine.GetSyslogSent()[0].find(testUuid));
+   EXPECT_NE(std::string::npos, mRuleEngine.GetSyslogSent()[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,567/6789,234/12345,33/99,123,456,222/333"));
+   EXPECT_NE(std::string::npos, mRuleEngine.GetSyslogSent()[1].find("EVT:003 "));
+   EXPECT_NE(std::string::npos, mRuleEngine.GetSyslogSent()[1].find(testUuid));
+   EXPECT_NE(std::string::npos, mRuleEngine.GetSyslogSent()[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,1101/7890,11111/23456,25/124,123,567,111/444"));
    lua_close(luaState);
 #endif
 }
 
 TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
 #ifdef LR_DEBUG
-   MockRuleEngine mRuleEngine(conf, syslogName, syslogOption,
-           syslogFacility, syslogPriority, true, 0);
+   MockRuleEngine mRuleEngine(conf, 0);
    mRuleEngine.mSiemMode = true;
    mRuleEngine.mSiemDebugMode = false;
 
@@ -1133,7 +1131,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
    dpiMsg.set_sessionid(testUuid.c_str());
 
    string testEthSrc("00:22:19:08:2c:00");
-   vector<unsigned char> ethSrc;
+   std::vector<unsigned char> ethSrc;
    ethSrc.push_back(0x00);
    ethSrc.push_back(0x22);
    ethSrc.push_back(0x19);
@@ -1144,7 +1142,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
 
    string testEthDst("f0:f7:55:dc:a8:00");
 
-   vector<unsigned char> ethDst;
+   std::vector<unsigned char> ethDst;
    ethDst.push_back(0xf0);
    ethDst.push_back(0xf7);
    ethDst.push_back(0x55);
@@ -1205,12 +1203,12 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
    lua_pushlightuserdata(luaState, &mRuleEngine);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SendFinalFlowToSyslog(luaState));
 
-   //std::cout << "SyslogOutput: " << sysLogOutput << std::endl;
+   //std::cout << "SyslogOutput: " << mRuleEngine.GetSyslogSent().size() << std::endl;
    // Did the data show up in the syslog output
-   ASSERT_EQ(1, sysLogOutput.size());
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find("EVT:001 "));
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find(testUuid));
-   EXPECT_NE(std::string::npos, sysLogOutput[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,6789/6789,12345/12345,99/99,123,456,333/333"));
+   ASSERT_EQ(1, mRuleEngine.GetSyslogSent().size());
+   EXPECT_NE(std::string::npos, mRuleEngine.GetSyslogSent()[0].find("EVT:001 "));
+   EXPECT_NE(std::string::npos, mRuleEngine.GetSyslogSent()[0].find(testUuid));
+   EXPECT_NE(std::string::npos, mRuleEngine.GetSyslogSent()[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,6789/6789,12345/12345,99/99,123,456,333/333"));
    lua_close(luaState);
 #endif
 }
@@ -1218,8 +1216,7 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
 TEST_F(LuaFunctionsTest, StaticCallGetThreadId) {
 #ifdef LR_DEBUG
    unsigned int expectedThreadId(5);
-   MockRuleEngine mre(conf, syslogName, syslogOption,
-           syslogFacility, syslogPriority, true, expectedThreadId);
+   MockRuleEngine mre(conf, expectedThreadId);
    lua_State *luaState;
    luaState = luaL_newstate();
 
@@ -1233,8 +1230,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetThreadId) {
 
 TEST_F(LuaFunctionsTest, StaticCallGetRawMsgSize) {
 #ifdef LR_DEBUG
-   MockRuleEngine mre(conf, syslogName, syslogOption,
-           syslogFacility, syslogPriority, true, 0);
+   MockRuleEngine mre(conf, 0);
    lua_State *luaState;
    luaState = luaL_newstate();
 

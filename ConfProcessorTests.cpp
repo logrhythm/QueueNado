@@ -1020,12 +1020,16 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    int pcapBSize = conf.getPCAPBuffsize();
    int dpiSend = conf.GetDPIMsgSendQueueSize();
    int dpiRecv = conf.GetDPIMsgRecvQueueSize();
+   int syslogSend = conf.GetSyslogSendQueueSize();
+   int syslogRecv = conf.GetSyslogRecvQueueSize();
    //Expect the defaults that are in the #define
    EXPECT_EQ(PACKET_SEND_QUEUE_SIZE, packetSend);
    EXPECT_EQ(PACKET_RECV_QUEUE_SIZE, packetRecv);
    EXPECT_EQ(PCAP_BUFFER_SIZE, pcapBSize);
    EXPECT_EQ(DPI_MSG_SEND_QUEUE_SIZE, dpiSend);
    EXPECT_EQ(DPI_MSG_RECV_QUEUE_SIZE, dpiRecv);
+   EXPECT_EQ(SYSLOG_SEND_QUEUE_SIZE, syslogSend);
+   EXPECT_EQ(SYSLOG_RECV_QUEUE_SIZE, syslogRecv);
    EXPECT_EQ(MAX_SYSLOG_LINE_RFC_5426, conf.getSyslogMaxLineLength());
    EXPECT_FALSE(conf.getQosmosDebugModeEnabled());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.getDpiHalfSessions());
@@ -1051,6 +1055,7 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
+   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
@@ -1070,6 +1075,8 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ(100, conf.GetPacketSendQueueSize());
    EXPECT_EQ(15000, conf.GetDPIMsgRecvQueueSize());
    EXPECT_EQ(30000, conf.GetDPIMsgSendQueueSize());
+   EXPECT_EQ(800, conf.GetSyslogRecvQueueSize());
+   EXPECT_EQ(500, conf.GetSyslogSendQueueSize());
    EXPECT_EQ(1, conf.getStatsIntervalSeconds());
    EXPECT_TRUE(conf.getQosmosDebugModeEnabled());
    EXPECT_TRUE(conf.SiemLogging());
@@ -1090,6 +1097,7 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
+   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
@@ -1114,6 +1122,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    EXPECT_EQ("", conf.getSyslogAgentIP());
    EXPECT_EQ("", conf.getSyslogAgentPort());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
+   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
    EXPECT_EQ("ipc:///tmp/broadcast.ipc", conf.getBroadcastQueue());
    EXPECT_EQ("ipc:///tmp/statsaccumulator.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/statsmsg.ipc", conf.getSendStatsQueue());
@@ -1517,6 +1526,7 @@ TEST_F(ConfProcessorTests, testPolledConsumerRcvAfterReg) {
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
+   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
@@ -1588,6 +1598,7 @@ TEST_F(ConfProcessorTests, testConfSlaveBasic) {
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
+   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
    EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
    EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
@@ -1650,6 +1661,7 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    EXPECT_EQ(normalConf.getSyslogAgentIP(), slaveConf.getSyslogAgentIP());
    EXPECT_EQ(normalConf.getSyslogAgentPort(), slaveConf.getSyslogAgentPort());
    EXPECT_EQ(normalConf.getDpiRcvrQueue(), slaveConf.getDpiRcvrQueue());
+   EXPECT_EQ(normalConf.getSyslogQueue(), slaveConf.getSyslogQueue());
    EXPECT_EQ(normalConf.getConfChangeQueue(), slaveConf.getConfChangeQueue());
    EXPECT_EQ(normalConf.getCommandQueue(), slaveConf.getCommandQueue());
    EXPECT_EQ(normalConf.getDpiThreads(), slaveConf.getDpiThreads());
@@ -1661,6 +1673,7 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    EXPECT_EQ(normalConf.getSyslogAgentIP(), masterConf.getSyslogAgentIP());
    EXPECT_EQ(normalConf.getSyslogAgentPort(), masterConf.getSyslogAgentPort());
    EXPECT_EQ(normalConf.getDpiRcvrQueue(), masterConf.getDpiRcvrQueue());
+   EXPECT_EQ(normalConf.getSyslogQueue(), masterConf.getSyslogQueue());
    EXPECT_EQ(normalConf.getConfChangeQueue(), masterConf.getConfChangeQueue());
    EXPECT_EQ(normalConf.getCommandQueue(), masterConf.getCommandQueue());
    EXPECT_EQ(normalConf.getDpiThreads(), masterConf.getDpiThreads());

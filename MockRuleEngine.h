@@ -13,14 +13,13 @@ namespace networkMonitor {
    class MockRuleEngine : public RuleEngine {
    public:
 
-      MockRuleEngine(ConfSlave& slave, std::string& name, int option,
-              int facility, int priority, bool master,
-              unsigned int threadNumber) : RuleEngine(slave, name, option, facility,
-      priority, master, threadNumber), mSiemMode(false), mSyslogEnabled(true),
+      MockRuleEngine(ConfSlave& slave, unsigned int threadNumber) 
+         : RuleEngine(slave, threadNumber), mSiemMode(false), 
       mMaxLineLength(2048), mScriptsDir("../scripts"),
       mStatsQueueName("ipc:///tmp/statsAccumulatorQ.ipc"),
       mDpiRcvrQueue("ipc:///tmp/dpilrmsgtest.ipc"),
-      mDpiMsgQueueSize(1000), mSiemDebugMode(false), mSentUpdate(false) {
+      mDpiMsgQueueSize(1000), mSiemDebugMode(false), mSentUpdate(false),
+      mInterceptSyslog(true) {
       };
 
       bool GetSyslogMessages(IndexedFieldPairs& formattedFieldData, std::vector<std::string>& messages, unsigned int dynamicStart) {
@@ -55,9 +54,6 @@ namespace networkMonitor {
       }
       bool SiemDebugModeEnabled() {
          return mSiemDebugMode;
-      }
-      bool SyslogEnabled() {
-         return mSyslogEnabled;
       }
 
       unsigned int MaxLineLength() {
@@ -126,9 +122,7 @@ namespace networkMonitor {
       unsigned int GetFilenameField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override {
          return RuleEngine::GetFilenameField(nextField, dpiMsg, threshold,formattedFieldData);
       }
-      void RestartSyslogDaemon() {
-         
-      }
+
       void SetElasticSearchTarget(const std::string& target) {
          RuleEngine::mElasticSearchTarget = target;
          RuleEngine::mTransferElasticSearch.SetBinding(target);
@@ -147,8 +141,24 @@ namespace networkMonitor {
          mEsMessage = dpiMsg;
          return true;
       }
+      void SetSyslogIntercept(bool val) {
+         mInterceptSyslog = val;
+      }
+      void SendToSyslogReporter(const std::string& syslogMsg){
+         if (mInterceptSyslog) {
+            syslogSent.push_back(syslogMsg);
+         } else {
+            RuleEngine::SendToSyslogReporter(syslogMsg);
+         }
+      }
+      std::vector<std::string>& GetSyslogSent() {
+         return syslogSent;
+      }
+      bool InitializeSyslogSendQueue() {
+         return RuleEngine::InitializeSyslogSendQueue();
+      }
+
       bool mSiemMode;
-      bool mSyslogEnabled;
       unsigned int mMaxLineLength;
       std::string mScriptsDir;
       std::string mStatsQueueName;
@@ -156,7 +166,9 @@ namespace networkMonitor {
       int mDpiMsgQueueSize;
       bool mSiemDebugMode;
       bool mSentUpdate;
+      bool mInterceptSyslog;
       DpiMsgLR mEsMessage;
+      std::vector<std::string> syslogSent;
    };
 
 }
