@@ -623,7 +623,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_UDP) {
 #ifdef LR_DEBUG
    MockConf conf;
    conf.mSyslogConfName = "/tmp/test.nm.rsyslog.conf"; // dummy file. won't be created
-   conf.mSyslogProtocol = "UDP";
+   conf.mSyslogProtocol = false; // udp
    conf.mSyslogAgentIp = "123.123.123";
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);
@@ -649,7 +649,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_TCP) {
 #ifdef LR_DEBUG
    MockConf conf;
    conf.mSyslogConfName = "/tmp/test.nm.rsyslog.conf"; // dummy file. won't be created
-   conf.mSyslogProtocol = "TCP";
+   conf.mSyslogProtocol = true; // "TCP";
    conf.mSyslogAgentIp = "123.123.123";
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
    processManager->SetSuccess(true);

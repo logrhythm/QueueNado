@@ -1,3 +1,4 @@
+syslogTcpEnabled: true
 syslogMaxLineLength: 2047
 syslogLogName: /var/log/nm.log
 syslogLogConfName: /etc/rsyslog.d/nm.rsyslog.conf

@@ -85,7 +85,7 @@ public:
       return mSyslogConfName;
    }
 
-   std::string getSyslogProtocol(void) LR_OVERRIDE {
+   bool getSyslogTcpEnabled(void) LR_OVERRIDE {
       return mSyslogProtocol;
    }
    
@@ -336,7 +336,7 @@ public:
    std::string mSyslogFacility;
    std::string mSyslogName;
    std::string mSyslogConfName;
-   std::string mSyslogProtocol;
+   bool mSyslogProtocol;
    std::string mSyslogAgentIp;
    std::string mLogDir;
    std::string mConfChangeQueue;

@@ -1049,7 +1049,7 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    //   Conf conf = confThread.GetConf();
    Conf conf = confThread.GetConf(mTestConf);
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   EXPECT_EQ("TCP", conf.getSyslogProtocol());
+   EXPECT_EQ(true, conf.getSyslogTcpEnabled());
    EXPECT_EQ("local4", conf.getSyslogFacility());
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
@@ -1092,7 +1092,7 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    //runs from test/ directory.
    Conf conf = confThread.GetConf(mTestConf);
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   EXPECT_EQ("TCP", conf.getSyslogProtocol());
+   EXPECT_EQ(true, conf.getSyslogTcpEnabled());
    EXPECT_EQ("local4", conf.getSyslogFacility());
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
@@ -1122,7 +1122,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile()); // default value
    EXPECT_EQ("", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort()); // default value
-   EXPECT_EQ("TCP", conf.getSyslogProtocol()); // default value
+   EXPECT_EQ(true, conf.getSyslogTcpEnabled()); // default value
    EXPECT_EQ("local4", conf.getSyslogFacility()); // default value
    
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
@@ -1148,7 +1148,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
 
 }
 
-TEST_F(ConfProcessorTests, testConfSyslogConfName) {
+TEST_F(ConfProcessorTests, testConfSyslogEnabled) {
    protoMsg::SyslogConf msg;
    std::string expSyslogEnabled("false");
    msg.set_syslogenabled(expSyslogEnabled);
@@ -1164,18 +1164,24 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
    msg.set_sysloglogagentip("123.123.123");
    msg.set_reporteverything("true");
    msg.set_sysloglogagentport("777");
-   msg.set_syslogprotocol("udp");
-   
-   
+   msg.set_syslogtcpenabled("false");
+   EXPECT_EQ("false", msg.syslogtcpenabled());
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_TRUE(conf.getSyslogEnabled());
+   EXPECT_FALSE(conf.getSyslogTcpEnabled());
+
+
    EXPECT_EQ("123.123.123", conf.getSyslogAgentIP());
    EXPECT_EQ("777", conf.getSyslogAgentPort());
    EXPECT_EQ("local4", conf.getSyslogFacility());
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   EXPECT_EQ("UDP", conf.getSyslogProtocol());
+   
+   
+   msg.set_syslogtcpenabled("true");
+   conf.updateFields(msg);
+   EXPECT_TRUE(conf.getSyslogTcpEnabled());
    
    EXPECT_TRUE(conf.getReportEveythingEnabled());
 }
@@ -1186,7 +1192,8 @@ TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    msg.set_sysloglogagentip("");
    msg.set_reporteverything("");
    msg.set_sysloglogagentport("");
-   msg.set_syslogprotocol("");
+   msg.set_syslogtcpenabled(""); 
+
 
 
    Conf conf(mTestConf);
@@ -1197,7 +1204,7 @@ TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    EXPECT_EQ("514", conf.getSyslogAgentPort());
    EXPECT_EQ("local4", conf.getSyslogFacility());
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   EXPECT_EQ("TCP", conf.getSyslogProtocol());
+   EXPECT_EQ(true, conf.getSyslogTcpEnabled());  // default
 
    EXPECT_TRUE(conf.getScrubPasswordsEnabled());
    EXPECT_FALSE(conf.getReportEveythingEnabled());
