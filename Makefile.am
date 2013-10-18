@@ -1,7 +1,6 @@
 check_PROGRAMS=nmTest \
 CommandProcessorTests \
 MsgUuidTest \
-SyslogConfigTest \
 SysLoggerTest \
 ZMQTest \
 PacketCaptureTest \
@@ -143,10 +142,6 @@ DiskUsageTest_SOURCES=main.cpp DiskUsageTest.cpp
 MsgUuidTest_LDADD=${DYNAMIC_LIBS}
 MsgUuidTest_LDFLAGS=${BASE_LIBS}
 MsgUuidTest_SOURCES=main.cpp MsgUuidTest.cpp
-
-SyslogConfigTest_LDADD=${DYNAMIC_LIBS}
-SyslogConfigTest_LDFLAGS=${BASE_LIBS}
-SyslogConfigTest_SOURCES=main.cpp SyslogConfigTest.cpp
 
 ConfProcessorTests_LDADD=${DYNAMIC_LIBS}
 ConfProcessorTests_LDFLAGS=${BASE_LIBS}
@@ -290,7 +285,6 @@ nmTest_SOURCES=main.cpp \
  ShotgunAlienTests.cpp \
  BoomStickTest.cpp \
  StatsAccumulatorTest.cpp \
- SyslogConfigTest.cpp \
  TestTCPIPDirectionlessHash.cpp \
  TestSendReceiveDpiMsgLRZMQ.cpp \
  TestSendReceivePacketZMQ.cpp \
