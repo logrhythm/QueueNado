@@ -27,42 +27,99 @@
 #ifdef LR_DEBUG
 
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
-   
+
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
    conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
-   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST,MockTestCommand::Construct);
-   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommand::Construct);
+
    Crowbar sender(conf.getCommandQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::CommandRequest requestMsg;
-   requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
-   requestMsg.set_async(true);
-   sender.Swing(requestMsg.SerializeAsString());
+   unsigned int count(0);
    std::string reply;
+   protoMsg::CommandReply realReply;
+   protoMsg::CommandReply replyMsg;
+   for (int i = 0; i < 100; i++) {
+      requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
+      requestMsg.set_async(true);
+      sender.Swing(requestMsg.SerializeAsString());
+      sender.BlockForKill(reply);
+      EXPECT_FALSE(reply.empty());
+
+      replyMsg.ParseFromString(reply);
+      EXPECT_TRUE(replyMsg.success());
+      count = 0;
+
+      requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
+      requestMsg.set_async(false);
+      requestMsg.set_stringargone(replyMsg.result());
+      do {
+         
+         requestMsg.set_stringargone(replyMsg.result());
+         sender.Swing(requestMsg.SerializeAsString());
+         std::string reply;
+         sender.BlockForKill(reply);
+         EXPECT_FALSE(reply.empty());
+         realReply.ParseFromString(reply);
+         if (realReply.success()) {
+            break;
+         }
+         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      } while (!zctx_interrupted && count++ < 100);
+      EXPECT_TRUE(realReply.result() == "TestCommand");
+      EXPECT_TRUE(realReply.success());
+   }
+   sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
    EXPECT_FALSE(reply.empty());
-   protoMsg::CommandReply replyMsg;
-   replyMsg.ParseFromString(reply);
-   EXPECT_TRUE(replyMsg.success());
-   unsigned int count(0);
-   protoMsg::CommandReply realReply;
-   do { 
-      realReply = Command::GetStatus(testProcessor.mRunningAsyncCommands[replyMsg.result()]);
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-   } while (!realReply.success() && !zctx_interrupted && count++ < 100);
-   EXPECT_TRUE(realReply.result()== "TestCommand");
+   realReply.ParseFromString(reply);
    EXPECT_TRUE(realReply.success());
-   realReply = Command::GetStatus(testProcessor.mRunningAsyncCommands[replyMsg.result()]);
-   EXPECT_TRUE(realReply.success());
-   EXPECT_TRUE(realReply.result()== "Result Already Sent");
+   EXPECT_TRUE(realReply.result() == "Result Already Sent");
 
-   
+
    raise(SIGTERM);
 }
 
+TEST_F(CommandProcessorTests, CommandStatusFailureTests) {
+   MockConf conf;
+   conf.mCommandQueue = "tcp://127.0.0.1:";
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+   MockCommandProcessor testProcessor(conf);
+   EXPECT_TRUE(testProcessor.Initialize());
+   Crowbar sender(conf.getCommandQueue());
+   ASSERT_TRUE(sender.Wield());
+   std::string reply;
+   protoMsg::CommandReply realReply;
+   protoMsg::CommandRequest requestMsg;
+
+   requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   realReply.ParseFromString(reply);
+   EXPECT_FALSE(realReply.success());
+   EXPECT_TRUE("Invalid Status Request, No ID" == realReply.result());
+   requestMsg.set_stringargone("abc123");
+   requestMsg.set_async(true);
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   realReply.ParseFromString(reply);
+   EXPECT_FALSE(realReply.success());
+   EXPECT_TRUE("Invalid Status Request, Cannot Process Asynchronously" == realReply.result());
+   requestMsg.set_async(false);
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   realReply.ParseFromString(reply);
+   EXPECT_FALSE(realReply.success());
+   EXPECT_TRUE("Command Not Found" == realReply.result());
+
+   raise(SIGTERM);
+}
 #endif
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
@@ -71,6 +128,8 @@ TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
    conf.mCommandQueue = "invalid";
    CommandProcessor testProcessor(conf);
    EXPECT_FALSE(testProcessor.Initialize());
+   protoMsg::CommandRequest requestMsg;
+
 #endif
 }
 
@@ -84,6 +143,7 @@ TEST_F(CommandProcessorTests, ConstructAndInitialize) {
    raise(SIGTERM);
 #endif
 }
+
 TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
 #ifdef LR_DEBUG
    MockConf conf;
@@ -91,16 +151,17 @@ TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
    conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
-   EXPECT_EQ(UpgradeCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_UPGRADE));
-   EXPECT_EQ(RestartSyslogCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART));
-   EXPECT_EQ(RebootCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_REBOOT));
-   EXPECT_EQ(NetworkConfigCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG));
-   EXPECT_EQ(NtpConfigCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NTP_CONFIG));
-   EXPECT_EQ(ShutdownCommand::Construct,testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN));
+   EXPECT_EQ(UpgradeCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_UPGRADE));
+   EXPECT_EQ(RestartSyslogCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART));
+   EXPECT_EQ(RebootCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_REBOOT));
+   EXPECT_EQ(NetworkConfigCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG));
+   EXPECT_EQ(NtpConfigCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NTP_CONFIG));
+   EXPECT_EQ(ShutdownCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN));
 
-   raise(SIGTERM); 
+   raise(SIGTERM);
 #endif
 }
+
 TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
 #ifdef LR_DEBUG
    MockConf conf;
@@ -525,8 +586,8 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
       protoMsg::CommandReply reply = shutdown.Execute(conf);
       LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
       ASSERT_TRUE(reply.success());
-      EXPECT_EQ(processManager->mRunCommand,"/sbin/init");
-      EXPECT_EQ(processManager->mRunArgs," 0");
+      EXPECT_EQ(processManager->mRunCommand, "/sbin/init");
+      EXPECT_EQ(processManager->mRunArgs, " 0");
    } catch (...) {
       exception = true;
    }
@@ -541,26 +602,27 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
 //
 //  If you tamper with the details mentioned, all bets are OFF!
 //
-TEST_F(CommandProcessorTests, PseudoShutdown) {  
-   #ifdef LR_DEBUG
+
+TEST_F(CommandProcessorTests, PseudoShutdown) {
+#ifdef LR_DEBUG
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);   
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    LOG(INFO) << "Executing Real command with real Processor but with Mocked Shutdown function";
    // NEVER CHANGE the LINE below. If it is set to true your PC will shut down
    MockShutdownCommand::callRealShutdownCommand = false;
-   MockShutdownCommand::wasShutdownCalled = false; 
-   
-  
+   MockShutdownCommand::wasShutdownCalled = false;
+
+
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN, MockShutdownCommand::FatalAndDangerousConstruct);
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
    Crowbar sender(conf.getCommandQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::CommandRequest requestMsg;
-   requestMsg.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);   
-   
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
+
    protoMsg::ShutdownMsg shutdown;
    shutdown.set_now(true);
    requestMsg.set_stringargone(shutdown.SerializeAsString());
@@ -572,7 +634,7 @@ TEST_F(CommandProcessorTests, PseudoShutdown) {
    replyMsg.ParseFromString(reply);
    EXPECT_TRUE(replyMsg.success());
    EXPECT_TRUE(MockShutdownCommand::wasShutdownCalled);
-   raise(SIGTERM);  
+   raise(SIGTERM);
 #endif
 }
 
@@ -591,9 +653,6 @@ TEST_F(CommandProcessorTests, PseudoShutdown) {
 //   
 //#endif
 //}
-
-
-
 
 TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
 #ifdef LR_DEBUG
@@ -656,7 +715,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess) {
       exception = true;
    }
    ASSERT_FALSE(exception);
-   
+
 #endif
 }
 
@@ -677,7 +736,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailRestart) {
       exception = true;
    }
    ASSERT_TRUE(exception);
-   
+
 #endif
 }
 
@@ -698,7 +757,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailSuccessRestart) {
       exception = true;
    }
    ASSERT_TRUE(exception);
-    
+
 #endif
 }
 
@@ -711,7 +770,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandInit) {
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
    NetworkConfigCommandTest ncct = NetworkConfigCommandTest(cmd, processManager);
-   
+
 #endif 
 }
 
@@ -737,7 +796,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
       exception = true;
    }
    ASSERT_FALSE(exception);
-   
+
 #endif
 }
 
@@ -764,7 +823,7 @@ TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
    }
    delete ncct;
    ASSERT_FALSE(exception);
-   
+
 
 }
 
@@ -788,7 +847,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandBadInterfaceMsg) {
       exception = true;
    }
    ASSERT_FALSE(exception);
-   
+
 
 }
 
@@ -816,7 +875,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
    }
 
    ASSERT_FALSE(exception);
-   
+
 
 }
 
@@ -840,7 +899,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInterfaceMethodNotSet) {
       exception = true;
    }
    ASSERT_FALSE(exception);
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
@@ -865,7 +924,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
    } catch (...) {
       exception = true;
    }
-   
+
    ASSERT_FALSE(exception);
 }
 
@@ -889,7 +948,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth1) {
    } catch (...) {
       exception = true;
    }
-   
+
    ASSERT_TRUE(exception);
 }
 
@@ -913,7 +972,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm2) {
    } catch (...) {
       exception = true;
    }
-   
+
    ASSERT_TRUE(exception);
 }
 
@@ -937,7 +996,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth2) {
    } catch (...) {
       exception = true;
    }
-   
+
    ASSERT_TRUE(exception);
 }
 
@@ -961,7 +1020,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm3) {
    } catch (...) {
       exception = true;
    }
-   
+
    ASSERT_TRUE(exception);
 }
 
@@ -985,7 +1044,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgFileExists) {
    } catch (...) {
       exception = true;
    }
-   
+
    ASSERT_TRUE(exception);
 }
 
@@ -1013,7 +1072,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile)
    ASSERT_EQ("\"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
@@ -1040,7 +1099,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
    ASSERT_EQ("\"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeRestoreIfcfgFile) {
@@ -1067,7 +1126,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeRestoreIfcfgFile
    ASSERT_EQ("\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessRestoreIfcfgFile) {
@@ -1094,7 +1153,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessRestoreIfcfgFile) {
    ASSERT_EQ("\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) {
@@ -1122,7 +1181,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) 
            "NM_CONTROLLED|ONBOOT|DNS1|DNS2|PEERDNS|DOMAIN|BOARDCAST/i' "
            "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
@@ -1150,7 +1209,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
            "NM_CONTROLLED|ONBOOT|DNS1|DNS2|PEERDNS|DOMAIN|BOARDCAST/i' "
            "\"/etc/sysconfig/network-scripts/ifcfg-NoIface\"",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
@@ -1176,7 +1235,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"BOOTPROTO=dhcp\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
@@ -1202,7 +1261,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"BOOTPROTO=none\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
@@ -1227,7 +1286,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
    ASSERT_TRUE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
@@ -1253,7 +1312,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
    ASSERT_TRUE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
@@ -1280,7 +1339,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"IPADDR=192.168.1.1\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
@@ -1307,7 +1366,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"IPADDR=192.168.1.1\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
@@ -1332,7 +1391,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
    ASSERT_TRUE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
@@ -1358,7 +1417,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
    ASSERT_TRUE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
@@ -1385,7 +1444,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"NETMASK=255.255.255.0\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
@@ -1412,7 +1471,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"NETMASK=255.255.255.0\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
@@ -1437,7 +1496,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
    ASSERT_FALSE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
@@ -1464,7 +1523,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"GATEWAY=192.168.1.100\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
@@ -1491,7 +1550,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"GATEWAY=192.168.1.100\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
@@ -1517,7 +1576,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
    ASSERT_FALSE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
@@ -1544,7 +1603,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
@@ -1571,7 +1630,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
@@ -1597,7 +1656,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
    ASSERT_FALSE(exception);
    ASSERT_EQ("", processManager->getRunCommand());
    ASSERT_EQ("", processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
@@ -1624,7 +1683,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
    ASSERT_EQ("/bin/echo", processManager->getRunCommand());
    ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
            processManager->getRunArgs());
-   
+
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
@@ -1913,6 +1972,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandStaticNoExtraRetriesOnSuccessf
    ASSERT_EQ("/sbin/ifup", processManager->getRunCommand());
    ASSERT_EQ("eth0 boot --force", processManager->getRunArgs());
 }
+
 TEST_F(CommandProcessorTests, NetworkConfigCommandDhcpNoExtraRetriesOnSuccessfulInterfaceUp) {
    const MockConf conf;
    MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf);
