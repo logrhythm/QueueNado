@@ -194,22 +194,15 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
    } while (!zctx_interrupted && count++ < 100);
-
-   testProcessor.KillCommandsThatWillNeverFinish(10);
-   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-   sender.Swing(requestMsg.SerializeAsString());
-   sender.BlockForKill(reply);
-   EXPECT_FALSE(reply.empty());
-   realReply.ParseFromString(reply);
-   EXPECT_FALSE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Result Already Sent");
+   testProcessor.timeout = 1;
    std::this_thread::sleep_for(std::chrono::milliseconds(1001));
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
    EXPECT_FALSE(reply.empty());
    realReply.ParseFromString(reply);
    EXPECT_FALSE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Command Not Found");
+   EXPECT_TRUE(realReply.result() == "Aborted");
+
    raise(SIGTERM);
 }
 
