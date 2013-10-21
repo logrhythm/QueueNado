@@ -51,7 +51,9 @@ public:
    mMaxIndividualPCap(1000), 
    mValidBaseConf(true),
    mIgnoreBaseConfValidation(true),
-   mPcapCaptureMaxPackets(999999)  {
+   mPcapCaptureMaxPackets(999999),
+   mSyslogSendQueueSize(800),
+   mSyslogRecvQueueSize(800) {
 }
 
    ~MockConf() {
@@ -157,12 +159,20 @@ public:
       return mDPIMsgSendQueueSize;
    }
 
+   int GetSyslogSendQueueSize() LR_OVERRIDE {
+      return mSyslogSendQueueSize;
+   }
+
    unsigned int getStatsIntervalSeconds() LR_OVERRIDE {
       return mStatsIntervalSeconds;
    }
 
    int GetDPIMsgRecvQueueSize() LR_OVERRIDE {
       return mDPIMsgRecvQueueSize;
+   }
+
+   int GetSyslogRecvQueueSize() LR_OVERRIDE {
+      return mSyslogRecvQueueSize;
    }
 
    std::string getPCAPInterface() LR_OVERRIDE {
@@ -379,4 +389,6 @@ public:
    bool mValidBaseConf;
    bool mIgnoreBaseConfValidation;
    size_t mPcapCaptureMaxPackets;
+   int mSyslogSendQueueSize;
+   int mSyslogRecvQueueSize;
 };

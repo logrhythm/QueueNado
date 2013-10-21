@@ -148,7 +148,8 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveMaster__ExpectingValidCmd) {
 
 
 TEST_F(NtpConfigCommandTest, EnableNTPWithAliveBackupServer__ExpectingValidCmd) {
-   protoMsg::Ntp ntp;
+   #ifdef LR_DEBUG
+    protoMsg::Ntp ntp;
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
@@ -183,12 +184,15 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveBackupServer__ExpectingValidCmd) 
    auto cmdArgs = autoManagedManager->getRunArgs();
    ASSERT_EQ(cmd, std::string("service"));
    ASSERT_EQ(cmdArgs, std::string("ntpd start"));
+  #endif
 }
 
 
 
 
 TEST_F(NtpConfigCommandTest, EnableNTPWithAliveMasterAndAliveServer__ExpectingValidCmd) {
+#ifdef LR_DEBUG   
+
    protoMsg::Ntp ntp;
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
@@ -221,10 +225,13 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveMasterAndAliveServer__ExpectingVa
    auto lastArgs = autoManagedManager->getRunArgs();
    ASSERT_EQ(lastCmd, std::string("service"));
    ASSERT_EQ(lastArgs, std::string("ntpd start"));
+#endif
    
 }
 
 TEST_F(NtpConfigCommandTest, MultipleEnableCmds__ExpectingValidCmd) {
+#ifdef LR_DEBUG
+
    protoMsg::Ntp ntp;
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
@@ -232,9 +239,11 @@ TEST_F(NtpConfigCommandTest, MultipleEnableCmds__ExpectingValidCmd) {
    MockNtpConfigCommand doIt(cmd, autoManagedManager);
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
+#endif
 }
 
 TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd) {
+#ifdef LR_DEBUG
    protoMsg::Ntp ntp;
    ntp.set_master_server("");
    ntp.set_backup_server("");
@@ -244,9 +253,11 @@ TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd) {
       auto reply = doIt.Execute(conf);
       ASSERT_TRUE(reply.success());
    }
+#endif
 } 
 
 TEST_F(NtpConfigCommandTest, ThrowTestsIsServerAlive) {
+#ifdef LR_DEBUG   
    protoMsg::Ntp ntp;
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
@@ -278,9 +289,11 @@ TEST_F(NtpConfigCommandTest, ThrowTestsIsServerAlive) {
    EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
    EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.252"));
    EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
+#endif
 }
 
 TEST_F(NtpConfigCommandTest, ThrowTestsForceTimeSync) {
+ #ifdef LR_DEBUG  
    protoMsg::Ntp ntp;
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
@@ -307,10 +320,12 @@ TEST_F(NtpConfigCommandTest, ThrowTestsForceTimeSync) {
    autoManagedManager->mReturnCode = 256;
    EXPECT_NO_THROW(reply = doIt.ForceTimeSync("10.128.64.251"));
    EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
+#endif
 }
 
 
 TEST_F(NtpConfigCommandTest, ThrowTestsTriggerNtpdChange) {
+#ifdef LR_DEBUG   
    protoMsg::Ntp ntp;
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
@@ -333,6 +348,7 @@ TEST_F(NtpConfigCommandTest, ThrowTestsTriggerNtpdChange) {
    doIt.willFakeThrow = true;
    EXPECT_NO_THROW( doIt.TriggerNtpdChange()); // throws are caught
    EXPECT_EQ(doIt.throwCounter, 2); // start + (delayed throw) ntpdate sync
+#endif
 }
 
 
