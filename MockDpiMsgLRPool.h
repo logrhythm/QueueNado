@@ -11,5 +11,17 @@ class MockDpiMsgLRPool : public DpiMsgLRPool {
       bool DpiMsgTooBig(networkMonitor::DpiMsgLR* reusedMsg,int limit) override {
          return DpiMsgLRPool::DpiMsgTooBig(reusedMsg,limit);  
       }
+   bool OverGivenThreshold(const int fSize, const int uSize, const double percent, const int minAllowedFree, const int maxAllowedFree) {
+      return DpiMsgLRPool::OverGivenThreshold(fSize, uSize, percent, minAllowedFree, maxAllowedFree);
+   }
+   SendStats* GetStatsSender(pthread_t thread) {
+      return DpiMsgLRPool::GetStatsSender(thread);
+   }
+   time_t GetStatsTimer(pthread_t thread) {
+       return DpiMsgLRPool::GetStatsTimer(thread);
+   }
+   void SetStatsTimer(pthread_t thread, time_t time) {
+       return DpiMsgLRPool::SetStatsTimer(thread, time);
+   }
 };
 #endif
