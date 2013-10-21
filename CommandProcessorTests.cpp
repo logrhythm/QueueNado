@@ -66,6 +66,8 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
          realReply.ParseFromString(reply);
          if (realReply.success()) {
             break;
+         } else {
+            EXPECT_TRUE(realReply.result() == "Command running");
          }
          std::this_thread::sleep_for(std::chrono::milliseconds(1));
       } while (!zctx_interrupted && count++ < 100);

@@ -15,6 +15,7 @@ public:
       protoMsg::CommandReply reply;
       reply.set_success(mSuccess);
       reply.set_result(mResult);
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
       return reply;
    }
 
