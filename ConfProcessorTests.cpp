@@ -31,6 +31,18 @@ using namespace networkMonitor;
 #include "MockConf.h"
 #include "MockEthInfo.h"
 
+/**
+ * Found a bug that when calling ConfSlave::Instance and get conf I could 
+ * potentially get defaults instead of actually getting the conf.
+ * @param 
+ */
+TEST_F(ConfProcessorTests, EmptySetGetActualConf) {
+   Conf conf = networkMonitor::ConfSlave::Instance().GetConf();
+   ASSERT_EQ(conf.getPath(), "conf/nm.yaml");
+
+   conf = networkMonitor::ConfMaster::Instance().GetConf();
+   ASSERT_EQ(conf.getPath(), "conf/nm.yaml");
+}
 
 TEST_F(ConfProcessorTests, EthConfValidate) {
    MockConf conf;
@@ -52,7 +64,7 @@ TEST_F(ConfProcessorTests, EthConfValidate) {
    EXPECT_FALSE(conf.ValidateEthConfFields(protoMap, ethInfo)); // "" value is false
 
    conf.mPCAPInterface = "false";
-   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap,ethInfo)); // not in valid interface names
+   EXPECT_FALSE(conf.ValidateEthConfFields(protoMap, ethInfo)); // not in valid interface names
 
    conf.mPCAPInterface = "test1";
    EXPECT_TRUE(conf.ValidateEthConfFields(protoMap, ethInfo));
@@ -100,7 +112,7 @@ TEST_F(ConfProcessorTests, BaseConfInternalRepair) {
    MockConf conf;
    MockEthInfo ethInfo;
    conf.mValidateEthFailCount = 2;
-      ethInfo.mFakeIsValid = true;
+   ethInfo.mFakeIsValid = true;
    ethInfo.mFakeIsValidValue = true;
    EXPECT_FALSE(conf.InternallyRepairBaseConf(ethInfo)); // Repair always fails
    conf.mValidateEthFailCount = 0;
@@ -177,6 +189,7 @@ TEST_F(ConfProcessorTests, ConfInterfaceUpdateProto) {
    delete updateInterface;
 }
 #ifndef LR_DEBUG
+
 TEST_F(ConfProcessorTests, ReadPerformanceBenchmark_BASE) {
    ConfMaster& master = ConfMaster::Instance();
    master.Start();
@@ -207,7 +220,6 @@ TEST_F(ConfProcessorTests, ReadPerformanceBenchmark_BASE) {
    EXPECT_TRUE(TimedSectionPassed());
    master.Stop();
 }
-
 
 TEST_F(ConfProcessorTests, WritePerformanceBenchmark_BASE) {
    ConfMaster& master = ConfMaster::Instance();
@@ -240,6 +252,7 @@ TEST_F(ConfProcessorTests, WritePerformanceBenchmark_BASE) {
    master.Stop();
 }
 #endif
+
 TEST_F(ConfProcessorTests, TestProcessBaseConfigRequest) {
 #ifdef LR_DEBUG
    MockConfMaster master;
@@ -356,7 +369,7 @@ TEST_F(ConfProcessorTests, TestIsShutdownRequest) {
    EXPECT_TRUE(master.IsShutdownRequest(configTypeMessage));
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_RECEIVING);
    EXPECT_TRUE(master.IsShutdownRequest(configTypeMessage));
-   
+
    configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
    EXPECT_FALSE(master.IsShutdownRequest(configTypeMessage));
    configTypeMessage.set_type(protoMsg::ConfType_Type_QOSMOS);
@@ -367,7 +380,6 @@ TEST_F(ConfProcessorTests, TestIsShutdownRequest) {
    EXPECT_FALSE(master.IsShutdownRequest(configTypeMessage));
 #endif
 }
-
 
 TEST_F(ConfProcessorTests, TestUpdateBaseCachedMessages) {
 #ifdef LR_DEBUG
@@ -461,12 +473,12 @@ TEST_F(ConfProcessorTests, TestSerializeCachedConfig) {
    EXPECT_FALSE(serializedConf.empty());
    protoMsg::QosmosConf qConf;
    EXPECT_TRUE(qConf.ParseFromString(serializedConf));
-   
+
    configTypeMessage.set_type(protoMsg::ConfType_Type_SHUTDOWN);
    EXPECT_FALSE(serializedConf.empty());
    protoMsg::ShutdownMsg shutdownConf;
    EXPECT_TRUE(shutdownConf.ParseFromString(serializedConf));
-   
+
 
    configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
    EXPECT_FALSE(serializedConf.empty());
@@ -1064,7 +1076,7 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_TRUE(8 == conf.getDpiThreads());
    EXPECT_EQ(30, conf.getPCAPETimeOut());
    EXPECT_EQ(13, conf.getPCAPBuffsize());
-//   EXPECT_EQ("eth0", conf.getPCAPInterface()); this is now internally validated
+   //   EXPECT_EQ("eth0", conf.getPCAPInterface()); this is now internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
    EXPECT_TRUE(conf.getReportEveythingEnabled());
    EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
@@ -1106,7 +1118,7 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    EXPECT_TRUE(8 == conf.getDpiThreads());
    EXPECT_EQ(30, conf.getPCAPETimeOut());
    EXPECT_EQ(13, conf.getPCAPBuffsize());
-//   EXPECT_EQ("eth0", conf.getPCAPInterface());  this is now internally validated
+   //   EXPECT_EQ("eth0", conf.getPCAPInterface());  this is now internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
    EXPECT_TRUE(conf.getReportEveythingEnabled());
    EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
@@ -1124,7 +1136,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
    EXPECT_EQ("ipc:///tmp/broadcast.ipc", conf.getBroadcastQueue());
-   EXPECT_EQ("ipc:///tmp/statsaccumulator.ipc", conf.getStatsAccumulatorQueue());
+   EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
    EXPECT_EQ("ipc:///tmp/statsmsg.ipc", conf.getSendStatsQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
    EXPECT_EQ("tcp://127.0.0.1:5556", conf.getCommandQueue());
@@ -1134,7 +1146,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    EXPECT_EQ(NUMBER_OF_QOSMOS_THREADS, conf.getDpiThreads());
    EXPECT_EQ(PCAP_ETIMEDOUT, conf.getPCAPETimeOut());
    EXPECT_EQ(PCAP_BUFFER_SIZE, conf.getPCAPBuffsize());
-//   EXPECT_EQ("", conf.getPCAPInterface());  internally validated
+   //   EXPECT_EQ("", conf.getPCAPInterface());  internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
    EXPECT_FALSE(conf.getReportEveythingEnabled());
    EXPECT_EQ(MAX_SYSLOG_LINE_RFC_5426, conf.getSyslogMaxLineLength());
@@ -1605,7 +1617,7 @@ TEST_F(ConfProcessorTests, testConfSlaveBasic) {
    EXPECT_EQ(8, conf.getDpiThreads());
    EXPECT_EQ(30, conf.getPCAPETimeOut());
    EXPECT_EQ(13, conf.getPCAPBuffsize());
-//   EXPECT_EQ("eth0", conf.getPCAPInterface());  internally validated
+   //   EXPECT_EQ("eth0", conf.getPCAPInterface());  internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
    EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
    slave.Stop();
@@ -1681,7 +1693,7 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    EXPECT_EQ(normalConf.getPCAPBuffsize(), masterConf.getPCAPBuffsize());
    EXPECT_EQ(normalConf.getPCAPInterface(), masterConf.getPCAPInterface());
    EXPECT_EQ(normalConf.getSyslogEnabled(), masterConf.getSyslogEnabled());
-   
+
    master.UnregisterConsumer((void *) &masterConf);
    slave.UnregisterConsumer((void *) &slaveConf);
    master.Stop();

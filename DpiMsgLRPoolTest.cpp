@@ -5,6 +5,7 @@
 #include <time.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/descriptor.h>
+#include "ConfSlave.h"
 
 void SimulatorThread(DpiMsgLRPool* testPool, const int iterations) {
    std::vector<networkMonitor::DpiMsgLR*> messages;
@@ -28,7 +29,6 @@ void SimulatorThread(DpiMsgLRPool* testPool, const int iterations) {
 }
 
 TEST_F(DpiMsgLRPoolTest, Construction) {
-   DpiMsgLRPool testPool;
    DpiMsgLRPool* pTestObject = new DpiMsgLRPool;
    delete pTestObject;
 }
@@ -72,22 +72,24 @@ TEST_F(DpiMsgLRPoolTest, HammerTime) {
 TEST_F(DpiMsgLRPoolTest, DpiMsgSize) {
 #ifdef LR_DEBUG
    MockDpiMsgLRPool testPool;
+   Conf conf = networkMonitor::ConfSlave::Instance().GetConf();
+   const auto threshold = conf.GetDpiRecycleTheshold();
 
    networkMonitor::DpiMsgLR* testMsg = new networkMonitor::DpiMsgLR;
    static std::string oneHundredByteString = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 
-   while (testMsg->SpaceUsed() < MSG_POOL_RECYCLE_LIMIT - 100 * 100) {
+   while (testMsg->SpaceUsed() < threshold - 100 * 100) {
       for (int i = 0; i < 100; i++) {
          testMsg->add_accept_encodingq_proto_http(oneHundredByteString);
       }
    }
-   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, MSG_POOL_RECYCLE_LIMIT));
+   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, threshold));
    for (int i = 0; i < 100; i++) {
       testMsg->add_accept_encodingq_proto_http(oneHundredByteString);
    }
-   EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg, MSG_POOL_RECYCLE_LIMIT));
+   EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg, threshold));
    testMsg->ClearAll();
-   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, MSG_POOL_RECYCLE_LIMIT));
+   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, threshold));
    size_t currentSize = testMsg->SpaceUsed();
    EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, currentSize + 1));
    testMsg->add_account_uidq_proto_vkontakte(oneHundredByteString);
