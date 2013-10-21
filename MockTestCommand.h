@@ -59,3 +59,26 @@ protected:
       mRequest=request;
    }
 };
+
+class MockTestCommandRunsForever : public MockTestCommand {
+public:
+   virtual ~MockTestCommandRunsForever() {
+   }
+   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
+      std::shared_ptr<Command> command(new MockTestCommandRunsForever(request));
+      return command;
+   }
+   virtual protoMsg::CommandReply Execute(const Conf& conf) {
+      protoMsg::CommandReply reply;
+      reply.set_success(mSuccess);
+      reply.set_result(mResult);
+      unsigned int randSleep = 1000000;
+      std::this_thread::sleep_for(std::chrono::milliseconds(randSleep));
+      return reply;
+   }
+protected:
+
+   explicit MockTestCommandRunsForever(const protoMsg::CommandRequest& request) : MockTestCommand(request) {
+
+   }
+};

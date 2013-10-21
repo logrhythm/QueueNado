@@ -178,7 +178,7 @@ TEST_F(DriveInfoCommandTest, DISABLED_TestToGetSomething) {
  * This test requires a running manager
  * @param 
  */
-TEST_F(DriveInfoCommandTest, TestWithSocket) {
+TEST_F(DriveInfoCommandTest, DISABLED_TestWithSocket) {
  
    protoMsg::CommandRequest request;
    request.set_type(::protoMsg::CommandRequest_CommandType_DRIVEINFO);
