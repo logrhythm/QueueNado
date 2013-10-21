@@ -1,6 +1,63 @@
 #include "ConversionTest.h"
+#include "include/global.h"
 
-
+TEST_F(ConversionTest, convertNBytesStringsFailures) {
+   Conversion converter;
+   
+   EXPECT_EQ(0,converter.ReadBytesFromNBytesString("nonumbers"));
+   EXPECT_EQ(0,converter.ReadKBytesFromNBytesString("nonumbers"));
+   EXPECT_EQ(0,converter.ReadMBytesFromNBytesString("nonumbers"));
+   EXPECT_EQ(0,converter.ReadGBytesFromNBytesString("nonumbers"));
+   EXPECT_EQ(0,converter.ReadBytesFromNBytesString("123NoBytes"));
+   EXPECT_EQ(0,converter.ReadKBytesFromNBytesString("123NoBytes"));
+   EXPECT_EQ(0,converter.ReadMBytesFromNBytesString("123NoBytes"));
+   EXPECT_EQ(0,converter.ReadGBytesFromNBytesString("123NoBytes"));
+}
+TEST_F(ConversionTest, convertNBytesStrings) {
+   Conversion converter;
+   
+   EXPECT_EQ(123,converter.ReadBytesFromNBytesString("123"));
+   EXPECT_EQ(123<<B_TO_KB_SHIFT,converter.ReadBytesFromNBytesString("123kB"));
+   EXPECT_EQ(123<<B_TO_MB_SHIFT,converter.ReadBytesFromNBytesString("123MB")); 
+   EXPECT_TRUE(123L<<B_TO_GB_SHIFT==converter.ReadBytesFromNBytesString("123GB"));
+   
+   EXPECT_EQ(1,converter.ReadKBytesFromNBytesString("123"));
+   EXPECT_EQ(0,converter.ReadKBytesFromNBytesString("0"));
+   EXPECT_EQ(123,converter.ReadKBytesFromNBytesString("123kB"));
+   EXPECT_TRUE(123L<<KB_TO_MB_SHIFT==converter.ReadKBytesFromNBytesString("123MB")); 
+   EXPECT_TRUE(123L<<KB_TO_GB_SHIFT==converter.ReadKBytesFromNBytesString("123GB"));
+   EXPECT_TRUE(123L<<KB_TO_TB_SHIFT==converter.ReadKBytesFromNBytesString("123TB"));
+   
+   EXPECT_EQ(1,converter.ReadMBytesFromNBytesString("123"));
+   EXPECT_EQ(1,converter.ReadMBytesFromNBytesString("123kB"));
+   EXPECT_EQ(0,converter.ReadMBytesFromNBytesString("0"));
+   EXPECT_EQ(0,converter.ReadMBytesFromNBytesString("0kB"));
+   EXPECT_EQ(123,converter.ReadMBytesFromNBytesString("123MB")); 
+   EXPECT_EQ(123L<<MB_TO_GB_SHIFT,converter.ReadMBytesFromNBytesString("123GB"));
+   EXPECT_EQ(123L<<MB_TO_TB_SHIFT,converter.ReadMBytesFromNBytesString("123TB"));
+   
+   EXPECT_EQ(1,converter.ReadGBytesFromNBytesString("123"));
+   EXPECT_EQ(1,converter.ReadGBytesFromNBytesString("123kB"));
+   EXPECT_EQ(1,converter.ReadGBytesFromNBytesString("123MB")); 
+   EXPECT_EQ(0,converter.ReadGBytesFromNBytesString("0"));
+   EXPECT_EQ(0,converter.ReadGBytesFromNBytesString("0kB"));
+   EXPECT_EQ(0,converter.ReadGBytesFromNBytesString("0MB")); 
+   EXPECT_EQ(123L,converter.ReadGBytesFromNBytesString("123GB"));
+   EXPECT_EQ(123L<<GB_TO_TB_SHIFT,converter.ReadGBytesFromNBytesString("123TB"));
+}
+TEST_F(ConversionTest, convertNBytesStringsWithDecimals) {
+   Conversion converter;
+   
+   EXPECT_EQ((12L<<B_TO_GB_SHIFT)+300L*(1L<<KB_TO_GB_SHIFT),converter.ReadBytesFromNBytesString("12.3GB"));
+   
+   EXPECT_EQ((12L<<KB_TO_GB_SHIFT)+300L*(1L<<MB_TO_GB_SHIFT),converter.ReadKBytesFromNBytesString("12.3GB"));
+   
+   EXPECT_EQ((12L<<KB_TO_TB_SHIFT)+300L*(1L<<KB_TO_GB_SHIFT),converter.ReadKBytesFromNBytesString("12.3TB"));
+   
+   EXPECT_EQ((12L<<MB_TO_TB_SHIFT)+300L*(1L<<MB_TO_GB_SHIFT),converter.ReadMBytesFromNBytesString("12.3TB"));
+   
+   EXPECT_EQ((12L<<GB_TO_TB_SHIFT)+300L*(1L),converter.ReadGBytesFromNBytesString("12.3TB"));
+}
 TEST_F(ConversionTest, convertArray32) {
 #ifdef LR_DEBUG
    Conversion mockDpi;
