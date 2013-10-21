@@ -26,6 +26,72 @@
 #include "MockTestCommand.h"
 #ifdef LR_DEBUG
 
+TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
+
+   MockConf conf;
+   conf.mCommandQueue = "tcp://127.0.0.1:";
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+   MockCommandProcessor testProcessor(conf);
+   EXPECT_TRUE(testProcessor.Initialize());
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandAlwaysFails::Construct);
+
+   Crowbar sender(conf.getCommandQueue());
+   ASSERT_TRUE(sender.Wield());
+   protoMsg::CommandRequest requestMsg;
+   unsigned int count(0);
+   std::string reply;
+   protoMsg::CommandReply realReply;
+   protoMsg::CommandReply replyMsg;
+   for (int i = 0; i < 100; i++) {
+      requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
+      requestMsg.set_async(true);
+      sender.Swing(requestMsg.SerializeAsString());
+      sender.BlockForKill(reply);
+      EXPECT_FALSE(reply.empty());
+
+      replyMsg.ParseFromString(reply);
+      EXPECT_TRUE(replyMsg.success());
+      count = 0;
+
+      requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
+      requestMsg.set_async(false);
+      requestMsg.set_stringargone(replyMsg.result());
+      do {
+         
+         requestMsg.set_stringargone(replyMsg.result());
+         sender.Swing(requestMsg.SerializeAsString());
+         std::string reply;
+         sender.BlockForKill(reply);
+         EXPECT_FALSE(reply.empty());
+         realReply.ParseFromString(reply);
+         if (realReply.has_completed() && realReply.completed()) {
+            break;
+         } else {
+            EXPECT_TRUE(realReply.result() == "Command running");
+         }
+         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      } while (!zctx_interrupted && count++ < 100);
+      EXPECT_TRUE(realReply.result() == "TestCommandFails");
+      EXPECT_FALSE(realReply.success());
+   }
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   realReply.ParseFromString(reply);
+   EXPECT_TRUE(realReply.success());
+   EXPECT_TRUE(realReply.result() == "Result Already Sent");
+   std::this_thread::sleep_for(std::chrono::milliseconds(1001));
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   realReply.ParseFromString(reply);
+   EXPECT_FALSE(realReply.success());
+   EXPECT_TRUE(realReply.result() == "Command Not Found");
+
+   raise(SIGTERM);
+}
+
+
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
 
    MockConf conf;
@@ -64,7 +130,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
          sender.BlockForKill(reply);
          EXPECT_FALSE(reply.empty());
          realReply.ParseFromString(reply);
-         if (realReply.success()) {
+         if (realReply.has_completed() && realReply.completed()) {
             break;
          } else {
             EXPECT_TRUE(realReply.result() == "Command running");
