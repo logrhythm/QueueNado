@@ -39,7 +39,17 @@ TEST_F(DpiMsgLRPoolTest, OverThreshold) {
    EXPECT_FALSE(pool->OverGivenThreshold(1001, 100100, 0.01, 100, 1002));
    EXPECT_TRUE(pool->OverGivenThreshold(101, 0, 0.01, 100, 1000));
    EXPECT_FALSE(pool->OverGivenThreshold(0, 0, 0.01, 100, 1000));
+   delete pool;
 
+}
+
+TEST_F(DpiMsgLRPoolTest, ReportSize) {
+    MockDpiMsgLRPool pool;
+    DpiMsgLRPool::FreePoolOfMessages fPool;
+    DpiMsgLRPool::UsedPoolOfMessages uPool;
+    EXPECT_FALSE(pool.ReportSize(1, fPool, uPool));
+    std::this_thread::sleep_for(std::chrono::seconds(6));
+    EXPECT_TRUE(pool.ReportSize(1, fPool, uPool));
 }
 
 TEST_F(DpiMsgLRPoolTest, GetStatsSender) {
@@ -72,6 +82,7 @@ TEST_F(DpiMsgLRPoolTest, SetStatsTimers) {
    pool->SetStatsTimer(1, time);
    a = pool->GetStatsTimer(1);
    ASSERT_EQ(time, a);
+   delete pool;
 }
 
 TEST_F(DpiMsgLRPoolTest, SetStatsTimersThatDoesntExist) {
@@ -82,6 +93,7 @@ TEST_F(DpiMsgLRPoolTest, SetStatsTimersThatDoesntExist) {
    auto a = pool->GetStatsTimer(1);
    //we should always get something before it's ever set.
    ASSERT_NE(time, a);
+   delete pool;
 }
 
 #endif
