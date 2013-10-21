@@ -7,7 +7,7 @@
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
 
-//http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+
 
 TEST_F(ElasticSearchTest,OptimizeIndexFailure) {
    BoomStick stick{mAddress};
@@ -38,7 +38,7 @@ TEST_F(ElasticSearchTest,OptimizeIndexSuccess) {
    EXPECT_EQ("POST|/testing/_optimize?max_num_segments=1&only_expunge_deletes=false&flush=true&wait_for_merge=true"
            , target.mLastRequest);
 }
-
+//http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 TEST_F(ElasticSearchTest, ValidateHighReturnCodesSuccess) {
    BoomStick stick{mAddress};
    int code = 300;
