@@ -78,7 +78,13 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
    realReply.ParseFromString(reply);
    EXPECT_TRUE(realReply.success());
    EXPECT_TRUE(realReply.result() == "Result Already Sent");
-
+   std::this_thread::sleep_for(std::chrono::milliseconds(1001));
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   realReply.ParseFromString(reply);
+   EXPECT_FALSE(realReply.success());
+   EXPECT_TRUE(realReply.result() == "Command Not Found");
 
    raise(SIGTERM);
 }
