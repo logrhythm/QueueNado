@@ -26,6 +26,42 @@
 #include "MockTestCommand.h"
 #ifdef LR_DEBUG
 
+TEST_F(CommandProcessorTests, ExecuteForkTests) {
+   protoMsg::CommandRequest requestMsg;
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
+   requestMsg.set_async(true);
+   std::shared_ptr<Command> holdMe(MockTestCommand::Construct(requestMsg));
+   MockConf conf;
+   conf.mCommandQueue = "tcp://127.0.0.1:";
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+   std::atomic<bool> threadRefSet(false);
+
+   unsigned int count(0);
+   std::weak_ptr<Command> weakCommand(holdMe);
+   Command::ExecuteFork(holdMe, conf, threadRefSet);
+
+   while (!threadRefSet && !zctx_interrupted && count++ < 1000) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+   }
+   ASSERT_TRUE(1000 > count); // the thread ownership shouldn't take longer than a second
+   EXPECT_TRUE(holdMe.use_count() > 1); // the thread has at least incremented the count by one (possibly 2)
+   count = 0;
+   while (!std::dynamic_pointer_cast<MockTestCommand>(holdMe)->Finished() && !zctx_interrupted && count++ < 1000) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+   }
+   ASSERT_TRUE(1000 > count); // the completion shouldn't take longer than a second
+   EXPECT_TRUE(std::dynamic_pointer_cast<MockTestCommand>(holdMe)->GetResult().success());
+   EXPECT_TRUE(std::dynamic_pointer_cast<MockTestCommand>(holdMe)->GetResult().result() == "TestCommand");
+   ASSERT_TRUE(std::dynamic_pointer_cast<MockTestCommand>(holdMe)->GetResult().has_completed());
+   EXPECT_TRUE(std::dynamic_pointer_cast<MockTestCommand>(holdMe)->GetResult().completed());
+   EXPECT_TRUE(holdMe.use_count() == 2); // the reference count stays +1 till GetStatus succeeds
+   protoMsg::CommandReply reply = Command::GetStatus(weakCommand);
+   EXPECT_TRUE(reply.success() == std::dynamic_pointer_cast<MockTestCommand>(holdMe)->GetResult().success());
+   EXPECT_TRUE(reply.result() == std::dynamic_pointer_cast<MockTestCommand>(holdMe)->GetResult().result());
+   EXPECT_TRUE(reply.completed() == std::dynamic_pointer_cast<MockTestCommand>(holdMe)->GetResult().completed());
+   EXPECT_TRUE(holdMe.use_count() == 1); // the thread has dropped all but one reference
+}
+
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
 
    MockConf conf;
@@ -57,7 +93,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
       requestMsg.set_async(false);
       requestMsg.set_stringargone(replyMsg.result());
       do {
-         
+
          requestMsg.set_stringargone(replyMsg.result());
          sender.Swing(requestMsg.SerializeAsString());
          std::string reply;
@@ -91,7 +127,6 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
    raise(SIGTERM);
 }
 
-
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
 
    MockConf conf;
@@ -123,7 +158,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
       requestMsg.set_async(false);
       requestMsg.set_stringargone(replyMsg.result());
       do {
-         
+
          requestMsg.set_stringargone(replyMsg.result());
          sender.Swing(requestMsg.SerializeAsString());
          std::string reply;

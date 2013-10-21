@@ -24,7 +24,12 @@ public:
       std::shared_ptr<Command> command(new MockTestCommand(request));
       return command;
    }
-
+   protoMsg::CommandReply GetResult() {
+      return mAsyncResult;
+   }
+   bool Finished() {
+      return mFinished;
+   }
    bool mSuccess;
    std::string mResult;
    protoMsg::CommandRequest mRequest;
@@ -45,6 +50,7 @@ public:
       std::shared_ptr<Command> command(new MockTestCommandAlwaysFails(request));
       return command;
    }
+
 protected:
 
    explicit MockTestCommandAlwaysFails(const protoMsg::CommandRequest& request) : MockTestCommand(request) {
