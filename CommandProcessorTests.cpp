@@ -61,7 +61,29 @@ TEST_F(CommandProcessorTests, ExecuteForkTests) {
    EXPECT_TRUE(reply.completed() == std::dynamic_pointer_cast<MockTestCommand>(holdMe)->GetResult().completed());
    EXPECT_TRUE(holdMe.use_count() == 1); // the thread has dropped all but one reference
 }
-
+TEST_F(CommandProcessorTests, GetStatusTests) {
+   protoMsg::CommandRequest requestMsg;
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
+   requestMsg.set_async(true);
+   std::shared_ptr<Command> holdMe(MockTestCommand::Construct(requestMsg));
+   MockConf conf;
+   conf.mCommandQueue = "tcp://127.0.0.1:";
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+   
+   std::weak_ptr<Command> weakCommand(holdMe);
+   
+   protoMsg::CommandReply reply = Command::GetStatus(weakCommand);
+   EXPECT_FALSE(reply.success());
+   EXPECT_FALSE(reply.has_completed());
+   
+   holdMe.reset();
+   
+   reply = Command::GetStatus(weakCommand);
+   EXPECT_TRUE(reply.success());
+   EXPECT_TRUE(reply.has_completed());
+   EXPECT_TRUE(reply.completed());
+   EXPECT_TRUE("Result Already Sent" == reply.result());
+}
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
 
    MockConf conf;

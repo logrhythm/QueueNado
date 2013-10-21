@@ -165,7 +165,7 @@ TEST_F(DriveInfoCommandTest, DISABLED_TestToGetSomething) {
    
    request.set_type(::protoMsg::CommandRequest_CommandType_DRIVEINFO);
    
-   Command* testCommand = DriveInfoCommand::Construct(request);
+   std::shared_ptr<Command> testCommand = DriveInfoCommand::Construct(request);
    
    protoMsg::CommandReply reply = testCommand->Execute(conf);
    
@@ -173,8 +173,6 @@ TEST_F(DriveInfoCommandTest, DISABLED_TestToGetSomething) {
    
    protoMsg::DrivesInfo drives;
    ASSERT_TRUE(drives.ParseFromString(reply.result()));
-   
-   delete testCommand;
 }
 /**
  * This test requires a running manager
