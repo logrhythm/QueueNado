@@ -42,6 +42,9 @@ TEST_F(DpiMsgLRPoolTest, OverThreshold) {
    EXPECT_FALSE(pool->OverGivenThreshold(0, 0, 0, 100, 1000));
    EXPECT_TRUE(pool->OverGivenThreshold(101, 0, -1, 100, 1000));
    EXPECT_FALSE(pool->OverGivenThreshold(99, 0, -1, 100, 1000));
+   EXPECT_TRUE(pool->OverGivenThreshold(101, 0, 1.1, 100, 1000));
+   EXPECT_TRUE(pool->OverGivenThreshold(101, 100, 1.0, 100, 1000));
+   EXPECT_FALSE(pool->OverGivenThreshold(99, 100, 1.0, 100, 1000));
    delete pool;
 
 }
