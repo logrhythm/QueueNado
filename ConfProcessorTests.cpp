@@ -864,9 +864,6 @@ TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(testSlave.ProcessQosmosMsg(configTypeMessage, shots));
    protoMsg::QosmosConf gotConf = conf.getQosmosConfigInfo();
-   ASSERT_EQ(0, gotConf.qosmosprotocol_size());
-   ASSERT_EQ("test", gotConf.qosmosprotocol(0).protocolname());
-   ASSERT_TRUE(gotConf.qosmosprotocol(0).protocolenabled());
 
 }
 
