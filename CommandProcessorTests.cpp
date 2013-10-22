@@ -195,13 +195,14 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
    } while (!zctx_interrupted && count++ < 100);
    testProcessor.timeout = 1;
-   std::this_thread::sleep_for(std::chrono::milliseconds(1001));
+   std::this_thread::sleep_for(std::chrono::milliseconds(2001));
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
    EXPECT_FALSE(reply.empty());
    realReply.ParseFromString(reply);
    EXPECT_FALSE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Aborted");
+   std::cout << realReply.result() << std::endl;
+   EXPECT_TRUE(realReply.result() == "Command Not Found");
 
    raise(SIGTERM);
 }
