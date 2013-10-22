@@ -2,6 +2,8 @@
 #include "ElasticSearch.h"
 #include "MockElasticSearchSocket.h"
 #include "MockBoomStick.h"
+#include "gmock/gmock.h"
+#include "BoolReturns.h"
 #include "include/global.h"
 class BoomStick;
 #ifdef LR_DEBUG
@@ -204,6 +206,19 @@ public:
          mDiskInfo[std::to_string(i)] = foo;
       }
    }
+
+   int HiddenWorkerSend(zmsg_t** message) {
+      return zmsg_send(message, mWorkerThread);
+   }
+
+   void SetSocketTimeout(const size_t newTimeout) {
+      mSocketTimeout = newTimeout;
+   }
+
+   bool OptimizeIndex(const std::string& index) {
+      mOptimizedIndexes.insert(index);
+      return ElasticSearch::OptimizeIndex(index);
+   }
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;
@@ -236,6 +251,28 @@ public:
    bool mFakeBulkUpdate;
    bool mFakeGetOldestNFiles;
    std::string mSendAndGetReplyReply;
+   std::set<std::string> mOptimizedIndexes;
 
+};
+using ::testing::_;
+using ::testing::Invoke;
+
+class GMockElasticSearch : public MockElasticSearch {
+public:
+
+   GMockElasticSearch(bool async) : MockElasticSearch(async) {
+   };
+
+   GMockElasticSearch(BoomStick& transport, bool async) : MockElasticSearch(transport, async) {
+   };
+
+   MOCK_METHOD0(Initialize, bool());
+
+   void DelegateInitializeToAlwaysFail() {
+      ON_CALL(*this, Initialize())
+              .WillByDefault(Invoke(&returnBools, &BoolReturns::ReturnFalse));
+   }
+
+   BoolReturns returnBools;
 };
 #endif
