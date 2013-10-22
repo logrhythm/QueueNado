@@ -5,6 +5,7 @@
 #include <time.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/descriptor.h>
+#include "ConfSlave.h"
 
 void SimulatorThread(DpiMsgLRPool* testPool, const int iterations) {
    std::vector<networkMonitor::DpiMsgLR*> messages;
@@ -27,8 +28,83 @@ void SimulatorThread(DpiMsgLRPool* testPool, const int iterations) {
    }
 }
 
+//DEBUG ONLY TESTS AGAINST PROTECTED METHODS
+#ifdef LR_DEBUG
+
+TEST_F(DpiMsgLRPoolTest, OverThreshold) {
+   auto pool = new MockDpiMsgLRPool;
+   EXPECT_TRUE(pool->OverGivenThreshold(101, 100, 0.01, 100, 1000));
+   EXPECT_FALSE(pool->OverGivenThreshold(100, 100, 0.01, 100, 1000));
+   EXPECT_TRUE(pool->OverGivenThreshold(1002, 100200, 0.01, 100, 1000));
+   EXPECT_FALSE(pool->OverGivenThreshold(1001, 100100, 0.01, 100, 1002));
+   EXPECT_TRUE(pool->OverGivenThreshold(101, 0, 0.01, 100, 1000));
+   EXPECT_FALSE(pool->OverGivenThreshold(0, 0, 0.01, 100, 1000));
+   EXPECT_FALSE(pool->OverGivenThreshold(0, 0, 0, 100, 1000));
+   EXPECT_TRUE(pool->OverGivenThreshold(101, 0, -1, 100, 1000));
+   EXPECT_FALSE(pool->OverGivenThreshold(99, 0, -1, 100, 1000));
+   EXPECT_TRUE(pool->OverGivenThreshold(101, 0, 1.1, 100, 1000));
+   EXPECT_TRUE(pool->OverGivenThreshold(101, 100, 1.0, 100, 1000));
+   EXPECT_FALSE(pool->OverGivenThreshold(99, 100, 1.0, 100, 1000));
+   delete pool;
+
+}
+
+TEST_F(DpiMsgLRPoolTest, ReportSize) {
+    MockDpiMsgLRPool pool;
+    DpiMsgLRPool::FreePoolOfMessages fPool;
+    DpiMsgLRPool::UsedPoolOfMessages uPool;
+    EXPECT_FALSE(pool.ReportSize(1, fPool, uPool));
+    std::this_thread::sleep_for(std::chrono::seconds(6));
+    EXPECT_TRUE(pool.ReportSize(1, fPool, uPool));
+}
+
+TEST_F(DpiMsgLRPoolTest, GetStatsSender) {
+   auto pool = new MockDpiMsgLRPool;
+   auto a = pool->GetStatsSender(1);
+   auto b = pool->GetStatsSender(1);
+   ASSERT_EQ(a, b);
+   auto c = pool->GetStatsSender(2);
+   ASSERT_NE(a, c);
+   delete pool;
+}
+
+TEST_F(DpiMsgLRPoolTest, GetStatsTimers) {
+   auto pool = new MockDpiMsgLRPool;
+   auto a = pool->GetStatsTimer(1);
+   auto b = pool->GetStatsTimer(1);
+   ASSERT_EQ(a, b);
+   std::this_thread::sleep_for(std::chrono::seconds(1));
+   auto c = pool->GetStatsTimer(2);
+   ASSERT_NE(a, c);
+   delete pool;
+
+}
+
+TEST_F(DpiMsgLRPoolTest, SetStatsTimers) {
+   auto pool = new MockDpiMsgLRPool;
+   auto a = pool->GetStatsTimer(1);
+   std::this_thread::sleep_for(std::chrono::seconds(1));
+   auto time = std::time(NULL);
+   pool->SetStatsTimer(1, time);
+   a = pool->GetStatsTimer(1);
+   ASSERT_EQ(time, a);
+   delete pool;
+}
+
+TEST_F(DpiMsgLRPoolTest, SetStatsTimersThatDoesntExist) {
+   auto pool = new MockDpiMsgLRPool;
+   auto time = std::time(NULL);
+   pool->SetStatsTimer(1, time);
+   std::this_thread::sleep_for(std::chrono::seconds(1));
+   auto a = pool->GetStatsTimer(1);
+   //we should always get something before it's ever set.
+   ASSERT_NE(time, a);
+   delete pool;
+}
+
+#endif
+
 TEST_F(DpiMsgLRPoolTest, Construction) {
-   DpiMsgLRPool testPool;
    DpiMsgLRPool* pTestObject = new DpiMsgLRPool;
    delete pTestObject;
 }
@@ -68,26 +144,29 @@ TEST_F(DpiMsgLRPoolTest, HammerTime) {
       delete *jt;
    }
 }
+#ifdef LR_DEBUG
 
 TEST_F(DpiMsgLRPoolTest, DpiMsgSize) {
-#ifdef LR_DEBUG
+
    MockDpiMsgLRPool testPool;
+   Conf conf = networkMonitor::ConfSlave::Instance().GetConf();
+   const auto threshold = conf.GetDpiRecycleTheshold();
 
    networkMonitor::DpiMsgLR* testMsg = new networkMonitor::DpiMsgLR;
    static std::string oneHundredByteString = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 
-   while (testMsg->SpaceUsed() < MSG_POOL_RECYCLE_LIMIT - 100 * 100) {
+   while (testMsg->SpaceUsed() < threshold - 100 * 100) {
       for (int i = 0; i < 100; i++) {
          testMsg->add_accept_encodingq_proto_http(oneHundredByteString);
       }
    }
-   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, MSG_POOL_RECYCLE_LIMIT));
+   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, threshold));
    for (int i = 0; i < 100; i++) {
       testMsg->add_accept_encodingq_proto_http(oneHundredByteString);
    }
-   EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg, MSG_POOL_RECYCLE_LIMIT));
+   EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg, threshold));
    testMsg->ClearAll();
-   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, MSG_POOL_RECYCLE_LIMIT));
+   EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, threshold));
    size_t currentSize = testMsg->SpaceUsed();
    EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, currentSize + 1));
    testMsg->add_account_uidq_proto_vkontakte(oneHundredByteString);
@@ -95,7 +174,7 @@ TEST_F(DpiMsgLRPoolTest, DpiMsgSize) {
    testMsg->ClearAll();
    EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg, currentSize + 1));
    delete testMsg;
-#endif
 }
+#endif
 
 
