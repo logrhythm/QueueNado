@@ -201,7 +201,6 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
    EXPECT_FALSE(reply.empty());
    realReply.ParseFromString(reply);
    EXPECT_FALSE(realReply.success());
-   std::cout << realReply.result() << std::endl;
    EXPECT_TRUE(realReply.result() == "Command Not Found");
 
    raise(SIGTERM);
