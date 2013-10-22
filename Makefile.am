@@ -80,7 +80,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libsystem \
          -I/usr/local/probe/include
 
-DYNAMIC_LIBS=-ltcmalloc_minimal -lsyslog -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgtest -lpcap -lzmq -lczmq -lcommand \
+DYNAMIC_LIBS=-ltcmalloc_minimal -lsyslog -lZMQ -llrdpi -lstats -lprocess -lpthread -ldl -lstdc++ -lgmock -lgtest -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log \
              -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal 
