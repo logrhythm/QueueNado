@@ -864,7 +864,7 @@ TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_TRUE(testSlave.ProcessQosmosMsg(configTypeMessage, shots));
    protoMsg::QosmosConf gotConf = conf.getQosmosConfigInfo();
-   ASSERT_EQ(1, gotConf.qosmosprotocol_size());
+   ASSERT_EQ(0, gotConf.qosmosprotocol_size());
    ASSERT_EQ("test", gotConf.qosmosprotocol(0).protocolname());
    ASSERT_TRUE(gotConf.qosmosprotocol(0).protocolenabled());
 
@@ -1726,7 +1726,7 @@ TEST_F(ConfProcessorTests, testConfSlaveShutdown) {
 }
 
 TEST_F(ConfProcessorTests, testSetandGetQosmosConfig) {
-   Conf conf;
+   Conf conf("/tmp/path/that/doesnt/exist/woo.ls");
    QosmosConf qConf = conf.getQosmosConfigInfo();
    ASSERT_EQ(0, qConf.qosmosprotocol_size());
 
@@ -1755,7 +1755,7 @@ TEST_F(ConfProcessorTests, testSetandGetQosmosConfig) {
 }
 
 TEST_F(ConfProcessorTests, testWriteQosmosToFile) {
-   Conf conf;
+   Conf conf("/tmp/path/that/doesnt/exist/woo.ls");
    QosmosConf qConf = conf.getQosmosConfigInfo();
    ASSERT_EQ(0, qConf.qosmosprotocol_size());
 
