@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "g2logworker.hpp"
 #include "g2log.hpp"
 #include <stdlib.h>
