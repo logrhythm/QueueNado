@@ -36,8 +36,21 @@ public:
       return DiskCleanup::TooMuchPCap(aDiskUsed, aTotalFiles);
    }
 
-   void RecalculatePCapDiskUsed(size_t& aDiskUsed, size_t& aTotalFiles, DiskSpace& pcapDiskInGB) {
-      DiskCleanup::RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDiskInGB);
+   size_t GetFileCountFromES(ElasticSearch& es) {
+      boost::filesystem::path path = mConf.GetPcapCaptureLocation();
+      size_t totalFiles{0};
+      for (boost::filesystem::directory_iterator it(path);
+              it != boost::filesystem::directory_iterator(); it++) {
+         if (IsShutdown()) {
+            return 0; //caught shutdown;
+         }
+         totalFiles++;
+      }
+      return totalFiles;
+   }
+
+   void RecalculatePCapDiskUsed(size_t& aDiskUsed, size_t& aTotalFiles, DiskSpace& pcapDiskInGB, ElasticSearch& es) {
+      DiskCleanup::RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDiskInGB, es);
    }
 
    void CleanupOldPcapFiles(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
@@ -195,6 +208,7 @@ public:
    std::set<std::string> GetIndexesThatAreActive() {
       return DiskCleanup::GetIndexesThatAreActive();
    }
+
    LR_VIRTUAL void OptimizeThread(ElasticSearch& es) {
       return DiskCleanup::OptimizeThread(es);
    }
