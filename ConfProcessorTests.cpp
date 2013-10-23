@@ -201,6 +201,22 @@ TEST_F(ConfProcessorTests, ReadConfFilesPerformance) {
    EXPECT_TRUE(TimedSectionPassed());
 }
 
+/**
+ * This is a performance benchmark of where we would like to get our
+ * read performance to.
+ * @param 
+ */
+TEST_F(ConfProcessorTests, DISABLED_ReadConfFilesPerformance_future) {
+   unsigned int iterations(1000);
+   StartTimedSection(.05, iterations);
+   for (unsigned int i = 0; i < iterations; i++) {
+      Conf conf;
+      EXPECT_TRUE((conf.getDpiThreads() >= 1));    
+   }
+   EndTimedSection();
+   EXPECT_TRUE(TimedSectionPassed());
+}
+
 TEST_F(ConfProcessorTests, ReadPerformanceBenchmark_BASE) {
    ConfMaster& master = ConfMaster::Instance();
    master.Start();
