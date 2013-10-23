@@ -7,7 +7,34 @@
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
 
-
+TEST_F(ElasticSearchTest,GetTotalCapturedFiles) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   ElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   target.mReplyMessage = "400|bad_request|{\"error\":\"this is an error\",\"status\":400}";
+   EXPECT_EQ(0,es.GetTotalCapturedFiles());
+   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\"} }"==target.mLastRequest);
+   
+   target.mReplyMessage = "200|ok|{\"count\":12147998,\"_shards\":{\"total\":78,\"successful\":78,\"failed\":0}}";
+   ElasticSearch esA(stick, true);
+   ASSERT_TRUE(esA.Initialize());
+   target.mLastRequest.clear();
+   EXPECT_EQ(0,esA.GetTotalCapturedFiles());
+   EXPECT_TRUE(target.mLastRequest.empty());
+   
+   target.mReplyMessage.clear();
+   EXPECT_EQ(0,es.GetTotalCapturedFiles());
+   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\"} }"==target.mLastRequest);
+   
+   target.mReplyMessage = "200|ok|{\"count\":12147998,\"_shards\":{\"total\":78,\"successful\":78,\"failed\":0}}";
+   EXPECT_EQ(12147998,es.GetTotalCapturedFiles());
+   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\"} }"==target.mLastRequest);
+}
 
 TEST_F(ElasticSearchTest,OptimizeIndexFailure) {
    BoomStick stick{mAddress};
