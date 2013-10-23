@@ -1,5 +1,7 @@
 #pragma once
 #include "DiskCleanup.h"
+#include "MockDiskUsage.h"
+#include "MockConf.h"
 #include <sys/statvfs.h>
 #include <MockDiskUsage.h>
 #include "BoolReturns.h"
@@ -11,7 +13,7 @@ public:
    MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
    mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true), mFakeIsShutdown(false),
-   mIsShutdownResult(false) {
+   mIsShutdownResult(false), mUseMockConf(false) {
       mFleSystemInfo.f_bfree = 1;
       mFleSystemInfo.f_frsize = 1;
       mFleSystemInfo.f_blocks = 1;
@@ -37,14 +39,17 @@ public:
    }
 
    size_t GetFileCountFromES(ElasticSearch& es) {
-      boost::filesystem::path path = mConf.GetPcapCaptureLocation();
-      size_t totalFiles{0};
-      for (boost::filesystem::directory_iterator it(path);
-              it != boost::filesystem::directory_iterator(); it++) {
-         if (IsShutdown()) {
-            return 0; //caught shutdown;
+      auto pcapLocations = mConf.GetPcapCaptureLocations();
+      size_t totalFiles{0};      
+      for (const auto& path : pcapLocations) {
+
+         for (boost::filesystem::directory_iterator it(path);
+                 it != boost::filesystem::directory_iterator(); it++) {
+            if (IsShutdown()) {
+               return 0; //caught shutdown;
+            }
+            totalFiles++;
          }
-         totalFiles++;
       }
       return totalFiles;
    }
@@ -142,8 +147,11 @@ public:
       return DiskCleanup::GetOldestIndex(es);
    }
 
-   const Conf& GetConf() {
-      return DiskCleanup::GetConf();
+   Conf& GetConf() LR_OVERRIDE {
+      if (false == mUseMockConf) {
+         return DiskCleanup::GetConf();
+      }
+      return mMockedConf;
    }
 
    std::vector< std::tuple< std::string, std::string> >&
@@ -222,6 +230,8 @@ public:
    bool mRemoveResult;
    bool mFakeIsShutdown;
    bool mIsShutdownResult;
+   bool mUseMockConf;
+   MockConf mMockedConf;
 };
 using ::testing::_;
 using ::testing::Invoke;

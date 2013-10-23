@@ -1,7 +1,6 @@
 check_PROGRAMS=nmTest \
 CommandProcessorTests \
 MsgUuidTest \
-SyslogConfigTest \
 SysLoggerTest \
 ZMQTest \
 PacketCaptureTest \
@@ -144,17 +143,14 @@ MsgUuidTest_LDADD=${DYNAMIC_LIBS}
 MsgUuidTest_LDFLAGS=${BASE_LIBS}
 MsgUuidTest_SOURCES=main.cpp MsgUuidTest.cpp
 
-SyslogConfigTest_LDADD=${DYNAMIC_LIBS}
-SyslogConfigTest_LDFLAGS=${BASE_LIBS}
-SyslogConfigTest_SOURCES=main.cpp SyslogConfigTest.cpp
-
 ConfProcessorTests_LDADD=${DYNAMIC_LIBS}
 ConfProcessorTests_LDFLAGS=${BASE_LIBS}
 ConfProcessorTests_SOURCES=main.cpp \
         ConfProcessorTests.cpp \
 	QosmosConfTest.cpp \
 	ConfNtpProcessorTests.cpp \
-	ConfBaseValidationTests.cpp
+	ConfBaseValidationTests.cpp \
+	ConfSyslogValidationTests.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 CommandProcessorTests_LDADD=${DYNAMIC_LIBS}
@@ -291,7 +287,6 @@ nmTest_SOURCES=main.cpp \
  ShotgunAlienTests.cpp \
  BoomStickTest.cpp \
  StatsAccumulatorTest.cpp \
- SyslogConfigTest.cpp \
  TestTCPIPDirectionlessHash.cpp \
  TestSendReceiveDpiMsgLRZMQ.cpp \
  TestSendReceivePacketZMQ.cpp \

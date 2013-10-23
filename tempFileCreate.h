@@ -8,6 +8,11 @@ public:
    tempFileCreate(MockConf& conf) : mConf(conf) {
       mTestDir << "/tmp/TooMuchPcap." << pthread_self();
    }
+   
+    
+   tempFileCreate(MockConf& conf, const std::string& directory) : mConf(conf) {
+      mTestDir << directory << "." << pthread_self();
+   }
 
    ~tempFileCreate() {
       std::string makeADir = "rm -rf ";
@@ -16,7 +21,8 @@ public:
    }
 
    bool Init() {
-      mConf.mPCapCaptureLocation = mTestDir.str();
+      mConf.mPCapCaptureLocations.clear();
+      mConf.mPCapCaptureLocations.push_back(mTestDir.str());
       std::string makeADir = "mkdir -p ";
       makeADir += mTestDir.str();
       return system(makeADir.c_str()) == 0;

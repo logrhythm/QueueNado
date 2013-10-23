@@ -13,6 +13,7 @@
 class RestartSyslogCommandTest : public RestartSyslogCommand {
 public:
    using RestartSyslogCommand::Restart;
+   using RestartSyslogCommand::UpdateSyslog;
 
    RestartSyslogCommandTest(const protoMsg::CommandRequest& request, ProcessManager* processManager) : RestartSyslogCommand(request, processManager) {
    }
