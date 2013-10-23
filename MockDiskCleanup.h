@@ -38,7 +38,7 @@ public:
       return DiskCleanup::TooMuchPCap(aDiskUsed, aTotalFiles);
    }
 
-   size_t GetFileCountFromES(ElasticSearch& es) {
+   LR_VIRTUAL size_t GetFileCountFromES(ElasticSearch& es) {
       auto pcapLocations = mConf.GetPcapCaptureLocations();
       size_t totalFiles{0};      
       for (const auto& path : pcapLocations) {
@@ -86,7 +86,7 @@ public:
       return false;
    }
 
-   void GetPcapStoreUsage(DiskSpace& pcapDiskInGB,
+   LR_VIRTUAL void GetPcapStoreUsage(DiskSpace& pcapDiskInGB,
            const DiskUsage::Size size) {
       if (mRealFilesSystemAccess) {
          DiskCleanup::GetPcapStoreUsage(pcapDiskInGB, size);
@@ -235,20 +235,40 @@ public:
 };
 using ::testing::_;
 using ::testing::Invoke;
+using ::testing::Return;
+using ::testing::Throw;
 
 class GMockDiskCleanup : public MockDiskCleanup {
 public:
 
-   GMockDiskCleanup(networkMonitor::ConfSlave& conf) : MockDiskCleanup(conf) {
+   GMockDiskCleanup(networkMonitor::ConfSlave& conf) : MockDiskCleanup(conf),mFileCount(0) {
    }
 
    MOCK_METHOD0(IsShutdown, bool());
 
+   MOCK_METHOD1(GetFileCountFromES, size_t(ElasticSearch& es));
+   MOCK_METHOD2(GetPcapStoreUsage,void(DiskSpace& pcapDiskInGB, const DiskUsage::Size size));
+
    void DelegateIsShutdownAlwaysTrue() {
       ON_CALL(*this, IsShutdown())
-              .WillByDefault(Invoke(&returnBools, &BoolReturns::ReturnTrue));
+              .WillByDefault(Return(true));
    }
 
-   BoolReturns returnBools;
+   void DelegateGetFileCountFromES(size_t value) {
+      mFileCount = value;
+      EXPECT_CALL(*this, GetFileCountFromES(_))
+              .WillRepeatedly(Return(mFileCount));
+   }
+   
+   void DelegateGetPcapStoreUsage() {
+      EXPECT_CALL(*this, GetPcapStoreUsage(_,_))
+              .WillRepeatedly(Return());
+   }
+   
+   void GetFileCountFromESThrows() {
+      EXPECT_CALL(*this, GetPcapStoreUsage(_,_))
+              .WillRepeatedly(Throw(123));
+   }
+   size_t mFileCount;
 };
 

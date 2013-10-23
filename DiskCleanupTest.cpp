@@ -11,6 +11,25 @@
 
 #ifdef LR_DEBUG
 
+TEST_F(DiskCleanupTest, RecalculatePCapDiskUsed) {
+   GMockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   GMockElasticSearch es(transport, false);
+   
+   cleanup.DelegateGetFileCountFromES(1234);
+   cleanup.DelegateGetPcapStoreUsage();
+   size_t diskUsed(0);
+   size_t totalFiles(0);
+   DiskCleanup::DiskSpace pcapDiskInGB;
+   cleanup.RecalculatePCapDiskUsed(diskUsed,totalFiles, pcapDiskInGB, es);
+   EXPECT_EQ(1234,totalFiles);
+   
+   cleanup.GetFileCountFromESThrows();
+   cleanup.RecalculatePCapDiskUsed(diskUsed,totalFiles, pcapDiskInGB, es);
+   EXPECT_EQ(0,totalFiles);
+   EXPECT_EQ(0,diskUsed);
+}
+
 TEST_F(DiskCleanupTest, OptimizeThreadObeysShutdown) {
    GMockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");

@@ -277,12 +277,10 @@ public:
    };
 
    MOCK_METHOD0(Initialize, bool());
-
    void DelegateInitializeToAlwaysFail() {
       ON_CALL(*this, Initialize())
               .WillByDefault(Invoke(&returnBools, &BoolReturns::ReturnFalse));
    }
-
    BoolReturns returnBools;
 };
 #endif
