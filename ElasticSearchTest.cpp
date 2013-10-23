@@ -7,7 +7,7 @@
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
 
-TEST_F(ElasticSearchTest,GetTotalCapturedFiles) {
+TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
    ElasticSearch es(stick, false);
@@ -15,28 +15,70 @@ TEST_F(ElasticSearchTest,GetTotalCapturedFiles) {
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-   
+
    target.mReplyMessage = "400|bad_request|{\"error\":\"this is an error\",\"status\":400}";
-   EXPECT_EQ(0,es.GetTotalCapturedFiles());
-   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\"} }"==target.mLastRequest);
-   
+   EXPECT_EQ(0, es.GetTotalCapturedFiles());
+   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\" } }" == target.mLastRequest);
+
    target.mReplyMessage = "200|ok|{\"count\":12147998,\"_shards\":{\"total\":78,\"successful\":78,\"failed\":0}}";
    ElasticSearch esA(stick, true);
    ASSERT_TRUE(esA.Initialize());
    target.mLastRequest.clear();
-   EXPECT_EQ(0,esA.GetTotalCapturedFiles());
+   EXPECT_EQ(0, esA.GetTotalCapturedFiles());
    EXPECT_TRUE(target.mLastRequest.empty());
-   
+
    target.mReplyMessage.clear();
-   EXPECT_EQ(0,es.GetTotalCapturedFiles());
-   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\"} }"==target.mLastRequest);
-   
+   EXPECT_EQ(0, es.GetTotalCapturedFiles());
+   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\" } }" == target.mLastRequest);
+
    target.mReplyMessage = "200|ok|{\"count\":12147998,\"_shards\":{\"total\":78,\"successful\":78,\"failed\":0}}";
-   EXPECT_EQ(12147998,es.GetTotalCapturedFiles());
-   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\"} }"==target.mLastRequest);
+   EXPECT_EQ(12147998, es.GetTotalCapturedFiles());
+   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\" } }" == target.mLastRequest);
 }
 
-TEST_F(ElasticSearchTest,OptimizeIndexFailure) {
+TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   MockElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   std::vector<std::string> sessionIds;
+
+   sessionIds.push_back("abc123");
+   sessionIds.push_back("def456");
+   target.mReplyMessage = "200|ok|{\"took\":10,\"timed_out\":false,\"_shards\":{\"total\":50,"
+           "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
+           "\"hits\":[{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_2\",\"_score\":12.653517},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_3\",\"_score\":12.650981},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_4\",\"_score\":12.650732},"
+           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
+
+   IdsAndIndexes fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1);
+
+   EXPECT_EQ(8,fullListing.size());
+   for (const auto& sessionPair : fullListing) {
+      EXPECT_TRUE(std::get<IdsAndIndexes_Index>(sessionPair)=="network_2013_08_12");
+      EXPECT_TRUE(std::get<IdsAndIndexes_ID>(sessionPair).find("8f8411f5-899a-445a-8421-210157db05") != std::string::npos);
+   }
+   EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos);
+   EXPECT_TRUE(target.mLastRequest.find("abc123") == std::string::npos);
+
+   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 2);
+
+   EXPECT_EQ(4,fullListing.size());
+
+   EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos);
+   EXPECT_TRUE(target.mLastRequest.find("abc123") != std::string::npos);
+}
+
+TEST_F(ElasticSearchTest, OptimizeIndexFailure) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
    ElasticSearch es(stick, false);
@@ -51,7 +93,7 @@ TEST_F(ElasticSearchTest,OptimizeIndexFailure) {
            , target.mLastRequest);
 }
 
-TEST_F(ElasticSearchTest,OptimizeIndexSuccess) {
+TEST_F(ElasticSearchTest, OptimizeIndexSuccess) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
    ElasticSearch es(stick, false);
@@ -66,6 +108,7 @@ TEST_F(ElasticSearchTest,OptimizeIndexSuccess) {
            , target.mLastRequest);
 }
 //http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+
 TEST_F(ElasticSearchTest, ValidateHighReturnCodesSuccess) {
    BoomStick stick{mAddress};
    int code = 300;
@@ -198,25 +241,26 @@ TEST_F(ElasticSearchTest, TransportAlreadyHasMessagesOnItNoReply) {
    stick.mReturnString = "test123";
    MockElasticSearch es(stick, false);
    ASSERT_TRUE(es.Initialize());
-   
+
    std::string reply;
-   EXPECT_TRUE(es.SendAndGetReplyCommandToWorker("test",reply));
-   EXPECT_TRUE("test123"==reply);
+   EXPECT_TRUE(es.SendAndGetReplyCommandToWorker("test", reply));
+   EXPECT_TRUE("test123" == reply);
    zmsg_t* message = zmsg_new();
    zmsg_addmem(message, "broken", 6);
    zmsg_addmem(message, "command", 7);
-   ASSERT_EQ(0,es.HiddenWorkerSend(&message));
+   ASSERT_EQ(0, es.HiddenWorkerSend(&message));
    stick.mReturnString = "321tset";
-   EXPECT_TRUE(es.SendAndGetReplyCommandToWorker("test",reply));
-   EXPECT_TRUE("321tset"==reply);
+   EXPECT_TRUE(es.SendAndGetReplyCommandToWorker("test", reply));
+   EXPECT_TRUE("321tset" == reply);
    message = zmsg_new();
    zmsg_addmem(message, "broken", 6);
    zmsg_addmem(message, "command", 7);
-   ASSERT_EQ(0,es.HiddenWorkerSend(&message));
+   ASSERT_EQ(0, es.HiddenWorkerSend(&message));
    stick.mReturnString.clear();
    es.SetSocketTimeout(1);
-   EXPECT_FALSE(es.SendAndGetReplyCommandToWorker("test",reply));
+   EXPECT_FALSE(es.SendAndGetReplyCommandToWorker("test", reply));
 }
+
 TEST_F(ElasticSearchTest, TransportCannotInit) {
    MockBoomStick stick{mAddress};
    stick.mFailsInit = true;
@@ -224,6 +268,7 @@ TEST_F(ElasticSearchTest, TransportCannotInit) {
    ASSERT_FALSE(es.Initialize());
 
 }
+
 TEST_F(ElasticSearchTest, TransportCannotCreateContext) {
    MockBoomStick stick{mAddress};
    stick.mFailsGetNewContext = true;
@@ -1001,7 +1046,8 @@ TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
    MockElasticSearch es(transport, false);
    std::vector<std::tuple< std::string, std::string> > oldestFiles;
    const unsigned int numberOfFiles(100);
-   const std::vector<std::string> paths = {{"/tmp"}};
+   const std::vector<std::string> paths = {
+      {"/tmp"}};
    IdsAndIndexes relevantRecords;
    time_t oldestTime = 123456789;
    es.mRealSendAndGetReplyCommandToWorker = false;
@@ -1021,7 +1067,8 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    MockElasticSearch es(transport, false);
    std::vector<std::tuple< std::string, std::string> > oldestFiles;
    const unsigned int numberOfFiles(100);
-   const std::vector<std::string> paths = {{"/tmp"}};
+   const std::vector<std::string> paths = {
+      {"/tmp"}};
    IdsAndIndexes relevantRecords;
    time_t oldestTime = 123456789;
    es.mRealSendAndGetReplyCommandToWorker = false;

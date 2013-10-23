@@ -15,6 +15,14 @@ namespace {
 }
 #ifdef LR_DEBUG
 
+TEST_F(RESTBuilderTest, GetCountQuery) {
+   RESTBuilder builder;
+   
+   std::string query = builder.GetCountQuery("index", "type", "querystring");
+   
+   EXPECT_TRUE("GET|/index/type/_count|{ \"query_string\" : { \"query\" : \"querystring\" } }"==query);
+}
+
 TEST_F(RESTBuilderTest, GetIndexOptimize) {
  
    RESTBuilder builder;

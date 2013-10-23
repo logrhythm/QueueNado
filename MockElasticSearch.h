@@ -80,7 +80,10 @@ public:
    virtual ~MockElasticSearch() {
 
    }
-
+   IdsAndIndexes GetAllRelevantRecordsForSessions(const std::vector<std::string>& oldestSessionIds,
+                                                              const unsigned int maxPerQuery) {
+      return ElasticSearch::GetAllRelevantRecordsForSessions(oldestSessionIds,maxPerQuery);
+   }
    LR_VIRTUAL std::set<std::string> GetListOfIndexeNames() {
       if (mFakeIndexList) {
          return mMockListOfIndexes;

@@ -13,6 +13,22 @@ namespace {
    }
 }
 #ifdef LR_DEBUG
+
+TEST_F(RESTParserTest, GetCount) {
+ 
+   RESTParser sender;
+   
+   std::string fakeReply;
+   
+   EXPECT_EQ(0,sender.GetCount(fakeReply));
+   fakeReply = "200|ok|{\"here\" : {\"us chickens\", \"nobody\" } }";
+   EXPECT_EQ(0,sender.GetCount(fakeReply));
+   fakeReply = "200|ok|{\"count\":12147998,\"_shards\":{\"total\":78,\"successful\":78,\"failed\":0}}";
+   EXPECT_EQ(12147998,sender.GetCount(fakeReply));
+   fakeReply = "200|ok|{\"count\":12147998,\"counterattack\":123,\"kitchencounter\":456}";
+   EXPECT_EQ(12147998,sender.GetCount(fakeReply));
+}
+
 TEST_F(RESTParserTest, GetListOfClusterNames) {
    DiskInformation info;
    SingleDiskInfo singleInfo;
