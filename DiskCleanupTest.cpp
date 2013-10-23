@@ -976,7 +976,12 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
       size_t filesRemoved;
       size_t spaceSaved;
       time_t oldest;
+      capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
+      EXPECT_TRUE(boost::filesystem::exists(file1));
+      EXPECT_TRUE(boost::filesystem::exists(file2));
+      LOG(INFO) << "\n\n^^^^^^^^^^^^^^1^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
       EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved, oldest));
+      LOG(INFO) << "\n\n^^^^^^^^^^^^^^^2^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk);
       EXPECT_FALSE(boost::filesystem::exists(file1));
       EXPECT_FALSE(boost::filesystem::exists(file2));

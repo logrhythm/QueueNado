@@ -30,14 +30,6 @@ public:
       DiskPacketCapture::RemoveFromRunningPackets(tid, uuid);
    }
 
-    std::string BuildFilename( const std::string& uuid) {
-      return DiskPacketCapture::BuildFilename( uuid);
-   }
-
-   std::string BuildFilenameWithPath( const std::string& uuid) {
-      return DiskPacketCapture::BuildFilenameWithPath( uuid);
-   }
-
    int NewTotalMemory(const size_t memoryAddedIfSaved) {
       return DiskPacketCapture::NewTotalMemory(memoryAddedIfSaved);
    }
