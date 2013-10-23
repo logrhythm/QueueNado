@@ -34,13 +34,13 @@ TEST_F(CommandProcessorTests, ExecuteForkTests) {
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
    conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   std::atomic<bool> threadRefSet(false);
+   std::shared_ptr<std::atomic<bool> > threadRefSet = std::make_shared<std::atomic<bool> >(false);
 
    unsigned int count(0);
    std::weak_ptr<Command> weakCommand(holdMe);
    Command::ExecuteFork(holdMe, conf, threadRefSet);
 
-   while (!threadRefSet && !zctx_interrupted && count++ < 1000) {
+   while (!*threadRefSet && !zctx_interrupted && count++ < 1000) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
    }
    ASSERT_TRUE(1000 > count); // the thread ownership shouldn't take longer than a second
@@ -205,7 +205,33 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
 
    raise(SIGTERM);
 }
+TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusExitApp) {
 
+   MockConf conf;
+   conf.mCommandQueue = "tcp://127.0.0.1:";
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+   MockCommandProcessor testProcessor(conf);
+   EXPECT_TRUE(testProcessor.Initialize());
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
+
+   Crowbar sender(conf.getCommandQueue());
+   ASSERT_TRUE(sender.Wield());
+   protoMsg::CommandRequest requestMsg;
+   unsigned int count(0);
+   std::string reply;
+   protoMsg::CommandReply realReply;
+   protoMsg::CommandReply replyMsg;
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
+   requestMsg.set_async(true);
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+
+   replyMsg.ParseFromString(reply);
+   EXPECT_TRUE(replyMsg.success());
+   raise(SIGTERM);
+   std::this_thread::sleep_for(std::chrono::milliseconds(1001));
+}
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
 
    MockConf conf;
