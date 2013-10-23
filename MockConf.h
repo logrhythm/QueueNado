@@ -32,6 +32,8 @@ public:
    mPCapCaptureFileLimit(999999),
    mPCapCaptureSizeLimit(999999),
    mPCapCaptureMemoryLimit(999999),
+   mOverrideGetPcapCaptureLocations(true),
+   mOverrideGetFirstCaptureLocation(true),
    mSyslogEnabled(true),
    mReportEverything(false),
    mDpiThreads(3),
@@ -49,7 +51,8 @@ public:
    mInternalRepair(true),
    mValidateEthFailCount(0),
    mMaxIndividualPCap(1000), 
-   mValidBaseConf(true),
+   mValidConf(true),
+   mIgnoreSyslogConfValidation(true),
    mIgnoreBaseConfValidation(true),
    mPcapCaptureMaxPackets(999999),
    mSyslogSendQueueSize(800),
@@ -83,10 +86,14 @@ public:
       return mSyslogName;
    }
 
-   std::string getSyslogConfName(void) LR_OVERRIDE {
+   std::string getSyslogConfigFile(void) LR_OVERRIDE {
       return mSyslogConfName;
    }
 
+   bool getSyslogTcpEnabled(void) LR_OVERRIDE {
+      return mSyslogProtocol;
+   }
+   
    std::string getConfChangeQueue(void) LR_OVERRIDE {
       return mConfChangeQueue;
    }
@@ -244,9 +251,26 @@ public:
       return mPCapCaptureMemoryLimit;
    }
 
-   std::string GetPcapCaptureLocation() LR_OVERRIDE {
-      return mPCapCaptureLocation;
+   std::vector<std::string> GetPcapCaptureLocations() LR_OVERRIDE {
+      if(mOverrideGetPcapCaptureLocations) {
+         return mPCapCaptureLocations;         
+      }
+      
+      return Conf::GetPcapCaptureLocations();
    }
+
+   std::string GetFirstPcapCaptureLocation() LR_OVERRIDE {
+      if(!mOverrideGetFirstCaptureLocation) {
+         return Conf::GetFirstPcapCaptureLocation();
+      }
+      
+      if(mPCapCaptureLocations.empty()) {
+         return {};
+      }
+      
+      return mPCapCaptureLocations[0];
+   }
+   
 
    bool SiemDebugLogging() {
       return mSiemDebug;
@@ -288,9 +312,18 @@ public:
       if (mIgnoreBaseConfValidation) {
          return true;
       }
-      mValidBaseConf = Conf::ValidateBaseConf(msg);
-      return mValidBaseConf;
+      mValidConf = Conf::ValidateBaseConf(msg);
+      return mValidConf;
    }
+
+   bool ValidateSyslogConf(protoMsg::SyslogConf& msg) LR_OVERRIDE {
+      if (mIgnoreSyslogConfValidation) {
+         return true;
+      }
+      mValidConf = Conf::ValidateSyslogConf(msg);
+      return mValidConf;
+   }
+
 
    bool CheckNumber(const std::string& number, const Range& range) LR_OVERRIDE {
          return Conf::CheckNumber(number, range);
@@ -301,10 +334,10 @@ public:
          Conf::CheckNumberForNegative(number);
          } catch (std::exception e) {
          LOG(DEBUG) << e.what();
-         mValidBaseConf = false;
+         mValidConf = false;
          throw;
       }
-      mValidBaseConf = true;
+      mValidConf = true;
    }
 
    void CheckNumberForSize(const std::string& number, const Range& range) LR_OVERRIDE {
@@ -312,10 +345,10 @@ public:
          Conf::CheckNumberForSize(number, range);
          } catch (std::exception e) {
          LOG(DEBUG) << e.what();
-         mValidBaseConf = false;
+         mValidConf = false;
          throw;
       }
-      mValidBaseConf = true;
+      mValidConf = true;
    }
 
    bool CheckString(const std::string& text) LR_OVERRIDE {
@@ -327,21 +360,22 @@ public:
          Conf::CheckStringForSize(text);
       } catch (std::exception e) {
          LOG(DEBUG) << e.what();
-         mValidBaseConf = false;
+         mValidConf = false;
          throw;
       }
-      mValidBaseConf = true;
+      mValidConf = true;
    }
    
    bool CheckBool(const std::string& text) LR_OVERRIDE {
-    mValidBaseConf = Conf::CheckBool(text);
-    return mValidBaseConf;
+    mValidConf = Conf::CheckBool(text);
+    return mValidConf;
    }
 
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;
    std::string mSyslogConfName;
+   bool mSyslogProtocol;
    std::string mSyslogAgentIp;
    std::string mLogDir;
    std::string mConfChangeQueue;
@@ -352,7 +386,6 @@ public:
    std::string mPath;
    std::string mCommandQueue;
    std::string mProcessManagmentQueue;
-   std::string mPCapCaptureLocation;
    std::string mPCAPInterface;
    int mDPIMsgSendQueueSize;
    int mDPIMsgRecvQueueSize;
@@ -368,6 +401,9 @@ public:
    int mPCapCaptureFileLimit;
    int mPCapCaptureSizeLimit;
    int mPCapCaptureMemoryLimit;
+   std::vector<std::string> mPCapCaptureLocations;
+   bool mOverrideGetPcapCaptureLocations;
+   bool mOverrideGetFirstCaptureLocation;
    bool mSyslogEnabled;
    bool mReportEverything;
    unsigned int mDpiThreads;
@@ -386,7 +422,8 @@ public:
    int mValidateEthFailCount;
 
    size_t mMaxIndividualPCap;
-   bool mValidBaseConf;
+   bool mValidConf;
+   bool mIgnoreSyslogConfValidation;
    bool mIgnoreBaseConfValidation;
    size_t mPcapCaptureMaxPackets;
    int mSyslogSendQueueSize;

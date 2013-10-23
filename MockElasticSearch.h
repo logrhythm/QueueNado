@@ -1,6 +1,7 @@
 #pragma once
 #include "ElasticSearch.h"
 #include "MockElasticSearchSocket.h"
+#include "DiskPacketCapture.h"
 #include "MockBoomStick.h"
 #include "gmock/gmock.h"
 #include "BoolReturns.h"
@@ -9,7 +10,11 @@ class BoomStick;
 #ifdef LR_DEBUG
 
 class MockElasticSearch : public ElasticSearch {
-public:
+public: 
+      
+   static std::string CreateFileNameWithPath(const std::vector<std::string>& paths, const std::string& id) {
+      return DiskPacketCapture::BuildFilenameWithPath(paths, id);}
+   
 
    MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport, async), mFakeIndexList(true),
    mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true),
@@ -144,13 +149,15 @@ public:
       return true;
    }
 
-   std::vector<std::tuple< std::string, std::string> > GetOldestNFiles(const unsigned int numberOfFiles,
-           const std::string& path, IdsAndIndexes& relevantRecords, time_t& oldestTime) {
+   std::vector<std::tuple<std::string, std::string>>  
+           GetOldestNFiles(const unsigned int numberOfFiles,
+        const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, IdsAndIndexes& relevantRecords, time_t& oldestTime) {
       if (mFakeGetOldestNFiles) {
          oldestTime = mOldestTime;
          return mOldestFiles;
       }
-      return ElasticSearch::GetOldestNFiles(numberOfFiles, path, relevantRecords, oldestTime);
+      
+      return ElasticSearch::GetOldestNFiles(numberOfFiles, paths, fileConstructor, relevantRecords, oldestTime);
    }
 
    bool BulkUpdate(const IdsAndIndexes& idsAndIndex, const std::string& indexType, const std::string& jsonData) {
