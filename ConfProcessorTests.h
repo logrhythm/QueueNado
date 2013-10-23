@@ -22,6 +22,7 @@ protected:
     std::string mTestConf;
     std::string mTestInterfaceConf;
     std::string mTestNtpConf;
+    std::string mTestSyslogConf;
 
     virtual void SetUp() {
         int pid = getpid();
@@ -32,6 +33,7 @@ protected:
         remove(mWriteInterfaceLocation.c_str());
         mTestConf = "resources/test.yaml";
         mTestInterfaceConf = "resources/test.yaml.Interface";
+        mTestSyslogConf = "resources/test/yaml.Syslog";
     };
 
     virtual void TearDown() {

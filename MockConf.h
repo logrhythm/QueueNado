@@ -49,7 +49,8 @@ public:
    mInternalRepair(true),
    mValidateEthFailCount(0),
    mMaxIndividualPCap(1000), 
-   mValidBaseConf(true),
+   mValidConf(true),
+   mIgnoreSyslogConfValidation(true),
    mIgnoreBaseConfValidation(true),
    mPcapCaptureMaxPackets(999999),
    mSyslogSendQueueSize(800),
@@ -292,9 +293,18 @@ public:
       if (mIgnoreBaseConfValidation) {
          return true;
       }
-      mValidBaseConf = Conf::ValidateBaseConf(msg);
-      return mValidBaseConf;
+      mValidConf = Conf::ValidateBaseConf(msg);
+      return mValidConf;
    }
+
+   bool ValidateSyslogConf(protoMsg::SyslogConf& msg) LR_OVERRIDE {
+      if (mIgnoreSyslogConfValidation) {
+         return true;
+      }
+      mValidConf = Conf::ValidateSyslogConf(msg);
+      return mValidConf;
+   }
+
 
    bool CheckNumber(const std::string& number, const Range& range) LR_OVERRIDE {
          return Conf::CheckNumber(number, range);
@@ -305,10 +315,10 @@ public:
          Conf::CheckNumberForNegative(number);
          } catch (std::exception e) {
          LOG(DEBUG) << e.what();
-         mValidBaseConf = false;
+         mValidConf = false;
          throw;
       }
-      mValidBaseConf = true;
+      mValidConf = true;
    }
 
    void CheckNumberForSize(const std::string& number, const Range& range) LR_OVERRIDE {
@@ -316,10 +326,10 @@ public:
          Conf::CheckNumberForSize(number, range);
          } catch (std::exception e) {
          LOG(DEBUG) << e.what();
-         mValidBaseConf = false;
+         mValidConf = false;
          throw;
       }
-      mValidBaseConf = true;
+      mValidConf = true;
    }
 
    bool CheckString(const std::string& text) LR_OVERRIDE {
@@ -331,15 +341,15 @@ public:
          Conf::CheckStringForSize(text);
       } catch (std::exception e) {
          LOG(DEBUG) << e.what();
-         mValidBaseConf = false;
+         mValidConf = false;
          throw;
       }
-      mValidBaseConf = true;
+      mValidConf = true;
    }
    
    bool CheckBool(const std::string& text) LR_OVERRIDE {
-    mValidBaseConf = Conf::CheckBool(text);
-    return mValidBaseConf;
+    mValidConf = Conf::CheckBool(text);
+    return mValidConf;
    }
 
    std::string mSyslogAgentPort;
@@ -391,7 +401,8 @@ public:
    int mValidateEthFailCount;
 
    size_t mMaxIndividualPCap;
-   bool mValidBaseConf;
+   bool mValidConf;
+   bool mIgnoreSyslogConfValidation;
    bool mIgnoreBaseConfValidation;
    size_t mPcapCaptureMaxPackets;
    int mSyslogSendQueueSize;

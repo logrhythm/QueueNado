@@ -1140,7 +1140,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile()); // default value
    EXPECT_EQ("", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort()); // default value
-   EXPECT_EQ(true, conf.getSyslogTcpEnabled()); // default value
+   EXPECT_EQ(false, conf.getSyslogTcpEnabled()); // default value
    EXPECT_EQ("local4", conf.getSyslogFacility()); // default value
    
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
@@ -1206,15 +1206,8 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
 
 TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    protoMsg::SyslogConf msg;
-   msg.set_syslogenabled("");
-   msg.set_sysloglogagentip("");
-   msg.set_reporteverything("");
-   msg.set_sysloglogagentport("");
-   msg.set_syslogtcpenabled(""); 
 
-
-
-   Conf conf(mTestConf);
+   Conf conf("non-existent-yaml-file");
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_TRUE(conf.getSyslogEnabled());
@@ -1222,7 +1215,7 @@ TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    EXPECT_EQ("514", conf.getSyslogAgentPort());
    EXPECT_EQ("local4", conf.getSyslogFacility());
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   EXPECT_EQ(true, conf.getSyslogTcpEnabled());  // default
+   EXPECT_EQ(false, conf.getSyslogTcpEnabled());  // default is UDP
 
    EXPECT_TRUE(conf.getScrubPasswordsEnabled());
    EXPECT_FALSE(conf.getReportEveythingEnabled());

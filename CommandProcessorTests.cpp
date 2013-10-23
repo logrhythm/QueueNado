@@ -640,7 +640,12 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_UDP) {
    }
    ASSERT_TRUE(exception);
    auto cmdArgs = processManager->getRunArgs();
-   std::string expected = {"-e \"local4.* @123.123.123:1234\" > /tmp/test.nm.rsyslog.conf"};
+   std::string args = {"\n\n\\$SystemLogRateLimitInterval 1 \n"};
+   args.append("\\$SystemLogRateLimitBurst 20000 \n\n");
+
+   std::string expected = {"-e \"\n\n\\$SystemLogRateLimitInterval 1 \n"};
+   expected.append("\\$SystemLogRateLimitBurst 20000 \n\n");
+   expected.append("local4.* @123.123.123:1234\" > /tmp/test.nm.rsyslog.conf");
    EXPECT_TRUE(cmdArgs == expected) << "\ncmdArgs:\t" << cmdArgs << "\nexpected:\t" << expected;
 #endif
 }
@@ -667,6 +672,8 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_TCP) {
    ASSERT_TRUE(exception);
    auto cmdArgs = processManager->getRunArgs();
    std::string expected = {"-e \""};
+   expected.append("\n\n\\$SystemLogRateLimitInterval 1");
+   expected.append("\n\\$SystemLogRateLimitBurst 20000 \n\n");
    expected.append("\\$WorkDirectory /var/lib/rsyslog # where to place spool files\n");
    expected.append("\\$ActionQueueType LinkedList   # use asynchronous processing\n");
    expected.append("\\$ActionQueueFileName LR_SIEM  # unique name prefix for spool files\n");
