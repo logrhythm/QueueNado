@@ -32,6 +32,8 @@ public:
    mPCapCaptureFileLimit(999999),
    mPCapCaptureSizeLimit(999999),
    mPCapCaptureMemoryLimit(999999),
+   mOverrideGetPcapCaptureLocations(true),
+   mOverrideGetFirstCaptureLocation(true),
    mSyslogEnabled(true),
    mReportEverything(false),
    mDpiThreads(3),
@@ -244,9 +246,26 @@ public:
       return mPCapCaptureMemoryLimit;
    }
 
-   std::string GetPcapCaptureLocation() LR_OVERRIDE {
-      return mPCapCaptureLocation;
+   std::vector<std::string> GetPcapCaptureLocations() LR_OVERRIDE {
+      if(mOverrideGetPcapCaptureLocations) {
+         return mPCapCaptureLocations;         
+      }
+      
+      return Conf::GetPcapCaptureLocations();
    }
+
+   std::string GetFirstPcapCaptureLocation() LR_OVERRIDE {
+      if(!mOverrideGetFirstCaptureLocation) {
+         return Conf::GetFirstPcapCaptureLocation();
+      }
+      
+      if(mPCapCaptureLocations.empty()) {
+         return {};
+      }
+      
+      return mPCapCaptureLocations[0];
+   }
+   
 
    bool SiemDebugLogging() {
       return mSiemDebug;
@@ -352,7 +371,6 @@ public:
    std::string mPath;
    std::string mCommandQueue;
    std::string mProcessManagmentQueue;
-   std::string mPCapCaptureLocation;
    std::string mPCAPInterface;
    int mDPIMsgSendQueueSize;
    int mDPIMsgRecvQueueSize;
@@ -368,6 +386,9 @@ public:
    int mPCapCaptureFileLimit;
    int mPCapCaptureSizeLimit;
    int mPCapCaptureMemoryLimit;
+   std::vector<std::string> mPCapCaptureLocations;
+   bool mOverrideGetPcapCaptureLocations;
+   bool mOverrideGetFirstCaptureLocation;
    bool mSyslogEnabled;
    bool mReportEverything;
    unsigned int mDpiThreads;
