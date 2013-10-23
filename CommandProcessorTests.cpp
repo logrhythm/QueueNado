@@ -205,6 +205,47 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
 
    raise(SIGTERM);
 }
+
+TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) {
+
+   MockConf conf;
+   conf.mCommandQueue = "tcp://127.0.0.1:";
+   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+   MockCommandProcessor testProcessor(conf);
+   EXPECT_TRUE(testProcessor.Initialize());
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommand::Construct);
+
+   Crowbar sender(conf.getCommandQueue());
+   ASSERT_TRUE(sender.Wield());
+   protoMsg::CommandRequest requestMsg;
+   unsigned int count(0);
+   std::string reply;
+   protoMsg::CommandReply realReply;
+   protoMsg::CommandReply replyMsg;
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
+   requestMsg.set_async(true);
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+
+   replyMsg.ParseFromString(reply);
+   EXPECT_TRUE(replyMsg.success());
+   count = 0;
+
+   requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
+   requestMsg.set_async(false);
+   requestMsg.set_stringargone(replyMsg.result());
+   testProcessor.timeout = 1;
+   std::this_thread::sleep_for(std::chrono::milliseconds(2001));
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   realReply.ParseFromString(reply);
+   EXPECT_FALSE(realReply.success());
+   EXPECT_TRUE(realReply.result() == "Command Not Found");
+   raise(SIGTERM);
+}
+
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusExitApp) {
 
    MockConf conf;
