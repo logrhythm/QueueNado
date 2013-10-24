@@ -190,6 +190,33 @@ TEST_F(ConfProcessorTests, ConfInterfaceUpdateProto) {
 }
 #ifndef LR_DEBUG
 
+TEST_F(ConfProcessorTests, ReadConfFilesPerformance) {
+   unsigned int iterations(50);
+   StartTimedSection(.7, iterations);
+   for (unsigned int i = 0; i < iterations; i++) {
+      Conf conf;
+      EXPECT_TRUE((conf.getDpiThreads() >= 1));    
+   }
+   EndTimedSection();
+   EXPECT_TRUE(TimedSectionPassed());
+}
+
+/**
+ * This is a performance benchmark of where we would like to get our
+ * read performance to.
+ * @param 
+ */
+TEST_F(ConfProcessorTests, DISABLED_ReadConfFilesPerformance_future) {
+   unsigned int iterations(1000);
+   StartTimedSection(.05, iterations);
+   for (unsigned int i = 0; i < iterations; i++) {
+      Conf conf;
+      EXPECT_TRUE((conf.getDpiThreads() >= 1));    
+   }
+   EndTimedSection();
+   EXPECT_TRUE(TimedSectionPassed());
+}
+
 TEST_F(ConfProcessorTests, ReadPerformanceBenchmark_BASE) {
    ConfMaster& master = ConfMaster::Instance();
    master.Start();
@@ -239,8 +266,8 @@ TEST_F(ConfProcessorTests, WritePerformanceBenchmark_BASE) {
    ASSERT_TRUE(sender.BlockForKill(messages));
    protoMsg::BaseConf baseMsg;
    ASSERT_TRUE(baseMsg.ParseFromString(messages[1]));
-   unsigned int iterations(1000);
-   StartTimedSection(.01, iterations);
+   unsigned int iterations(50);
+   StartTimedSection(.7, iterations);
    for (unsigned int i = 0; i < iterations; i++) {
       typeMsg.set_direction(protoMsg::ConfType_Direction_SENDING);
       messages[0] = typeMsg.SerializeAsString();
