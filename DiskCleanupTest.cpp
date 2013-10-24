@@ -30,6 +30,133 @@ TEST_F(DiskCleanupTest, RecalculatePCapDiskUsed) {
    EXPECT_EQ(0, diskUsed);
 }
 
+TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESNoFiles) {
+   GMockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   GMockElasticSearch es(transport, false);
+   cleanup.DelegateGetFileCountFromES(1234);
+   cleanup.DelegateGetPcapStoreUsage();
+   es.DelegateGetOldestNFiles(bogusFileList, bogusIdsAndIndex, bogusTime);
+
+   size_t maxToRemove(0);
+   size_t spaceSavedInMB(123);
+   time_t theOldestTime(0);
+   size_t filesPerIteration(10);
+
+   EXPECT_EQ(0, cleanup.RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSavedInMB, theOldestTime));
+   EXPECT_EQ(0, spaceSavedInMB);
+   EXPECT_NE(0L, theOldestTime);
+}
+
+TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESNoRemove) {
+   GMockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   GMockElasticSearch es(transport, false);
+   cleanup.DelegateGetFileCountFromES(1234);
+   cleanup.DelegateGetPcapStoreUsage();
+   es.DelegateGetOldestNFiles(bogusFileList, bogusIdsAndIndex, bogusTime);
+
+   size_t maxToRemove(0);
+   size_t spaceSavedInMB(123);
+   time_t theOldestTime(0);
+   size_t filesPerIteration(10);
+
+   cleanup.DelegateRemoveFiles(10);
+   maxToRemove = 10;
+
+   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(1, true);
+   EXPECT_EQ(10, cleanup.RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSavedInMB, theOldestTime));
+   EXPECT_EQ(bogusTime, theOldestTime);
+}
+
+TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESMarkMatchMax) {
+   GMockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   GMockElasticSearch es(transport, false);
+   cleanup.DelegateGetFileCountFromES(1234);
+   cleanup.DelegateGetPcapStoreUsage();
+   es.DelegateGetOldestNFiles(bogusFileList, bogusIdsAndIndex, bogusTime);
+
+   size_t maxToRemove(0);
+   size_t spaceSavedInMB(123);
+   time_t theOldestTime(0);
+   size_t filesPerIteration(10);
+
+   maxToRemove = 10;
+   cleanup.DelegateRemoveFiles(0);
+   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(1, true);
+   EXPECT_EQ(0, cleanup.RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSavedInMB, theOldestTime));
+   EXPECT_EQ(10, cleanup.mRecordsMarked.size());
+}
+
+TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESShortIterations) {
+   GMockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   GMockElasticSearch es(transport, false);
+   cleanup.DelegateGetFileCountFromES(1234);
+   cleanup.DelegateGetPcapStoreUsage();
+   bogusIdsAndIndex.clear();
+   bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "1"));
+   es.DelegateGetOldestNFiles(bogusFileList, bogusIdsAndIndex, bogusTime);
+
+   size_t maxToRemove(0);
+   size_t spaceSavedInMB(123);
+   time_t theOldestTime(0);
+   size_t filesPerIteration(1);
+
+   maxToRemove = 10;
+   cleanup.DelegateRemoveFiles(0);
+   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(10, true); 
+   EXPECT_EQ(0, cleanup.RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSavedInMB, theOldestTime));
+   EXPECT_EQ(1, cleanup.mRecordsMarked.size());
+}
+TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESDoubleReturns) {
+   GMockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   GMockElasticSearch es(transport, false);
+   cleanup.DelegateGetFileCountFromES(1234);
+   cleanup.DelegateGetPcapStoreUsage();
+   bogusIdsAndIndex.clear();
+   bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "1"));
+   bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "2"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "3"));
+   bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "4"));
+   es.DelegateGetOldestNFiles(bogusFileList, bogusIdsAndIndex, bogusTime);
+
+   size_t maxToRemove(0);
+   size_t spaceSavedInMB(123);
+   time_t theOldestTime(0);
+   size_t filesPerIteration(2);
+
+   maxToRemove = 10;
+   cleanup.DelegateRemoveFiles(0);
+   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(10, true); 
+   EXPECT_EQ(0, cleanup.RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSavedInMB, theOldestTime));
+   EXPECT_EQ(2, cleanup.mRecordsMarked.size());
+}
+TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESOddIterations) {
+   GMockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   GMockElasticSearch es(transport, false);
+   cleanup.DelegateGetFileCountFromES(1234);
+   cleanup.DelegateGetPcapStoreUsage();
+   bogusIdsAndIndex.clear();
+   bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "1"));
+   bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "2"));
+   bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "3"));
+   es.DelegateGetOldestNFiles(bogusFileList, bogusIdsAndIndex, bogusTime);
+
+   size_t maxToRemove(0);
+   size_t spaceSavedInMB(123);
+   time_t theOldestTime(0);
+   size_t filesPerIteration(3);
+
+   maxToRemove = 10;
+   cleanup.DelegateRemoveFiles(0);
+   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(4, true); 
+   EXPECT_EQ(0, cleanup.RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSavedInMB, theOldestTime));
+   EXPECT_EQ(3, cleanup.mRecordsMarked.size());
+}
 TEST_F(DiskCleanupTest, OptimizeThreadObeysShutdown) {
    GMockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");
@@ -37,8 +164,6 @@ TEST_F(DiskCleanupTest, OptimizeThreadObeysShutdown) {
 
    cleanup.DelegateIsShutdownAlwaysTrue();
    cleanup.OptimizeThread(es);
-   EXPECT_CALL(cleanup, IsShutdown())
-           .Times(1);
 }
 
 TEST_F(DiskCleanupTest, OptimizeThreadFailsWhenESBorked) {
@@ -933,7 +1058,7 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
       size_t filesRemoved;
       size_t spaceSaved;
       time_t oldest;
-      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved, oldest));
+      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, 2000, es, spaceSaved, oldest));
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk, es);
       EXPECT_FALSE(boost::filesystem::exists("/tmp/TooMuchPcap/161122fd-6681-42a3-b953-48beb5247172"));
       EXPECT_EQ(aTotalFiles, 0);
@@ -1008,7 +1133,7 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
       EXPECT_TRUE(boost::filesystem::exists(file1));
       EXPECT_TRUE(boost::filesystem::exists(file2));
       LOG(INFO) << "\n\n^^^^^^^^^^^^^^1^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, es, spaceSaved, oldest));
+      EXPECT_EQ(0, capture.RemoveOldestPCapFilesInES(1, 2000, es, spaceSaved, oldest));
       LOG(INFO) << "\n\n^^^^^^^^^^^^^^^2^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
       capture.RecalculatePCapDiskUsed(aDiskUsed, aTotalFiles, pcapDisk, es);
       EXPECT_FALSE(boost::filesystem::exists(file1));

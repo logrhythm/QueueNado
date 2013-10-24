@@ -266,21 +266,41 @@ public:
 };
 using ::testing::_;
 using ::testing::Invoke;
+using ::testing::Return;
+using ::testing::Throw;
+using ::testing::SetArgReferee;
+using ::testing::DoAll;
 
 class GMockElasticSearch : public MockElasticSearch {
 public:
 
-   GMockElasticSearch(bool async) : MockElasticSearch(async) {
+   GMockElasticSearch(bool async) : MockElasticSearch(async), mBogusTime(0) {
    };
 
    GMockElasticSearch(BoomStick& transport, bool async) : MockElasticSearch(transport, async) {
    };
 
    MOCK_METHOD0(Initialize, bool());
+   MOCK_METHOD5(GetOldestNFiles, std::vector<std::tuple< std::string, std::string> >(const unsigned int numberOfFiles,
+        const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, 
+        IdsAndIndexes& relevantRecords, time_t& oldestTime));
+   
    void DelegateInitializeToAlwaysFail() {
       ON_CALL(*this, Initialize())
               .WillByDefault(Invoke(&returnBools, &BoolReturns::ReturnFalse));
    }
+   
+   void DelegateGetOldestNFiles(const PathAndFileNames& bogusFileList, const IdsAndIndexes& bogusIdsAndIndex, const time_t bogusTime) {
+      mBogusFileList = bogusFileList;
+      mBogusIdsAndInddex = bogusIdsAndIndex;
+      mBogusTime = bogusTime;
+      EXPECT_CALL(*this, GetOldestNFiles(_,_,_,_,_))
+              .WillRepeatedly(DoAll(SetArgReferee<3>(mBogusIdsAndInddex),SetArgReferee<4>(mBogusTime),Return(mBogusFileList)));
+   }
+   
+   PathAndFileNames mBogusFileList;
+   IdsAndIndexes mBogusIdsAndInddex;
+   time_t mBogusTime;
    BoolReturns returnBools;
 };
 #endif

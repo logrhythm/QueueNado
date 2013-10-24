@@ -11,11 +11,33 @@
 class DiskCleanupTest : public ::testing::Test {
 public:
 
-   DiskCleanupTest() {
+   DiskCleanupTest() : bogusTime(123456) {
    };
 protected:
 
    virtual void SetUp() {
+
+      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id0", "id0"));
+      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id1", "id1"));
+      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id2", "id2"));
+      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id3", "id3"));
+      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id4", "id4"));
+      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id5", "id5"));
+      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id6", "id6"));
+      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id7", "id7"));
+      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id8", "id8"));
+      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id9", "id9"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "1"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "2"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "3"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "4"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "5"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "6"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "7"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "8"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "9"));
+      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "10"));
+      
       
       testDir << "/tmp/TooMuchPcap";
 
@@ -63,6 +85,9 @@ protected:
    unsigned int t_totalTransactions;
    networkMonitor::MockConfSlave mConf;
    std::stringstream testDir;
+   PathAndFileNames bogusFileList;
+   IdsAndIndexes bogusIdsAndIndex;
+   time_t bogusTime;
 private:
 
 };
