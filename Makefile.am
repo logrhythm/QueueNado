@@ -165,6 +165,7 @@ CommandProcessorTests_SOURCES=main.cpp \
         NtpConfigCommandTest.cpp \
         NtpConfigCommandTest.h \
         MockNtpConfigCommand.h \
+        MockRestartSyslogCommand.h \
         MockConfNtpToReadFile.h \
         MockConfNtp.h \
 	MockProcessManagerCommand.h
