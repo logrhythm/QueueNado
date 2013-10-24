@@ -250,8 +250,8 @@ public:
    MOCK_METHOD2(GetPcapStoreUsage,void(DiskSpace& pcapDiskInGB, const DiskUsage::Size size));
 
    void DelegateIsShutdownAlwaysTrue() {
-      ON_CALL(*this, IsShutdown())
-              .WillByDefault(Return(true));
+      EXPECT_CALL(*this, IsShutdown())
+              .WillOnce(Return(true));
    }
 
    void DelegateGetFileCountFromES(size_t value) {
