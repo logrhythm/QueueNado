@@ -5,7 +5,7 @@ chmod 777 .
 chmod 777 ..
 chmod 777 ../source/.libs
 chmod 777 ../source/.libs/*
-touch ../ZMQTest.junit.xml ../PacketCaptureTest.junit.xml ../DpiMsgLRTest.junit.xml ../QosmosCodeGeneratorTest.junit.xml ../QosmosDpiTest.junit.xml ../SysLoggerTest.junit.xml ../SyslogConfigTest.junit.xml ../ConfProcessorTest.junit.xml ../SendStatsTest.junit.xml ../StatsAccumulatorTest.junit.xml ../ShotgunAlienTests.junit.xml ../RifleVampireTests.junit.xml ../TestTCPIPDirectionlessHash.junit.xml ../RuleEngineTest.junit.xml ../CommandProcessorTests.junit.xml ../ProcessManagerTest.junit.xml ../LuaExecuterTest.junit.xml ../ThreadContainerTest.junit.xml ../../RESTBuilderTest.junit.xml ../JSONEncoderTest.junit.xml ../ConversionTest.junit.xml ../DiskPacketCaptureTest.junit.xml ../DiskCleanupTest.junit.xml ../ElasticSearchTest.xml ../BoomStickTest.xml ../SyslogReporterTest.xml
+touch ../ZMQTest.junit.xml ../PacketCaptureTest.junit.xml ../DpiMsgLRTest.junit.xml ../QosmosCodeGeneratorTest.junit.xml ../QosmosDpiTest.junit.xml ../SysLoggerTest.junit.xml ../ConfProcessorTest.junit.xml ../SendStatsTest.junit.xml ../StatsAccumulatorTest.junit.xml ../ShotgunAlienTests.junit.xml ../RifleVampireTests.junit.xml ../TestTCPIPDirectionlessHash.junit.xml ../RuleEngineTest.junit.xml ../CommandProcessorTests.junit.xml ../ProcessManagerTest.junit.xml ../LuaExecuterTest.junit.xml ../ThreadContainerTest.junit.xml ../../RESTBuilderTest.junit.xml ../JSONEncoderTest.junit.xml ../ConversionTest.junit.xml ../DiskPacketCaptureTest.junit.xml ../DiskCleanupTest.junit.xml ../ElasticSearchTest.xml ../BoomStickTest.xml ../SyslogReporterTest.xml
 chmod 777 ../*.xml
 export LUA_PATH=/usr/local/probe/bin/\?.lua\;/usr/local/probe/share/lua/5.1/\?.lua\;/usr/local/probe/share/lua/5.1/\?/init.lua\;/usr/local/probe/libLua/\?.lua\;/usr/local/probe/apiLua/\?.lua\;/usr/local/probe/apiLua/usr/\?.lua\;\;
 export LUA_CPATH=/usr/local/probe/lib/lua/5.1/\?.so\;/usr/local/probe/libLua/\?.lua\;/usr/local/probe/apiLua/\?.lua\;/usr/local/probe/apiLua/usr/\?.lua\;
@@ -15,7 +15,6 @@ export LUA_CPATH=/usr/local/probe/lib/lua/5.1/\?.so\;/usr/local/probe/libLua/\?.
 ./QosmosCodeGeneratorTest --gtest_output=xml:../QosmosCodeGeneratorTest.junit.xml
 ./QosmosDpiTest --gtest_output=xml:../QosmosDpiTest.junit.xml
 ./SysLoggerTest --gtest_output=xml:../SysLoggerTest.junit.xml
-./SyslogConfigTest --gtest_output=xml:../SyslogConfigTest.junit.xml
 ./ConfProcessorTests --gtest_output=xml:../ConfProcessorTest.junit.xml
 ./SendStatsTest --gtest_output=xml:../SendStatsTest.junit.xml
 ./StatsAccumulatorTest --gtest_output=xml:../StatsAccumulatorTest.junit.xml
