@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CommandProcessor.h"
-
+#include "CommandFactory.h"
 class MockCommandProcessor : public CommandProcessor {
 public:
    explicit MockCommandProcessor(const Conf& conf) : CommandProcessor(conf) {}
