@@ -7,20 +7,23 @@ TEST_F(CommandFactoryTests, ConstructNoRegsistered) {
    CommandFactory factory;
    protoMsg::CommandRequest request;
    request.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
-   ASSERT_EQ(NULL,factory.GetCommand(request));
+   std::shared_ptr<Command> notRegistered= factory.GetCommand(request);
+   
+   ASSERT_EQ(nullptr,notRegistered.get());
 }
 TEST_F(CommandFactoryTests, ConstructRegsistered) {
    CommandFactory factory;
    protoMsg::CommandRequest request;
    request.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
-   
-   ASSERT_EQ(NULL,factory.GetCommand(request));
+   std::shared_ptr<Command> notRegistered= factory.GetCommand(request);
+   ASSERT_EQ(nullptr,notRegistered.get());
    factory.RegisterCommand(protoMsg::CommandRequest_CommandType_UPGRADE, UpgradeCommand::Construct);
-   Command* upgradeCommand = factory.GetCommand(request);
-   ASSERT_TRUE(NULL!=upgradeCommand);
+   std::shared_ptr<Command> upgradeCommand = factory.GetCommand(request);
+   ASSERT_TRUE(nullptr!=upgradeCommand.get());
    LOG(INFO) << "Deleting upgrade command";
-   delete upgradeCommand;
    LOG(INFO) << "Done";
    factory.UnregisterCommand(protoMsg::CommandRequest_CommandType_UPGRADE);
-   ASSERT_EQ(NULL,factory.GetCommand(request));
+   notRegistered= factory.GetCommand(request);
+   
+   ASSERT_EQ(nullptr,notRegistered.get());
 }
