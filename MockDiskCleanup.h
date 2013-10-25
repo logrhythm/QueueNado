@@ -209,8 +209,8 @@ public:
       return DiskCleanup::CalculateNewTotalFiles(oldTotal, targetRemoved, failedRemoved);
    }
 
-   void OptimizeIndexes(const std::set<std::string>& allIndexes,
-           const std::set<std::string> excludes, ElasticSearch& es) {
+   bool OptimizeIndexes(const std::set<std::string>& allIndexes,
+           const std::set<std::string> excludes, ElasticSearch& es) LR_OVERRIDE {
       DiskCleanup::OptimizeIndexes(allIndexes, excludes, es);
    }
 
