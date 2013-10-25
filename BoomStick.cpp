@@ -550,8 +550,8 @@ void BoomStick::CleanUnreadReplies() {
    std::vector<std::string> uuidsToRemove;
    //check all unread replies and remove any that don't exist in pending.
    for (auto unreadReply : mUnreadReplies) {
-      if (mUnreadReplies.find(unreadReply.first) == mUnreadReplies.end()) {
-         LOG(WARNING) << "Found unmatched reply to unknown UUID " << unreadReply.first;
+      if (mPendingReplies.find(unreadReply.first) == mPendingReplies.end()) {
+         LOG(WARNING) << "Found unmatched reply to unknown hash " << unreadReply.first;
          uuidsToRemove.push_back(unreadReply.first);
       }
    }
