@@ -6,6 +6,7 @@
 #pragma once
 
 #include "SyslogReporter.h"
+#include "SyslogConfMsg.pb.h"
 #include "g2log.hpp"
 
 class MockSyslogReporter : public SyslogReporter {
@@ -32,16 +33,21 @@ class MockSyslogReporter : public SyslogReporter {
       }
 
       bool InitializeRsyslog() LR_OVERRIDE {
-         LOG(INFO) << "Mock InitializeRsyslog";
          if (mySyslogCmdSendToRestart) {
-            LOG(INFO) << "real";
             return SyslogReporter::InitializeRsyslog();
          } else  {
-            LOG(INFO) << "non-real";
             return false;
          }
       }
+
+     void SetSyslogProtoConf(const protoMsg::SyslogConf& msg) {
+        mSyslogCmdConf = msg;
+     }
       
+      protoMsg::SyslogConf  GetSyslogProtoConf() LR_OVERRIDE {
+          return mSyslogCmdConf;
+      }
+
       void SetSyslogCmdSendToRestart() {
          mySyslogCmdSendToRestart = true;
       }
@@ -86,6 +92,7 @@ class MockSyslogReporter : public SyslogReporter {
       time_t mTvSec;
       time_t mTvUSec;
       unsigned int mStatCount;
+      protoMsg::SyslogConf  mSyslogCmdConf;
 
 };
 

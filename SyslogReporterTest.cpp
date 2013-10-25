@@ -200,47 +200,28 @@ TEST_F(SyslogReporterTest, SendStatTime) {
    EXPECT_TRUE(syslogReporter.IsSendStatTime());
 }
 
+
+
 TEST_F(SyslogReporterTest, SyslogInitialize) {
    MockConfSlave slave;
-   //slave.mConfLocation = "resources/test.yaml.OldAndWrongSyslog";
-   slave.mConfLocation = "resources/test.yaml.OldAndWrongSyslog";;
- 
-   // Verify that we can pass the right conf to the SyslogReporter
-   Conf conf("resources/test.yaml.OldAndWrongSyslog");
-   EXPECT_EQ(conf.getPath(), slave.mConfLocation);
-   EXPECT_EQ(conf.getPath(), "resources/test.yaml.OldAndWrongSyslog");
-   
-   
-   EXPECT_EQ("tcp://127.0.0.1:5557", conf.getCommandQueue());
-   std::string defaultValueNotInYaml = {"/etc/rsyslog.d/nm.rsyslog.conf"};
-   EXPECT_EQ(defaultValueNotInYaml, conf.getSyslogConfigFile());
-   EXPECT_EQ("123", conf.getSyslogAgentPort());
-   EXPECT_EQ("localX", conf.getSyslogFacility());   
-   EXPECT_EQ("1.2.1.2", conf.getSyslogAgentIP());   
-   
-   
-
-   conf = slave.GetConf();
-   EXPECT_EQ(conf.getPath(), slave.mConfLocation);
-   
-   EXPECT_EQ("tcp://127.0.0.1:5557", conf.getCommandQueue());
-   //std::string defaultValueNotInYaml = {"/etc/rsyslog.d/nm.rsyslog.conf"};
-   EXPECT_EQ(defaultValueNotInYaml, conf.getSyslogConfigFile());
-   EXPECT_EQ("123", conf.getSyslogAgentPort());
-   EXPECT_EQ("localX", conf.getSyslogFacility());   
-   EXPECT_EQ("1.2.1.2", conf.getSyslogAgentIP());   
-  
-   
-   MockCommandProcessor testProcessor(conf);
+   slave.mConfLocation = "resources/test.yaml.Syslog"; // BUG? this will not be used by the SyslogReporter ... to investigate
+   MockCommandProcessor testProcessor(slave.GetConf());
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART, MockRestartSyslogCommand::Construct);
    
-   ASSERT_FALSE(MockRestartSyslogCommand::mReceivedExecute);
+    MockRestartSyslogCommand::mReceivedExecute = false;
+    protoMsg::SyslogConf empty; // initially empty
+    MockRestartSyslogCommand::mSyslogMsg = empty; // save the empty to the receiver. it should later be filled
    // This spins up a thread that should work wonders. 
    // We scope it so that it is sure to exit before  continuing
    {
       MockSyslogReporter syslogReporter(slave, syslogName, syslogOption, syslogFacility, syslogPriority);
-      syslogReporter.ResetConf();
+      protoMsg::SyslogConf msg;
+      msg.set_sysloglogagentip("1.2.1.2");
+      msg.set_sysloglogagentport("123");      
+      msg.set_syslogenabled("true");
+      syslogReporter.SetSyslogProtoConf(msg);      
+
       syslogReporter.SetSyslogCmdSendToRestart();
       syslogReporter.Start();
       std::chrono::milliseconds dura( 10000 );
@@ -248,9 +229,9 @@ TEST_F(SyslogReporterTest, SyslogInitialize) {
       syslogReporter.Join();
    }
    EXPECT_TRUE(MockRestartSyslogCommand::mReceivedExecute);// Hack to enable these outside of the object instance 
-   EXPECT_EQ(MockRestartSyslogCommand::mSyslogMsg.sysloglogagentip(), "10.1.1.65"); // ref the yaml file
-   EXPECT_EQ(MockRestartSyslogCommand::mSyslogMsg.sysloglogagentport(), "123"); // ref the yaml file  
-   EXPECT_EQ(MockRestartSyslogCommand::mSyslogMsg.syslogenabled(), "true"); // ref the yaml file  
+   EXPECT_EQ(MockRestartSyslogCommand::mSyslogMsg.sysloglogagentip(), "1.2.1.2"); 
+   EXPECT_EQ(MockRestartSyslogCommand::mSyslogMsg.sysloglogagentport(), "123"); 
+   EXPECT_EQ(MockRestartSyslogCommand::mSyslogMsg.syslogenabled(), "true");   
    raise(SIGTERM);
 }
 
