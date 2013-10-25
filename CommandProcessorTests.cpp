@@ -235,14 +235,14 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) 
    requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
    requestMsg.set_async(false);
    requestMsg.set_stringargone(replyMsg.result());
-   testProcessor.timeout = 1;
+   testProcessor.timeout = 0;
    std::this_thread::sleep_for(std::chrono::milliseconds(2001));
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
    EXPECT_FALSE(reply.empty());
    realReply.ParseFromString(reply);
    EXPECT_FALSE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Command Not Found");
+   EXPECT_TRUE(realReply.result() == "Command Not Found") << " : " << realReply.result();
    raise(SIGTERM);
 }
 
