@@ -1,4 +1,3 @@
-commandQueue: tcp://127.0.0.1:5557
 syslogTcpEnabled: true
 syslogMaxLineLength: 2047
 syslogLogName: /var/log/nm.log
