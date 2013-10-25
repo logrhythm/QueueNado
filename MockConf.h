@@ -106,7 +106,7 @@ public:
       return mBroadcastQueue;
    }
 
-   std::string getStatsAccumulatorQueue(void) LR_OVERRIDE {
+   std::string getStatsAccumulatorQueue(void) const LR_OVERRIDE {
       return mStatsAccumulatorQueue;
    }
 
