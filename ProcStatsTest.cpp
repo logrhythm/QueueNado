@@ -36,6 +36,9 @@ TEST_F(ProcStatsTest, VerifyTestResources) {
 #endif 
 }
 
+
+
+
 TEST_F(ProcStatsTest, ReadValidCPUStatFile) {
 #ifdef LR_DEBUG
    CpuJiffies jiffies("resources/stat.1");
@@ -53,6 +56,15 @@ TEST_F(ProcStatsTest, CpuJiffiesInitialization) {
    CpuJiffies jiffies;
    EXPECT_EQ(jiffies.Sum(), 0);
    EXPECT_TRUE(jiffies.success);
+#endif    
+}
+
+TEST_F(ProcStatsTest, CpuJiffiesDeltaRightAndWrong) {
+#ifdef LR_DEBUG
+  CpuJiffies newer("resources/stat100.1");
+  CpuJiffies older("resources/stat100.2");
+  EXPECT_TRUE(CpuJiffies::Delta(newer, older) > 0) << newer.Sum() << " : " << older.Sum();
+  EXPECT_EQ(0, CpuJiffies::Delta(older, newer)) << older.Sum() << " : " << newer.Sum();
 #endif    
 }
 
@@ -125,6 +137,38 @@ TEST_F(ProcStatsTest, VerifyThreadCpuCalculationsOnSystem) {
    EXPECT_EQ(100, usageInPercentUnits); // ref test above: "VerifyThreadCpuCalculationsOldStyle"
 #endif  
 }
+
+TEST_F(ProcStatsTest, VerifyThreadCpuCalculationsGoingBadOnSystem) {
+#ifdef LR_DEBUG
+   ThreadJiffies cpuThread1("resources/task.stat100.1");
+   CpuJiffies cpuSystem1("resources/stat100.1");
+   
+   ThreadJiffies cpuThread2("resources/task.stat100.2");
+   CpuJiffies cpuSystem2("resources/stat100.2");
+   
+   MockProcStats usageStatss;
+   
+   
+   // verify that for the specific test the core is on : 1
+   const size_t coreID = 1; 
+   
+   EXPECT_EQ(cpuThread1.processName, cpuThread2.processName);
+   EXPECT_TRUE(cpuThread1.success == cpuThread2.success);
+   
+   EXPECT_EQ(cpuSystem1.numberOfCores, cpuSystem2.numberOfCores);
+   EXPECT_EQ(cpuSystem1.numberOfCores, 16); // 16 cores, ref the files
+   
+   // Calculate actual CPU usage
+   auto numberOfCores = cpuSystem2.numberOfCores;
+   auto deltaSystemJiffies = CpuJiffies::Delta(cpuSystem2, cpuSystem1);
+   auto deltaThreadJiffies = cpuThread2.userTime-cpuThread1.userTime + cpuThread2.systemTime-  cpuThread1.systemTime;
+   auto usageInPercentUnits = numberOfCores * 100* deltaThreadJiffies/deltaSystemJiffies;
+   EXPECT_EQ(100, usageInPercentUnits); // ref test above: "VerifyThreadCpuCalculationsOldStyle"
+#endif  
+}
+
+
+
 
 TEST_F(ProcStatsTest, VerifyCompleteThreadCpuCalculations) {
 #ifdef LR_DEBUG
