@@ -106,10 +106,11 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESShortIterations) {
 
    maxToRemove = 10;
    cleanup.DelegateRemoveFiles(0);
-   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(10, true); 
+   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(10, true);
    EXPECT_EQ(0, cleanup.RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSavedInMB, theOldestTime));
    EXPECT_EQ(1, cleanup.mRecordsMarked.size());
 }
+
 TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESDoubleReturns) {
    GMockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");
@@ -119,7 +120,7 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESDoubleReturns) {
    bogusIdsAndIndex.clear();
    bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "1"));
    bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "2"));
-      bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "3"));
+   bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "3"));
    bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "4"));
    es.DelegateGetOldestNFiles(bogusFileList, bogusIdsAndIndex, bogusTime);
 
@@ -130,10 +131,11 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESDoubleReturns) {
 
    maxToRemove = 10;
    cleanup.DelegateRemoveFiles(0);
-   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(10, true); 
+   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(10, true);
    EXPECT_EQ(0, cleanup.RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSavedInMB, theOldestTime));
    EXPECT_EQ(2, cleanup.mRecordsMarked.size());
 }
+
 TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESOddIterations) {
    GMockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");
@@ -153,17 +155,20 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESOddIterations) {
 
    maxToRemove = 10;
    cleanup.DelegateRemoveFiles(0);
-   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(4, true); 
+   cleanup.DelegateMarkFilesAsRemovedInESExpectNTimes(4, true);
    EXPECT_EQ(0, cleanup.RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSavedInMB, theOldestTime));
    EXPECT_EQ(3, cleanup.mRecordsMarked.size());
 }
+
 TEST_F(DiskCleanupTest, OptimizeThreadObeysShutdown) {
    GMockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    MockElasticSearch es(transport, false);
-
-   cleanup.DelegateIsShutdownAlwaysTrue();
+   zctx_interrupted = true;
    cleanup.OptimizeThread(es);
+   EXPECT_CALL(cleanup, RunOptimize(_))
+           .Times(0);
+   zctx_interrupted = false;
 }
 
 TEST_F(DiskCleanupTest, OptimizeThreadFailsWhenESBorked) {
@@ -173,7 +178,7 @@ TEST_F(DiskCleanupTest, OptimizeThreadFailsWhenESBorked) {
 
    es.DelegateInitializeToAlwaysFail();
    cleanup.OptimizeThread(es);
-   EXPECT_CALL(cleanup, IsShutdown())
+   EXPECT_CALL(cleanup, RunOptimize(_))
            .Times(0);
 }
 
@@ -210,7 +215,6 @@ TEST_F(DiskCleanupTest, GetIndexesThatAreActive) {
 
    std::set<std::string> excludes = cleanup.GetIndexesThatAreActive();
 
-   EXPECT_TRUE(excludes.find("kibana-int") != excludes.end());
    EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
    todayMsg.set_timeupdated(now - (24 * 60 * 60));
    EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());

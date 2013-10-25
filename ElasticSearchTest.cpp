@@ -67,8 +67,8 @@ TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
       EXPECT_TRUE(std::get<IdsAndIndexes_Index>(sessionPair)=="network_2013_08_12");
       EXPECT_TRUE(std::get<IdsAndIndexes_ID>(sessionPair).find("8f8411f5-899a-445a-8421-210157db05") != std::string::npos);
    }
-   EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos);
-   EXPECT_TRUE(target.mLastRequest.find("abc123") == std::string::npos);
+   EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos) << target.mLastRequest;
+   EXPECT_TRUE(target.mLastRequest.find("abc123") == std::string::npos) << target.mLastRequest;
 
    fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 2);
 

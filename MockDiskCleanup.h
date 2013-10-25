@@ -30,7 +30,7 @@ public:
       return false;
    }
 
-   size_t RemoveOldestPCapFilesInES(const size_t maxToRemove, const size_t filesPerIteration, 
+   size_t RemoveOldestPCapFilesInES(const size_t maxToRemove, const size_t filesPerIteration,
            ElasticSearch& es, size_t& spaceSaved, time_t& oldest) {
       return DiskCleanup::RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSaved, oldest);
    }
@@ -41,7 +41,7 @@ public:
 
    LR_VIRTUAL size_t GetFileCountFromES(ElasticSearch& es) {
       auto pcapLocations = mConf.GetPcapCaptureLocations();
-      size_t totalFiles{0};      
+      size_t totalFiles{0};
       for (const auto& path : pcapLocations) {
 
          for (boost::filesystem::directory_iterator it(path);
@@ -221,6 +221,10 @@ public:
    LR_VIRTUAL void OptimizeThread(ElasticSearch& es) {
       return DiskCleanup::OptimizeThread(es);
    }
+
+   LR_VIRTUAL bool RunOptimize(ElasticSearch& es) {
+      return DiskCleanup::RunOptimize(es);
+   }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
    int mFileSystemInfoCountdown;
@@ -244,14 +248,15 @@ using ::testing::SaveArg;
 class GMockDiskCleanup : public MockDiskCleanup {
 public:
 
-   GMockDiskCleanup(networkMonitor::ConfSlave& conf) : MockDiskCleanup(conf),mFileCount(0),mMarkResult(true){
+   GMockDiskCleanup(networkMonitor::ConfSlave& conf) : MockDiskCleanup(conf), mFileCount(0), mMarkResult(true) {
    }
 
    MOCK_METHOD0(IsShutdown, bool());
-   MOCK_METHOD3(RemoveFiles,int(const PathAndFileNames& filesToRemove, size_t& spaceSavedInMB, size_t& filesNotFound));
+   MOCK_METHOD3(RemoveFiles, int(const PathAndFileNames& filesToRemove, size_t& spaceSavedInMB, size_t& filesNotFound));
    MOCK_METHOD1(GetFileCountFromES, size_t(ElasticSearch& es));
-   MOCK_METHOD2(GetPcapStoreUsage,void(DiskSpace& pcapDiskInGB, const DiskUsage::Size size));
-   MOCK_METHOD2(MarkFilesAsRemovedInES,bool(const IdsAndIndexes& relevantRecords, ElasticSearch& es));
+   MOCK_METHOD2(GetPcapStoreUsage, void(DiskSpace& pcapDiskInGB, const DiskUsage::Size size));
+   MOCK_METHOD2(MarkFilesAsRemovedInES, bool(const IdsAndIndexes& relevantRecords, ElasticSearch& es));
+   MOCK_METHOD1(RunOptimize, bool(ElasticSearch& es));
 
    void DelegateIsShutdownAlwaysTrue() {
       EXPECT_CALL(*this, IsShutdown())
@@ -263,27 +268,28 @@ public:
       EXPECT_CALL(*this, GetFileCountFromES(_))
               .WillRepeatedly(Return(mFileCount));
    }
-   
+
    void DelegateRemoveFiles(size_t value) {
       mFailFileCount = value;
-      EXPECT_CALL(*this, RemoveFiles(_,_,_))
+      EXPECT_CALL(*this, RemoveFiles(_, _, _))
               .WillRepeatedly(Return(mFailFileCount));
    }
+
    void DelegateGetPcapStoreUsage() {
-      EXPECT_CALL(*this, GetPcapStoreUsage(_,_))
+      EXPECT_CALL(*this, GetPcapStoreUsage(_, _))
               .WillRepeatedly(Return());
    }
-   
+
    void GetFileCountFromESThrows() {
-      EXPECT_CALL(*this, GetPcapStoreUsage(_,_))
+      EXPECT_CALL(*this, GetPcapStoreUsage(_, _))
               .WillRepeatedly(Throw(123));
    }
-   
+
    void DelegateMarkFilesAsRemovedInESExpectNTimes(unsigned int times, bool markResult) {
       mMarkResult = markResult;
-      EXPECT_CALL(*this,MarkFilesAsRemovedInES(_,_))
+      EXPECT_CALL(*this, MarkFilesAsRemovedInES(_, _))
               .Times(times)
-              .WillRepeatedly(DoAll(SaveArg<0>(&mRecordsMarked),Return(mMarkResult)));
+              .WillRepeatedly(DoAll(SaveArg<0>(&mRecordsMarked), Return(mMarkResult)));
    }
    size_t mFileCount;
    size_t mFailFileCount;
