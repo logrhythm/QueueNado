@@ -224,7 +224,7 @@ TEST_F(SyslogReporterTest, SyslogInitialize) {
 
       syslogReporter.SetSyslogCmdSendToRestart();
       syslogReporter.Start();
-      std::chrono::milliseconds dura( 10000 );
+      std::chrono::milliseconds dura( 2000 );
       std::this_thread::sleep_for( dura );
       syslogReporter.Join();
    }
