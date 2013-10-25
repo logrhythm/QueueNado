@@ -525,6 +525,7 @@ void BoomStick::CleanPendingReplies() {
    std::vector<std::string> uuidsToRemove;
    for (auto pendingSend : mPendingReplies) {
       if (pendingSend.second <= now - 5 * MINUTES_TO_SECONDS) {
+         LOG(DEBUG) << "Removed Pending Reply for " << pendingSend.first;
          uuidsToRemove.push_back(pendingSend.first);
       }
    }
