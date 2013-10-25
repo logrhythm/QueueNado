@@ -193,7 +193,7 @@ public:
       return DiskCleanup::CalculateNewTotalFiles(oldTotal, targetRemoved, failedRemoved);
    }
 
-   void OptimizeIndexes(const std::set<std::string>& allIndexes,
+   bool OptimizeIndexes(const std::set<std::string>& allIndexes,
            const std::set<std::string> excludes, ElasticSearch& es) {
       DiskCleanup::OptimizeIndexes(allIndexes, excludes, es);
    }

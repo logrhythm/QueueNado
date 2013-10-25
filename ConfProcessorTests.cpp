@@ -1164,7 +1164,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile()); // default value
    EXPECT_EQ("", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort()); // default value
-   EXPECT_EQ(false, conf.getSyslogTcpEnabled()); // default value
+   EXPECT_FALSE(conf.getSyslogTcpEnabled()); // default value
    EXPECT_EQ("local4", conf.getSyslogFacility()); // default value
    
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
@@ -1239,7 +1239,7 @@ TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    EXPECT_EQ("514", conf.getSyslogAgentPort());
    EXPECT_EQ("local4", conf.getSyslogFacility());
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   EXPECT_EQ(false, conf.getSyslogTcpEnabled());  // default is UDP
+   EXPECT_FALSE(conf.getSyslogTcpEnabled());  // default is UDP
 
    EXPECT_TRUE(conf.getScrubPasswordsEnabled());
    EXPECT_FALSE(conf.getReportEveythingEnabled());
