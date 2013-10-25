@@ -222,7 +222,7 @@ public:
    }
 
    void SetSocketTimeout(const size_t newTimeout) {
-      mSocketTimeout = newTimeout;
+      mSocketTimeoutMs = newTimeout;
    }
 
    bool OptimizeIndex(const std::string& index) {
