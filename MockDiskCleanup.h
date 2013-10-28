@@ -31,8 +31,8 @@ public:
    }
 
    size_t RemoveOldestPCapFilesInES(const size_t maxToRemove, const size_t filesPerIteration,
-           ElasticSearch& es, size_t& spaceSaved, time_t& oldest) {
-      return DiskCleanup::RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSaved, oldest);
+           ElasticSearch& es, size_t& spaceSaved, time_t& oldest, StatInfo& stats) {
+      return DiskCleanup::RemoveOldestPCapFilesInES(maxToRemove, filesPerIteration, es, spaceSaved, oldest, stats);
    }
 
    bool TooMuchPCap(DiskCleanup::StatInfo& stats) LR_OVERRIDE {
@@ -59,9 +59,8 @@ public:
       DiskCleanup::RecalculatePCapDiskUsed(stats, es);
    }
 
-   void CleanupOldPcapFiles(PacketCaptureFilesystemDetails& previous, ElasticSearch& es,
-           StatInfo& stats) LR_OVERRIDE {
-      DiskCleanup::CleanupOldPcapFiles(previous, es, stats);
+   void CleanupOldPcapFiles(ElasticSearch& es, StatInfo& stats) LR_OVERRIDE {
+      DiskCleanup::CleanupOldPcapFiles(es, stats);
    }
 
    bool TooMuchSearch(const size_t& fsFreeGigs, const size_t& fsTotalGigs) {
@@ -136,9 +135,8 @@ public:
       return;
    }
 
-   void CleanupSearch(PacketCaptureFilesystemDetails& previous,
-           ElasticSearch& es, DiskCleanup::StatInfo& stats) LR_OVERRIDE {
-      DiskCleanup::CleanupSearch(previous, es, stats);
+   void CleanupSearch(ElasticSearch& es, DiskCleanup::StatInfo& stats) LR_OVERRIDE {
+      DiskCleanup::CleanupSearch(es, stats);
    }
 
    std::string GetOldestIndex(ElasticSearch& es) {
