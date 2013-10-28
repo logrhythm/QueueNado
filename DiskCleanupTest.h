@@ -11,7 +11,7 @@
 class DiskCleanupTest : public ::testing::Test {
 public:
 
-   DiskCleanupTest() : bogusTime(123456) {
+   DiskCleanupTest() : bogusTime(123456), totalHits(0) {
    };
 protected:
 
@@ -50,6 +50,7 @@ protected:
       makeADir = "mkdir -p ";
       makeADir += testDir.str();
       system(makeADir.c_str());
+      totalHits = 0;
    };
 
    virtual void TearDown() {
@@ -90,6 +91,7 @@ protected:
    IdsAndIndexes bogusIdsAndIndex;
    time_t bogusTime;
    DiskCleanup::StatInfo stats;
+   size_t totalHits;
 private:
 
 };

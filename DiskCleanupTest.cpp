@@ -33,6 +33,7 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESNoFiles) {
    GMockElasticSearch es(transport, false);
    cleanup.DelegateGetFileCountFromES(1234);
    cleanup.DelegateGetPcapStoreUsage();
+   
    es.DelegateGetOldestNFiles(bogusFileList, bogusIdsAndIndex, bogusTime);
 
    size_t maxToRemove(0);

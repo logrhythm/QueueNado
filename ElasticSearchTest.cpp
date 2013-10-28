@@ -1055,7 +1055,7 @@ TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
    es.mFakeGetOldestNFiles = false;
    oldestFiles.emplace_back("foo", "bar");
    relevantRecords.emplace_back("foo", "bar");
-   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime);
+   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
    EXPECT_TRUE(oldestFiles.empty());
    EXPECT_TRUE(relevantRecords.empty());
@@ -1077,7 +1077,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    es.mSendAndGetReplyReply = "200|ok|{\"ok\":true,\"timed_out\":false}";
    oldestFiles.emplace_back("foo", "bar");
    relevantRecords.emplace_back("foo", "bar");
-   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime);
+   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
    EXPECT_TRUE(oldestFiles.empty());
    EXPECT_TRUE(relevantRecords.empty());
@@ -1085,7 +1085,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    es.mSendAndGetReplyReply.clear();
    oldestFiles.emplace_back("foo", "bar");
    relevantRecords.emplace_back("foo", "bar");
-   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime);
+   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
    EXPECT_TRUE(oldestFiles.empty());
    EXPECT_TRUE(relevantRecords.empty());
@@ -1106,7 +1106,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
            "}"
            "}";
 
-   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime);
+   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(1380495600, oldestTime);
    ASSERT_FALSE(oldestFiles.empty());
    EXPECT_EQ("/tmp/f4d63941-af67-4b76-8e68-ba0f0b5366ff",
@@ -1134,7 +1134,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
            "]"
            "}"
            "}";
-   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime);
+   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
 }
 

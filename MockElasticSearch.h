@@ -154,13 +154,13 @@ public:
 
    std::vector<std::tuple<std::string, std::string>>  
            GetOldestNFiles(const unsigned int numberOfFiles,
-        const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, IdsAndIndexes& relevantRecords, time_t& oldestTime) {
+        const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits) {
       if (mFakeGetOldestNFiles) {
          oldestTime = mOldestTime;
          return mOldestFiles;
       }
       
-      return ElasticSearch::GetOldestNFiles(numberOfFiles, paths, fileConstructor, relevantRecords, oldestTime);
+      return ElasticSearch::GetOldestNFiles(numberOfFiles, paths, fileConstructor, relevantRecords, oldestTime, totalHits);
    }
 
    bool BulkUpdate(const IdsAndIndexes& idsAndIndex, const std::string& indexType, const std::string& jsonData) {
@@ -281,9 +281,9 @@ public:
    };
 
    MOCK_METHOD0(Initialize, bool());
-   MOCK_METHOD5(GetOldestNFiles, std::vector<std::tuple< std::string, std::string> >(const unsigned int numberOfFiles,
+   MOCK_METHOD6(GetOldestNFiles, std::vector<std::tuple< std::string, std::string> >(const unsigned int numberOfFiles,
         const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, 
-        IdsAndIndexes& relevantRecords, time_t& oldestTime));
+        IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits));
    
    void DelegateInitializeToAlwaysFail() {
       ON_CALL(*this, Initialize())
@@ -294,7 +294,7 @@ public:
       mBogusFileList = bogusFileList;
       mBogusIdsAndInddex = bogusIdsAndIndex;
       mBogusTime = bogusTime;
-      EXPECT_CALL(*this, GetOldestNFiles(_,_,_,_,_))
+      EXPECT_CALL(*this, GetOldestNFiles(_,_,_,_,_,_))
               .WillRepeatedly(DoAll(SetArgReferee<3>(mBogusIdsAndInddex),SetArgReferee<4>(mBogusTime),Return(mBogusFileList)));
    }
    
