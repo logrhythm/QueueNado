@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "FileIO.h"
 namespace {
+
    bool StringContains(const std::string& input, const std::string& pattern) {
       if (input.find(pattern) != std::string::npos) {
          return true;
@@ -14,19 +15,33 @@ namespace {
 }
 #ifdef LR_DEBUG
 
-TEST_F(RESTParserTest, GetCount) {
- 
+TEST_F(RESTParserTest, GetTotalHits) {
    RESTParser sender;
-   
+
    std::string fakeReply;
-   
-   EXPECT_EQ(0,sender.GetCount(fakeReply));
+
+   EXPECT_EQ(0, sender.GetTotalHits(fakeReply));
    fakeReply = "200|ok|{\"here\" : {\"us chickens\", \"nobody\" } }";
-   EXPECT_EQ(0,sender.GetCount(fakeReply));
+   EXPECT_EQ(0, sender.GetTotalHits(fakeReply));
+   fakeReply = "200|ok|{\"took\":4359,\"timed_out\":false,\"_shards\":{\"total\":84,\"successful\":84,\"failed\":0},\"hits\":{\"total\":13992297,\"max_score\":null,\"hits\":[{\"_index\":\"network_2013_10_28\",\"_type\":\"meta\",\"_id\":\"226890cf-a90a-42ea-b7d9-5e3492b488a6\",\"_score\":null,\"fields\":{\"timeUpdated\":\"2013/10/28 16:07:48\",\"sessionId\":\"226890cf-a90a-42ea-b7d9-5e3492b488a6\"},\"sort\":[1382976468000]}]}}";
+   EXPECT_EQ(13992297, sender.GetTotalHits(fakeReply));
+   fakeReply = "200|ok|{\"took\":4359,\"timed_out\":false,\"_shards\":{\"total\":84,\"successful\":84,\"failed\":0},\"hits\":{\"total\":13992297,\"atotal\":123,\"totalb\":345,\"hits\":[{\"_index\":\"network_2013_10_28\",\"_type\":\"meta\",\"_id\":\"226890cf-a90a-42ea-b7d9-5e3492b488a6\",\"_score\":null,\"fields\":{\"timeUpdated\":\"2013/10/28 16:07:48\",\"sessionId\":\"226890cf-a90a-42ea-b7d9-5e3492b488a6\"},\"sort\":[1382976468000]}]}}";
+   EXPECT_EQ(13992297, sender.GetTotalHits(fakeReply));
+}
+
+TEST_F(RESTParserTest, GetCount) {
+
+   RESTParser sender;
+
+   std::string fakeReply;
+
+   EXPECT_EQ(0, sender.GetCount(fakeReply));
+   fakeReply = "200|ok|{\"here\" : {\"us chickens\", \"nobody\" } }";
+   EXPECT_EQ(0, sender.GetCount(fakeReply));
    fakeReply = "200|ok|{\"count\":12147998,\"_shards\":{\"total\":78,\"successful\":78,\"failed\":0}}";
-   EXPECT_EQ(12147998,sender.GetCount(fakeReply));
+   EXPECT_EQ(12147998, sender.GetCount(fakeReply));
    fakeReply = "200|ok|{\"count\":12147998,\"counterattack\":123,\"kitchencounter\":456}";
-   EXPECT_EQ(12147998,sender.GetCount(fakeReply));
+   EXPECT_EQ(12147998, sender.GetCount(fakeReply));
 }
 
 TEST_F(RESTParserTest, GetListOfClusterNames) {
@@ -56,7 +71,7 @@ TEST_F(RESTParserTest, BadReqeust) {
    EXPECT_TRUE(sender.BadReqeust(reply));
    reply = "200|OK|{}";
    EXPECT_FALSE(sender.BadReqeust(reply));
-   
+
 }
 
 TEST_F(RESTParserTest, GetSingleDiskInfo) {
@@ -72,13 +87,13 @@ TEST_F(RESTParserTest, GetSingleDiskInfo) {
    RESTParser sender;
 
    SingleDiskInfo retrievedInfo;
-   ASSERT_TRUE(sender.GetAClustersDiskInfo("b", info,retrievedInfo));
+   ASSERT_TRUE(sender.GetAClustersDiskInfo("b", info, retrievedInfo));
    EXPECT_EQ(singleInfo, retrievedInfo);
    std::get<0>(singleInfo)["a"] = "A";
    std::get<1>(singleInfo)["nA"] = 1;
-   ASSERT_TRUE(sender.GetAClustersDiskInfo("a", info,retrievedInfo));
+   ASSERT_TRUE(sender.GetAClustersDiskInfo("a", info, retrievedInfo));
    EXPECT_EQ(singleInfo, retrievedInfo);
-   EXPECT_FALSE(sender.GetAClustersDiskInfo("c",info,retrievedInfo));
+   EXPECT_FALSE(sender.GetAClustersDiskInfo("c", info, retrievedInfo));
 
 }
 
@@ -143,35 +158,36 @@ TEST_F(RESTParserTest, GetSpecificDiskInfo) {
 
 TEST_F(RESTParserTest, ParseForSessionIds) {
    using namespace FileIO;
-   
+
    auto results = ReadAsciiFileContent("resources/filteredQueryTest");
    ASSERT_FALSE(results.HasFailed());
    auto reply = results.result;
-   
+
    MockBoomStick transport("tcp://127.0.0.1:9700");
    RESTParser sender;
-   
+
    auto ids = sender.GetSessionIdsFromQuery(reply);
-   
-   EXPECT_EQ(10,ids.size());
 
-   EXPECT_TRUE(StringContains(ids[0],"2e0bb480-be41-427c-92b5-61ccedbe5d6a"));
-   EXPECT_TRUE(StringContains(ids[1],"989a6965-a19a-44b4-9f75-cf283fc44b30"));
-   EXPECT_TRUE(StringContains(ids[2],"6ca68984-3333-431f-8a29-763524ad4f3f"));
-   EXPECT_TRUE(StringContains(ids[3],"de2bd6fe-95dc-4058-9b5c-dd0f6821add7"));
-   EXPECT_TRUE(StringContains(ids[4],"64fe3bb6-312d-4353-b9e0-abbc61303b99"));
-   EXPECT_TRUE(StringContains(ids[5],"0a368a48-d4ad-4edf-8aff-e6b49da4d38b"));
-   EXPECT_TRUE(StringContains(ids[6],"c79802e0-1021-43f4-af16-7be26db0363a"));
-   EXPECT_TRUE(StringContains(ids[7],"ec4b8906-a3e8-4024-97c6-8617848339db"));
-   EXPECT_TRUE(StringContains(ids[8],"648e4bfc-6198-4170-abb9-840e761381cf"));
-   EXPECT_TRUE(StringContains(ids[9],"99d603f6-25e9-4d40-8808-364f4cbcb229"));
-   
-   
+   EXPECT_EQ(10, ids.size());
 
-   
+   EXPECT_TRUE(StringContains(ids[0], "2e0bb480-be41-427c-92b5-61ccedbe5d6a"));
+   EXPECT_TRUE(StringContains(ids[1], "989a6965-a19a-44b4-9f75-cf283fc44b30"));
+   EXPECT_TRUE(StringContains(ids[2], "6ca68984-3333-431f-8a29-763524ad4f3f"));
+   EXPECT_TRUE(StringContains(ids[3], "de2bd6fe-95dc-4058-9b5c-dd0f6821add7"));
+   EXPECT_TRUE(StringContains(ids[4], "64fe3bb6-312d-4353-b9e0-abbc61303b99"));
+   EXPECT_TRUE(StringContains(ids[5], "0a368a48-d4ad-4edf-8aff-e6b49da4d38b"));
+   EXPECT_TRUE(StringContains(ids[6], "c79802e0-1021-43f4-af16-7be26db0363a"));
+   EXPECT_TRUE(StringContains(ids[7], "ec4b8906-a3e8-4024-97c6-8617848339db"));
+   EXPECT_TRUE(StringContains(ids[8], "648e4bfc-6198-4170-abb9-840e761381cf"));
+   EXPECT_TRUE(StringContains(ids[9], "99d603f6-25e9-4d40-8808-364f4cbcb229"));
+
+
+
+
 }
 
 #else
+
 TEST_F(RESTParserTest, emptyTest) {
    EXPECT_TRUE(true);
 }
