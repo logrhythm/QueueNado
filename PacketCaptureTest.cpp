@@ -64,6 +64,16 @@ int MockPacketCapturePCap::GetPacketFromPCap(ctb_ppacket& packet) {
    return returnVal;
 }
 
+TEST_F(PacketCaptureTest, PcapVersion) {
+   if (geteuid() == 0 ) {
+#ifdef LR_DEBUG
+      std::string interface = "NOPE";
+      MockPacketCapturePCap capturer(t_clientAddr, interface, mConf);
+      EXPECT_EQ("libpcap version 1.4.0", capturer.LogLibPCapVersion());
+#endif
+   }
+}
+
 TEST_F(PacketCaptureTest, NonExistantInterface) {
    if (geteuid() == 0 ) {
 #ifdef LR_DEBUG
