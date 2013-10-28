@@ -60,11 +60,8 @@ public:
    }
 
    void CleanupOldPcapFiles(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
-           std::time_t& currentTime, size_t& aDiskUsed,
-           size_t& aTotalFiles,
-           const DiskSpace& probeDiskInGB,
-           DiskSpace& pcapDiskInGB) {
-      DiskCleanup::CleanupOldPcapFiles(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed, aTotalFiles, probeDiskInGB, pcapDiskInGB);
+           std::time_t& currentTime, StatInfo& stats) {
+      DiskCleanup::CleanupOldPcapFiles(canSendStats, previous, es, sendQueue, currentTime, stats);
    }
 
    bool TooMuchSearch(const size_t& fsFreeGigs, const size_t& fsTotalGigs) {
