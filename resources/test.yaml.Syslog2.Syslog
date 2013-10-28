@@ -1,3 +1,4 @@
+commandQueue: ipc:///tmp/testcommand.ipc
 syslogTcpEnabled: true
 syslogMaxLineLength: 2047
 syslogLogName: /var/log/nm.log

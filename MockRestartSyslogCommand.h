@@ -26,8 +26,9 @@ struct MockRestartSyslogCommand : public RestartSyslogCommand {
    virtual ~MockRestartSyslogCommand() {
    }
 
-   static Command* Construct(const protoMsg::CommandRequest& request) {
-      return new MockRestartSyslogCommand(request);
+   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
+      std::shared_ptr<Command> command(new MockRestartSyslogCommand(request));
+      return command;
    }
 
    protoMsg::CommandReply Execute(const Conf& conf) LR_OVERRIDE {
