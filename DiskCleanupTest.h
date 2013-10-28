@@ -16,7 +16,8 @@ public:
 protected:
 
    virtual void SetUp() {
-
+      memset(reinterpret_cast<void*>(&stats),0,sizeof(stats));
+      stats.currentTime = std::time(NULL);
       bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id0", "id0"));
       bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id1", "id1"));
       bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id2", "id2"));
@@ -88,6 +89,7 @@ protected:
    PathAndFileNames bogusFileList;
    IdsAndIndexes bogusIdsAndIndex;
    time_t bogusTime;
+   DiskCleanup::StatInfo stats;
 private:
 
 };
