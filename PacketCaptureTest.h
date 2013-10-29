@@ -130,6 +130,10 @@ public:
    virtual ~MockPacketCapturePCap() {
    }
 
+   virtual std::string LogLibPCapVersion() {
+      return PacketCapturePCap::LogLibPCapVersion();
+   }
+
    virtual pcap_t* CreatePCapHandle() {
       if (mFailCreatePCapHandle) {
          return NULL;
