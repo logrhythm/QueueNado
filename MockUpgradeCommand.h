@@ -5,8 +5,8 @@
 
 class MockUpgradeCommand : public UpgradeCommand {
 public:
-   static Command* Construct(const protoMsg::CommandRequest& request) {
-      MockUpgradeCommand* command = new MockUpgradeCommand(request);
+   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
+      std::shared_ptr<MockUpgradeCommand> command(new MockUpgradeCommand(request));
       command->SetUploadDir("/tmp/");
       return command;
    }

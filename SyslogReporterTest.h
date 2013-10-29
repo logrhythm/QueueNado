@@ -10,6 +10,8 @@
 #include "MockSyslogReporter.h"
 #include "ConfSlave.h"
 #include "ConfMaster.h"
+#include <cstdlib> // rand
+#include <ctime>
 #include <string>
 #include <vector>
 
@@ -42,7 +44,8 @@ public:
 
       mConfSlave.Start();
       boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-   };
+      std::srand(std::time(0)); // current time as seed for random generator
+   }
 
    ~SyslogReporterTest() {
       mConfSlave.Stop();

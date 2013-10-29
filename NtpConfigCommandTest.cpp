@@ -19,7 +19,7 @@ TEST_F(NtpConfigCommandTest, DoesItCompileAndLink) {
    
    protoMsg::CommandRequest requestMsg;
    requestMsg.set_type(protoMsg::CommandRequest_CommandType_NTP_CONFIG); 
-   std::unique_ptr<Command> cmd(NtpConfigCommand::Construct(requestMsg));
+   std::shared_ptr<Command> cmd = NtpConfigCommand::Construct(requestMsg);
    ASSERT_NE(cmd.get(), nullptr);
    SUCCEED();
 }

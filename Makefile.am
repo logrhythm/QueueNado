@@ -165,6 +165,7 @@ CommandProcessorTests_SOURCES=main.cpp \
         NtpConfigCommandTest.cpp \
         NtpConfigCommandTest.h \
         MockNtpConfigCommand.h \
+        MockRestartSyslogCommand.h \
         MockConfNtpToReadFile.h \
         MockConfNtp.h \
 	MockProcessManagerCommand.h
@@ -303,7 +304,7 @@ nmTest_SOURCES=main.cpp \
 
 SyslogReporterTest_LDADD=${DYNAMIC_LIBS}
 SyslogReporterTest_LDFLAGS=${BASE_LIBS}
-SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp
+SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp MockSyslogReporter.h
 SyslogReporterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine
