@@ -5,6 +5,7 @@
 #include "SendStats.h"
 #include "MockConf.h"
 #include "MockElasticSearch.h"
+#include "MockSendStats.h"
 #include <future>
 #include <thread>
 #include <atomic>
@@ -1129,5 +1130,70 @@ TEST_F(DiskCleanupTest, DontDeleteTheLastIndex) {
    oldestIndex = diskCleanup.GetOldestIndex(es);
    EXPECT_EQ("network_12345", oldestIndex);
 }
+
+TEST_F(DiskCleanupTest, SendStats) {
+   MockDiskCleanup diskCleanup(mConf);
+   size_t valueInByte = 1024* 4096;
+   DiskCleanup::PacketCaptureFilesystemDetails zeroed{0,0,0,0};
+   DiskCleanup::PacketCaptureFilesystemDetails detailsWithValues{valueInByte,valueInByte,valueInByte,valueInByte};
+   
+  
+   diskCleanup.mDoPseudoGetUpdatedDiskInfo = true;
+   diskCleanup.mPseudoGetUpdatedDiskInfo = detailsWithValues;
+   
+   MockSendStats sendQueue;
+   MockElasticSearch es(false);
+   es.mMockListOfIndexes.clear();
+   es.mFakeIndexList = true;
+   size_t ignored = 1;
+   std::time_t oldTime = std::time(nullptr);
+   std::time_t copyOldTime = oldTime;
+   std::this_thread::sleep_for(std::chrono::seconds(6));// 5s is the limit in DiskCleanup::SendAllStats
+   DiskCleanup::DiskSpace ignoredDiskSpace{0,0,0};
+   
+   diskCleanup.SendAllStats(true, zeroed, es, sendQueue, oldTime, ignored, ignored, ignoredDiskSpace,ignoredDiskSpace);
+   ASSERT_EQ(sendQueue.mSendStatKeys.size(), sendQueue.mSendStatValues.size());
+   size_t counter = 0;
+   for(auto& key: sendQueue.mSendStatKeys) {
+      LOG(INFO) << key << ":" << sendQueue.mSendStatValues[counter++];
+   }
+   ASSERT_TRUE(sendQueue.mSendStatKeys.size() >= 4) << ":" << sendQueue.mSendStatKeys.size();
+   EXPECT_EQ(sendQueue.mSendStatKeys[0], "Total_ES_Disk_Writes");
+   EXPECT_EQ(sendQueue.mSendStatValues[0], valueInByte);
+   EXPECT_EQ(sendQueue.mSendStatKeys[1], "Total_ES_Disk_Reads");
+   EXPECT_EQ(sendQueue.mSendStatValues[1], valueInByte);
+   
+   EXPECT_EQ(sendQueue.mSendStatKeys[2], "Total_ES_Disk_Mb_Writes");
+   EXPECT_EQ(sendQueue.mSendStatValues[2], valueInByte >> B_TO_MB_SHIFT);
+   EXPECT_EQ(sendQueue.mSendStatKeys[3], "Total_ES_Disk_Mb_Reads");
+   EXPECT_EQ(sendQueue.mSendStatValues[3], valueInByte >> B_TO_MB_SHIFT); 
+   
+   
+   // Now using weird values for force calculations to become negative
+   // We should then just send zero values
+   DiskCleanup::PacketCaptureFilesystemDetails zeroed2{0,0,0,0};
+   diskCleanup.mPseudoGetUpdatedDiskInfo = zeroed2; // no values as current
+   sendQueue.mSendStatKeys.clear();
+   sendQueue.mSendStatValues.clear();
+   // send values as current but latest values are zeroes we get negative
+   diskCleanup.SendAllStats(true, detailsWithValues, es, sendQueue, copyOldTime, ignored, ignored, ignoredDiskSpace,ignoredDiskSpace);
+   ASSERT_EQ(sendQueue.mSendStatKeys.size(), sendQueue.mSendStatValues.size());
+   counter = 0;
+   for(auto& key: sendQueue.mSendStatKeys) {
+      LOG(INFO) << key << ":" << sendQueue.mSendStatValues[counter++];
+   }
+   ASSERT_TRUE(sendQueue.mSendStatKeys.size() >= 4) << ":" << sendQueue.mSendStatKeys.size();
+   EXPECT_EQ(sendQueue.mSendStatKeys[0], "Total_ES_Disk_Writes");
+   EXPECT_EQ(sendQueue.mSendStatValues[0], 0);
+   EXPECT_EQ(sendQueue.mSendStatKeys[1], "Total_ES_Disk_Reads");
+   EXPECT_EQ(sendQueue.mSendStatValues[1], 0);
+   
+   EXPECT_EQ(sendQueue.mSendStatKeys[2], "Total_ES_Disk_Mb_Writes");
+   EXPECT_EQ(sendQueue.mSendStatValues[2], 0);
+   EXPECT_EQ(sendQueue.mSendStatKeys[3], "Total_ES_Disk_Mb_Reads");
+   EXPECT_EQ(sendQueue.mSendStatValues[3], 0); 
+}
+
+
 
 #endif

@@ -14,7 +14,7 @@ public:
    MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
    mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
-           mIsShutdownResult(false), mUseMockConf(false) {
+           mIsShutdownResult(false), mDoPseudoGetUpdatedDiskInfo(false), mUseMockConf(false) {
       mFleSystemInfo.f_bfree = 1;
       mFleSystemInfo.f_frsize = 1;
       mFleSystemInfo.f_blocks = 1;
@@ -177,6 +177,26 @@ public:
       return DiskCleanup::CleanupMassiveOvershoot(targetToRemove, aTotalFiles);
    }
 
+      
+   void SendAllStats(bool canSendStats, PacketCaptureFilesystemDetails& previous, ElasticSearch& es, SendStats& sendQueue,
+           std::time_t& currentTime, const size_t& aDiskUsed, const size_t& aTotalFiles,   const DiskSpace& probeDiskInGB,
+           const DiskSpace& pcapDiskInGB) {
+       
+       // Send all stats either to a Mock sendQueue or the real one
+       DiskCleanup::SendAllStats(canSendStats, previous, es, sendQueue, currentTime, aDiskUsed
+               , aTotalFiles, probeDiskInGB, pcapDiskInGB);
+   }
+      
+   
+   bool GetUpdatedDiskInfo(ElasticSearch& es, PacketCaptureFilesystemDetails& detail) {
+       if (mDoPseudoGetUpdatedDiskInfo) {
+           detail = mPseudoGetUpdatedDiskInfo;
+           return true;
+       }
+       
+       return DiskCleanup::GetUpdatedDiskInfo(es, detail);
+   }
+      
    bool RemoveFile(const std::string& path) {
       if (mFakeRemove) {
          return mRemoveResult;
@@ -214,6 +234,9 @@ public:
    bool mRemoveResult;
    bool mFakeIsShutdown;
    bool mIsShutdownResult;
+   bool mDoPseudoGetUpdatedDiskInfo;
+   DiskCleanup::PacketCaptureFilesystemDetails mPseudoGetUpdatedDiskInfo;
+   
    bool mUseMockConf;
    MockConf mMockedConf;
 };
