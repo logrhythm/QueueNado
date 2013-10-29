@@ -306,6 +306,9 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
       items[0].socket = mChamber;
       items[0].events = ZMQ_POLLOUT;
       int rc = zmq_poll(items, 1, 0);
+      if (rc == 0) {
+         zmq_poll(items,1,100);
+      }
       if (rc < 0) {
          success = false;
          LOG(WARNING) << "Queue error, cannot poll for status";
@@ -324,7 +327,6 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
          }
       } else {
          LOG(WARNING) << "Queue error, timeout waiting for queue to be ready";
-         std::this_thread::sleep_for(std::chrono::milliseconds(100)); // do not make this any faster!
          success = false;
       }
    }
