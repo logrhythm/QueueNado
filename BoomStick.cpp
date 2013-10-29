@@ -282,10 +282,10 @@ std::string BoomStick::Send(const std::string& command) {
  *   If the send was successful
  */
 bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
-   if (mUtilizedThread == 0) {
+   if (0 == mUtilizedThread) {
       mUtilizedThread = pthread_self();
    } else {
-      CHECK(mUtilizedThread == pthread_self());
+      CHECK(pthread_self() == mUtilizedThread);
    }
    if (nullptr == mCtx || nullptr == mChamber) {
       return false;
@@ -306,14 +306,14 @@ bool BoomStick::SendAsync(const std::string& uuid, const std::string& command) {
       items[0].socket = mChamber;
       items[0].events = ZMQ_POLLOUT;
       int rc = zmq_poll(items, 1, 0);
-      if (rc == 0) {
+      if (0 == rc) {
          zmq_poll(items,1,100);
       }
       if (rc < 0) {
          success = false;
          LOG(WARNING) << "Queue error, cannot poll for status";
 
-      } else if (rc == 1) {
+      } else if (1 == rc) {
          if ((items[0].revents & ZMQ_POLLOUT) != ZMQ_POLLOUT) {
             LOG(WARNING) << "Queue error, cannot send messages the queue is full";
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -366,10 +366,10 @@ bool BoomStick::GetReplyFromCache(const std::string& messageHash, std::string& r
  * @return 
  */
 bool BoomStick::CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply) {
-   if (mUtilizedThread == 0) {
+   if (0 == mUtilizedThread) {
       mUtilizedThread = pthread_self();
    } else {
-      CHECK(mUtilizedThread == pthread_self());
+      CHECK(pthread_self() == mUtilizedThread);
    }
    if (!mChamber) {
       LOG(WARNING) << "Invalid socket";
@@ -389,10 +389,10 @@ bool BoomStick::CheckForMessagePending(const std::string& messageHash, const uns
  * @return 
  */
 bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundReply) {
-   if (mUtilizedThread == 0) {
+   if (0 == mUtilizedThread) {
       mUtilizedThread = pthread_self();
    } else {
-      CHECK(mUtilizedThread == pthread_self());
+      CHECK(pthread_self() == mUtilizedThread);
    }
    if (!mChamber) {
       LOG(WARNING) << "Invalid socket";
@@ -434,10 +434,10 @@ bool BoomStick::ReadFromReadySocket(std::string& foundId, std::string& foundRepl
  * be in the reply return. 
  */
 bool BoomStick::GetAsyncReply(const std::string& uuid, const unsigned int msToWait, std::string& reply) {
-   if (mUtilizedThread == 0) {
+   if (0 == mUtilizedThread) {
       mUtilizedThread = pthread_self();
    } else {
-      CHECK(mUtilizedThread == pthread_self());
+      CHECK(pthread_self() == mUtilizedThread);
    }
    if (nullptr == mCtx || nullptr == mChamber) {
       LOG(WARNING) << "Invalid socket";
@@ -465,10 +465,10 @@ bool BoomStick::GetAsyncReply(const std::string& uuid, const unsigned int msToWa
  *   If the message was found
  */
 bool BoomStick::GetReplyFromSocket(const std::string& uuid, const unsigned int msToWait, std::string& reply) {
-   if (mUtilizedThread == 0) {
+   if (0 == mUtilizedThread) {
       mUtilizedThread = pthread_self();
    } else {
-      CHECK(mUtilizedThread == pthread_self());
+      CHECK(pthread_self() == mUtilizedThread );
    }
    bool found = false;
    reply = "Timed out searching for reply";
