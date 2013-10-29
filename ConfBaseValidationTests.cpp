@@ -85,7 +85,8 @@ TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
    msg.set_dpithreads("10");
 
    conf.CheckNumber(msg.dpithreads(), Range {
-      1, 12});
+      1, 12
+   });
    EXPECT_EQ(conf.mValidConf, true);
 }
 
@@ -153,8 +154,8 @@ TEST_F(ConfProcessorTests, BaseConfValidationBool) {
  * SHOULD make the validation to pass instead of fail
  */
 namespace {
-   const size_t gNumberOfFieldsLowerBound = 32;
-   const size_t gNumberOfFieldsUpperBound = 32;
+   const size_t gNumberOfFieldsLowerBound = 33;
+   const size_t gNumberOfFieldsUpperBound = 33;
 }
 
 void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
@@ -207,10 +208,10 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
 
    (index++ == shouldFail) ? msg.set_syslogrecvqueuesize("9") : msg.set_syslogrecvqueuesize("10");
    (index++ == shouldFail) ? msg.set_syslogsendqueuesize("9") : msg.set_syslogsendqueuesize("10");
-
-   // Test sanity check. Total number of used fields are :  32
+   (index++ == shouldFail) ? msg.set_pcaprecordstoclearpercycle("0") : msg.set_pcaprecordstoclearpercycle("1");
+   // Test sanity check. Total number of used fields are :  34
    EXPECT_EQ(index, gNumberOfFieldsLowerBound) << "\t\t\t\t\t: Expected number of fields are "
-      << gNumberOfFieldsLowerBound << " unless you added more?";
+           << gNumberOfFieldsLowerBound << " unless you added more?";
    conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsLowerBound) {
@@ -283,10 +284,10 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
 
    (index++ == shouldFail) ? msg.set_syslogrecvqueuesize("10001") : msg.set_syslogrecvqueuesize("10000");
    (index++ == shouldFail) ? msg.set_syslogsendqueuesize("10001") : msg.set_syslogsendqueuesize("10000");
-
-   // Test sanity check. Total number of used fields are :  32
+   (index++ == shouldFail) ? msg.set_pcaprecordstoclearpercycle("20001") : msg.set_pcaprecordstoclearpercycle("20000");
+   // Test sanity check. Total number of used fields are :  33
    EXPECT_EQ(index, gNumberOfFieldsUpperBound) << "\t\t\t\t\t: Expected number of fields are "
-      << gNumberOfFieldsUpperBound << " unless you added more?";
+           << gNumberOfFieldsUpperBound << " unless you added more?";
    conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsUpperBound) {
