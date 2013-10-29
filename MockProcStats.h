@@ -16,6 +16,8 @@ public:
    
 public:
    MockProcStats(): mPseudoTask(false), mPseudoThreadPid(false), mPseudoTotalMemMB(0), mUsePseudoCpuJiffies(false) {}
+   MockProcStats(bool pseudoTask, bool pseudoThreadPid, size_t pseudoTotalMem, bool pseudoJiffies): mPseudoTask(pseudoTask), mPseudoThreadPid(pseudoThreadPid), mPseudoTotalMemMB(pseudoTotalMem), mUsePseudoCpuJiffies(pseudoJiffies) {}
+
    ~MockProcStats() {}
    bool UpdateMemStats() {
       return ProcStats::UpdateMemStats();
@@ -26,6 +28,11 @@ public:
       }
       return ProcStats::UpdateSystemCPU();
    }
+   
+   bool UpdateCpuStats() {
+       return ProcStats::UpdateCpuStats();
+   }
+   
    void SetMemFile(const std::string& memFile) {
       mProcMeminfoName = memFile;
    }
