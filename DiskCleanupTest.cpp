@@ -286,11 +286,11 @@ TEST_F(DiskCleanupTest, GetOlderFilesFromPath) {
 
 TEST_F(DiskCleanupTest, TimeToForceAClean) {
    MockDiskCleanup cleanup(mConf);
-
-   cleanup.SetLastForcedClean(std::time(NULL));
-   EXPECT_FALSE(cleanup.TimeForBruteForceCleanup());
-   cleanup.SetLastForcedClean(std::time(NULL) - 20 * 60 - 1);
-   EXPECT_TRUE(cleanup.TimeForBruteForceCleanup());
+   time_t lastClean(0);
+   cleanup.SetLastForcedClean(std::time(NULL),lastClean);
+   EXPECT_FALSE(cleanup.TimeForBruteForceCleanup(lastClean));
+   cleanup.SetLastForcedClean(std::time(NULL) - 20 * 60 - 1,lastClean);
+   EXPECT_TRUE(cleanup.TimeForBruteForceCleanup(lastClean));
 }
 
 TEST_F(DiskCleanupTest, WayTooManyFiles) {
