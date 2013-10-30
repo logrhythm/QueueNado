@@ -228,6 +228,16 @@ public:
    bool OptimizeIndex(const std::string& index) {
       mOptimizedIndexes.insert(index);
       return ElasticSearch::OptimizeIndex(index);
+   }  
+   bool OptimizeIndexes(const std::set<std::string>& allIndexes,
+           const std::set<std::string> excludes) LR_OVERRIDE {
+      ElasticSearch::OptimizeIndexes(allIndexes, excludes);
+   }
+   std::set<std::string> GetIndexesThatAreActive() {
+      return ElasticSearch::GetIndexesThatAreActive();
+   }
+   LR_VIRTUAL bool RunOptimize() {
+      return ElasticSearch::RunOptimize();
    }
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;

@@ -204,22 +204,7 @@ public:
       return DiskCleanup::CalculateNewTotalFiles(oldTotal, targetRemoved, failedRemoved);
    }
 
-   bool OptimizeIndexes(const std::set<std::string>& allIndexes,
-           const std::set<std::string> excludes, ElasticSearch& es) LR_OVERRIDE {
-      DiskCleanup::OptimizeIndexes(allIndexes, excludes, es);
-   }
 
-   std::set<std::string> GetIndexesThatAreActive() {
-      return DiskCleanup::GetIndexesThatAreActive();
-   }
-
-   LR_VIRTUAL void OptimizeThread(ElasticSearch& es) {
-      return DiskCleanup::OptimizeThread(es);
-   }
-
-   LR_VIRTUAL bool RunOptimize(ElasticSearch& es) {
-      return DiskCleanup::RunOptimize(es);
-   }
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
    int mFileSystemInfoCountdown;

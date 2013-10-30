@@ -1210,6 +1210,46 @@ TEST_F(ElasticSearchTest, DoNothingForTimeoutSeconds) {
 
 }
 
+TEST_F(ElasticSearchTest, OptimizeIndexes) {
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   MockElasticSearch es(transport, false);
+
+   ASSERT_TRUE(es.Initialize());
+   transport.mReturnString = "200|ok|{}";
+
+   std::set<std::string> allIndexes;
+   std::set<std::string> excludes;
+
+   es.OptimizeIndexes(allIndexes, excludes);
+   EXPECT_TRUE(es.mOptimizedIndexes.empty());
+   allIndexes.insert("test1");
+   es.OptimizeIndexes(allIndexes, excludes);
+   EXPECT_TRUE(es.mOptimizedIndexes.find("test1") != es.mOptimizedIndexes.end());
+   es.mOptimizedIndexes.clear();
+   allIndexes.insert("test2");
+   excludes.insert("test2");
+   es.OptimizeIndexes(allIndexes, excludes);
+   EXPECT_TRUE(es.mOptimizedIndexes.find("test1") != es.mOptimizedIndexes.end());
+   EXPECT_FALSE(es.mOptimizedIndexes.find("test2") != es.mOptimizedIndexes.end());
+}
+
+TEST_F(ElasticSearchTest, GetIndexesThatAreActive) {
+   
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   MockElasticSearch es(transport, false);
+   std::time_t now(std::time(NULL));
+
+   networkMonitor::DpiMsgLR todayMsg;
+   todayMsg.set_timeupdated(now);
+
+   std::set<std::string> excludes = es.GetIndexesThatAreActive();
+
+   EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
+   todayMsg.set_timeupdated(now - (24 * 60 * 60));
+   EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
+   todayMsg.set_timeupdated(now - (48 * 60 * 60));
+   EXPECT_FALSE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
+}
 #else
 
 TEST_F(ElasticSearchTest, empty) {

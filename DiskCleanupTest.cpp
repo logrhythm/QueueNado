@@ -158,67 +158,7 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESOddIterations) {
    EXPECT_EQ(3, cleanup.mRecordsMarked.size());
 }
 
-TEST_F(DiskCleanupTest, OptimizeThreadObeysShutdown) {
-   GMockDiskCleanup cleanup(mConf);
-   MockBoomStick transport("ipc://tmp/foo.ipc");
-   MockElasticSearch es(transport, false);
-   zctx_interrupted = true;
-   cleanup.OptimizeThread(es);
-   EXPECT_CALL(cleanup, RunOptimize(_))
-           .Times(0);
-   zctx_interrupted = false;
-}
 
-TEST_F(DiskCleanupTest, OptimizeThreadFailsWhenESBorked) {
-   GMockDiskCleanup cleanup(mConf);
-   MockBoomStick transport("ipc://tmp/foo.ipc");
-   GMockElasticSearch es(transport, false);
-
-   es.DelegateInitializeToAlwaysFail();
-   cleanup.OptimizeThread(es);
-   EXPECT_CALL(cleanup, RunOptimize(_))
-           .Times(0);
-}
-
-TEST_F(DiskCleanupTest, OptimizeIndexes) {
-   MockDiskCleanup cleanup(mConf);
-   MockBoomStick transport("ipc://tmp/foo.ipc");
-   MockElasticSearch es(transport, false);
-
-   ASSERT_TRUE(es.Initialize());
-   transport.mReturnString = "200|ok|{}";
-
-   std::set<std::string> allIndexes;
-   std::set<std::string> excludes;
-
-   cleanup.OptimizeIndexes(allIndexes, excludes, es);
-   EXPECT_TRUE(es.mOptimizedIndexes.empty());
-   allIndexes.insert("test1");
-   cleanup.OptimizeIndexes(allIndexes, excludes, es);
-   EXPECT_TRUE(es.mOptimizedIndexes.find("test1") != es.mOptimizedIndexes.end());
-   es.mOptimizedIndexes.clear();
-   allIndexes.insert("test2");
-   excludes.insert("test2");
-   cleanup.OptimizeIndexes(allIndexes, excludes, es);
-   EXPECT_TRUE(es.mOptimizedIndexes.find("test1") != es.mOptimizedIndexes.end());
-   EXPECT_FALSE(es.mOptimizedIndexes.find("test2") != es.mOptimizedIndexes.end());
-}
-
-TEST_F(DiskCleanupTest, GetIndexesThatAreActive) {
-   MockDiskCleanup cleanup(mConf);
-   std::time_t now(std::time(NULL));
-
-   networkMonitor::DpiMsgLR todayMsg;
-   todayMsg.set_timeupdated(now);
-
-   std::set<std::string> excludes = cleanup.GetIndexesThatAreActive();
-
-   EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
-   todayMsg.set_timeupdated(now - (24 * 60 * 60));
-   EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
-   todayMsg.set_timeupdated(now - (48 * 60 * 60));
-   EXPECT_FALSE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
-}
 
 TEST_F(DiskCleanupTest, MarkFileAsRemovedInES) {
    MockDiskCleanup cleanup(mConf);
