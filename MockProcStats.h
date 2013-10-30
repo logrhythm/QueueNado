@@ -4,20 +4,35 @@
 #include "include/global.h"
 
 class MockProcStats : public ProcStats {
+public:
    bool mPseudoTask; 
    bool mPseudoThreadPid;
    pid_t mPseudoPid;
    size_t mPseudoTotalMemMB;
    std::string mPseudoProcTaskFileName;
+   
+   bool mUsePseudoCpuJiffies;
+   CpuJiffies mPseudoCpuJiffies;
+   
 public:
-   MockProcStats(): mPseudoTask(false), mPseudoThreadPid(false), mPseudoTotalMemMB(0) {}
+   MockProcStats(): mPseudoTask(false), mPseudoThreadPid(false), mPseudoTotalMemMB(0), mUsePseudoCpuJiffies(false) {}
+   MockProcStats(bool pseudoTask, bool pseudoThreadPid, size_t pseudoTotalMem, bool pseudoJiffies): mPseudoTask(pseudoTask), mPseudoThreadPid(pseudoThreadPid), mPseudoTotalMemMB(pseudoTotalMem), mUsePseudoCpuJiffies(pseudoJiffies) {}
+
    ~MockProcStats() {}
    bool UpdateMemStats() {
       return ProcStats::UpdateMemStats();
    }
    CpuJiffies UpdateSystemCPU() {
+      if (mUsePseudoCpuJiffies) {
+         return mPseudoCpuJiffies;
+      }
       return ProcStats::UpdateSystemCPU();
    }
+   
+   bool UpdateCpuStats() {
+       return ProcStats::UpdateCpuStats();
+   }
+   
    void SetMemFile(const std::string& memFile) {
       mProcMeminfoName = memFile;
    }
@@ -62,9 +77,5 @@ public:
          return mPseudoTotalMemMB;
       }
       return ProcStats::ReadTotalMemMBOnce();
-   }
-   
-     
-private:
-         
+   }         
 };
