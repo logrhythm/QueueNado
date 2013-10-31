@@ -1,16 +1,20 @@
 #include "ProcMemStatsTest.h"
 #include "MockProcStats.h"
 
-
+ 
 TEST_F(ProcMemStatsTest, MemStatsFromFile) {
 #ifdef LR_DEBUG
    MockProcStats procStats;
    procStats.SetMemFile("resources/meminfo.1");
-   procStats.SetPseudoSysConfTotalMemoryMB(15948); 
-   ASSERT_TRUE(procStats.UpdateMemStats());
+   using ::testing::Return;
+   EXPECT_CALL(procStats.mGMockMemoryInfo, ReadTotalMemMBOnce())
+           .Times(1) // // pseudo value from meminfo.1 that is checked in two separate ways
+           .WillRepeatedly(Return(15948)); 
+   
+   ASSERT_TRUE(procStats.UpdateMemStats()); // 1st time
+   EXPECT_EQ(15948,procStats.GetTotalMem());
 
    EXPECT_EQ(10856,procStats.GetFreeMem());
-   EXPECT_EQ(15948,procStats.GetTotalMem());
    EXPECT_EQ(4932,procStats.GetUsedMem());
    EXPECT_EQ(160,procStats.GetReservedMem());
    EXPECT_EQ(8039,procStats.GetTotalSwap());
@@ -23,8 +27,10 @@ TEST_F(ProcMemStatsTest, MemStatsFromFile_FailedTotalMemReadingTriggerZeros) {
 #ifdef LR_DEBUG
    MockProcStats procStats;
    procStats.SetMemFile("resources/meminfo.1_failed");
-   procStats.SetPseudoSysConfTotalMemoryMB(15948); 
-   ASSERT_FALSE(procStats.UpdateMemStats());
+   using ::testing::Return;
+   EXPECT_CALL(procStats.mGMockMemoryInfo, ReadTotalMemMBOnce())
+           .WillRepeatedly(Return(15948));// // pseudo value from meminfo.1 that is checked in two separate ways
+   ASSERT_FALSE(procStats.UpdateMemStats()); // 1st time gmock
 
    EXPECT_EQ(0,procStats.GetFreeMem());
    EXPECT_EQ(0,procStats.GetTotalMem());
@@ -33,18 +39,22 @@ TEST_F(ProcMemStatsTest, MemStatsFromFile_FailedTotalMemReadingTriggerZeros) {
  
    // Next reading is correct
    procStats.SetMemFile("resources/meminfo.1");
-   ASSERT_TRUE(procStats.UpdateMemStats());
+   EXPECT_TRUE(procStats.UpdateMemStats());  // 2nd time gmock
    EXPECT_EQ(10856,procStats.GetFreeMem());
    EXPECT_EQ(15948,procStats.GetTotalMem());
    EXPECT_EQ(4932,procStats.GetUsedMem());
 #endif
 }
 
+
+
 TEST_F(ProcMemStatsTest, MemStatsFromFile_FailedReservedMemoryReturnZero) {
 #ifdef LR_DEBUG
    MockProcStats procStats;
    procStats.SetMemFile("resources/meminfo.2_failed");
-   procStats.SetPseudoSysConfTotalMemoryMB(10); 
+      using ::testing::Return;
+   EXPECT_CALL(procStats.mGMockMemoryInfo, ReadTotalMemMBOnce())
+           .WillOnce(Return(10));
    ASSERT_TRUE(procStats.UpdateMemStats());
 
    EXPECT_EQ(10,procStats.GetTotalMem()); // failed but not caught
@@ -55,25 +65,25 @@ TEST_F(ProcMemStatsTest, MemStatsFromFile_FailedReservedMemoryReturnZero) {
 }
 
 
-TEST_F(ProcMemStatsTest, CompareSysConfWithMemFile) {
+TEST(ProcMemStatsSystemTest, System_CompareSysConfWithMemFile) {
 #ifdef LR_DEBUG
    ProcStats& procStats(ProcStats::Instance());
    procStats.ThreadRegister("TEST");
+   MemoryInfo info("/proc/meminfo");
 
    procStats.Update();
    size_t total =  procStats.GetTotalMem();
-   size_t totalMB =   procStats.ReadTotalMemMBOnce();
+   size_t totalMB = info.ReadTotalMemMBOnce();
    ASSERT_EQ(total, totalMB);
 #endif
 }
 
 
 
-TEST_F(ProcMemStatsTest, MemStatsFromFileNotExist) {
+TEST_F(ProcMemStatsTest, System_MemStatsFromFileNotExist) {
 #ifdef LR_DEBUG
    MockProcStats procStats;
    procStats.SetMemFile("resources/FILE_NOT_FOUND");
    ASSERT_FALSE(procStats.UpdateMemStats());
-
 #endif
 }

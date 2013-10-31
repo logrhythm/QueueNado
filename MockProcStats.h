@@ -2,26 +2,46 @@
 
 #include "ProcStats.h"
 #include "include/global.h"
+#include "gmock/gmock.h"
+#include "MemoryInfo.h"
+
+class GMockMemoryInfo : public MemoryInfo{
+   public:
+      MOCK_METHOD0(ReadTotalMemMBOnce, size_t());
+};
+
+
 
 class MockProcStats : public ProcStats {
 public:
    bool mPseudoTask; 
    bool mPseudoThreadPid;
    pid_t mPseudoPid;
-   size_t mPseudoTotalMemMB;
    std::string mPseudoProcTaskFileName;
+   GMockMemoryInfo mGMockMemoryInfo;
+   size_t mPseudoTotalMemMB;
    
    bool mUsePseudoCpuJiffies;
    CpuJiffies mPseudoCpuJiffies;
    
 public:
-   MockProcStats(): mPseudoTask(false), mPseudoThreadPid(false), mPseudoTotalMemMB(0), mUsePseudoCpuJiffies(false) {}
-   MockProcStats(bool pseudoTask, bool pseudoThreadPid, size_t pseudoTotalMem, bool pseudoJiffies): mPseudoTask(pseudoTask), mPseudoThreadPid(pseudoThreadPid), mPseudoTotalMemMB(pseudoTotalMem), mUsePseudoCpuJiffies(pseudoJiffies) {}
+   MockProcStats(): mPseudoTask(false), mPseudoThreadPid(false), 
+           mUsePseudoCpuJiffies(false) {}
+   
+   MockProcStats(bool pseudoTask, bool pseudoThreadPid, size_t pseudoTotalMem, bool pseudoJiffies)
+   : mPseudoTask(pseudoTask), mPseudoThreadPid(pseudoThreadPid), 
+           mUsePseudoCpuJiffies(pseudoJiffies) {}
 
    ~MockProcStats() {}
    bool UpdateMemStats() {
       return ProcStats::UpdateMemStats();
    }
+   
+   MemoryInfo& GetMemInfo() LR_OVERRIDE{
+   return mGMockMemoryInfo;
+}
+   
+   
    CpuJiffies UpdateSystemCPU() {
       if (mUsePseudoCpuJiffies) {
          return mPseudoCpuJiffies;
@@ -67,15 +87,5 @@ public:
       }
       
       return ProcStats::GetThreadID();
-   }
-
-  void SetPseudoSysConfTotalMemoryMB (size_t pseudoTotalMB) {
-     mPseudoTotalMemMB = pseudoTotalMB;
-   }
-   size_t ReadTotalMemMBOnce() LR_OVERRIDE {
-      if(0 != mPseudoTotalMemMB) {
-         return mPseudoTotalMemMB;
-      }
-      return ProcStats::ReadTotalMemMBOnce();
-   }         
+   }      
 };
