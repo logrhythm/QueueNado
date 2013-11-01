@@ -15,6 +15,105 @@ namespace {
 }
 #ifdef LR_DEBUG
 
+TEST_F(RESTBuilderTest, GetOldestNDocuments) {
+   RESTBuilder builder; 
+   
+   //GetOldestNDocuments(const std::string& queryString, const unsigned int number, const bool cache,
+   //                                const time_t& after=0)
+   
+   std::string queryString = "testQuery";
+   unsigned int number(1234);
+   bool cache(false);
+   time_t after(1234567890L);
+   
+   std::string query = builder.GetOldestNDocuments(queryString,number,cache);
+   std::string expectedResult = "GET|/_all/meta/_search|";
+   expectedResult += "{"
+           "\"sort\": ["
+           "      {"
+           "      \"timeUpdated\": {"
+           "         \"order\" : \"asc\","
+           "         \"ignore_unmapped\" : true"
+           "     }"
+           "   }"
+           "],"
+           "\"query\" :"
+           "{";
+   expectedResult += "   \"query_string\": {\"query\":\"";
+   expectedResult += "testQuery";
+   expectedResult += "\"},"
+           "  \"_cache\":";
+   expectedResult += "false";
+   expectedResult += ","
+           "\"fields\": [\"sessionId\", \"timeUpdated\"],"
+           "\"from\": 0,"
+           "\"size\":";
+   expectedResult += "1234";
+   expectedResult += "}}";
+   
+   EXPECT_EQ(expectedResult, query);
+   query = builder.GetOldestNDocuments(queryString,number,cache,0);
+   EXPECT_EQ(expectedResult, query);
+   
+   query = builder.GetOldestNDocuments(queryString,number,cache,after);
+   expectedResult = "GET|/_all/meta/_search|";
+   expectedResult += "{"
+           "\"sort\": ["
+           "      {"
+           "      \"timeUpdated\": {"
+           "         \"order\" : \"asc\","
+           "         \"ignore_unmapped\" : true"
+           "     }"
+           "   }"
+           "],"
+           "\"query\" :"
+           "{";
+   expectedResult += "\"range\" : { \"timeUpdated\" : { \"from\" : \"";
+   expectedResult += "1234567890";
+   expectedResult += "\"} }";
+   expectedResult += "   \"query_string\": {\"query\":\"";
+   expectedResult += "testQuery";
+   expectedResult += "\"},"
+           "  \"_cache\":";
+   expectedResult += "false";
+   expectedResult += ","
+           "\"fields\": [\"sessionId\", \"timeUpdated\"],"
+           "\"from\": 0,"
+           "\"size\":";
+   expectedResult += "1234";
+   expectedResult += "}}";
+   EXPECT_EQ(expectedResult, query);
+   
+   query = builder.GetOldestNDocuments(queryString,number,true,after);
+   expectedResult = "GET|/_all/meta/_search|";
+   expectedResult += "{"
+           "\"sort\": ["
+           "      {"
+           "      \"timeUpdated\": {"
+           "         \"order\" : \"asc\","
+           "         \"ignore_unmapped\" : true"
+           "     }"
+           "   }"
+           "],"
+           "\"query\" :"
+           "{";
+   expectedResult += "\"range\" : { \"timeUpdated\" : { \"from\" : \"";
+   expectedResult += "1234567890";
+   expectedResult += "\"} }";
+   expectedResult += "   \"query_string\": {\"query\":\"";
+   expectedResult += "testQuery";
+   expectedResult += "\"},"
+           "  \"_cache\":";
+   expectedResult += "true";
+   expectedResult += ","
+           "\"fields\": [\"sessionId\", \"timeUpdated\"],"
+           "\"from\": 0,"
+           "\"size\":";
+   expectedResult += "1234";
+   expectedResult += "}}";
+   EXPECT_EQ(expectedResult, query);
+}
+
 TEST_F(RESTBuilderTest, GetLatestUpgradeDateWhereIgnored) {
    RESTBuilder builder;
    
