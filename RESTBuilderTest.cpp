@@ -15,6 +15,20 @@ namespace {
 }
 #ifdef LR_DEBUG
 
+TEST_F(RESTBuilderTest, GetLatestUpgradeDateWhereIgnored) {
+   RESTBuilder builder;
+   
+   std::string query = builder.GetLatestUpgradeDateWhereIgnored();
+   std::string expectedReply = "GET|/upgrade/info/_search|{"
+           "\"sort\" : [ { \"upgradeDate\" : { \"order\" : \"desc\" } } ],"
+           "\"query\" : {"
+           "\"query_string\" : { \"query\" : \"ignorePreviousDat:true\" }"
+           ","
+           "\"fields\" : \"upgradeDate\",\"size\" : 1"
+           "}"
+           "}";
+   EXPECT_TRUE(expectedReply==query);
+}
 TEST_F(RESTBuilderTest, GetCountQuery) {
    RESTBuilder builder;
    
