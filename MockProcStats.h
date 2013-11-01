@@ -37,7 +37,7 @@ public:
       return ProcStats::UpdateMemStats();
    }
    
-   MemoryInfo& GetMemInfo() LR_OVERRIDE{
+   MemoryInfo& GetMemoryInfo() LR_OVERRIDE{
    return mGMockMemoryInfo;
 }
    
