@@ -7,6 +7,37 @@
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
 
+TEST_F(ElasticSearchTest, GetIgnoreTime) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   GMockElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   target.mReplyMessage = "";
+   EXPECT_EQ(0,es.GetIgnoreTime());
+   
+   target.mReplyMessage = "{\"took\":707,\"timed_out\":false,"
+           "\"_shards\":{\"total\":1,\"successful\":1,\"failed\":0},"
+           "\"hits\":{\"total\":2,\"max_score\":null,"
+           "\"hits\":[{\"_index\":\"upgrade\",\"_type\":\"info\",\"_id\":\"1383325709\","
+           "\"_score\":null, \"_source\" : {\"upgradeDate\":\"2009/02/13 23:31:30\","
+           "\"ignorePreviousData\":true,\"upgradingToVersion\":\"1235\"},"
+           "\"sort\":[1383325709000]}]}}";
+   EXPECT_EQ(1234567890L,es.GetIgnoreTime());
+
+   
+   ElasticSearch es2(stick, true);
+   ASSERT_TRUE(es2.Initialize());
+   EXPECT_EQ(0,es2.GetIgnoreTime());
+   
+   GMockElasticSearchNoSend es3(stick, false);
+   ASSERT_TRUE(es3.Initialize());
+   EXPECT_EQ(0,es3.GetIgnoreTime());
+   
+}
 TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};

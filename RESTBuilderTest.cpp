@@ -123,7 +123,8 @@ TEST_F(RESTBuilderTest, GetLatestUpgradeDateWhereIgnored) {
            "\"query\" : {"
            "\"query_string\" : { \"query\" : \"ignorePreviousDat:true\" }"
            ","
-           "\"fields\" : \"upgradeDate\",\"size\" : 1"
+           "\"fields\": [\"upgradeDate\"],"
+           "\"size\" : 1"
            "}"
            "}";
    EXPECT_TRUE(expectedReply==query);
