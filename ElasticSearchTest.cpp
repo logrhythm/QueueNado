@@ -17,7 +17,9 @@ TEST_F(ElasticSearchTest, GetIgnoreTime) {
    target.BeginListenAndRepeat();
    
    target.mReplyMessage = "";
-   EXPECT_EQ(0,es.GetIgnoreTime());
+   time_t ignoreTime(0);
+   EXPECT_TRUE(es.GetIgnoreTime(ignoreTime));
+   EXPECT_EQ(0,ignoreTime);
    
    target.mReplyMessage = "{\"took\":707,\"timed_out\":false,"
            "\"_shards\":{\"total\":1,\"successful\":1,\"failed\":0},"
@@ -26,16 +28,22 @@ TEST_F(ElasticSearchTest, GetIgnoreTime) {
            "\"_score\":null, \"_source\" : {\"upgradeDate\":\"2009/02/13 23:31:30\","
            "\"ignorePreviousData\":true,\"upgradingToVersion\":\"1235\"},"
            "\"sort\":[1383325709000]}]}}";
-   EXPECT_EQ(1234567890L,es.GetIgnoreTime());
-
+   EXPECT_TRUE(es.GetIgnoreTime(ignoreTime));
+   EXPECT_EQ(1234567890L,ignoreTime);
+   target.mReplyMessage = "503|SERVICE_UNAVAILABLE|{\"error\":"
+           "\"ClusterBlockException[blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / "
+           "initialized];[SERVICE_UNAVAILABLE/2/no master];]\",\"status\":503}";
+   EXPECT_FALSE(es.GetIgnoreTime(ignoreTime));
    
    ElasticSearch es2(stick, true);
    ASSERT_TRUE(es2.Initialize());
-   EXPECT_EQ(0,es2.GetIgnoreTime());
+   EXPECT_FALSE(es2.GetIgnoreTime(ignoreTime));
+   EXPECT_EQ(0,ignoreTime);
    
    GMockElasticSearchNoSend es3(stick, false);
    ASSERT_TRUE(es3.Initialize());
-   EXPECT_EQ(0,es3.GetIgnoreTime());
+   EXPECT_FALSE(es3.GetIgnoreTime(ignoreTime));
+   EXPECT_EQ(0,ignoreTime);
    
 }
 TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {

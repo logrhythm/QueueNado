@@ -52,67 +52,105 @@ TEST_F(RESTBuilderTest, GetOldestNDocuments) {
    expectedResult += "}}";
    
    EXPECT_EQ(expectedResult, query);
-   query = builder.GetOldestNDocuments(queryString,number,cache,0);
-   EXPECT_EQ(expectedResult, query);
    
-   query = builder.GetOldestNDocuments(queryString,number,cache,after);
-   expectedResult = "GET|/_all/meta/_search|";
-   expectedResult += "{"
-           "\"sort\": ["
-           "      {"
-           "      \"timeUpdated\": {"
-           "         \"order\" : \"asc\","
-           "         \"ignore_unmapped\" : true"
-           "     }"
-           "   }"
-           "],"
-           "\"query\" :"
-           "{";
-   expectedResult += "\"range\" : { \"timeUpdated\" : { \"from\" : \"";
-   expectedResult += "1234567890";
-   expectedResult += "\"} }";
-   expectedResult += "   \"query_string\": {\"query\":\"";
-   expectedResult += "testQuery";
-   expectedResult += "\"},"
-           "  \"_cache\":";
-   expectedResult += "false";
-   expectedResult += ","
-           "\"fields\": [\"sessionId\", \"timeUpdated\"],"
-           "\"from\": 0,"
-           "\"size\":";
-   expectedResult += "1234";
-   expectedResult += "}}";
-   EXPECT_EQ(expectedResult, query);
    
-   query = builder.GetOldestNDocuments(queryString,number,true,after);
-   expectedResult = "GET|/_all/meta/_search|";
-   expectedResult += "{"
-           "\"sort\": ["
-           "      {"
-           "      \"timeUpdated\": {"
-           "         \"order\" : \"asc\","
-           "         \"ignore_unmapped\" : true"
-           "     }"
-           "   }"
-           "],"
-           "\"query\" :"
-           "{";
-   expectedResult += "\"range\" : { \"timeUpdated\" : { \"from\" : \"";
-   expectedResult += "1234567890";
-   expectedResult += "\"} }";
-   expectedResult += "   \"query_string\": {\"query\":\"";
-   expectedResult += "testQuery";
-   expectedResult += "\"},"
-           "  \"_cache\":";
-   expectedResult += "true";
-   expectedResult += ","
-           "\"fields\": [\"sessionId\", \"timeUpdated\"],"
-           "\"from\": 0,"
-           "\"size\":";
-   expectedResult += "1234";
-   expectedResult += "}}";
-   EXPECT_EQ(expectedResult, query);
 }
+
+
+TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
+   RESTBuilder builder;
+   std::vector<std::pair<std::string, bool> >  terms;
+   std::vector<std::tuple<std::string, std::string, int64_t> > ranges;
+   
+   std::string query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   std::string expectedReply = "";
+   EXPECT_EQ(expectedReply,query);
+   
+   terms.push_back(std::make_pair("foo",false));
+   terms.push_back(std::make_pair("bar",true));
+   query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   expectedReply = "POST|/_all/meta/_search|"
+           "{"
+           "\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
+           "\"query\" : {"
+           "\"filtered\" :"
+           "{"
+           "\"filter\" : {"
+           "\"bool\" :"
+           "{"
+           "\"must\": ["
+           "{ \"term\" : {\"foo\" : false}},"
+           "{ \"term\" : {\"bar\" : true}}"
+           "]"
+           "}"
+           "}"
+           "},"
+           "\"_cache\":false,"
+           "\"from\": 0,"
+           "\"size\":999,"
+           "\"fields\": [\"sessionId\", \"timeUpdated\"]"
+           "}"
+           "}";
+   EXPECT_EQ(expectedReply,query);
+   
+   terms.clear();
+   ranges.push_back(std::make_tuple("foo","gt",1));
+   ranges.push_back(std::make_tuple("bar","lt",10));
+   query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   expectedReply = "POST|/_all/meta/_search|"
+           "{"
+           "\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
+           "\"query\" : {"
+           "\"filtered\" :"
+           "{"
+           "\"filter\" : {"
+           "\"bool\" :"
+           "{"
+           "\"must\": ["
+           "{ \"range\" : {\"foo\" : { \"gt\" : 1 }}},"
+           "{ \"range\" : {\"bar\" : { \"lt\" : 10 }}}"
+           "]"
+           "}"
+           "}"
+           "},"
+           "\"_cache\":false,"
+           "\"from\": 0,"
+           "\"size\":999,"
+           "\"fields\": [\"sessionId\", \"timeUpdated\"]"
+           "}"
+           "}";
+   EXPECT_EQ(expectedReply,query);
+   
+   terms.push_back(std::make_pair("foo",false));
+   terms.push_back(std::make_pair("bar",true));
+   query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   expectedReply = "POST|/_all/meta/_search|"
+           "{"
+           "\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
+           "\"query\" : {"
+           "\"filtered\" :"
+           "{"
+           "\"filter\" : {"
+           "\"bool\" :"
+           "{"
+           "\"must\": ["
+           "{ \"term\" : {\"foo\" : false}},"
+           "{ \"term\" : {\"bar\" : true}},"
+           "{ \"range\" : {\"foo\" : { \"gt\" : 1 }}},"
+           "{ \"range\" : {\"bar\" : { \"lt\" : 10 }}}"
+           "]"
+           "}"
+           "}"
+           "},"
+           "\"_cache\":false,"
+           "\"from\": 0,"
+           "\"size\":999,"
+           "\"fields\": [\"sessionId\", \"timeUpdated\"]"
+           "}"
+           "}";
+   EXPECT_EQ(expectedReply,query);
+}
+
 
 TEST_F(RESTBuilderTest, GetLatestUpgradeDateWhereIgnored) {
    RESTBuilder builder;
@@ -121,13 +159,13 @@ TEST_F(RESTBuilderTest, GetLatestUpgradeDateWhereIgnored) {
    std::string expectedReply = "GET|/upgrade/info/_search|{"
            "\"sort\" : [ { \"upgradeDate\" : { \"order\" : \"desc\" } } ],"
            "\"query\" : {"
-           "\"query_string\" : { \"query\" : \"ignorePreviousDat:true\" }"
+           "\"query_string\" : { \"query\" : \"ignorePreviousData:true\" }"
            ","
            "\"fields\": [\"upgradeDate\"],"
            "\"size\" : 1"
            "}"
            "}";
-   EXPECT_TRUE(expectedReply==query);
+   EXPECT_EQ(expectedReply,query);
 }
 TEST_F(RESTBuilderTest, GetCountQuery) {
    RESTBuilder builder;
