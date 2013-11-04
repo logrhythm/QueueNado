@@ -7,7 +7,7 @@
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
 
-TEST_F(ElasticSearchTest, GetIgnoreTime) {
+TEST_F(ElasticSearchTest, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
    GMockElasticSearch es(stick, false);
@@ -18,7 +18,7 @@ TEST_F(ElasticSearchTest, GetIgnoreTime) {
    
    target.mReplyMessage = "";
    time_t ignoreTime(0);
-   EXPECT_TRUE(es.GetIgnoreTime(ignoreTime));
+   EXPECT_TRUE(es.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
    EXPECT_EQ(0,ignoreTime);
    
    target.mReplyMessage = "{\"took\":707,\"timed_out\":false,"
@@ -28,21 +28,21 @@ TEST_F(ElasticSearchTest, GetIgnoreTime) {
            "\"_score\":null, \"_source\" : {\"upgradeDate\":\"2009/02/13 23:31:30\","
            "\"ignorePreviousData\":true,\"upgradingToVersion\":\"1235\"},"
            "\"sort\":[1383325709000]}]}}";
-   EXPECT_TRUE(es.GetIgnoreTime(ignoreTime));
+   EXPECT_TRUE(es.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
    EXPECT_EQ(1234567890L,ignoreTime);
    target.mReplyMessage = "503|SERVICE_UNAVAILABLE|{\"error\":"
            "\"ClusterBlockException[blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / "
            "initialized];[SERVICE_UNAVAILABLE/2/no master];]\",\"status\":503}";
-   EXPECT_FALSE(es.GetIgnoreTime(ignoreTime));
+   EXPECT_FALSE(es.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
    
    ElasticSearch es2(stick, true);
    ASSERT_TRUE(es2.Initialize());
-   EXPECT_FALSE(es2.GetIgnoreTime(ignoreTime));
+   EXPECT_FALSE(es2.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
    EXPECT_EQ(0,ignoreTime);
    
    GMockElasticSearchNoSend es3(stick, false);
    ASSERT_TRUE(es3.Initialize());
-   EXPECT_FALSE(es3.GetIgnoreTime(ignoreTime));
+   EXPECT_FALSE(es3.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
    EXPECT_EQ(0,ignoreTime);
    
 }

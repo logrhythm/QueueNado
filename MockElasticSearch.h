@@ -84,8 +84,8 @@ public:
                                                               const unsigned int maxPerQuery) {
       return ElasticSearch::GetAllRelevantRecordsForSessions(oldestSessionIds,maxPerQuery);
    }
-   LR_VIRTUAL bool GetIgnoreTime(time_t& ignoreTime) {
-      return ElasticSearch::GetIgnoreTime(ignoreTime);
+   LR_VIRTUAL bool GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(time_t& ignoreTime) {
+      return ElasticSearch::GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime);
    }
    LR_VIRTUAL std::set<std::string> GetListOfIndexeNames() {
       if (mFakeIndexList) {
@@ -289,18 +289,18 @@ public:
 
    GMockElasticSearch(bool async) : MockElasticSearch(async), mBogusTime(0), realObject(async) {
       ON_CALL(*this, Initialize()).WillByDefault(Invoke(&realObject,&ElasticSearch::Initialize));
-      ON_CALL(*this, GetIgnoreTime(_)).WillByDefault(Invoke(&realObject,&ElasticSearch::GetIgnoreTime));
+      ON_CALL(*this, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(_)).WillByDefault(Invoke(&realObject,&ElasticSearch::GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored));
       ON_CALL(*this, SendAndGetReplyCommandToWorker(_,_)).WillByDefault(Invoke(&realObject,&MockElasticSearch::SendAndGetReplyCommandToWorker));
    };
 
    GMockElasticSearch(BoomStick& transport, bool async) : MockElasticSearch(transport, async), realObject(transport, async) {
       ON_CALL(*this, Initialize()).WillByDefault(Invoke(&realObject,&ElasticSearch::Initialize));
-      ON_CALL(*this, GetIgnoreTime(_)).WillByDefault(Invoke(&realObject,&ElasticSearch::GetIgnoreTime));
+      ON_CALL(*this, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(_)).WillByDefault(Invoke(&realObject,&ElasticSearch::GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored));
       ON_CALL(*this, SendAndGetReplyCommandToWorker(_,_)).WillByDefault(Invoke(&realObject,&MockElasticSearch::SendAndGetReplyCommandToWorker));
    };
 
    MOCK_METHOD0(Initialize, bool());
-   MOCK_METHOD1(GetIgnoreTime, bool(time_t&));
+   MOCK_METHOD1(GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored, bool(time_t&));
    MOCK_METHOD6(GetOldestNFiles, std::vector<std::tuple< std::string, std::string> >(const unsigned int numberOfFiles,
         const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, 
         IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits));

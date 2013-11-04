@@ -152,10 +152,10 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
 }
 
 
-TEST_F(RESTBuilderTest, GetLatestUpgradeDateWhereIgnored) {
+TEST_F(RESTBuilderTest, GetQueryForLatestUpgradeWhereIndexesShouldBeIgnored) {
    RESTBuilder builder;
    
-   std::string query = builder.GetLatestUpgradeDateWhereIgnored();
+   std::string query = builder.GetQueryForLatestUpgradeWhereIndexesShouldBeIgnored();
    std::string expectedReply = "GET|/upgrade/info/_search|{"
            "\"sort\" : [ { \"upgradeDate\" : { \"order\" : \"desc\" } } ],"
            "\"query\" : {"
