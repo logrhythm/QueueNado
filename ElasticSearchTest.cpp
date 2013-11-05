@@ -7,6 +7,57 @@
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
 
+TEST_F(ElasticSearchTest, UpdateIgnoreTimeInternally) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   GMockElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   target.mReplyMessage = "";
+   time_t ignoreTime(0);
+   EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
+   EXPECT_EQ(1,es.GetTimesSinceLastUpgradeCheck());
+   for (int i = 1; i <= 1000 ; i++) {
+      EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
+   }
+   target.mReplyMessage = "{\"took\":707,\"timed_out\":false,"
+           "\"_shards\":{\"total\":1,\"successful\":1,\"failed\":0},"
+           "\"hits\":{\"total\":2,\"max_score\":null,"
+           "\"hits\":[{\"_index\":\"upgrade\",\"_type\":\"info\",\"_id\":\"1383325709\","
+           "\"_score\":null, \"_source\" : {\"upgradeDate\":\"2009/02/13 23:31:30\","
+           "\"ignorePreviousData\":true,\"upgradingToVersion\":\"1235\"},"
+           "\"sort\":[1383325709000]}]}}";
+   EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
+   EXPECT_EQ(1,es.GetTimesSinceLastUpgradeCheck());
+   EXPECT_EQ(1234567890L,es.GetUpgradeIgnoreTime());
+   target.mReplyMessage = "{\"took\":707,\"timed_out\":false,"
+           "\"_shards\":{\"total\":1,\"successful\":1,\"failed\":0},"
+           "\"hits\":{\"total\":2,\"max_score\":null,"
+           "\"hits\":[{\"_index\":\"upgrade\",\"_type\":\"info\",\"_id\":\"1383325709\","
+           "\"_score\":null, \"_source\" : {\"upgradeDate\":\"2009/02/13 23:31:31\","
+           "\"ignorePreviousData\":true,\"upgradingToVersion\":\"1235\"},"
+           "\"sort\":[1383325709000]}]}}";
+   EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
+   EXPECT_EQ(2,es.GetTimesSinceLastUpgradeCheck());
+   EXPECT_NE(1234567891L,es.GetUpgradeIgnoreTime());
+   for (int i = 2; i <= 1000 ; i++) {
+      EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
+   }
+   EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
+   EXPECT_EQ(1,es.GetTimesSinceLastUpgradeCheck());
+   EXPECT_EQ(1234567891L,es.GetUpgradeIgnoreTime());
+   target.mReplyMessage = "503|SERVICE_UNAVAILABLE|{\"error\":"
+           "\"ClusterBlockException[blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / "
+           "initialized];[SERVICE_UNAVAILABLE/2/no master];]\",\"status\":503}";
+   for (int i = 1; i <= 1000 ; i++) {
+      EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
+   }
+   EXPECT_FALSE(es.UpdateIgnoreTimeInternally());
+   EXPECT_EQ(0,es.GetTimesSinceLastUpgradeCheck());
+}
 TEST_F(ElasticSearchTest, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
@@ -34,6 +85,10 @@ TEST_F(ElasticSearchTest, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored) {
            "\"ClusterBlockException[blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / "
            "initialized];[SERVICE_UNAVAILABLE/2/no master];]\",\"status\":503}";
    EXPECT_FALSE(es.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
+   
+   target.mReplyMessage = "404|NOT_FOUND|{\"error\":\"IndexMissingException[[upgrade] missing]\",\"status\":404}";
+   EXPECT_TRUE(es.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
+   EXPECT_EQ(0,ignoreTime);
    
    ElasticSearch es2(stick, true);
    ASSERT_TRUE(es2.Initialize());

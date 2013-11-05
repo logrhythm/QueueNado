@@ -166,14 +166,14 @@ TEST_F(DiskCleanupTest, MarkFileAsRemovedInES) {
    MockBoomStick transport("ipc://tmp/foo.ipc");
    MockElasticSearch es(transport, false);
    IdsAndIndexes recordsToUpdate;
-
-   EXPECT_FALSE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, es));
+   networkMonitor::DpiMsgLR updateMsg;
+   EXPECT_FALSE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate,updateMsg, es));
    recordsToUpdate.emplace_back("123456789012345678901234567890123456", "foo");
    es.mFakeBulkUpdate = true;
    es.mBulkUpdateResult = false;
-   EXPECT_FALSE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, es));
+   EXPECT_FALSE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate,updateMsg, es));
    es.mBulkUpdateResult = true;
-   EXPECT_TRUE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, es));
+   EXPECT_TRUE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate,updateMsg, es));
 }
 
 TEST_F(DiskCleanupTest, RemoveFile) {

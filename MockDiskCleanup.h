@@ -155,8 +155,8 @@ public:
       return DiskCleanup::GetOlderFilesFromPath(path, oldestTime);
    }
 
-   LR_VIRTUAL bool MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, ElasticSearch& es) {
-      return DiskCleanup::MarkFilesAsRemovedInES(relevantRecords, es);
+   LR_VIRTUAL bool MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, networkMonitor::DpiMsgLR& updateMsg, ElasticSearch& es) {
+      return DiskCleanup::MarkFilesAsRemovedInES(relevantRecords, updateMsg, es);
    }
 
    size_t BruteForceCleanupOfOldFiles(const boost::filesystem::path& path,
@@ -255,7 +255,7 @@ public:
    MOCK_METHOD3(RemoveFiles, int(const PathAndFileNames& filesToRemove, size_t& spaceSavedInMB, size_t& filesNotFound));
    MOCK_METHOD1(GetFileCountFromES, size_t(ElasticSearch& es));
    MOCK_METHOD2(GetPcapStoreUsage, void(DiskCleanup::StatInfo& pcapDiskInGB, const DiskUsage::Size size));
-   MOCK_METHOD2(MarkFilesAsRemovedInES, bool(const IdsAndIndexes& relevantRecords, ElasticSearch& es));
+   MOCK_METHOD3(MarkFilesAsRemovedInES, bool(const IdsAndIndexes& relevantRecords, networkMonitor::DpiMsgLR& updateMsg,ElasticSearch& es));
    MOCK_METHOD1(RunOptimize, bool(ElasticSearch& es));
 
    void DelegateIsShutdownAlwaysTrue() {
@@ -287,7 +287,7 @@ public:
 
    void DelegateMarkFilesAsRemovedInESExpectNTimes(unsigned int times, bool markResult) {
       mMarkResult = markResult;
-      EXPECT_CALL(*this, MarkFilesAsRemovedInES(_, _))
+      EXPECT_CALL(*this, MarkFilesAsRemovedInES(_,_,_))
               .Times(times)
               .WillRepeatedly(DoAll(SaveArg<0>(&mRecordsMarked), Return(mMarkResult)));
    }
@@ -295,5 +295,6 @@ public:
    size_t mFailFileCount;
    bool mMarkResult;
    IdsAndIndexes mRecordsMarked;
+   networkMonitor::DpiMsgLR updateMsg;
 };
 
