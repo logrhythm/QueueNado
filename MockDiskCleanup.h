@@ -150,9 +150,8 @@ public:
       return mMockedConf;
    }
 
-   std::vector< std::tuple< std::string, std::string> >&
-   GetOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime) {
-      return DiskCleanup::GetOlderFilesFromPath(path, oldestTime);
+   size_t RemoveOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime, size_t& spaceSaved) {
+      return DiskCleanup::RemoveOlderFilesFromPath(path, oldestTime, spaceSaved);
    }
 
    LR_VIRTUAL bool MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, const networkMonitor::DpiMsgLR& updateMsg, ElasticSearch& es) {

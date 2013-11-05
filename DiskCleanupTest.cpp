@@ -260,7 +260,7 @@ TEST_F(DiskCleanupTest, RemoveFiles) {
    EXPECT_TRUE(stat(path.c_str(), &filestat) == 0);
 }
 
-TEST_F(DiskCleanupTest, GetOlderFilesFromPath) {
+TEST_F(DiskCleanupTest, RemoveOlderFilesFromPath) {
    MockDiskCleanup cleanup(mConf);
    PathAndFileNames filesToFind;
    std::string path;
@@ -268,27 +268,19 @@ TEST_F(DiskCleanupTest, GetOlderFilesFromPath) {
    path += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
    std::string makeSmallFile = "touch ";
    makeSmallFile += path;
-
-   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(), std::time(NULL));
-   EXPECT_TRUE(filesToFind.empty());
+   size_t additionalRemoved;
+   EXPECT_EQ(0,cleanup.RemoveOlderFilesFromPath(testDir.str(), std::time(NULL),additionalRemoved));
 
    EXPECT_EQ(0, system(makeSmallFile.c_str()));
    std::this_thread::sleep_for(std::chrono::seconds(1)); // increase timestamp
    cleanup.mFakeIsShutdown = true;
    cleanup.mIsShutdownResult = true;
-   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(), std::time(NULL));
-   EXPECT_TRUE(filesToFind.empty());
+   EXPECT_EQ(0,cleanup.RemoveOlderFilesFromPath(testDir.str(), std::time(NULL),additionalRemoved));
 
    cleanup.mFakeIsShutdown = false;
-   filesToFind = cleanup.GetOlderFilesFromPath("/thisPathIsGarbage", 0);
-   EXPECT_TRUE(filesToFind.empty());
+   EXPECT_EQ(0,cleanup.RemoveOlderFilesFromPath("/thisPathIsGarbage", 0,additionalRemoved));
    std::this_thread::sleep_for(std::chrono::seconds(1));
-   filesToFind = cleanup.GetOlderFilesFromPath(testDir.str(), std::time(NULL));
-
-   ASSERT_FALSE(filesToFind.empty());
-   EXPECT_TRUE(std::get<0>(filesToFind[0]) == path);
-   EXPECT_TRUE(std::get<1>(filesToFind[0]) == "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-
+   EXPECT_EQ(1,cleanup.RemoveOlderFilesFromPath(testDir.str(), std::time(NULL),additionalRemoved));
 }
 
 TEST_F(DiskCleanupTest, TimeToForceAClean) {
@@ -409,11 +401,10 @@ TEST_F(DiskCleanupTest, DISABLED_ValgrindGetOrderedMapOfFiles) {
    size_t maxToRemove = 5000;
    size_t filesRemoved(0);
    size_t spaceRemoved(0);
-   boost::filesystem::path path = "/usr/local/probe/pcap";
+   boost::filesystem::path path = "/build/A/directory/with/files/as/part/of/this/test";
    for (int i = 0; i < 1 && !zctx_interrupted; i++) {
-
-      std::vector< std::tuple< std::string, std::string> >& oldestFiles =
-              capture.GetOlderFilesFromPath(path, std::time(NULL));
+      
+      capture.RemoveOlderFilesFromPath(path, std::time(NULL), spaceRemoved);
 
       std::cout << "iteration " << i << std::endl;
    }
