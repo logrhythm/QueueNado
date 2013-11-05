@@ -111,23 +111,59 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    target.BeginListenAndRepeat();
 
    target.mReplyMessage = "400|bad_request|{\"error\":\"this is an error\",\"status\":400}";
-   EXPECT_EQ(0, es.GetTotalCapturedFiles());
-   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\" } }" == target.mLastRequest);
-
-   target.mReplyMessage = "200|ok|{\"count\":12147998,\"_shards\":{\"total\":78,\"successful\":78,\"failed\":0}}";
+   size_t count;
+   EXPECT_FALSE(es.GetTotalCapturedFiles(count));
+   EXPECT_EQ(0, count);
+   std::string expectedQuery;
+   expectedQuery = "POST|/_all/meta/_search|{\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"written\" : true}},{ \"term\" : {\"latestUpdate\" : true}}]}}},\"_cache\":true,\"from\": 0,\"size\":1,\"fields\": [\"sessionId\", \"timeUpdated\"]}}";
+   EXPECT_EQ(expectedQuery,target.mLastRequest);
+   target.mReplyMessage = "200|ok|"
+           "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
+           "\"hits\":{\"total\":12147998,\"max_score\":null,"
+           "\"hits\":"
+           "["
+           "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
+           "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
+           "{"
+           "\"timeUpdated\":\"2013/09/30 00:00:00\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "},"
+           "\"sort\":[1380499200000]"
+           "}"
+           "]"
+           "}"
+           "}";
    ElasticSearch esA(stick, true);
    ASSERT_TRUE(esA.Initialize());
    target.mLastRequest.clear();
-   EXPECT_EQ(0, esA.GetTotalCapturedFiles());
+   EXPECT_FALSE(esA.GetTotalCapturedFiles(count));
+   EXPECT_EQ(0, count);
    EXPECT_TRUE(target.mLastRequest.empty());
 
    target.mReplyMessage.clear();
-   EXPECT_EQ(0, es.GetTotalCapturedFiles());
-   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\" } }" == target.mLastRequest);
-
+   EXPECT_FALSE(es.GetTotalCapturedFiles(count));
+   EXPECT_EQ(0, count);
+   
+   EXPECT_EQ(expectedQuery,target.mLastRequest);
    target.mReplyMessage = "200|ok|{\"count\":12147998,\"_shards\":{\"total\":78,\"successful\":78,\"failed\":0}}";
-   EXPECT_EQ(12147998, es.GetTotalCapturedFiles());
-   EXPECT_TRUE("GET|/_all/meta/_count|{ \"query_string\" : { \"query\" : \"written:true AND latestUpdate:true\" } }" == target.mLastRequest);
+   target.mReplyMessage = "200|ok|"
+           "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
+           "\"hits\":{\"total\":12147998,\"max_score\":null,"
+           "\"hits\":"
+           "["
+           "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
+           "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
+           "{"
+           "\"timeUpdated\":\"2013/09/30 00:00:00\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "},"
+           "\"sort\":[1380499200000]"
+           "}"
+           "]"
+           "}"
+           "}";
+   EXPECT_TRUE(es.GetTotalCapturedFiles(count));
+   EXPECT_EQ(12147998, count);
+   
+   EXPECT_EQ(expectedQuery,target.mLastRequest);
 }
 
 TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
