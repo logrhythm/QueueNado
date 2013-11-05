@@ -252,11 +252,17 @@ public:
    LR_VIRTUAL bool UpdateIgnoreTimeInternally() {
       return ElasticSearch::UpdateIgnoreTimeInternally();
    }
-   unsigned int GetTimesSinceLastUpgradeCheck(){
+
+   unsigned int GetTimesSinceLastUpgradeCheck() {
       return ElasticSearch::mTimesSinceLastUpgradeCheck;
    }
+
    time_t GetUpgradeIgnoreTime() {
       return ElasticSearch::mIgnoreTime;
+   }
+
+   LR_VIRTUAL std::string GetIgnoreTimeAsString(const size_t& ignoreTime) {
+      return ElasticSearch::GetIgnoreTimeAsString(ignoreTime);
    }
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;

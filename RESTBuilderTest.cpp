@@ -60,7 +60,7 @@ TEST_F(RESTBuilderTest, GetOldestNDocuments) {
 TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
    RESTBuilder builder;
    std::vector<std::pair<std::string, bool> >  terms;
-   std::vector<std::tuple<std::string, std::string, int64_t> > ranges;
+   std::vector<std::tuple<std::string, std::string, std::string> > ranges;
    
    std::string query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
    std::string expectedReply = "";
@@ -94,8 +94,8 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
    EXPECT_EQ(expectedReply,query);
    
    terms.clear();
-   ranges.push_back(std::make_tuple("foo","gt",1));
-   ranges.push_back(std::make_tuple("bar","lt",10));
+   ranges.push_back(std::make_tuple("foo","gt","1"));
+   ranges.push_back(std::make_tuple("bar","lt","10"));
    query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
    expectedReply = "POST|/_all/meta/_search|"
            "{"
@@ -107,8 +107,8 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
            "\"bool\" :"
            "{"
            "\"must\": ["
-           "{ \"range\" : {\"foo\" : { \"gt\" : 1 }}},"
-           "{ \"range\" : {\"bar\" : { \"lt\" : 10 }}}"
+           "{ \"numeric_range\" : {\"foo\" : { \"gt\" : \"1\" }}},"
+           "{ \"numeric_range\" : {\"bar\" : { \"lt\" : \"10\" }}}"
            "]"
            "}"
            "}"
@@ -136,8 +136,8 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
            "\"must\": ["
            "{ \"term\" : {\"foo\" : false}},"
            "{ \"term\" : {\"bar\" : true}},"
-           "{ \"range\" : {\"foo\" : { \"gt\" : 1 }}},"
-           "{ \"range\" : {\"bar\" : { \"lt\" : 10 }}}"
+           "{ \"numeric_range\" : {\"foo\" : { \"gt\" : \"1\" }}},"
+           "{ \"numeric_range\" : {\"bar\" : { \"lt\" : \"10\" }}}"
            "]"
            "}"
            "}"

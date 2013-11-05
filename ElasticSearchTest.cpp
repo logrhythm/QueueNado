@@ -15,12 +15,12 @@ TEST_F(ElasticSearchTest, UpdateIgnoreTimeInternally) {
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-   
+
    target.mReplyMessage = "";
    time_t ignoreTime(0);
    EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
-   EXPECT_EQ(1,es.GetTimesSinceLastUpgradeCheck());
-   for (int i = 1; i <= 1000 ; i++) {
+   EXPECT_EQ(1, es.GetTimesSinceLastUpgradeCheck());
+   for (int i = 1; i <= 1000; i++) {
       EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
    }
    target.mReplyMessage = "{\"took\":707,\"timed_out\":false,"
@@ -31,8 +31,8 @@ TEST_F(ElasticSearchTest, UpdateIgnoreTimeInternally) {
            "\"ignorePreviousData\":true,\"upgradingToVersion\":\"1235\"},"
            "\"sort\":[1383325709000]}]}}";
    EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
-   EXPECT_EQ(1,es.GetTimesSinceLastUpgradeCheck());
-   EXPECT_EQ(1234567890L,es.GetUpgradeIgnoreTime());
+   EXPECT_EQ(1, es.GetTimesSinceLastUpgradeCheck());
+   EXPECT_EQ(1234567890L, es.GetUpgradeIgnoreTime());
    target.mReplyMessage = "{\"took\":707,\"timed_out\":false,"
            "\"_shards\":{\"total\":1,\"successful\":1,\"failed\":0},"
            "\"hits\":{\"total\":2,\"max_score\":null,"
@@ -41,23 +41,24 @@ TEST_F(ElasticSearchTest, UpdateIgnoreTimeInternally) {
            "\"ignorePreviousData\":true,\"upgradingToVersion\":\"1235\"},"
            "\"sort\":[1383325709000]}]}}";
    EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
-   EXPECT_EQ(2,es.GetTimesSinceLastUpgradeCheck());
-   EXPECT_NE(1234567891L,es.GetUpgradeIgnoreTime());
-   for (int i = 2; i <= 1000 ; i++) {
+   EXPECT_EQ(2, es.GetTimesSinceLastUpgradeCheck());
+   EXPECT_NE(1234567891L, es.GetUpgradeIgnoreTime());
+   for (int i = 2; i <= 1000; i++) {
       EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
    }
    EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
-   EXPECT_EQ(1,es.GetTimesSinceLastUpgradeCheck());
-   EXPECT_EQ(1234567891L,es.GetUpgradeIgnoreTime());
+   EXPECT_EQ(1, es.GetTimesSinceLastUpgradeCheck());
+   EXPECT_EQ(1234567891L, es.GetUpgradeIgnoreTime());
    target.mReplyMessage = "503|SERVICE_UNAVAILABLE|{\"error\":"
            "\"ClusterBlockException[blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / "
            "initialized];[SERVICE_UNAVAILABLE/2/no master];]\",\"status\":503}";
-   for (int i = 1; i <= 1000 ; i++) {
+   for (int i = 1; i <= 1000; i++) {
       EXPECT_TRUE(es.UpdateIgnoreTimeInternally());
    }
    EXPECT_FALSE(es.UpdateIgnoreTimeInternally());
-   EXPECT_EQ(0,es.GetTimesSinceLastUpgradeCheck());
+   EXPECT_EQ(0, es.GetTimesSinceLastUpgradeCheck());
 }
+
 TEST_F(ElasticSearchTest, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
@@ -66,12 +67,12 @@ TEST_F(ElasticSearchTest, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored) {
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-   
+
    target.mReplyMessage = "";
    time_t ignoreTime(0);
    EXPECT_TRUE(es.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
-   EXPECT_EQ(0,ignoreTime);
-   
+   EXPECT_EQ(0, ignoreTime);
+
    target.mReplyMessage = "{\"took\":707,\"timed_out\":false,"
            "\"_shards\":{\"total\":1,\"successful\":1,\"failed\":0},"
            "\"hits\":{\"total\":2,\"max_score\":null,"
@@ -80,27 +81,43 @@ TEST_F(ElasticSearchTest, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored) {
            "\"ignorePreviousData\":true,\"upgradingToVersion\":\"1235\"},"
            "\"sort\":[1383325709000]}]}}";
    EXPECT_TRUE(es.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
-   EXPECT_EQ(1234567890L,ignoreTime);
+   EXPECT_EQ(1234567890L, ignoreTime);
    target.mReplyMessage = "503|SERVICE_UNAVAILABLE|{\"error\":"
            "\"ClusterBlockException[blocked by: [SERVICE_UNAVAILABLE/1/state not recovered / "
            "initialized];[SERVICE_UNAVAILABLE/2/no master];]\",\"status\":503}";
    EXPECT_FALSE(es.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
-   
+
    target.mReplyMessage = "404|NOT_FOUND|{\"error\":\"IndexMissingException[[upgrade] missing]\",\"status\":404}";
    EXPECT_TRUE(es.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
-   EXPECT_EQ(0,ignoreTime);
-   
+   EXPECT_EQ(0, ignoreTime);
+
    ElasticSearch es2(stick, true);
    ASSERT_TRUE(es2.Initialize());
    EXPECT_FALSE(es2.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
-   EXPECT_EQ(0,ignoreTime);
-   
+   EXPECT_EQ(0, ignoreTime);
+
    GMockElasticSearchNoSend es3(stick, false);
    ASSERT_TRUE(es3.Initialize());
    EXPECT_FALSE(es3.GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime));
-   EXPECT_EQ(0,ignoreTime);
-   
+   EXPECT_EQ(0, ignoreTime);
+
 }
+
+TEST_F(ElasticSearchTest, GetIgnoreTimeAsString) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   GMockElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+
+   std::string expectedResult("1970/01/01||+0s");
+   EXPECT_EQ(expectedResult, es.GetIgnoreTimeAsString(0));
+   expectedResult = "1970/01/01||+123456s";
+   EXPECT_EQ(expectedResult, es.GetIgnoreTimeAsString(123456));
+}
+
 TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
@@ -116,7 +133,7 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    EXPECT_EQ(0, count);
    std::string expectedQuery;
    expectedQuery = "POST|/_all/meta/_search|{\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"written\" : true}},{ \"term\" : {\"latestUpdate\" : true}}]}}},\"_cache\":true,\"from\": 0,\"size\":1,\"fields\": [\"sessionId\", \"timeUpdated\"]}}";
-   EXPECT_EQ(expectedQuery,target.mLastRequest);
+   EXPECT_EQ(expectedQuery, target.mLastRequest);
    target.mReplyMessage = "200|ok|"
            "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
            "\"hits\":{\"total\":12147998,\"max_score\":null,"
@@ -142,8 +159,8 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    target.mReplyMessage.clear();
    EXPECT_FALSE(es.GetTotalCapturedFiles(count));
    EXPECT_EQ(0, count);
-   
-   EXPECT_EQ(expectedQuery,target.mLastRequest);
+
+   EXPECT_EQ(expectedQuery, target.mLastRequest);
    target.mReplyMessage = "200|ok|{\"count\":12147998,\"_shards\":{\"total\":78,\"successful\":78,\"failed\":0}}";
    target.mReplyMessage = "200|ok|"
            "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
@@ -162,8 +179,8 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
            "}";
    EXPECT_TRUE(es.GetTotalCapturedFiles(count));
    EXPECT_EQ(12147998, count);
-   
-   EXPECT_EQ(expectedQuery,target.mLastRequest);
+
+   EXPECT_EQ(expectedQuery, target.mLastRequest);
 }
 
 TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
@@ -192,9 +209,9 @@ TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
 
    IdsAndIndexes fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1);
 
-   EXPECT_EQ(8,fullListing.size());
+   EXPECT_EQ(8, fullListing.size());
    for (const auto& sessionPair : fullListing) {
-      EXPECT_TRUE(std::get<IdsAndIndexes_Index>(sessionPair)=="network_2013_08_12");
+      EXPECT_TRUE(std::get<IdsAndIndexes_Index>(sessionPair) == "network_2013_08_12");
       EXPECT_TRUE(std::get<IdsAndIndexes_ID>(sessionPair).find("8f8411f5-899a-445a-8421-210157db05") != std::string::npos);
    }
    EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos) << target.mLastRequest;
@@ -202,7 +219,7 @@ TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
 
    fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 2);
 
-   EXPECT_EQ(4,fullListing.size());
+   EXPECT_EQ(4, fullListing.size());
 
    EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos);
    EXPECT_TRUE(target.mLastRequest.find("abc123") != std::string::npos);
@@ -1177,7 +1194,8 @@ TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
    std::vector<std::tuple< std::string, std::string> > oldestFiles;
    const unsigned int numberOfFiles(100);
    const std::vector<std::string> paths = {
-      {"/tmp"}};
+      {"/tmp"}
+   };
    IdsAndIndexes relevantRecords;
    time_t oldestTime = 123456789;
    es.mRealSendAndGetReplyCommandToWorker = false;
@@ -1198,7 +1216,8 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    std::vector<std::tuple< std::string, std::string> > oldestFiles;
    const unsigned int numberOfFiles(100);
    const std::vector<std::string> paths = {
-      {"/tmp"}};
+      {"/tmp"}
+   };
    IdsAndIndexes relevantRecords;
    time_t oldestTime = 123456789;
    es.mRealSendAndGetReplyCommandToWorker = false;
@@ -1364,7 +1383,7 @@ TEST_F(ElasticSearchTest, OptimizeIndexes) {
 }
 
 TEST_F(ElasticSearchTest, GetIndexesThatAreActive) {
-   
+
    MockBoomStick transport("ipc://tmp/foo.ipc");
    MockElasticSearch es(transport, false);
    std::time_t now(std::time(NULL));
