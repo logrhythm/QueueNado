@@ -10,11 +10,11 @@ class BoomStick;
 #ifdef LR_DEBUG
 
 class MockElasticSearch : public ElasticSearch {
-public: 
-      
+public:
+
    static std::string CreateFileNameWithPath(const std::vector<std::string>& paths, const std::string& id) {
-      return DiskPacketCapture::BuildFilenameWithPath(paths, id);}
-   
+      return DiskPacketCapture::BuildFilenameWithPath(paths, id);
+   }
 
    MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport, async), mFakeIndexList(true),
    mFakeDeleteIndex(true), mFakeDeleteValue(true), mFailUpdateDoc(false), mUpdateDocAlwaysPasses(true),
@@ -80,10 +80,16 @@ public:
    virtual ~MockElasticSearch() {
 
    }
+
    IdsAndIndexes GetAllRelevantRecordsForSessions(const std::vector<std::string>& oldestSessionIds,
-                                                              const unsigned int maxPerQuery) {
-      return ElasticSearch::GetAllRelevantRecordsForSessions(oldestSessionIds,maxPerQuery);
+           const unsigned int maxPerQuery) {
+      return ElasticSearch::GetAllRelevantRecordsForSessions(oldestSessionIds, maxPerQuery);
    }
+
+   LR_VIRTUAL bool GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(time_t& ignoreTime) {
+      return ElasticSearch::GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime);
+   }
+
    LR_VIRTUAL std::set<std::string> GetListOfIndexeNames() {
       if (mFakeIndexList) {
          return mMockListOfIndexes;
@@ -152,14 +158,14 @@ public:
       return true;
    }
 
-   std::vector<std::tuple<std::string, std::string>>  
-           GetOldestNFiles(const unsigned int numberOfFiles,
-        const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits) {
+   std::vector<std::tuple<std::string, std::string >>
+   GetOldestNFiles(const unsigned int numberOfFiles,
+           const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits) {
       if (mFakeGetOldestNFiles) {
          oldestTime = mOldestTime;
          return mOldestFiles;
       }
-      
+
       return ElasticSearch::GetOldestNFiles(numberOfFiles, paths, fileConstructor, relevantRecords, oldestTime, totalHits);
    }
 
@@ -228,16 +234,35 @@ public:
    bool OptimizeIndex(const std::string& index) {
       mOptimizedIndexes.insert(index);
       return ElasticSearch::OptimizeIndex(index);
-   }  
+   }
+
    bool OptimizeIndexes(const std::set<std::string>& allIndexes,
            const std::set<std::string> excludes) LR_OVERRIDE {
       ElasticSearch::OptimizeIndexes(allIndexes, excludes);
    }
+
    std::set<std::string> GetIndexesThatAreActive() {
       return ElasticSearch::GetIndexesThatAreActive();
    }
+
    LR_VIRTUAL bool RunOptimize() {
       return ElasticSearch::RunOptimize();
+   }
+
+   LR_VIRTUAL bool UpdateIgnoreTimeInternally() {
+      return ElasticSearch::UpdateIgnoreTimeInternally();
+   }
+
+   unsigned int GetTimesSinceLastUpgradeCheck() {
+      return ElasticSearch::mTimesSinceLastUpgradeCheck;
+   }
+
+   time_t GetUpgradeIgnoreTime() {
+      return ElasticSearch::mIgnoreTime;
+   }
+
+   LR_VIRTUAL std::string GetIgnoreTimeAsString(const size_t& ignoreTime) {
+      return ElasticSearch::GetIgnoreTimeAsString(ignoreTime);
    }
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
@@ -284,33 +309,66 @@ using ::testing::DoAll;
 class GMockElasticSearch : public MockElasticSearch {
 public:
 
-   GMockElasticSearch(bool async) : MockElasticSearch(async), mBogusTime(0) {
+   GMockElasticSearch(bool async) : MockElasticSearch(async), mBogusTime(0), realObject(async) {
+      ON_CALL(*this, Initialize()).WillByDefault(Invoke(&realObject, &ElasticSearch::Initialize));
+      ON_CALL(*this, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(_)).WillByDefault(Invoke(&realObject, &ElasticSearch::GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored));
+      ON_CALL(*this, SendAndGetReplyCommandToWorker(_, _)).WillByDefault(Invoke(&realObject, &MockElasticSearch::SendAndGetReplyCommandToWorker));
    };
 
-   GMockElasticSearch(BoomStick& transport, bool async) : MockElasticSearch(transport, async) {
+   GMockElasticSearch(BoomStick& transport, bool async) : MockElasticSearch(transport, async), realObject(transport, async) {
+      ON_CALL(*this, Initialize()).WillByDefault(Invoke(&realObject, &ElasticSearch::Initialize));
+      ON_CALL(*this, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(_)).WillByDefault(Invoke(&realObject, &ElasticSearch::GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored));
+      ON_CALL(*this, SendAndGetReplyCommandToWorker(_, _)).WillByDefault(Invoke(&realObject, &MockElasticSearch::SendAndGetReplyCommandToWorker));
    };
 
    MOCK_METHOD0(Initialize, bool());
+   MOCK_METHOD1(GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored, bool(time_t&));
    MOCK_METHOD6(GetOldestNFiles, std::vector<std::tuple< std::string, std::string> >(const unsigned int numberOfFiles,
-        const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, 
-        IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits));
-   
+           const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor,
+           IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits));
+   MOCK_METHOD2(SendAndGetReplyCommandToWorker, bool (const std::string& command, std::string& reply));
+
    void DelegateInitializeToAlwaysFail() {
       ON_CALL(*this, Initialize())
               .WillByDefault(Invoke(&returnBools, &BoolReturns::ReturnFalse));
    }
-   
+
    void DelegateGetOldestNFiles(const PathAndFileNames& bogusFileList, const IdsAndIndexes& bogusIdsAndIndex, const time_t bogusTime) {
       mBogusFileList = bogusFileList;
       mBogusIdsAndInddex = bogusIdsAndIndex;
       mBogusTime = bogusTime;
-      EXPECT_CALL(*this, GetOldestNFiles(_,_,_,_,_,_))
-              .WillRepeatedly(DoAll(SetArgReferee<3>(mBogusIdsAndInddex),SetArgReferee<4>(mBogusTime),Return(mBogusFileList)));
+      EXPECT_CALL(*this, GetOldestNFiles(_, _, _, _, _, _))
+              .WillRepeatedly(DoAll(SetArgReferee<3>(mBogusIdsAndInddex), SetArgReferee<4>(mBogusTime), Return(mBogusFileList)));
    }
-   
+
+   void DelegateSendAndGetReplyCommandToWorkerFails() {
+
+      ON_CALL(*this, SendAndGetReplyCommandToWorker(_, _))
+              .WillByDefault(Return(false));
+   }
+
    PathAndFileNames mBogusFileList;
    IdsAndIndexes mBogusIdsAndInddex;
    time_t mBogusTime;
    BoolReturns returnBools;
+private:
+   MockElasticSearch realObject;
+};
+
+class GMockElasticSearchNoSend : public MockElasticSearch {
+public:
+
+   GMockElasticSearchNoSend(bool async) : MockElasticSearch(async) {
+      ON_CALL(*this, SendAndGetReplyCommandToWorker(_, _)).
+              WillByDefault(Return(false));
+   };
+
+   GMockElasticSearchNoSend(BoomStick& transport, bool async) : MockElasticSearch(transport, async) {
+      ON_CALL(*this, SendAndGetReplyCommandToWorker(_, _)).
+              WillByDefault(Return(false));
+   };
+
+   MOCK_METHOD2(SendAndGetReplyCommandToWorker, bool (const std::string& command, std::string& reply));
+
 };
 #endif

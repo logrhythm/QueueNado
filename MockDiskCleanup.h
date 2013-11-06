@@ -39,20 +39,20 @@ public:
       return DiskCleanup::TooMuchPCap(stats);
    }
 
-   LR_VIRTUAL size_t GetFileCountFromES(ElasticSearch& es) {
+   LR_VIRTUAL bool GetFileCountFromES(ElasticSearch& es, size_t& totalFiles) {
       auto pcapLocations = mConf.GetPcapCaptureLocations();
-      size_t totalFiles{0};
+      totalFiles = 0;
       for (const auto& path : pcapLocations) {
 
          for (boost::filesystem::directory_iterator it(path);
                  it != boost::filesystem::directory_iterator(); it++) {
             if (IsShutdown()) {
-               return 0; //caught shutdown;
+               return false; //caught shutdown;
             }
             totalFiles++;
          }
       }
-      return totalFiles;
+      return true;
    }
 
    void RecalculatePCapDiskUsed(StatInfo& stats, ElasticSearch& es) LR_OVERRIDE {
@@ -150,13 +150,12 @@ public:
       return mMockedConf;
    }
 
-   std::vector< std::tuple< std::string, std::string> >&
-   GetOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime) {
-      return DiskCleanup::GetOlderFilesFromPath(path, oldestTime);
+   size_t RemoveOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime, size_t& spaceSaved) {
+      return DiskCleanup::RemoveOlderFilesFromPath(path, oldestTime, spaceSaved);
    }
 
-   LR_VIRTUAL bool MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, ElasticSearch& es) {
-      return DiskCleanup::MarkFilesAsRemovedInES(relevantRecords, es);
+   LR_VIRTUAL bool MarkFilesAsRemovedInES(const IdsAndIndexes& relevantRecords, const networkMonitor::DpiMsgLR& updateMsg, ElasticSearch& es) {
+      return DiskCleanup::MarkFilesAsRemovedInES(relevantRecords, updateMsg, es);
    }
 
    size_t BruteForceCleanupOfOldFiles(const boost::filesystem::path& path,
@@ -244,18 +243,19 @@ using ::testing::Return;
 using ::testing::Throw;
 using ::testing::DoAll;
 using ::testing::SaveArg;
-
+using ::testing::SetArgReferee;
 class GMockDiskCleanup : public MockDiskCleanup {
 public:
 
-   GMockDiskCleanup(networkMonitor::ConfSlave& conf) : MockDiskCleanup(conf), mFileCount(0), mMarkResult(true) {
+   GMockDiskCleanup(networkMonitor::ConfSlave& conf) : MockDiskCleanup(conf), mFileCount(0), mMarkResult(true),
+   mFileCountSuccess(true) {
    }
 
    MOCK_METHOD0(IsShutdown, bool());
    MOCK_METHOD3(RemoveFiles, int(const PathAndFileNames& filesToRemove, size_t& spaceSavedInMB, size_t& filesNotFound));
-   MOCK_METHOD1(GetFileCountFromES, size_t(ElasticSearch& es));
+   MOCK_METHOD2(GetFileCountFromES, bool(ElasticSearch& es,size_t& count));
    MOCK_METHOD2(GetPcapStoreUsage, void(DiskCleanup::StatInfo& pcapDiskInGB, const DiskUsage::Size size));
-   MOCK_METHOD2(MarkFilesAsRemovedInES, bool(const IdsAndIndexes& relevantRecords, ElasticSearch& es));
+   MOCK_METHOD3(MarkFilesAsRemovedInES, bool(const IdsAndIndexes& relevantRecords, const networkMonitor::DpiMsgLR& updateMsg,ElasticSearch& es));
    MOCK_METHOD1(RunOptimize, bool(ElasticSearch& es));
 
    void DelegateIsShutdownAlwaysTrue() {
@@ -263,10 +263,11 @@ public:
               .WillOnce(Return(true));
    }
 
-   void DelegateGetFileCountFromES(size_t value) {
+   void DelegateGetFileCountFromES(size_t value,bool success) {
       mFileCount = value;
-      EXPECT_CALL(*this, GetFileCountFromES(_))
-              .WillRepeatedly(Return(mFileCount));
+      mFileCountSuccess = success;
+      EXPECT_CALL(*this, GetFileCountFromES(_,_))
+              .WillRepeatedly(DoAll(SetArgReferee<1>(mFileCount), Return(success)));
    }
 
    void DelegateRemoveFiles(size_t value) {
@@ -287,7 +288,7 @@ public:
 
    void DelegateMarkFilesAsRemovedInESExpectNTimes(unsigned int times, bool markResult) {
       mMarkResult = markResult;
-      EXPECT_CALL(*this, MarkFilesAsRemovedInES(_, _))
+      EXPECT_CALL(*this, MarkFilesAsRemovedInES(_,_,_))
               .Times(times)
               .WillRepeatedly(DoAll(SaveArg<0>(&mRecordsMarked), Return(mMarkResult)));
    }
@@ -295,5 +296,7 @@ public:
    size_t mFailFileCount;
    bool mMarkResult;
    IdsAndIndexes mRecordsMarked;
+   networkMonitor::DpiMsgLR updateMsg;
+   bool mFileCountSuccess;
 };
 

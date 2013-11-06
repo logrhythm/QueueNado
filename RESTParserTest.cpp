@@ -15,6 +15,36 @@ namespace {
 }
 #ifdef LR_DEBUG
 
+TEST_F(RESTParserTest, ParseESTimestamp) {
+   RESTParser parser;
+   
+   EXPECT_EQ(0, parser.ParseESTimestamp("no/timestamp/here you:foo:!"));
+   EXPECT_EQ(0, parser.ParseESTimestamp("1970/01/01 00:00:00"));
+   EXPECT_EQ(0, parser.ParseESTimestamp("1000/01/01 00:00:00"));
+   EXPECT_EQ(1234567890L, parser.ParseESTimestamp("2009/02/13 23:31:30"));
+   
+}
+
+TEST_F(RESTParserTest, GetOldestTimeField) {
+   RESTParser parser;
+   std::string testReply = "200|ok|{\"took\":4359,\"timed_out\":false,\"_shards\":{\"total\":84,\"successful\":84,\"failed\":0},\"hits\":{\"total\":13992297,\"atotal\":123,\"totalb\":345,\"hits\":[{\"_index\":\"network_2013_10_28\",\"_type\":\"meta\",\"_id\":\"226890cf-a90a-42ea-b7d9-5e3492b488a6\",\"_score\":null,\"fields\":{\"timeUpdated\":\"2009/02/13 23:31:30\",\"timeAgain\":\"2009/02/13 23:31:31\"},\"sort\":[1382976468000]}]}}";
+   EXPECT_EQ(1234567890L,parser.GetOldestTimeField(testReply,"timeUpdated"));
+   EXPECT_EQ(1234567891L,parser.GetOldestTimeField(testReply,"timeAgain"));
+   EXPECT_EQ(0,parser.GetOldestTimeField(testReply,"notHere"));
+   testReply = "200|ok|{\"took\":1759,\"timed_out\":false,\"_shards\":{\"total\":1,\"successful\":1,"
+           "\"failed\":0},\"hits\":{\"total\":2,\"max_score\":null,"
+           "\"hits\":[{\"_index\":\"upgrade\",\"_type\":\"info\",\"_id\":\"1383325709\","
+           "\"_score\":null, \"_source\" : {\"upgradeDate\":\"2009/02/13 23:31:30\","
+           "\"ignorePreviousData\":true,\"upgradingToVersion\":\"1235\"},\"sort\":[1383325709000]}]}}";
+   EXPECT_EQ(1234567890L,parser.GetOldestTimeField(testReply,"upgradeDate"));
+   testReply = "200|ok|{\"_shards\":{\"total\":84,\"successful\":84,\"failed\":0},\"hits\":{\"total\":13992297,\"atotal\":123,\"totalb\":345}}";
+   EXPECT_EQ(0,parser.GetOldestTimeField(testReply,"timeUpdated"));
+   EXPECT_EQ(0,parser.GetOldestTimeField(testReply,"timeAgain"));
+   EXPECT_EQ(0,parser.GetOldestTimeField(testReply,"notHere"));
+   testReply = "";
+   EXPECT_EQ(0,parser.GetOldestTimeField(testReply,"timeUpdated"));
+}
+
 TEST_F(RESTParserTest, GetTotalHits) {
    RESTParser sender;
 
