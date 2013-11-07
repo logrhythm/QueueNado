@@ -207,7 +207,7 @@ TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
            "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
 
-   IdsAndIndexes fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1);
+   IdsAndIndexes fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1,0);
 
    EXPECT_EQ(8, fullListing.size());
    for (const auto& sessionPair : fullListing) {
@@ -217,7 +217,7 @@ TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
    EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos) << target.mLastRequest;
    EXPECT_TRUE(target.mLastRequest.find("abc123") == std::string::npos) << target.mLastRequest;
 
-   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 2);
+   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 2,0);
 
    EXPECT_EQ(4, fullListing.size());
 

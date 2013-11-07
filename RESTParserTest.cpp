@@ -15,6 +15,36 @@ namespace {
 }
 #ifdef LR_DEBUG
 
+TEST_F(RESTParserTest, GetOldestTimeStart) {
+   RESTParser parser;
+   
+   std::string resultString = 
+           "200|ok|"
+           "{\"took\":55,\"timed_out\":false,\"_shards\":"
+              "{\"total\":2,\"successful\":2,\"failed\":0},"
+              "\"hits\":{\"total\":5653,\"max_score\":null,\"hits\":";
+   resultString += 
+              "["
+                 "{\"_index\":\"network_2013_11_05\",\"_type\":\"meta\",\"_id\":"
+                 "\"57fe41e4-c34d-47a8-90bb-1c77f1f15ffa_8\",\"_score\":null,\"fields\":"
+                    "{\"sessionId\":\"57fe41e4-c34d-47a8-90bb-1c77f1f15ffa\",\"timeUpdated\":"
+                    "\"2013/11/05 20:06:37\",\"timeStart\":\"2009/02/13 23:31:30\"},"
+                 "\"sort\":[1383681997000]}";
+   resultString += 
+                 ",{\"_index\":\"network_2013_11_05\",\"_type\":\"meta\",\"_id\":"
+                 "\"f922b594-df00-4470-ab6b-0add450af6a0_8\",\"_score\":null,\"fields\":"
+                    "{\"sessionId\":\"f922b594-df00-4470-ab6b-0add450af6a0\",\"timeUpdated\":"
+                    "\"2013/11/05 20:06:37\",\"timeStart\":\"2009/02/13 23:31:31\"},"
+                 "\"sort\":[1383681997000]}";
+   resultString += 
+              "]"
+           "}"
+           "}";
+   EXPECT_EQ(1234567890L,parser.GetOldestTimeField(resultString,"timeStart"));
+   
+                      
+   
+}
 TEST_F(RESTParserTest, ParseESTimestamp) {
    RESTParser parser;
    

@@ -82,8 +82,8 @@ public:
    }
 
    IdsAndIndexes GetAllRelevantRecordsForSessions(const std::vector<std::string>& oldestSessionIds,
-           const unsigned int maxPerQuery) {
-      return ElasticSearch::GetAllRelevantRecordsForSessions(oldestSessionIds, maxPerQuery);
+                                                              const unsigned int maxPerQuery, const time_t& indexStartTime) {
+      return ElasticSearch::GetAllRelevantRecordsForSessions(oldestSessionIds, maxPerQuery,indexStartTime);
    }
 
    LR_VIRTUAL bool GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(time_t& ignoreTime) {
