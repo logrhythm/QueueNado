@@ -85,7 +85,9 @@ public:
                                                               const unsigned int maxPerQuery, const time_t& indexStartTime) {
       return ElasticSearch::GetAllRelevantRecordsForSessions(oldestSessionIds, maxPerQuery,indexStartTime);
    }
-
+   LR_VIRTUAL std::string ConstructSearchHeaderWithTime(const time_t& timeSince) {
+      return ElasticSearch::ConstructSearchHeaderWithTime(timeSince);
+   }
    LR_VIRTUAL bool GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(time_t& ignoreTime) {
       return ElasticSearch::GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime);
    }
@@ -264,6 +266,11 @@ public:
    LR_VIRTUAL std::string GetIgnoreTimeAsString(const size_t& ignoreTime) {
       return ElasticSearch::GetIgnoreTimeAsString(ignoreTime);
    }
+   
+   LR_VIRTUAL std::string GetListOfAllIndexesSince(time_t indexStartTime) {
+      return ElasticSearch::GetListOfAllIndexesSince(indexStartTime);
+   }
+   
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;

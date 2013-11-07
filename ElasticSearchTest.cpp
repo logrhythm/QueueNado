@@ -132,7 +132,8 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    EXPECT_FALSE(es.GetTotalCapturedFiles(count));
    EXPECT_EQ(0, count);
    std::string expectedQuery;
-   expectedQuery = "POST|/_all/meta/_search|{\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"written\" : true}},{ \"term\" : {\"latestUpdate\" : true}}]}}},\"_cache\":true,\"from\": 0,\"size\":1,\"fields\": [\"sessionId\", \"timeUpdated\"]}}";
+   expectedQuery = "POST|/_all/meta/_search|{\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"written\" : true}},{ \"term\" : {\"latestUpdate\" : true}}]}}},\"_cache\":true,\"from\": 0,\"size\":1,\"fields\": "
+           "[\"sessionId\", \"timeUpdated\", \"timeStart\"]}}";
    EXPECT_EQ(expectedQuery, target.mLastRequest);
    target.mReplyMessage = "200|ok|"
            "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
@@ -183,6 +184,50 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    EXPECT_EQ(expectedQuery, target.mLastRequest);
 }
 
+TEST_F(ElasticSearchTest, GetListOfAllIndexesSince) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   GMockElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   std::string expectedString = "_all";
+   EXPECT_EQ(expectedString,es.GetListOfAllIndexesSince(0));
+   networkMonitor::DpiMsgLR aMessage;
+   aMessage.set_timeupdated(std::time(NULL));
+   networkMonitor::DpiMsgLR yesterMessage;
+   yesterMessage.set_timeupdated(aMessage.timeupdated()-24*60*60);
+   networkMonitor::DpiMsgLR morrowMessage;
+   morrowMessage.set_timeupdated(aMessage.timeupdated()+24*60*60);
+   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find("_all")==std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(",")==std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(aMessage.GetESIndexName())==std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(yesterMessage.GetESIndexName())==std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(morrowMessage.GetESIndexName())==std::string::npos)
+           << es.GetListOfAllIndexesSince(aMessage.timeupdated());
+}
+
+TEST_F(ElasticSearchTest, ConstructSearchHeaderWithTime) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   GMockElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   std::string expectedString = "GET|/_all/meta/_search|";
+   EXPECT_EQ(expectedString, es.ConstructSearchHeaderWithTime(0));
+   networkMonitor::DpiMsgLR aMessage;
+   aMessage.set_timeupdated(std::time(NULL));
+
+   EXPECT_TRUE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find("_all")==std::string::npos);
+   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(",")==std::string::npos);
+   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(aMessage.GetESIndexName())==std::string::npos);
+}
+
 TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
@@ -207,7 +252,7 @@ TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
            "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
            "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
 
-   IdsAndIndexes fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1,0);
+   IdsAndIndexes fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1, 0);
 
    EXPECT_EQ(8, fullListing.size());
    for (const auto& sessionPair : fullListing) {
@@ -217,12 +262,15 @@ TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
    EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos) << target.mLastRequest;
    EXPECT_TRUE(target.mLastRequest.find("abc123") == std::string::npos) << target.mLastRequest;
 
-   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 2,0);
+   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 2, 0);
 
    EXPECT_EQ(4, fullListing.size());
 
    EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos);
    EXPECT_TRUE(target.mLastRequest.find("abc123") != std::string::npos);
+
+   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1, std::time(NULL) - 24 * 60 * 60);
+   EXPECT_TRUE(target.mLastRequest.find("_all") == std::string::npos) << target.mLastRequest;
 }
 
 TEST_F(ElasticSearchTest, OptimizeIndexFailure) {
