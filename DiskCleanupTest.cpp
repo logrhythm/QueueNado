@@ -34,6 +34,32 @@ TEST_F(DiskCleanupTest, RecalculatePCapDiskUsed) {
    EXPECT_EQ(0, stats.aPcapUsageInMB);
 }
 
+// Added since it after a merge mixed up the Free, Total and Used values
+TEST_F(DiskCleanupTest, RecalculatePCapDiskUsedMockUsage) {
+   GMockDiskCleanup cleanup(mConf);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   GMockElasticSearch es(transport, false);
+
+   
+   // Just some random values that are independent of each other
+   //    (and honestly should not even make sense)
+   // free: 2048 (2GB), total: 5000000 (4882 GB), used: 5120 (5GB)
+   DiskCleanup::DiskSpace disk;
+   disk.Free = 2048;
+   disk.Total = 5000000;
+   disk.Used = 5120;  
+   DiskCleanup::StatInfo mockStats;
+   mockStats.pcapDiskInGB = disk;
+   EXPECT_CALL(cleanup, GetPcapStoreUsage(_, _))
+           .WillOnce(SetArgReferee<0>(mockStats));
+   
+   DiskCleanup::StatInfo readStats;
+   cleanup.RecalculatePCapDiskUsed(readStats, es);
+   EXPECT_EQ(readStats.pcapDiskInGB.Free, 2);
+   EXPECT_EQ(readStats.pcapDiskInGB.Total, 4882);
+   EXPECT_EQ(readStats.pcapDiskInGB.Used, 5);   
+}
+
 TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESNoFiles) {
    GMockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");
