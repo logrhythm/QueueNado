@@ -17,13 +17,13 @@ public:
 
 protected:
  void SetUp() {
-      autoManagedManager = new MockProcessManagerCommand(conf);
+      autoManagedManager = new MockProcessManagerCommand(mockConf);
       cmd.set_type(protoMsg::CommandRequest_CommandType_CONFIG_REQUEST);
    };
 
    virtual void TearDown() {}
 
-   const MockConf conf;
+   MockConf mockConf;
    MockProcessManagerCommand* autoManagedManager;
    protoMsg::CommandRequest cmd;
 };
