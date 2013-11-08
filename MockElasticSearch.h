@@ -85,12 +85,21 @@ public:
                                                               const unsigned int maxPerQuery, const time_t& indexStartTime) {
       return ElasticSearch::GetAllRelevantRecordsForSessions(oldestSessionIds, maxPerQuery,indexStartTime);
    }
+   LR_VIRTUAL bool IndexActuallyExists(const std::string& indexName) {
+      return ElasticSearch::IndexActuallyExists(indexName);
+   }
    LR_VIRTUAL std::string ConstructSearchHeaderWithTime(const time_t& timeSince) {
       return ElasticSearch::ConstructSearchHeaderWithTime(timeSince);
    }
    LR_VIRTUAL bool GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(time_t& ignoreTime) {
       return ElasticSearch::GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime);
    }
+   
+   void SetValidNames(const std::set<std::string>& names) {
+      ElasticSearch::mKnownIndexNames = names;
+      ElasticSearch::mLastIndexListUpdateTime = std::time(NULL);
+   }
+   
 
    LR_VIRTUAL std::set<std::string> GetListOfIndexeNames() {
       if (mFakeIndexList) {

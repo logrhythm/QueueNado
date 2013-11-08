@@ -192,21 +192,50 @@ TEST_F(ElasticSearchTest, GetListOfAllIndexesSince) {
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-   
+
    std::string expectedString = "_all";
-   EXPECT_EQ(expectedString,es.GetListOfAllIndexesSince(0));
+   EXPECT_EQ(expectedString, es.GetListOfAllIndexesSince(0));
+
    networkMonitor::DpiMsgLR aMessage;
    aMessage.set_timeupdated(std::time(NULL));
    networkMonitor::DpiMsgLR yesterMessage;
-   yesterMessage.set_timeupdated(aMessage.timeupdated()-24*60*60);
+   yesterMessage.set_timeupdated(aMessage.timeupdated() - 24 * 60 * 60);
    networkMonitor::DpiMsgLR morrowMessage;
-   morrowMessage.set_timeupdated(aMessage.timeupdated()+24*60*60);
-   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find("_all")==std::string::npos);
-   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(",")==std::string::npos);
-   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(aMessage.GetESIndexName())==std::string::npos);
-   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(yesterMessage.GetESIndexName())==std::string::npos);
-   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(morrowMessage.GetESIndexName())==std::string::npos)
-           << es.GetListOfAllIndexesSince(aMessage.timeupdated());
+   morrowMessage.set_timeupdated(aMessage.timeupdated() + 24 * 60 * 60);   
+   
+   std::set<std::string> validNames;
+   validNames.insert(aMessage.GetESIndexName());
+   validNames.insert(yesterMessage.GetESIndexName());
+   // Not adding tomorrow's message
+   es.SetValidNames(validNames);
+   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find("_all") == std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(",") == std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(aMessage.GetESIndexName()) == std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(yesterMessage.GetESIndexName()) == std::string::npos);
+   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(morrowMessage.GetESIndexName()) == std::string::npos);
+}
+
+TEST_F(ElasticSearchTest, IndexActuallyExists) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   GMockElasticSearch es(stick, false);
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(es.Initialize());
+   target.BeginListenAndRepeat();
+   
+   std::set<std::string> validNames;
+   validNames.insert("foo");
+   validNames.insert("bar");
+   es.SetValidNames(validNames);
+   
+   EXPECT_TRUE(es.IndexActuallyExists("foo"));
+   EXPECT_TRUE(es.IndexActuallyExists("bar"));
+   EXPECT_FALSE(es.IndexActuallyExists(""));
+   EXPECT_TRUE(es.IndexActuallyExists("_all"));
+   EXPECT_FALSE(es.IndexActuallyExists("baz"));
+   
+   
 }
 
 TEST_F(ElasticSearchTest, ConstructSearchHeaderWithTime) {
@@ -217,15 +246,24 @@ TEST_F(ElasticSearchTest, ConstructSearchHeaderWithTime) {
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-   
+
    std::string expectedString = "GET|/_all/meta/_search|";
    EXPECT_EQ(expectedString, es.ConstructSearchHeaderWithTime(0));
    networkMonitor::DpiMsgLR aMessage;
    aMessage.set_timeupdated(std::time(NULL));
-
-   EXPECT_TRUE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find("_all")==std::string::npos);
-   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(",")==std::string::npos);
-   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(aMessage.GetESIndexName())==std::string::npos);
+   networkMonitor::DpiMsgLR yesterMessage;
+   yesterMessage.set_timeupdated(aMessage.timeupdated() - 24 * 60 * 60);
+   networkMonitor::DpiMsgLR morrowMessage;
+   morrowMessage.set_timeupdated(aMessage.timeupdated() + 24 * 60 * 60);   
+   
+   std::set<std::string> validNames;
+   validNames.insert(aMessage.GetESIndexName());
+   validNames.insert(yesterMessage.GetESIndexName());
+   // Not adding tomorrow's message
+   es.SetValidNames(validNames);
+   EXPECT_TRUE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find("_all") == std::string::npos);
+   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(",") == std::string::npos);
+   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(aMessage.GetESIndexName()) == std::string::npos);
 }
 
 TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
