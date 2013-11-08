@@ -199,9 +199,9 @@ TEST_F(ElasticSearchTest, GetListOfAllIndexesSince) {
    networkMonitor::DpiMsgLR aMessage;
    aMessage.set_timeupdated(std::time(NULL));
    networkMonitor::DpiMsgLR yesterMessage;
-   yesterMessage.set_timeupdated(aMessage.timeupdated() - 24 * 60 * 60);
+   yesterMessage.set_timeupdated(aMessage.timeupdated() - es.TwentyFourHoursInSeconds);
    networkMonitor::DpiMsgLR morrowMessage;
-   morrowMessage.set_timeupdated(aMessage.timeupdated() + 24 * 60 * 60);   
+   morrowMessage.set_timeupdated(aMessage.timeupdated() + es.TwentyFourHoursInSeconds);   
    
    std::set<std::string> validNames;
    validNames.insert(aMessage.GetESIndexName());
@@ -252,9 +252,9 @@ TEST_F(ElasticSearchTest, ConstructSearchHeaderWithTime) {
    networkMonitor::DpiMsgLR aMessage;
    aMessage.set_timeupdated(std::time(NULL));
    networkMonitor::DpiMsgLR yesterMessage;
-   yesterMessage.set_timeupdated(aMessage.timeupdated() - 24 * 60 * 60);
+   yesterMessage.set_timeupdated(aMessage.timeupdated() - es.TwentyFourHoursInSeconds);
    networkMonitor::DpiMsgLR morrowMessage;
-   morrowMessage.set_timeupdated(aMessage.timeupdated() + 24 * 60 * 60);   
+   morrowMessage.set_timeupdated(aMessage.timeupdated() + es.TwentyFourHoursInSeconds);   
    
    std::set<std::string> validNames;
    validNames.insert(aMessage.GetESIndexName());
@@ -307,7 +307,7 @@ TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
    EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos);
    EXPECT_TRUE(target.mLastRequest.find("abc123") != std::string::npos);
 
-   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1, std::time(NULL) - 24 * 60 * 60);
+   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1, std::time(NULL) - es.TwentyFourHoursInSeconds);
    EXPECT_TRUE(target.mLastRequest.find("_all") == std::string::npos) << target.mLastRequest;
 }
 
@@ -1480,9 +1480,9 @@ TEST_F(ElasticSearchTest, GetIndexesThatAreActive) {
    std::set<std::string> excludes = es.GetIndexesThatAreActive();
 
    EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
-   todayMsg.set_timeupdated(now - (24 * 60 * 60));
+   todayMsg.set_timeupdated(now - (es.TwentyFourHoursInSeconds));
    EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
-   todayMsg.set_timeupdated(now - (48 * 60 * 60));
+   todayMsg.set_timeupdated(now - 2 * (es.TwentyFourHoursInSeconds));
    EXPECT_FALSE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
 }
 #else
