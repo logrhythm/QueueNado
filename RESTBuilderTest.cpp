@@ -15,6 +15,158 @@ namespace {
 }
 #ifdef LR_DEBUG
 
+TEST_F(RESTBuilderTest, GetOldestNDocuments) {
+   RESTBuilder builder; 
+   
+   //GetOldestNDocuments(const std::string& queryString, const unsigned int number, const bool cache,
+   //                                const time_t& after=0)
+   
+   std::string queryString = "testQuery";
+   unsigned int number(1234);
+   bool cache(false);
+   time_t after(1234567890L);
+   
+   std::string query = builder.GetOldestNDocuments(queryString,number,cache);
+   std::string expectedResult = "GET|/_all/meta/_search|";
+   expectedResult += "{"
+           "\"sort\": ["
+           "      {"
+           "      \"timeUpdated\": {"
+           "         \"order\" : \"asc\","
+           "         \"ignore_unmapped\" : true"
+           "     }"
+           "   }"
+           "],"
+           "\"query\" :"
+           "{";
+   expectedResult += "   \"query_string\": {\"query\":\"";
+   expectedResult += "testQuery";
+   expectedResult += "\"},"
+           "  \"_cache\":";
+   expectedResult += "false";
+   expectedResult += ","
+           "\"fields\": [\"sessionId\", \"timeUpdated\"],"
+           "\"from\": 0,"
+           "\"size\":";
+   expectedResult += "1234";
+   expectedResult += "}}";
+   
+   EXPECT_EQ(expectedResult, query);
+   
+   
+}
+
+
+TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
+   RESTBuilder builder;
+   std::vector<std::pair<std::string, bool> >  terms;
+   std::vector<std::tuple<std::string, std::string, std::string> > ranges;
+   
+   std::string query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   std::string expectedReply = "";
+   EXPECT_EQ(expectedReply,query);
+   
+   terms.push_back(std::make_pair("foo",false));
+   terms.push_back(std::make_pair("bar",true));
+   query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   expectedReply = "POST|/_all/meta/_search|"
+           "{"
+           "\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
+           "\"query\" : {"
+           "\"filtered\" :"
+           "{"
+           "\"filter\" : {"
+           "\"bool\" :"
+           "{"
+           "\"must\": ["
+           "{ \"term\" : {\"foo\" : false}},"
+           "{ \"term\" : {\"bar\" : true}}"
+           "]"
+           "}"
+           "}"
+           "},"
+           "\"_cache\":false,"
+           "\"from\": 0,"
+           "\"size\":999,"
+           "\"fields\": [\"sessionId\", \"timeUpdated\", \"timeStart\"]"
+           "}"
+           "}";
+   EXPECT_EQ(expectedReply,query);
+   
+   terms.clear();
+   ranges.push_back(std::make_tuple("foo","gt","1"));
+   ranges.push_back(std::make_tuple("bar","lt","10"));
+   query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   expectedReply = "POST|/_all/meta/_search|"
+           "{"
+           "\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
+           "\"query\" : {"
+           "\"filtered\" :"
+           "{"
+           "\"filter\" : {"
+           "\"bool\" :"
+           "{"
+           "\"must\": ["
+           "{ \"numeric_range\" : {\"foo\" : { \"gt\" : \"1\" }}},"
+           "{ \"numeric_range\" : {\"bar\" : { \"lt\" : \"10\" }}}"
+           "]"
+           "}"
+           "}"
+           "},"
+           "\"_cache\":false,"
+           "\"from\": 0,"
+           "\"size\":999,"
+           "\"fields\": [\"sessionId\", \"timeUpdated\", \"timeStart\"]"
+           "}"
+           "}";
+   EXPECT_EQ(expectedReply,query);
+   
+   terms.push_back(std::make_pair("foo",false));
+   terms.push_back(std::make_pair("bar",true));
+   query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   expectedReply = "POST|/_all/meta/_search|"
+           "{"
+           "\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
+           "\"query\" : {"
+           "\"filtered\" :"
+           "{"
+           "\"filter\" : {"
+           "\"bool\" :"
+           "{"
+           "\"must\": ["
+           "{ \"term\" : {\"foo\" : false}},"
+           "{ \"term\" : {\"bar\" : true}},"
+           "{ \"numeric_range\" : {\"foo\" : { \"gt\" : \"1\" }}},"
+           "{ \"numeric_range\" : {\"bar\" : { \"lt\" : \"10\" }}}"
+           "]"
+           "}"
+           "}"
+           "},"
+           "\"_cache\":false,"
+           "\"from\": 0,"
+           "\"size\":999,"
+           "\"fields\": [\"sessionId\", \"timeUpdated\", \"timeStart\"]"
+           "}"
+           "}";
+   EXPECT_EQ(expectedReply,query);
+}
+
+
+TEST_F(RESTBuilderTest, GetQueryForLatestUpgradeWhereIndexesShouldBeIgnored) {
+   RESTBuilder builder;
+   
+   std::string query = builder.GetQueryForLatestUpgradeWhereIndexesShouldBeIgnored();
+   std::string expectedReply = "GET|/upgrade/info/_search|{"
+           "\"sort\" : [ { \"upgradeDate\" : { \"order\" : \"desc\" } } ],"
+           "\"query\" : {"
+           "\"query_string\" : { \"query\" : \"ignorePreviousData:true\" }"
+           ","
+           "\"fields\": [\"upgradeDate\"],"
+           "\"size\" : 1"
+           "}"
+           "}";
+   EXPECT_EQ(expectedReply,query);
+}
 TEST_F(RESTBuilderTest, GetCountQuery) {
    RESTBuilder builder;
    
