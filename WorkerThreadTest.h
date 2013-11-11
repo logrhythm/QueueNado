@@ -19,6 +19,7 @@ public:
    ClassWithAWorker() : mRunning(false), mRun(false){}
    ~ClassWithAWorker() { EXPECT_FALSE(mRunning); }
    void WaitLoop();
+   void WaitLoopWithArgs(unsigned int msSleep);
    bool mRunning;
    std::atomic<bool> mRun;
 };
