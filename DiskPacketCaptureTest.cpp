@@ -27,6 +27,13 @@ TEST_F(DiskPacketCaptureTest, SystemTest_VerifyGetCaptureFirstLocation) {
    ASSERT_TRUE((first == "/pcap0/" || first == "/usr/local/probe/pcap/")) 
            << "PCAP first storage location: " << first;
    LOG(INFO) << "pcap location is: " <<  first;
+   using namespace std;
+   std::string pcapDirs = "\n******: first location: ";
+   pcapDirs.append(first).append("\n**** ALL LOCATIONS: ");
+   for (auto& location: conf.GetPcapCaptureLocations()) {
+      pcapDirs.append("\n**** ALL LOCATIONS: ").append(location);
+   }
+   LOG(INFO) << pcapDirs;
 }
 
 
