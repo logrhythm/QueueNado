@@ -20,6 +20,7 @@ public:
    ~ClassWithAWorker() { EXPECT_FALSE(mRunning); }
    void WaitLoop();
    void WaitLoopWithArgs(unsigned int msSleep);
+   void LoopThatThrowsInt(const int throwMe); 
    bool mRunning;
    std::atomic<bool> mRun;
 };
