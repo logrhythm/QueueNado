@@ -51,9 +51,6 @@ public:
    mInternalRepair(true),
    mValidateEthFailCount(0),
    mMaxIndividualPCap(1000), 
-   mValidConf(true),
-   mIgnoreSyslogConfValidation(true),
-   mIgnoreBaseConfValidation(true),
    mPcapCaptureMaxPackets(999999),
    mSyslogSendQueueSize(800),
    mSyslogRecvQueueSize(800) {
@@ -307,70 +304,7 @@ public:
    size_t GetPcapCaptureMaxPackets() LR_OVERRIDE {
       return mPcapCaptureMaxPackets;
    }
-
-   bool ValidateBaseConf(protoMsg::BaseConf& msg) LR_OVERRIDE {
-      if (mIgnoreBaseConfValidation) {
-         return true;
-      }
-      mValidConf = Conf::ValidateBaseConf(msg);
-      return mValidConf;
-   }
-
-   bool ValidateSyslogConf(protoMsg::SyslogConf& msg) LR_OVERRIDE {
-      if (mIgnoreSyslogConfValidation) {
-         return true;
-      }
-      mValidConf = Conf::ValidateSyslogConf(msg);
-      return mValidConf;
-   }
-
-
-   bool CheckNumber(const std::string& number, const Range& range) LR_OVERRIDE {
-         return Conf::CheckNumber(number, range);
-   }
    
-   void CheckNumberForNegative(const std::string& number) LR_OVERRIDE {
-      try {
-         Conf::CheckNumberForNegative(number);
-         } catch (std::exception e) {
-         LOG(DEBUG) << e.what();
-         mValidConf = false;
-         throw;
-      }
-      mValidConf = true;
-   }
-
-   void CheckNumberForSize(const std::string& number, const Range& range) LR_OVERRIDE {
-      try {
-         Conf::CheckNumberForSize(number, range);
-         } catch (std::exception e) {
-         LOG(DEBUG) << e.what();
-         mValidConf = false;
-         throw;
-      }
-      mValidConf = true;
-   }
-
-   bool CheckString(const std::string& text) LR_OVERRIDE {
-      return Conf::CheckString(text);
-   }
-
-   void CheckStringForSize(const std::string& text) LR_OVERRIDE {
-      try {
-         Conf::CheckStringForSize(text);
-      } catch (std::exception e) {
-         LOG(DEBUG) << e.what();
-         mValidConf = false;
-         throw;
-      }
-      mValidConf = true;
-   }
-   
-   bool CheckBool(const std::string& text) LR_OVERRIDE {
-    mValidConf = Conf::CheckBool(text);
-    return mValidConf;
-   }
-
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;
@@ -422,7 +356,6 @@ public:
    int mValidateEthFailCount;
 
    size_t mMaxIndividualPCap;
-   bool mValidConf;
    bool mIgnoreSyslogConfValidation;
    bool mIgnoreBaseConfValidation;
    size_t mPcapCaptureMaxPackets;
