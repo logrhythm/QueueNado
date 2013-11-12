@@ -188,7 +188,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
    } while (!zctx_interrupted && count++ < 100);
-   testProcessor.mTimeout = 1;
+   testProcessor.SetTimeout(1);
    std::this_thread::sleep_for(std::chrono::milliseconds(2001));
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
@@ -225,7 +225,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) 
    requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
    requestMsg.set_async(false);
    requestMsg.set_stringargone(replyMsg.result());
-   testProcessor.mTimeout = 0;
+   testProcessor.SetTimeout(0);
    std::this_thread::sleep_for(std::chrono::milliseconds(2001));
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);

@@ -25,5 +25,8 @@ public:
       CommandProcessor::KillCommandsThatWillNeverFinish(maxTimeInSeconds,runningAsyncCommands);
    }
    
+   void SetTimeout(const unsigned int timeout) {
+      CommandProcessor::SetTimeout(timeout);
+   }
 
 };
