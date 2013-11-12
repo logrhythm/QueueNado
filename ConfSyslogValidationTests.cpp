@@ -42,8 +42,8 @@ TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
  * SHOULD make the validation to pass instead of fail
  */
 namespace {
-    const size_t gNumberOfFieldsLowerBound = 9;
-    const size_t gNumberOfFieldsUpperBound = 9;
+    const size_t gNumberOfFieldsLowerBound = 8;
+    const size_t gNumberOfFieldsUpperBound = 8;
 }
 void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    size_t index = 0;
