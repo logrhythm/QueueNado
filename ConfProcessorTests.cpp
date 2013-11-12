@@ -1105,7 +1105,6 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ(13, conf.getPCAPBuffsize());
    //   EXPECT_EQ("eth0", conf.getPCAPInterface()); this is now internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_TRUE(conf.getReportEveythingEnabled());
    EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
    EXPECT_EQ(250000, conf.getDpiHalfSessions());
    EXPECT_FALSE(conf.EnableIPDefragmentation());
@@ -1150,7 +1149,6 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    EXPECT_EQ(13, conf.getPCAPBuffsize());
    //   EXPECT_EQ("eth0", conf.getPCAPInterface());  this is now internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_TRUE(conf.getReportEveythingEnabled());
    EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
    EXPECT_EQ(1, conf.getStatsIntervalSeconds());
 }
@@ -1182,7 +1180,6 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    EXPECT_EQ(PCAP_BUFFER_SIZE, conf.getPCAPBuffsize());
    //   EXPECT_EQ("", conf.getPCAPInterface());  internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_FALSE(conf.getReportEveythingEnabled());
    EXPECT_EQ(MAX_SYSLOG_LINE_RFC_5426, conf.getSyslogMaxLineLength());
    EXPECT_EQ(DEFAULT_STATS_INTERVAL_SEC, conf.getStatsIntervalSeconds());
    EXPECT_EQ("scripts", conf.getScriptsDir());
@@ -1224,7 +1221,6 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
    conf.updateFields(msg);
    EXPECT_TRUE(conf.getSyslogTcpEnabled());
    
-   EXPECT_TRUE(conf.getReportEveythingEnabled());
 }
 
 TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
@@ -1241,7 +1237,6 @@ TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    EXPECT_FALSE(conf.getSyslogTcpEnabled());  // default is UDP
 
    EXPECT_TRUE(conf.getScrubPasswordsEnabled());
-   EXPECT_FALSE(conf.getReportEveythingEnabled());
 }
 
 
