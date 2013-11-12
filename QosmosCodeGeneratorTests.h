@@ -8,7 +8,7 @@
 #include <string>
 #include "QosmosCodeGenerator.h"
 #include "QosmosCodeGeneratorConfigParser.h"
-#define CALLBACK_FUNCTION_LINES 15
+#define CALLBACK_FUNCTION_LINES 11
 
 class QosmosCodeGeneratorTests : public ::testing::Test {
 public:
