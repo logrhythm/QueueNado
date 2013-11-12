@@ -356,8 +356,6 @@ public:
    int mValidateEthFailCount;
 
    size_t mMaxIndividualPCap;
-   bool mIgnoreSyslogConfValidation;
-   bool mIgnoreBaseConfValidation;
    size_t mPcapCaptureMaxPackets;
    int mSyslogSendQueueSize;
    int mSyslogRecvQueueSize;

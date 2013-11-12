@@ -18,7 +18,7 @@ namespace {
 TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
    MockConf conf;
    MockValidateConf validateConf;
-   conf.mIgnoreSyslogConfValidation = false;
+   validateConf.mIgnoreSyslogConfValidation = false;
    
    EXPECT_EQ(validateConf.mValidConf, true);
    protoMsg::SyslogConf blank;
@@ -52,7 +52,7 @@ void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
    MockValidateConf validateConf;
-   conf.mIgnoreSyslogConfValidation = false;
+   validateConf.mIgnoreSyslogConfValidation = false;
    validateConf.mValidConf = false;
    
    protoMsg::SyslogConf msg; 
@@ -102,7 +102,7 @@ void SyslogValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
    MockValidateConf validateConf;
-   conf.mIgnoreSyslogConfValidation = false;
+   validateConf.mIgnoreSyslogConfValidation = false;
    
    protoMsg::SyslogConf msg; 
    
