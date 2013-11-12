@@ -203,7 +203,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) 
 
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
-   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommand::Construct);
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
 
    Crowbar sender(conf.getCommandQueue());
    ASSERT_TRUE(sender.Wield());
