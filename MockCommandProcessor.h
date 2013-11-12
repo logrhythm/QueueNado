@@ -5,7 +5,7 @@
 class MockCommandProcessor : public CommandProcessor {
 public:
 
-   explicit MockCommandProcessor(const Conf& conf) : CommandProcessor(conf), timeout(3600) {
+   explicit MockCommandProcessor(const Conf& conf) : CommandProcessor(conf) {
    }
 
    virtual ~MockCommandProcessor() {
@@ -20,9 +20,10 @@ public:
       return mCommandFactory.GetCommandCallback(type);
    }
    
-   void KillCommandsThatWillNeverFinish(unsigned int maxTimeInSeconds) {
-      CommandProcessor::KillCommandsThatWillNeverFinish(timeout);
+   void KillCommandsThatWillNeverFinish(unsigned int maxTimeInSeconds,
+                                        std::map<std::string, std::tuple<std::weak_ptr<Command>, time_t, pthread_t> >& runningAsyncCommands) {
+      CommandProcessor::KillCommandsThatWillNeverFinish(maxTimeInSeconds,runningAsyncCommands);
    }
    
-   unsigned int timeout;
+
 };
