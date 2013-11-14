@@ -5,7 +5,6 @@
  */
 
 #pragma once
-#include "ValidateConf.h"
 #include "include/global.h"
 #include "Range.h"
 #include <g2log.hpp>
