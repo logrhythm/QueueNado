@@ -266,50 +266,50 @@ TEST_F(ElasticSearchTest, ConstructSearchHeaderWithTime) {
    EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(aMessage.GetESIndexName()) == std::string::npos);
 }
 
-TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
-   BoomStick stick{mAddress};
-   MockSkelleton target{mAddress};
-   MockElasticSearch es(stick, false);
-   ASSERT_TRUE(target.Initialize());
-   ASSERT_TRUE(stick.Initialize());
-   ASSERT_TRUE(es.Initialize());
-   target.BeginListenAndRepeat();
-
-   std::vector<std::string> sessionIds;
-
-   sessionIds.push_back("abc123");
-   sessionIds.push_back("def456");
-   target.mReplyMessage = "200|ok|{\"took\":10,\"timed_out\":false,\"_shards\":{\"total\":50,"
-           "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
-           "\"hits\":[{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
-           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_2\",\"_score\":12.653517},"
-           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
-           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_3\",\"_score\":12.650981},"
-           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
-           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_4\",\"_score\":12.650732},"
-           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
-           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
-
-   IdsAndIndexes fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1, 0);
-
-   EXPECT_EQ(8, fullListing.size());
-   for (const auto& sessionPair : fullListing) {
-      EXPECT_TRUE(std::get<IdsAndIndexes_Index>(sessionPair) == "network_2013_08_12");
-      EXPECT_TRUE(std::get<IdsAndIndexes_ID>(sessionPair).find("8f8411f5-899a-445a-8421-210157db05") != std::string::npos);
-   }
-   EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos) << target.mLastRequest;
-   EXPECT_TRUE(target.mLastRequest.find("abc123") == std::string::npos) << target.mLastRequest;
-
-   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 2, 0);
-
-   EXPECT_EQ(4, fullListing.size());
-
-   EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos);
-   EXPECT_TRUE(target.mLastRequest.find("abc123") != std::string::npos);
-
-   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1, std::time(NULL) - es.TwentyFourHoursInSeconds);
-   EXPECT_TRUE(target.mLastRequest.find("_all") == std::string::npos) << target.mLastRequest;
-}
+//TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
+//   BoomStick stick{mAddress};
+//   MockSkelleton target{mAddress};
+//   MockElasticSearch es(stick, false);
+//   ASSERT_TRUE(target.Initialize());
+//   ASSERT_TRUE(stick.Initialize());
+//   ASSERT_TRUE(es.Initialize());
+//   target.BeginListenAndRepeat();
+//
+//   std::vector<std::string> sessionIds;
+//
+//   sessionIds.push_back("abc123");
+//   sessionIds.push_back("def456");
+//   target.mReplyMessage = "200|ok|{\"took\":10,\"timed_out\":false,\"_shards\":{\"total\":50,"
+//           "\"successful\":50,\"failed\":0},\"hits\":{\"total\":4,\"max_score\":12.653517,"
+//           "\"hits\":[{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+//           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_2\",\"_score\":12.653517},"
+//           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+//           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_3\",\"_score\":12.650981},"
+//           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+//           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_4\",\"_score\":12.650732},"
+//           "{\"_index\":\"network_2013_08_12\",\"_type\":\"meta\","
+//           "\"_id\":\"8f8411f5-899a-445a-8421-210157db0512_1\",\"_score\":12.649386}]}}";
+//
+//   IdsAndIndexes fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1, 0);
+//
+//   EXPECT_EQ(8, fullListing.size());
+//   for (const auto& sessionPair : fullListing) {
+//      EXPECT_TRUE(std::get<IdsAndIndexes_Index>(sessionPair) == "network_2013_08_12");
+//      EXPECT_TRUE(std::get<IdsAndIndexes_ID>(sessionPair).find("8f8411f5-899a-445a-8421-210157db05") != std::string::npos);
+//   }
+//   EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos) << target.mLastRequest;
+//   EXPECT_TRUE(target.mLastRequest.find("abc123") == std::string::npos) << target.mLastRequest;
+//
+//   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 2, 0);
+//
+//   EXPECT_EQ(4, fullListing.size());
+//
+//   EXPECT_TRUE(target.mLastRequest.find("def456") != std::string::npos);
+//   EXPECT_TRUE(target.mLastRequest.find("abc123") != std::string::npos);
+//
+//   fullListing = es.GetAllRelevantRecordsForSessions(sessionIds, 1, std::time(NULL) - es.TwentyFourHoursInSeconds);
+//   EXPECT_TRUE(target.mLastRequest.find("_all") == std::string::npos) << target.mLastRequest;
+//}
 
 TEST_F(ElasticSearchTest, OptimizeIndexFailure) {
    BoomStick stick{mAddress};

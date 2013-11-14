@@ -15,6 +15,10 @@ void ClassWithAWorker::WaitLoopWithArgs(unsigned int msSleep) {
 void ClassWithAWorker::LoopThatThrowsInt(const int throwMe) {
    throw throwMe;
 }
+
+std::string ClassWithAWorker::What() {
+   return "TestClass";
+}
 #ifdef LR_DEBUG
 
 TEST_F(WorkerThreadTest, RIAAWorks) {

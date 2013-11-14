@@ -21,6 +21,7 @@ public:
    void WaitLoop();
    void WaitLoopWithArgs(unsigned int msSleep);
    void LoopThatThrowsInt(const int throwMe); 
+   std::string What();
    bool mRunning;
    std::atomic<bool> mRun;
 };
