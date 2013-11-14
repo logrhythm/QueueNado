@@ -6,6 +6,7 @@
 
 #pragma once
 #include "ValidateConf.h"
+#include "MockValidateChecks.h"
 #include "include/global.h"
 #include "Range.h"
 #include <g2log.hpp>
@@ -41,52 +42,12 @@ public:
         mValidConf = mValidationOfConf.ValidateSyslogConf(msg);
         return mValidConf;
     }
-
-//    bool CheckNumber(const std::string& number, const Range& range) LR_OVERRIDE {
-//        return ValidateChecks::CheckNumber(number, range);
-//    }
-//
-//    void CheckNumberForNegative(const std::string& number) LR_OVERRIDE {
-//        try {
-//            ValidateChecks::CheckNumberForNegative(number);
-//        } catch (std::exception e) {
-//            LOG(DEBUG) << e.what();
-//            mValidConf = false;
-//            throw;
-//        }
-//        mValidConf = true;
-//    }
-//
-//    void CheckNumberForSize(const std::string& number, const Range& range) LR_OVERRIDE {
-//        try {
-//            ValidateChecks::CheckNumberForSize(number, range);
-//        } catch (std::exception e) {
-//            LOG(DEBUG) << e.what();
-//            mValidConf = false;
-//            throw;
-//        }
-//        mValidConf = true;
-//    }
-//
-//    bool CheckString(const std::string& text) LR_OVERRIDE {
-//        return ValidateChecks::CheckString(text);
-//    }
-//
-//    void CheckStringForSize(const std::string& text) LR_OVERRIDE {
-//        try {
-//            ValidateChecks::CheckStringForSize(text);
-//        } catch (std::exception e) {
-//            LOG(DEBUG) << e.what();
-//            mValidConf = false;
-//            throw;
-//        }
-//        mValidConf = true;
-//    }
-//
-//    bool CheckBool(const std::string& text) LR_OVERRIDE {
-//        mValidConf = ValidateChecks::CheckBool(text);
-//        return mValidConf;
-//    }
+    
+    MockValidateChecks& GetChecker() LR_OVERRIDE { 
+        return mValidateChecks; 
+    }
+    
+    MockValidateChecks mValidateChecks;
 
     ValidateConf mValidationOfConf;
     bool mValidConf;

@@ -29,7 +29,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillSucceed) {
    EXPECT_EQ(validateConf.mValidConf, true);
 }
 
-// Erronous fields WILL be cleared
+// Erroneous fields WILL be cleared
 
 TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    MockConf conf;
@@ -61,68 +61,96 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
 }
 
 TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
+   MockConf conf;
+   MockValidateConf validateConf;
+   validateConf.mIgnoreBaseConfValidation = false;
+   EXPECT_EQ(validateConf.mValidConf, true);
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
 
-   EXPECT_NO_THROW(ValidateChecks::CheckNumber("", gMax)); // check for empty
-   EXPECT_EQ(ValidateChecks::CheckNumber("", gMax), false);
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckNumber("", gMax)); // check for empty
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, false);
+   validateConf.GetChecker().mValidCheck = true;
 
-   EXPECT_NO_THROW(ValidateChecks::CheckNumber("Hello World!", gMax)); // check for empty
-   EXPECT_EQ(ValidateChecks::CheckNumber("Hello World!", gMax), false);
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckNumber("Hello World!", gMax)); // check for empty
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, false);
+   validateConf.GetChecker().mValidCheck = true;
 
-   EXPECT_ANY_THROW(ValidateChecks::CheckNumberForNegative("-123"));
-   EXPECT_EQ(ValidateChecks::CheckNumberForNegative("-123"), false);
-   EXPECT_NO_THROW(ValidateChecks::CheckNumberForNegative("123"));
-   EXPECT_EQ(ValidateChecks::CheckNumberForNegative("123"), true);
+   EXPECT_ANY_THROW(validateConf.GetChecker().CheckNumberForNegative("-123"));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, false);
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckNumberForNegative("123"));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
 
-   EXPECT_ANY_THROW(ValidateChecks::CheckNumberForSize(std::to_string(gMax.higher + 1), gMax));
-   EXPECT_EQ(ValidateChecks::CheckNumberForSize(std::to_string(gMax.higher + 1), gMax), false);
-   EXPECT_NO_THROW(ValidateChecks::CheckNumberForSize(std::to_string(gMax.higher), gMax));
-   EXPECT_EQ(ValidateChecks::CheckNumberForSize(std::to_string(gMax.higher), gMax), true);
+   EXPECT_ANY_THROW(validateConf.GetChecker().CheckNumberForSize(std::to_string(gMax.higher + 1), gMax));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, false);
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckNumberForSize(std::to_string(gMax.higher), gMax));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
 
    protoMsg::BaseConf msg;
    msg.set_dpithreads("10");
 
-   EXPECT_EQ(ValidateChecks::CheckNumber(msg.dpithreads(), Range {
+   validateConf.GetChecker().CheckNumber(msg.dpithreads(), Range {
       1, 12
-   }), true);
+   });
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
 }
 
 TEST_F(ConfProcessorTests, BaseConfValidationText) {
+   MockConf conf;
+   MockValidateConf validateConf;
+   validateConf.mIgnoreBaseConfValidation = false;
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
 
-   EXPECT_EQ(ValidateChecks::CheckString(""), true);
-   EXPECT_NO_THROW(ValidateChecks::CheckString("Hello World!"));
-   EXPECT_EQ(ValidateChecks::CheckString("Hello World!"), true);
+
+   validateConf.GetChecker().mValidCheck = false;
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckString(""));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
+   validateConf.GetChecker().mValidCheck = true;
+
+   validateConf.GetChecker().mValidCheck = false;
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckString("Hello World!"));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
 
 
    std::string text(1000, 'x');
-   
-   EXPECT_NO_THROW(ValidateChecks::CheckString(text));
-   EXPECT_EQ(ValidateChecks::CheckString(text), true);
-
-   EXPECT_NO_THROW(ValidateChecks::CheckStringForSize(text));
-   EXPECT_EQ(ValidateChecks::CheckStringForSize(text), true);
+   validateConf.GetChecker().mValidCheck = false;
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckString(text));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
+   validateConf.GetChecker().mValidCheck = false;
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckStringForSize(text));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
 
    // validate size failures
+   validateConf.GetChecker().mValidCheck = true;
    text.append({"y"});
-   EXPECT_NO_THROW(ValidateChecks::CheckString(text));
-   EXPECT_EQ(ValidateChecks::CheckString(text), false);
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckString(text));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, false);
 
-   EXPECT_ANY_THROW(ValidateChecks::CheckStringForSize(text));
-   EXPECT_EQ(ValidateChecks::CheckStringForSize(text), false);
+   validateConf.GetChecker().mValidCheck = true;
+   EXPECT_ANY_THROW(validateConf.GetChecker().CheckStringForSize(text));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, false);
 }
 
 TEST_F(ConfProcessorTests, BaseConfValidationBool) {
+   MockConf conf;
+   MockValidateConf validateConf;
+   validateConf.mIgnoreBaseConfValidation = false;
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
 
-   EXPECT_NO_THROW(ValidateChecks::CheckBool(""));
-   EXPECT_EQ(ValidateChecks::CheckBool(""), false);
+   validateConf.GetChecker().mValidCheck = true;
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckBool(""));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, false);
 
-   EXPECT_NO_THROW(ValidateChecks::CheckBool("Hello World!"));
-   EXPECT_EQ(ValidateChecks::CheckBool("Hello World!"), false);
+   validateConf.GetChecker().mValidCheck = true;
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckBool("Hello World!"));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, false);
 
-   EXPECT_NO_THROW(ValidateChecks::CheckBool("true"));
-   EXPECT_EQ(ValidateChecks::CheckBool("true"), true);
+   validateConf.GetChecker().mValidCheck = false;
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckBool("true"));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
 
-   EXPECT_NO_THROW(ValidateChecks::CheckBool("false"));
-   EXPECT_EQ(ValidateChecks::CheckBool("false"), true);
+   validateConf.GetChecker().mValidCheck = false;
+   EXPECT_NO_THROW(validateConf.GetChecker().CheckBool("false"));
+   EXPECT_EQ(validateConf.GetChecker().mValidCheck, true);
 }
 
 
@@ -142,6 +170,7 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    MockValidateConf validateConf;
    validateConf.mIgnoreBaseConfValidation = false;
    validateConf.mValidConf = false;
+   validateConf.GetChecker().mValidCheck = false;
 
    protoMsg::BaseConf msg;
 
