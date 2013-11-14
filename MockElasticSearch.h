@@ -81,9 +81,9 @@ public:
 
    }
 
-   IdsAndIndexes GetAllRelevantRecordsForSessions(const std::vector<std::string>& oldestSessionIds,
+   void UpdateSessions(const std::vector<std::string>& oldestSessionIds,
                                                               const unsigned int maxPerQuery, const time_t& indexStartTime) {
-      return ElasticSearch::GetAllRelevantRecordsForSessions(oldestSessionIds, maxPerQuery,indexStartTime);
+      ElasticSearch::UpdateSessions(oldestSessionIds, maxPerQuery,indexStartTime);
    }
    LR_VIRTUAL bool IndexActuallyExists(const std::string& indexName) {
       return ElasticSearch::IndexActuallyExists(indexName);
