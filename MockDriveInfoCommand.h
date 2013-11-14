@@ -13,7 +13,7 @@ public:
    }
    ~MockDriveInfoCommand() {}
    
-   std::string GetSingleDiskPartedArgs(const std::string& diskId) {
-      return DriveInfoCommand::GetSingleDiskPartedArgs(diskId);
-   }
+   //std::string GetSingleDiskPartedArgs(const std::string& diskId) {
+   //   return DriveInfoCommand::GetSingleDiskPartedArgs(diskId);
+   //}
 };

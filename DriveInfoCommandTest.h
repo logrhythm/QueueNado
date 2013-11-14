@@ -16,7 +16,7 @@ protected:
 
    virtual void SetUp() {
       autoManagedManager = new MockProcessManagerCommand(conf);
-      cmd.set_type(protoMsg::CommandRequest_CommandType_NTP_CONFIG);
+      cmd.set_type(protoMsg::CommandRequest_CommandType_DRIVEINFO);
    }
 
    virtual void TearDown() {
