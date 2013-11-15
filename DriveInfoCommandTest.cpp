@@ -4,10 +4,17 @@
 #include "DriveInfo.h"
 #include "Crowbar.h"
 #include "MockConf.h"
+#include "FileIO.h"
+#include "Conversion.h"
+
+
+
 
 #ifdef LR_DEBUG
 
-TEST_F(DriveInfoCommandTest, DoesItCompile) {
+
+
+TEST_F(DriveInfoCommandTest, DoesMockWork) {
    MockDriveInfoCommand testCommand(cmd,autoManagedManager);
    autoManagedManager->SetSuccess(true);
    autoManagedManager->SetResult("test result");
@@ -17,30 +24,75 @@ TEST_F(DriveInfoCommandTest, DoesItCompile) {
    request.set_type(::protoMsg::CommandRequest_CommandType_DRIVEINFO);
    protoMsg::CommandReply reply = testCommand.Execute(conf);
    
+   EXPECT_EQ(autoManagedManager->getRunCommand(), "/sbin/parted");
+   EXPECT_EQ(autoManagedManager->getRunArgs(), " -lm print");
+   
    EXPECT_TRUE(reply.success());
    EXPECT_EQ(reply.result(), "test result");
    
    protoMsg::DrivesInfo drives;
    ASSERT_FALSE(drives.ParseFromString(reply.result())) << "\nRESULT: " << reply.result();
+   
 }
 
 
-//TEST_F(DriveInfoCommandTest, DISABLED_TestToGetSomething) {
-//   protoMsg::CommandRequest request;
-//   MockConf conf;
+TEST_F(DriveInfoCommandTest, GetMockPartitionsFromNoDasBox) {
+   auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.86.nodas.txt");
+   ASSERT_FALSE(partedReading.HasFailed());
+   std::string parted = partedReading.result;
+   
+   MockDriveInfoCommand testCommand(cmd,autoManagedManager);
+   std::vector<DriveInfo> allDrives;
+   EXPECT_NO_THROW( allDrives = testCommand.ExtractPartedToDrives(parted));
+   ASSERT_EQ(allDrives.size(), 6);
+   size_t count = 0;
+   for (auto& drive : allDrives) {
+      EXPECT_TRUE(drive.Success()) << "\nidx:"  << count;
+              ++count;
+   }
+   
+   Conversion convert;
+   // Part0
+   DriveInfo d0 = allDrives[0];
+   DriveInfo d0_expect{"whatever"};
+   d0_expect.set_model("DELL PERC H71"); 
+   d0_expect.set_device("dev/sda");
+   d0_expect.set_capacityinb(convert.ReadBytesFromNBytesString("299 GB"));
+   d0_expect.set_table("msdos");
+   auto* part1Ptr = d0_expect.add_partitions();
+   auto& part1 = *part1Ptr;
+   part1.set_number(1);
+   part1.set_startinb(convert.ReadBytesFromNBytesString("1049kB"));
+   part1.set_endinb(convert.ReadBytesFromNBytesString("525MB"));
+   part1.set_sizeinb(convert.ReadBytesFromNBytesString("524MB"));
+   part1.set_type(""); // primary ignored (always when a flag is set but we ignore if for now)
+   part1.set_filesystem("ext4");
+   part1.set_flags("boot");
+   
+   auto* part2Ptr = d0_expect.add_partitions();
+   auto& part2 = *part2Ptr;
+   part2.set_number(2);
+   part2.set_startinb(convert.ReadBytesFromNBytesString("525MB"));
+   part2.set_endinb(convert.ReadBytesFromNBytesString("299GB"));
+   part2.set_sizeinb(convert.ReadBytesFromNBytesString("299GB"));
+   part2.set_type(""); // primary ignored (always when a flag is set but we ignore if for now)
+   part2.set_filesystem("");
+   part2.set_flags("lvm");
+   
+   EXPECT_TRUE(Compare(d0, d0_expect));
+}
+
+     
+//      protoMsg::DrivesInfo allDrives;
+//   for (const auto& drive : drives) {
+//      protoMsg::DrivesInfo_DriveInfo* driveMsg = allDrives.add_drives();
+//      *driveMsg = drive;
+//   }
+//   reply.set_result(allDrives.SerializeAsString());
 //   
-//   request.set_type(::protoMsg::CommandRequest_CommandType_DRIVEINFO);
-//   
-//   std::shared_ptr<Command> testCommand = DriveInfoCommand::Construct(request);
-//   
-//   protoMsg::CommandReply reply = testCommand->Execute(conf);
-//   
-//   ASSERT_TRUE(reply.success());
 //   
 //   protoMsg::DrivesInfo drives;
-//   ASSERT_TRUE(drives.ParseFromString(reply.result()));
-//}
-
+//   ASSERT_TRUE(drives.ParseFromString(reply.result())) << "\nRESULT: " << reply.result();
 
 
 
