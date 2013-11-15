@@ -195,7 +195,7 @@ TEST_F(ConfProcessorTests, ReadConfFilesPerformance) {
    StartTimedSection(.7, iterations);
    for (unsigned int i = 0; i < iterations; i++) {
       Conf conf;
-      EXPECT_TRUE((conf.getDpiThreads() >= 1));    
+      EXPECT_TRUE((conf.getDpiThreads() >= 1));
    }
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
@@ -211,7 +211,7 @@ TEST_F(ConfProcessorTests, DISABLED_ReadConfFilesPerformance_future) {
    StartTimedSection(.05, iterations);
    for (unsigned int i = 0; i < iterations; i++) {
       Conf conf;
-      EXPECT_TRUE((conf.getDpiThreads() >= 1));    
+      EXPECT_TRUE((conf.getDpiThreads() >= 1));
    }
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
@@ -1166,7 +1166,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    EXPECT_EQ("514", conf.getSyslogAgentPort()); // default value
    EXPECT_FALSE(conf.getSyslogTcpEnabled()); // default value
    EXPECT_EQ("local4", conf.getSyslogFacility()); // default value
-   
+
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
    EXPECT_EQ("ipc:///tmp/broadcast.ipc", conf.getBroadcastQueue());
@@ -1219,12 +1219,12 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
    EXPECT_EQ("777", conf.getSyslogAgentPort());
    EXPECT_EQ("local4", conf.getSyslogFacility());
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   
-   
+
+
    msg.set_syslogtcpenabled("true");
    conf.updateFields(msg);
    EXPECT_TRUE(conf.getSyslogTcpEnabled());
-   
+
    EXPECT_TRUE(conf.getReportEveythingEnabled());
 }
 
@@ -1239,14 +1239,11 @@ TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    EXPECT_EQ("514", conf.getSyslogAgentPort());
    EXPECT_EQ("local4", conf.getSyslogFacility());
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   EXPECT_FALSE(conf.getSyslogTcpEnabled());  // default is UDP
+   EXPECT_FALSE(conf.getSyslogTcpEnabled()); // default is UDP
 
    EXPECT_TRUE(conf.getScrubPasswordsEnabled());
    EXPECT_FALSE(conf.getReportEveythingEnabled());
 }
-
-
-
 
 TEST_F(ConfProcessorTests, testConfSyslogDisabled) {
    protoMsg::SyslogConf msg;

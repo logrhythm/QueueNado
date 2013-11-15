@@ -13,61 +13,61 @@
 
 struct MockValidateChecks : public ValidateChecks {
 
-    MockValidateChecks() :
+   MockValidateChecks() :
 
-    mValidCheck(true){
-    }
+   mValidCheck(true) {
+   }
 
-    ~MockValidateChecks(){ 
-    }
+   ~MockValidateChecks() {
+   }
 
-    bool CheckNumber(const std::string& number, const Range& range) LR_OVERRIDE {
-        return ValidateChecks::CheckNumber(number, range);
-    }
+   bool CheckNumber(const std::string& number, const Range& range) LR_OVERRIDE {
+      return ValidateChecks::CheckNumber(number, range);
+   }
 
-    void CheckNumberForNegative(const std::string& number) LR_OVERRIDE {
-        try {
-            ValidateChecks::CheckNumberForNegative(number);
-        } catch (std::exception e) {
-            LOG(DEBUG) << e.what();
-            mValidCheck = false;
-            throw;
-        }
-        mValidCheck = true;
-    }
+   void CheckNumberForNegative(const std::string& number) LR_OVERRIDE {
+      try {
+         ValidateChecks::CheckNumberForNegative(number);
+      } catch (std::exception e) {
+         LOG(DEBUG) << e.what();
+         mValidCheck = false;
+         throw;
+      }
+      mValidCheck = true;
+   }
 
-    void CheckNumberForSize(const std::string& number, const Range& range) LR_OVERRIDE {
-        try {
-            ValidateChecks::CheckNumberForSize(number, range);
-        } catch (std::exception e) {
-            LOG(DEBUG) << e.what();
-            mValidCheck = false;
-            throw;
-        }
-        mValidCheck = true;
-    }
+   void CheckNumberForSize(const std::string& number, const Range& range) LR_OVERRIDE {
+      try {
+         ValidateChecks::CheckNumberForSize(number, range);
+      } catch (std::exception e) {
+         LOG(DEBUG) << e.what();
+         mValidCheck = false;
+         throw;
+      }
+      mValidCheck = true;
+   }
 
-    bool CheckString(const std::string& text) LR_OVERRIDE {
-        return ValidateChecks::CheckString(text);
-    }
+   bool CheckString(const std::string& text) LR_OVERRIDE {
+      return ValidateChecks::CheckString(text);
+   }
 
-    void CheckStringForSize(const std::string& text) LR_OVERRIDE {
-        try {
-            ValidateChecks::CheckStringForSize(text);
-        } catch (std::exception e) {
-            LOG(DEBUG) << e.what();
-            mValidCheck = false;
-            throw;
-        }
-        mValidCheck = true;
-    }
+   void CheckStringForSize(const std::string& text) LR_OVERRIDE {
+      try {
+         ValidateChecks::CheckStringForSize(text);
+      } catch (std::exception e) {
+         LOG(DEBUG) << e.what();
+         mValidCheck = false;
+         throw;
+      }
+      mValidCheck = true;
+   }
 
-    bool CheckBool(const std::string& text) LR_OVERRIDE {
-        mValidCheck = ValidateChecks::CheckBool(text);
-        return mValidCheck;
-    }
-    
-    bool mValidCheck;
+   bool CheckBool(const std::string& text) LR_OVERRIDE {
+      mValidCheck = ValidateChecks::CheckBool(text);
+      return mValidCheck;
+   }
+
+   bool mValidCheck;
 };
 
 

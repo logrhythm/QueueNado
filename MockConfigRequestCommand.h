@@ -67,7 +67,7 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {
       // if we do then return that field. If not then it is considered a "failure"
       protoMsg::ConfigDefaults protoDefaults;
       const int size = request.requestedconfigparams_size();
-      if (request.has_type() && size) { 
+      if (request.has_type() && size > 0) { 
          auto allDefaultsForType = HelperGetConfDefaults(request.type());
             for (int index = 0; index < size; ++index) {
                std::string getDefaultsForMe = request.requestedconfigparams(index);
@@ -87,8 +87,7 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {
             }
       }
       
-      reply.set_success(success);
-      reply.set_result(protoDefaults.SerializeAsString());
+      q
       return reply;
    }
       
