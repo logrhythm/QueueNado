@@ -81,7 +81,7 @@ public:
 
    }
 
-   void UpdateSessions(const std::vector<std::string>& oldestSessionIds,
+   void UpdateSessions(const std::set<std::string>& oldestSessionIds,
                                                               const unsigned int maxPerQuery, const time_t& indexStartTime) {
       ElasticSearch::UpdateSessions(oldestSessionIds, maxPerQuery,indexStartTime);
    }
