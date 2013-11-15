@@ -86,8 +86,7 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {
                }
             }
       }
-      
-      q
+
       return reply;
    }
       
