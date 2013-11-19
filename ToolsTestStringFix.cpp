@@ -12,6 +12,32 @@
 #include <string>
 #include <vector>
 
+TEST_F(ToolsTestStringFix, ReplaceFailed_WithEmptyFrom) {
+   std::string content{"abcdefghijklmnopqrstuvxyz"};
+   std::string copy = content;
+   EXPECT_EQ(0, stringfix::replace(content, "", "Hello"));
+   EXPECT_EQ(copy, content);
+}
+
+TEST_F(ToolsTestStringFix, ReplaceFailedWithNoMatchingContent) {
+   std::string content{""};
+   EXPECT_EQ(0, stringfix::replace(content, " ", "Hello"));
+   EXPECT_EQ(content, "");
+}
+
+TEST_F(ToolsTestStringFix, ReplaceIntoEmty) {
+   std::string content{"aaa"};
+   EXPECT_EQ(1, stringfix::replace(content, "aaa", ""));
+   EXPECT_EQ(content, "");
+}
+
+TEST_F(ToolsTestStringFix, ReplaceRepeatedly) {
+   std::string content{"2:525MB:299GB:299GB:::lvm;"};
+   ASSERT_EQ(6, stringfix::replace(content, ":", ": "));
+   EXPECT_EQ(content, "2: 525MB: 299GB: 299GB: : : lvm;");
+}
+
+
 TEST_F(ToolsTestStringFix, NoTrim) {
    const std::string noSpaceAtEnd{"abcde efgh"};
    auto notTrimmed = stringfix::trim(noSpaceAtEnd);
