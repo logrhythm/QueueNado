@@ -168,7 +168,8 @@ CommandProcessorTests_SOURCES=main.cpp \
         MockRestartSyslogCommand.h \
         MockConfNtpToReadFile.h \
         MockConfNtp.h \
-	MockProcessManagerCommand.h
+	MockProcessManagerCommand.h \
+        MockDriveInfo.h
 CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\" ${INCLUDES}
 
 SysLoggerTest_LDADD=${DYNAMIC_LIBS}

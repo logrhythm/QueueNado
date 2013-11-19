@@ -6,6 +6,8 @@
 #include "MockConf.h"
 #include "FileIO.h"
 #include "Conversion.h"
+#include "StringFix.h"
+#include "MockDriveInfo.h"
 
 
 
@@ -35,8 +37,37 @@ TEST_F(DriveInfoCommandTest, DoesMockWork) {
    
 }
 
+TEST_F(DriveInfoCommandTest, BuildDriveInfo) {
+   auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.86.nodas.txt");
+   ASSERT_FALSE(partedReading.HasFailed());
+   std::string parted = partedReading.result;
+   
+   auto devices = stringfix::explode("BYT;", parted);
+   ASSERT_EQ(6, devices.size());  
+   
+   MockDriveInfo driveInfo("dummy");
 
-TEST_F(DriveInfoCommandTest, GetMockPartitionsFromNoDasBox) {
+   auto device0 = stringfix::split("\n", devices[0]);
+   ASSERT_EQ(device0.size(), 3);
+   
+   EXPECT_TRUE(driveInfo.BuildDriveInfo(device0[0]));
+   EXPECT_TRUE(driveInfo.has_model());
+   EXPECT_TRUE(driveInfo.has_device());
+   EXPECT_TRUE(driveInfo.has_capacityinb());
+   EXPECT_TRUE(driveInfo.has_table());
+   EXPECT_EQ(driveInfo.model(),"DELL PERC H710 (scsi)");
+   EXPECT_EQ(driveInfo.device(),"/dev/sda");
+   
+   EXPECT_NE(driveInfo.capacityinb(), 299);
+   size_t capacityInBytes = size_t(299) << GB_TO_B_SHIFT;
+   EXPECT_EQ(driveInfo.capacityinb(), capacityInBytes) << "\n: " << (size_t(299) << GB_TO_B_SHIFT) << " bytes";
+   
+   EXPECT_EQ(driveInfo.table(),"msdos");
+   
+   // then do BuildPartitionInfo  for the two partitions on device sda
+}
+
+TEST_F(DriveInfoCommandTest, DISABLED_GetMockPartitionsFromNoDasBox) {
    auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.86.nodas.txt");
    ASSERT_FALSE(partedReading.HasFailed());
    std::string parted = partedReading.result;
