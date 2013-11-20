@@ -37,17 +37,27 @@ TEST_F(DriveInfoCommandTest, DoesMockWork) {
    
 }
 
+TEST_F(DriveInfoCommandTest, FailedWithBuildDriveInfo) {
+    MockDriveInfo driveInfo("dummy");
+    EXPECT_TRUE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6;"));
+    EXPECT_TRUE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6"));
+    
+    EXPECT_FALSE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6:7;"));
+    EXPECT_FALSE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6:7"));
+}
+
+
 TEST_F(DriveInfoCommandTest, BuildDriveInfo) {
    auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.86.nodas.txt");
    ASSERT_FALSE(partedReading.HasFailed());
    std::string parted = partedReading.result;
    
    auto devices = stringfix::explode("BYT;", parted);
-   ASSERT_EQ(6, devices.size());  
-   
+   ASSERT_EQ(7, devices.size());  
+   ASSERT_TRUE(devices[0].empty());
    MockDriveInfo driveInfo("dummy");
 
-   auto device0 = stringfix::split("\n", devices[0]);
+   auto device0 = stringfix::split("\n", devices[1]); // skip the empty pre 'BYT;'
    ASSERT_EQ(device0.size(), 3);
    
    EXPECT_TRUE(driveInfo.BuildDriveInfo(device0[0]));
@@ -55,7 +65,7 @@ TEST_F(DriveInfoCommandTest, BuildDriveInfo) {
    EXPECT_TRUE(driveInfo.has_device());
    EXPECT_TRUE(driveInfo.has_capacityinb());
    EXPECT_TRUE(driveInfo.has_table());
-   EXPECT_EQ(driveInfo.model(),"DELL PERC H710 (scsi)");
+   EXPECT_EQ(driveInfo.model(),"DELL PERC H710 (scsi)") << "\n\tString was: " << device0[1];
    EXPECT_EQ(driveInfo.device(),"/dev/sda");
    
    EXPECT_NE(driveInfo.capacityinb(), 299);
@@ -67,51 +77,121 @@ TEST_F(DriveInfoCommandTest, BuildDriveInfo) {
    // then do BuildPartitionInfo  for the two partitions on device sda
 }
 
-TEST_F(DriveInfoCommandTest, DISABLED_GetMockPartitionsFromNoDasBox) {
+
+
+TEST_F(DriveInfoCommandTest, FailedWithBuildPartitionInfo) {
+    MockDriveInfo driveInfo("dummy");
+    
+    // one flag
+    EXPECT_TRUE(driveInfo.BuildPartitionInfo("1:23MB:32MB:150GB:ext4::boot;"));
+    EXPECT_TRUE(driveInfo.BuildPartitionInfo("0:1:2:3:4::5;"));
+    
+    
+    // two flags
+    EXPECT_TRUE(driveInfo.BuildPartitionInfo("0:1:2:3:4:5:6;"));
+    EXPECT_TRUE(driveInfo.BuildPartitionInfo("1:23MB:32MB:150GB:ext4:lvm:boot;")); // impossible flags but for test purpose only
+    
+    EXPECT_FALSE(driveInfo.BuildPartitionInfo("0:1:2:3:4:5:6:7;"));
+    EXPECT_FALSE(driveInfo.BuildPartitionInfo("0:1:2:3:4:5:6:7"));
+}
+
+
+TEST_F(DriveInfoCommandTest, BuildPartitionInfo_TestTheFirstDevice) {
    auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.86.nodas.txt");
    ASSERT_FALSE(partedReading.HasFailed());
    std::string parted = partedReading.result;
+   auto devices = stringfix::explode("BYT;", parted);
+   ASSERT_EQ(7, devices.size());  
+   ASSERT_TRUE(devices[0].empty());
    
-   MockDriveInfoCommand testCommand(cmd,autoManagedManager);
-   std::vector<DriveInfo> allDrives;
-   EXPECT_NO_THROW( allDrives = testCommand.ExtractPartedToDrives(parted));
-   ASSERT_EQ(allDrives.size(), 6);
-   size_t count = 0;
-   for (auto& drive : allDrives) {
-      EXPECT_TRUE(drive.Success()) << "\nidx:"  << count;
-              ++count;
-   }
+   MockDriveInfo driveInfo("dummy");
+   auto device0 = stringfix::split("\n", devices[1]);
+   ASSERT_EQ(device0.size(), 3);
    
-   Conversion convert;
-   // Part0
-   DriveInfo d0 = allDrives[0];
-   DriveInfo d0_expect{"whatever"};
-   d0_expect.set_model("DELL PERC H71"); 
-   d0_expect.set_device("dev/sda");
-   d0_expect.set_capacityinb(convert.ReadBytesFromNBytesString("299 GB"));
-   d0_expect.set_table("msdos");
-   auto* part1Ptr = d0_expect.add_partitions();
-   auto& part1 = *part1Ptr;
-   part1.set_number(1);
-   part1.set_startinb(convert.ReadBytesFromNBytesString("1049kB"));
-   part1.set_endinb(convert.ReadBytesFromNBytesString("525MB"));
-   part1.set_sizeinb(convert.ReadBytesFromNBytesString("524MB"));
-   part1.set_type(""); // primary ignored (always when a flag is set but we ignore if for now)
-   part1.set_filesystem("ext4");
-   part1.set_flags("boot");
+   auto partitions = driveInfo.GetPartitionInfo();
+   ASSERT_EQ(partitions.size(), 0);
    
-   auto* part2Ptr = d0_expect.add_partitions();
-   auto& part2 = *part2Ptr;
-   part2.set_number(2);
-   part2.set_startinb(convert.ReadBytesFromNBytesString("525MB"));
-   part2.set_endinb(convert.ReadBytesFromNBytesString("299GB"));
-   part2.set_sizeinb(convert.ReadBytesFromNBytesString("299GB"));
-   part2.set_type(""); // primary ignored (always when a flag is set but we ignore if for now)
-   part2.set_filesystem("");
-   part2.set_flags("lvm");
+   ASSERT_EQ(device0[1], "1:1049kB:525MB:524MB:ext4::boot;");
+   ASSERT_TRUE(driveInfo.BuildPartitionInfo(device0[1]));
+   partitions = driveInfo.GetPartitionInfo();
+   ASSERT_EQ(partitions.size(), 1);
    
-   EXPECT_TRUE(Compare(d0, d0_expect));
+   
+   ASSERT_EQ(device0[2], "2:525MB:299GB:299GB:::lvm;");
+   ASSERT_TRUE(driveInfo.BuildPartitionInfo(device0[2]));
+   partitions = driveInfo.GetPartitionInfo();
+   ASSERT_EQ(partitions.size(), 2);
+
+
+  const auto& part1 = partitions[0];
+  EXPECT_EQ(1, part1.number());
+  EXPECT_EQ(1049*1024, part1.startinb());
+  EXPECT_EQ(525*1024*1024, part1.endinb());
+  EXPECT_EQ(524*1024*1024, part1.sizeinb());
+  EXPECT_FALSE(part1.has_type()); // can not be extracted from machine readable
+  EXPECT_EQ("ext4", part1.filesystem());
+  EXPECT_EQ("boot", part1.flags());
+  
+  const auto& part2 = partitions[1];
+  EXPECT_EQ(2, part2.number());
+  EXPECT_EQ(size_t(525)*1024*1024, part2.startinb());
+  EXPECT_EQ(size_t(299)*1024*1024*1024, part2.endinb());
+  EXPECT_EQ(size_t(299)*1024*1024*1024, part2.sizeinb());
+  EXPECT_FALSE(part2.has_type()); // can not be extracted from machine readable
+  EXPECT_EQ("", part2.filesystem()); // not given
+  EXPECT_EQ("lvm", part2.flags());
+   
 }
+   
+TEST_F(DriveInfoCommandTest, BuildPartitionInfo_TestTheLastDevice) {
+   auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.86.nodas.txt");
+   ASSERT_FALSE(partedReading.HasFailed());
+   std::string parted = partedReading.result;
+   auto devices = stringfix::explode("BYT;", parted);
+   ASSERT_EQ(7, devices.size());  
+   ASSERT_TRUE(devices[0].empty());
+   
+   MockDriveInfo driveInfo("dummy");
+   auto device6 = stringfix::split("\n", devices[6]);
+   ASSERT_EQ(device6.size(), 2);
+   
+   ASSERT_EQ(device6[0], "/dev/mapper/vg_probe00-lv_root:211GB:dm:512:512:loop:Linux device-mapper (linear);");
+   ASSERT_EQ(device6[1], "1:0.00B:211GB:211GB:ext4::;");
+   ASSERT_TRUE(driveInfo.BuildPartitionInfo(device6[1]));
+   auto partitions = driveInfo.GetPartitionInfo();
+   ASSERT_EQ(partitions.size(), 1);
+
+  const auto& part1 = partitions[0];
+  EXPECT_EQ(1, part1.number());
+  EXPECT_EQ(0, part1.startinb());
+  EXPECT_EQ(size_t(211)*1024*1024*1024, part1.endinb());
+  EXPECT_EQ(size_t(211)*1024*1024*1024, part1.sizeinb());
+  EXPECT_FALSE(part1.has_type()); // can not be extracted from machine readable
+  EXPECT_EQ("ext4", part1.filesystem());
+  EXPECT_EQ("", part1.flags());
+}
+
+
+// next to test. Happy Path. 
+// Construct proto message from file to message using DriveInfo. and the command
+// verify that the proto message was correct. 
+// (test it on the UI)
+
+// 2. Test with unhappy path. i.e. the DAS with the error out put. 
+// Adjust accordingly. 
+
+
+   
+//   
+//   std::vector<DriveInfo> allDrives;
+//   EXPECT_NO_THROW( allDrives = testCommand.ExtractPartedToDrives(parted));
+//   ASSERT_EQ(allDrives.size(), 6);
+//   size_t count = 0;
+//   for (auto& drive : allDrives) {
+//      EXPECT_TRUE(drive.Success()) << "\nidx:"  << count;
+//              ++count;
+//   }
+//   
 
      
 //      protoMsg::DrivesInfo allDrives;
