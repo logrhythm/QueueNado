@@ -13,6 +13,33 @@
 
 #ifdef LR_DEBUG
 
+TEST_F(DiskCleanupTest, RemoveDuplicateUpdatesFromLastUpdate) {
+   PathAndFileNames esFilesToRemove;
+   GMockDiskCleanup cleanup(mConf);
+   
+   
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test2", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test3", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "aaa"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   ASSERT_EQ(5,esFilesToRemove.size());
+   cleanup.RemoveDuplicateUpdatesFromLastUpdate(esFilesToRemove);
+   ASSERT_EQ(5,esFilesToRemove.size());
+   cleanup.RemoveDuplicateUpdatesFromLastUpdate(esFilesToRemove);
+   ASSERT_EQ(0,esFilesToRemove.size());
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test2", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test3", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "aaa"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   cleanup.RemoveDuplicateUpdatesFromLastUpdate(esFilesToRemove);
+   ASSERT_EQ(5,esFilesToRemove.size());
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test5", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   cleanup.RemoveDuplicateUpdatesFromLastUpdate(esFilesToRemove);
+   ASSERT_EQ(1,esFilesToRemove.size());
+   EXPECT_EQ("test5",std::get<0>(*esFilesToRemove.begin()));
+}
 TEST_F(DiskCleanupTest, RecalculatePCapDiskUsed) {
    GMockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");
@@ -789,7 +816,7 @@ TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
    make10MFile += testDir.str();
    make10MFile += "/10MFile";
    EXPECT_EQ(0, system(make10MFile.c_str()));
-   mConf.mConfLocation = "resources/test.yaml.DiskCleanup91";
+   mConf.mConfLocation = "resources/test.yaml.DiskCleanup91";  // file limit is 2
    cleanup.ResetConf();
    cleanup.RecalculatePCapDiskUsed(stats, es);
    EXPECT_EQ(stats.aTotalFiles, 1);
@@ -1034,6 +1061,13 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
       EXPECT_EQ(stats.aTotalFiles, 1);
       EXPECT_TRUE(capture.TooMuchPCap(stats));
       stats.canSendStats = false;
+      // the below will do nothing, we already think we've removed that file
+      capture.CleanupOldPcapFiles(es, stats);
+      capture.RecalculatePCapDiskUsed(stats, es);
+      EXPECT_TRUE(capture.TooMuchPCap(stats));
+      EXPECT_NE(stats.aTotalFiles, 0);
+      
+      // Now it will work, the old cached remove is gone
       capture.CleanupOldPcapFiles(es, stats);
       capture.RecalculatePCapDiskUsed(stats, es);
       EXPECT_FALSE(capture.TooMuchPCap(stats));
@@ -1109,6 +1143,13 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
       EXPECT_EQ(stats.aTotalFiles, 2);
       EXPECT_TRUE(capture.TooMuchPCap(stats));
       stats.canSendStats = false;
+      capture.CleanupOldPcapFiles(es, stats);
+      capture.RecalculatePCapDiskUsed(stats, es);
+      EXPECT_TRUE(capture.TooMuchPCap(stats));
+      EXPECT_NE(stats.aTotalFiles, 0);
+      EXPECT_TRUE(boost::filesystem::exists(file1));
+      EXPECT_TRUE(boost::filesystem::exists(file2));
+      
       capture.CleanupOldPcapFiles(es, stats);
       capture.RecalculatePCapDiskUsed(stats, es);
       EXPECT_FALSE(capture.TooMuchPCap(stats));
