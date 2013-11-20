@@ -38,23 +38,3 @@ protected:
  }
 
  
-//     bool driveCompare = true;
-//    driveCompare = driveCompare && (first.has_model() == second.has_model());
-//    driveCompare = driveCompare && (first.has_devicel() == second.has_model());
-//    driveCompare = driveCompare && (first.has_capacityinmb() == second.has_model());
-//    driveCompare = driveCompare && (first.partitions_size() == second.partitions_size());
-//    driveCompare = driveCompare && (first.has_table() == second.has_table());
-//    
-//    if (false == driveCompare) {
-//       return driveCompare;
-//    }
-//    
-//    bool partitionCompare = true;
-//    const size_t numberOfPartitions = first.partitions_size();
-//    for (size_t index = 0; partitionCompare && (index < numberOfPartitions); ++index) {
-//       const auto& firstPartition = first.partitions(index);
-//       const auto& secondPartition = second.partitions(index);
-//       partitionCompare = partitionCompare && Compare(firstPartition, secondPartition);
-//    }
-//    
-//    return partitionCompare;

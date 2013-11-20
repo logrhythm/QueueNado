@@ -16,11 +16,12 @@ public:
    }
    ~MockDriveInfoCommand() {}
    
+   void GetDiskInfo(protoMsg::CommandReply& reply) {
+     DriveInfoCommand::GetDiskInfo(reply); 
+   }
+   
+   
    std::vector<DriveInfo> ExtractPartedToDrives(const std::string& parted) const LR_OVERRIDE {
       return DriveInfoCommand::ExtractPartedToDrives(parted);
    }
-   
-   //std::string GetSingleDiskPartedArgs(const std::string& diskId) {
-   //   return DriveInfoCommand::GetSingleDiskPartedArgs(diskId);
-   //}
 };
