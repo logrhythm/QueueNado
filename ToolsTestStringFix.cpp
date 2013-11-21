@@ -37,6 +37,11 @@ TEST_F(ToolsTestStringFix, ReplaceRepeatedly) {
    EXPECT_EQ(content, "2: 525MB: 299GB: 299GB: : : lvm;");
 }
 
+TEST_F(ToolsTestStringFix, ReplaceRepeatedlyAndRecursively) {
+   std::string content{"2:525MB:299GB:299GB:::lvm;"};
+   ASSERT_EQ(6, stringfix::replace(content, ":", "::"));
+   EXPECT_EQ(content, "2::525MB::299GB::299GB::::::lvm;");
+}
 
 TEST_F(ToolsTestStringFix, NoTrim) {
    const std::string noSpaceAtEnd{"abcde efgh"};
