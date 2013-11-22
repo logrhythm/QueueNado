@@ -39,11 +39,11 @@ public:
       return mValidConf;
    }
 
-   MockValidateChecks& GetChecker() LR_OVERRIDE {
-      return mValidateChecks;
-   }
-
-   MockValidateChecks mValidateChecks;
+//   MockValidateChecks& GetChecker() LR_OVERRIDE {
+//      return mValidateChecks;
+//   }
+//
+//   MockValidateChecks mValidateChecks;
 
    ValidateConf mValidationOfConf;
    bool mValidConf;

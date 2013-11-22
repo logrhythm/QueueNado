@@ -46,7 +46,7 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {
    bool HelperLoadConfDefault(OneConfDefault& loadMe, const std::string key, const ManyConfDefaults& values) {
       auto found = std::find_if(values.begin(), values.end(), 
               [&](const OneConfDefault& current) { return key == std::get<0>(current); });
-       if (values.end() != found) {
+       if (values.end() != found) { //If true, value was key in vector
           loadMe = *found;
           return true;
        }       
@@ -54,7 +54,7 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {
    }
    
    // Somewhat messy. We mock and exercise that we actually can get conf default values
-   // It is basically just an excercise in moving values between protoMessages 
+   // It is basically just an exercise in moving values between protoMessages 
    // ConfigDefaultsRequest, ConfigDefaults, CommandReply and CommandRequest
    protoMsg::CommandReply ExecuteRequest(const protoMsg::ConfigDefaultsRequest& request) override {
       if (!mMockExecuteRequest) {
@@ -86,7 +86,9 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {
                }
             }
       }
-
+      
+      reply.set_success(success);
+      reply.set_result(protoDefaults.SerializeAsString());
       return reply;
    }
       

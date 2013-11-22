@@ -10,9 +10,9 @@
 #ifdef LR_DEBUG
 using namespace std;
 
-namespace {
-   Range gMax = {1, std::numeric_limits<uint32_t>::max()};
-}
+//namespace {
+//   Range gMax = {1, std::numeric_limits<uint32_t>::max()};
+//}
 // Not set fields are NOT failure, they will just be ignored 
 
 TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
