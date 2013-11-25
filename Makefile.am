@@ -304,7 +304,8 @@ nmTest_SOURCES=main.cpp \
  ThreadContainerTest.cpp \
  DriveInfoCommandTest.cpp \
  ToolsTestMakeUnique.cpp \
- ToolsTestStringFix.cpp
+ ToolsTestStringFix.cpp \
+ TestProtoDefaultsMethods.cpp
 
 SyslogReporterTest_LDADD=${DYNAMIC_LIBS}
 SyslogReporterTest_LDFLAGS=${BASE_LIBS}
