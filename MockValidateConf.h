@@ -6,7 +6,6 @@
 
 #pragma once
 #include "ValidateConf.h"
-#include "MockValidateChecks.h"
 #include "include/global.h"
 #include "Range.h"
 
@@ -38,12 +37,6 @@ public:
       mValidConf = mValidationOfConf.ValidateSyslogConf(msg);
       return mValidConf;
    }
-
-//   MockValidateChecks& GetChecker() LR_OVERRIDE {
-//      return mValidateChecks;
-//   }
-//
-//   MockValidateChecks mValidateChecks;
 
    ValidateConf mValidationOfConf;
    bool mValidConf;
