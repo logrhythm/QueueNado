@@ -10,9 +10,6 @@
 #ifdef LR_DEBUG
 using namespace std;
 
-//namespace {
-//   Range gMax = {1, std::numeric_limits<uint32_t>::max()};
-//}
 // Not set fields are NOT failure, they will just be ignored 
 
 TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
@@ -34,9 +31,6 @@ TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
    conf.updateFields(blank); // trigger Mocked ValidateBaseConf
    EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
 }
-
-
-
 
 /**
  * Sets all fields except for the given @param shouldFail. 
@@ -157,8 +151,6 @@ TEST_F(ConfProcessorTests, SyslogConfValidationAllFieldsFailure) {
 TEST_F(ConfProcessorTests, SyslogConfValidationAllFieldsSuccess) {
    SyslogValidateAllFieldsSetInvalidOnXLowerBound(gNumberOfFieldsLowerBound + 1);
    SyslogValidateAllFieldsSetInvalidOnXUpperBound(gNumberOfFieldsUpperBound + 1);
-
-
 }
 
 #endif //  LR_DEBUG

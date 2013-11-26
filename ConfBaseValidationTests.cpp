@@ -35,7 +35,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    conf.updateFields(right);
    EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
 
-   // Verify that erronous fields are cleared and ignored
+   // Verify that erroneous fields are cleared and ignored
    protoMsg::BaseConf wrong = conf.getProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
    wrong.set_dpithreads("Hello World!");
@@ -52,100 +52,6 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    conf.GetValidateConf().ValidateBaseConf(wrong); // this should clear the field
    EXPECT_EQ(wrong.has_dpithreads(), false);
 }
-
-TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
-   //   MockConf conf;
-   //   conf.GetValidateConf().mIgnoreBaseConfValidation = false;
-   //   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   //
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckNumber("", gMax)); // check for empty
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, false);
-   //   conf.GetValidateConf().GetChecker().mValidCheck = true;
-   //
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckNumber("Hello World!", gMax)); // check for empty
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, false);
-   //   conf.GetValidateConf().GetChecker().mValidCheck = true;
-   //
-   //   EXPECT_ANY_THROW(conf.GetValidateConf().GetChecker().CheckNumberForNegative("-123"));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, false);
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckNumberForNegative("123"));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   //
-   //   EXPECT_ANY_THROW(conf.GetValidateConf().GetChecker().CheckNumberForSize(std::to_string(gMax.higher + 1), gMax));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, false);
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckNumberForSize(std::to_string(gMax.higher), gMax));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   //
-   //   protoMsg::BaseConf msg;
-   //   msg.set_dpithreads("10");
-   //
-   //   conf.GetValidateConf().GetChecker().CheckNumber(msg.dpithreads(), Range {
-   //      1, 12
-   //   });
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   EXPECT_EQ(true, true);
-}
-
-TEST_F(ConfProcessorTests, BaseConfValidationText) {
-   //   MockConf conf;
-   //   conf.GetValidateConf().mIgnoreBaseConfValidation = false;
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   //
-   //
-   //   conf.GetValidateConf().GetChecker().mValidCheck = false;
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckString(""));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   //   conf.GetValidateConf().GetChecker().mValidCheck = true;
-   //
-   //   conf.GetValidateConf().GetChecker().mValidCheck = false;
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckString("Hello World!"));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   //
-   //
-   //   std::string text(1000, 'x');
-   //   conf.GetValidateConf().GetChecker().mValidCheck = false;
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckString(text));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   //   conf.GetValidateConf().GetChecker().mValidCheck = false;
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckStringForSize(text));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   //
-   //   // validate size failures
-   //   conf.GetValidateConf().GetChecker().mValidCheck = true;
-   //   text.append({"y"});
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckString(text));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, false);
-   //
-   //   conf.GetValidateConf().GetChecker().mValidCheck = true;
-   //   EXPECT_ANY_THROW(conf.GetValidateConf().GetChecker().CheckStringForSize(text));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, false);
-   EXPECT_EQ(true, true);
-}
-
-TEST_F(ConfProcessorTests, BaseConfValidationBool) {
-   //   MockConf conf;
-   //   conf.GetValidateConf().mIgnoreBaseConfValidation = false;
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   //
-   //   conf.GetValidateConf().GetChecker().mValidCheck = true;
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckBool(""));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, false);
-   //
-   //   conf.GetValidateConf().GetChecker().mValidCheck = true;
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckBool("Hello World!"));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, false);
-   //
-   //   conf.GetValidateConf().GetChecker().mValidCheck = false;
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckBool("true"));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   //
-   //   conf.GetValidateConf().GetChecker().mValidCheck = false;
-   //   EXPECT_NO_THROW(conf.GetValidateConf().GetChecker().CheckBool("false"));
-   //   EXPECT_EQ(conf.GetValidateConf().GetChecker().mValidCheck, true);
-   EXPECT_EQ(true, true);
-}
-
 
 /**
  * Sets all fields except for the given @param shouldFail. 
@@ -191,7 +97,8 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_qosmosexpirepercallback("0") : msg.set_qosmosexpirepercallback("1");
    (index++ == shouldFail) ? msg.set_qosmostcpreassemblyenabled(invalidBool) : msg.set_qosmostcpreassemblyenabled(validBool);
    (index++ == shouldFail) ? msg.set_qosmosipdefragmentationenabled(invalidBool) : msg.set_qosmosipdefragmentationenabled(validBool);
-   // next three are used in jave only, cannot be changed through the UI
+   
+   // next three are used in java only, cannot be changed through the UI
    (index++ == shouldFail) ? msg.set_dbclustername(invalidText) : msg.set_dbclustername(validText);
    (index++ == shouldFail) ? msg.set_dburl(invalidText) : msg.set_dburl(validText);
    (index++ == shouldFail) ? msg.set_statsaggregationqueue(invalidText) : msg.set_statsaggregationqueue(validText);
@@ -209,6 +116,7 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_syslogrecvqueuesize("9") : msg.set_syslogrecvqueuesize("10");
    (index++ == shouldFail) ? msg.set_syslogsendqueuesize("9") : msg.set_syslogsendqueuesize("10");
    (index++ == shouldFail) ? msg.set_pcaprecordstoclearpercycle("0") : msg.set_pcaprecordstoclearpercycle("1");
+   
    // Test sanity check. Total number of used fields are :  34
    EXPECT_EQ(index, gNumberOfFieldsLowerBound) << "\t\t\t\t\t: Expected number of fields are "
            << gNumberOfFieldsLowerBound << " unless you added more?";
@@ -267,7 +175,8 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_qosmosexpirepercallback("201") : msg.set_qosmosexpirepercallback("200");
    (index++ == shouldFail) ? msg.set_qosmostcpreassemblyenabled(invalidBool) : msg.set_qosmostcpreassemblyenabled(validBool);
    (index++ == shouldFail) ? msg.set_qosmosipdefragmentationenabled(invalidBool) : msg.set_qosmosipdefragmentationenabled(validBool);
-   // next three are used in jave only, cannot be changed through the UI
+   
+   // next three are used in java only, cannot be changed through the UI
    (index++ == shouldFail) ? msg.set_dbclustername(invalidText) : msg.set_dbclustername(validText);
    (index++ == shouldFail) ? msg.set_dburl(invalidText) : msg.set_dburl(validText);
    (index++ == shouldFail) ? msg.set_statsaggregationqueue(invalidText) : msg.set_statsaggregationqueue(validText);

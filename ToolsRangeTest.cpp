@@ -1,6 +1,6 @@
 /* 
  * File:   ToolsRangeTest.cpp
- * Author: kjell
+ * Author: Ryan Kophs
  *
  * Created on August 15, 2013, 3:41 PM
  */
