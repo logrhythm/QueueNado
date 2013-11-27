@@ -122,7 +122,7 @@ bool Rifle::Aim() {
 void Rifle::setIpcFilePermissions() {
 
    mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP
-           | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
+      | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
 
    size_t ipcFound = mLocation.find("ipc");
    if (ipcFound != std::string::npos) {
@@ -174,32 +174,33 @@ bool Rifle::Fire(const std::string& bullet, const int waitToFire) {
 }
 
 bool Rifle::FireZeroCopy(std::string* zero, const size_t size, void (*FreeFunction)(void*, void*), const int waitToFire) {
+   bool success = false;
    if (!mChamber) {
       LOG(WARNING) << "Socket uninitialized!";
-      return false;
-   }
-   if (size == 0) {
+   } else if (size == 0) {
       LOG(WARNING) << "Tried to send empty packet";
-      return false;
-   }
-   zmq_pollitem_t items [] = {
-      { mChamber, 0, ZMQ_POLLOUT, 0}
-   };
-
-   if (zmq_poll(items, 1, waitToFire) > 0) {
-      if (items[0].revents & ZMQ_POLLOUT) {
-         zmsg_t* message = zmsg_new();
-         zframe_t* frame = zframe_new_zero_copy(&((*zero)[0]), size, FreeFunction, zero);
-         zmsg_add(message, frame);
-         return CZMQToolkit::SendExistingMessage(message, mChamber);
-      } else {
-         LOG(WARNING) << "Error on Zmq socket send: " << zmq_strerror(zmq_errno());
-         return false;
-      }
    } else {
-      //      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
-      return false;
+      zmq_pollitem_t items [] = {
+         { mChamber, 0, ZMQ_POLLOUT, 0}
+      };
+
+      if (zmq_poll(items, 1, waitToFire) > 0) {
+         if (items[0].revents & ZMQ_POLLOUT) {
+            zmsg_t* message = zmsg_new();
+            zframe_t* frame = zframe_new_zero_copy(&((*zero)[0]), size, FreeFunction, zero);
+            zmsg_add(message, frame);
+            success = CZMQToolkit::SendExistingMessage(message, mChamber);
+         } else {
+            LOG(WARNING) << "Error on Zmq socket send: " << zmq_strerror(zmq_errno());
+         }
+      } else {
+         //      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
+      }
    }
+   if (!success && zero) {
+      delete zero;
+   }
+   return success;
 }
 
 /**
@@ -245,7 +246,7 @@ bool Rifle::FireStake(const void* stake, const int waitToFire) {
  *   false if something went wrong
  */
 bool Rifle::FireStakes(const std::vector<std::pair<void*, unsigned int> >
-        & stakes, const int waitToFire) {
+   & stakes, const int waitToFire) {
    //LOG(DEBUG) << "RifleFireStakes";
    if (!mChamber) {
       LOG(WARNING) << "Socket uninitialized!";
@@ -263,7 +264,7 @@ bool Rifle::FireStakes(const std::vector<std::pair<void*, unsigned int> >
       if (items[0].revents & ZMQ_POLLOUT) {
          zmsg_t* message = zmsg_new();
          zmsg_addmem(message, &(stakes[0]),
-                 stakes.size() * (sizeof (std::pair<void*, unsigned int>)));
+            stakes.size() * (sizeof (std::pair<void*, unsigned int>)));
          return CZMQToolkit::SendExistingMessage(message, mChamber);
       } else {
          LOG(WARNING) << "Error in zmq_pollout in " << GetBinding() << ": " << zmq_strerror(zmq_errno());
