@@ -63,7 +63,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
           -L${prefix}/lib \
-          -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
+          -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free 
 
 INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libZMQ \
