@@ -247,35 +247,6 @@ bool Rifle::FireStake(const void* stake, const int waitToFire) {
  */
 bool Rifle::FireStakes(const std::vector<std::pair<void*, unsigned int> >
    & stakes, const int waitToFire) {
-   //   //LOG(DEBUG) << "RifleFireStakes";
-   //   if (!mChamber) {
-   //      LOG(WARNING) << "Socket uninitialized!";
-   //      return false;
-   //   }
-   //   if (stakes.empty()) {
-   //      LOG(WARNING) << "Tried to send nothing";
-   //      return false;
-   //   }
-   //   zmq_pollitem_t items [] = {
-   //      { mChamber, 0, ZMQ_POLLOUT, 0}
-   //   };
-   //
-   //   if (zmq_poll(items, 1, waitToFire) > 0) {
-   //      if (items[0].revents & ZMQ_POLLOUT) {
-   //         zmsg_t* message = zmsg_new();
-   //         zmsg_addmem(message, &(stakes[0]),
-   //            stakes.size() * (sizeof (std::pair<void*, unsigned int>)));
-   //         return CZMQToolkit::SendExistingMessage(message, mChamber);
-   //      } else {
-   //         LOG(WARNING) << "Error in zmq_pollout in " << GetBinding() << ": " << zmq_strerror(zmq_errno());
-   //         return false;
-   //      }
-   //   } else {
-   //      //      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
-   //      return false;
-   //   }
-
-   //LOG(DEBUG) << "RifleFireStakes";
    bool success = false;
    if (!mChamber) {
       LOG(WARNING) << "Socket uninitialized!";
