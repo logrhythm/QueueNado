@@ -32,7 +32,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfOneSetOfValues) {
 
    // Test Mock Preparation to Answer the UI
    MockConfigRequestCommand::ManyConfDefaults defaults;
-   auto dpiThreads = std::make_tuple("dpiThreads", MockConfigRequestCommand::Ranges{"2", "7", "1"});
+   auto dpiThreads = std::make_tuple("dpiThreads", "7", MockConfigRequestCommand::Ranges{"1", "12"});
    defaults.push_back(dpiThreads);
    doIt.EnabledMockExecuteRequest(protoMsg::ConfType::BASE, defaults);
 
@@ -59,9 +59,9 @@ TEST_F(ConfigRequestCommandTest, BaseConfOneSetOfValues) {
    // check that the values are as expected for the dpithreads as set above
    EXPECT_EQ(defaultValues.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(defaultValues.configname(), "dpiThreads");
-   EXPECT_EQ(defaultValues.defaultu64(), "2");
-   EXPECT_EQ(defaultValues.maxu64(), "7");
+   EXPECT_EQ(defaultValues.defaultu64(), "7");
    EXPECT_EQ(defaultValues.minu64(), "1");
+   EXPECT_EQ(defaultValues.maxu64(), "12");
 #endif
 }
 
@@ -83,8 +83,8 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
 
    // BUILD UP THE FAKE RESPONSE 
    MockConfigRequestCommand::ManyConfDefaults defaults;
-   auto dpiThreads = std::make_tuple("dpiThreads", MockConfigRequestCommand::Ranges{"2", "7", "1"});
-   auto qosmosDebugEnabled = std::make_tuple("qosmosDebugModeEnabled", MockConfigRequestCommand::Ranges{"false", "true", "false"});
+   auto dpiThreads = std::make_tuple("dpiThreads", "7", MockConfigRequestCommand::Ranges{"1", "12"});
+   auto qosmosDebugEnabled = std::make_tuple("qosmosDebugModeEnabled", "false", MockConfigRequestCommand::Ranges{"false", "true"});
    defaults.push_back(dpiThreads);
    defaults.push_back(qosmosDebugEnabled);
    doIt.EnabledMockExecuteRequest(protoMsg::ConfType::BASE, defaults);
@@ -109,9 +109,9 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
    // check that the values are as expected for the dpithreads as set above
    EXPECT_EQ(readDpiValues.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(readDpiValues.configname(), "dpiThreads");
-   EXPECT_EQ(readDpiValues.defaultu64(), "2");
-   EXPECT_EQ(readDpiValues.maxu64(), "7");
+   EXPECT_EQ(readDpiValues.defaultu64(), "7");
    EXPECT_EQ(readDpiValues.minu64(), "1");
+   EXPECT_EQ(readDpiValues.maxu64(), "12");
 
    const auto& readQosmosDebug = realReply.values(1);
    EXPECT_TRUE(readQosmosDebug.has_type());
@@ -123,8 +123,8 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
    EXPECT_EQ(readQosmosDebug.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(readQosmosDebug.configname(), "qosmosDebugModeEnabled");
    EXPECT_EQ(readQosmosDebug.defaultu64(), "false");
-   EXPECT_EQ(readQosmosDebug.maxu64(), "true");
    EXPECT_EQ(readQosmosDebug.minu64(), "false");
+   EXPECT_EQ(readQosmosDebug.maxu64(), "true");
 #endif
 }
 
@@ -144,14 +144,6 @@ TEST_F(ConfigRequestCommandTest, DISABLED_NTP) {
 
 TEST_F(ConfigRequestCommandTest, DISABLED_etcetcetc) {
 }
-
-
-
-
-
-
-
-
 
 // test with zero params,. always failure
 // test with one params,.. should work
