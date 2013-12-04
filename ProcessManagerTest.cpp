@@ -139,7 +139,6 @@ TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
    LOG(DEBUG) << result;
    EXPECT_NE(std::string::npos, result.find(testQueue.str()));
    EXPECT_NE(std::string::npos, result.find("/bin/sh"));
-   raise(SIGTERM);
    testManager.DeInit();
    sendManager.DeInit();
 #endif
@@ -167,7 +166,6 @@ TEST_F(ProcessManagerTest, ConstructAndInitialize) {
 
    ProcessManager testManager(conf);
    EXPECT_TRUE(testManager.Initialize());
-   raise(SIGTERM);
    testManager.DeInit();
    ProcessManager* testManagerPoint = new ProcessManager(conf);
    delete testManagerPoint;
@@ -191,7 +189,6 @@ TEST_F(ProcessManagerTest, RunProcess) {
    std::string result = processReply.result();
    EXPECT_NE(std::string::npos, result.find("-rwxr-xr-x. 1 root root"));
    EXPECT_NE(std::string::npos, result.find("/bin/ls"));
-   raise(SIGTERM);
    testManager.DeInit();
 
 #endif
@@ -212,7 +209,6 @@ TEST_F(ProcessManagerTest, RunNonExistantProcess) {
    protoMsg::ProcessReply processReply = testManager.RunProcess(processName, processArgs);
    std::string result = processReply.result();
    EXPECT_TRUE(result.empty());
-   raise(SIGTERM);
    testManager.DeInit();
 
 #endif
@@ -230,7 +226,6 @@ TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
    conf.mProcessManagmentQueue = "invalid";
    ProcessManager sendManager(conf);
    EXPECT_FALSE(sendManager.Initialize());
-   raise(SIGTERM);
 
    testManager.DeInit();
 
@@ -255,7 +250,6 @@ TEST_F(ProcessManagerTest, RunProcessFromAnotherObject) {
    std::string result = processReply.result();
    EXPECT_NE(std::string::npos, result.find("-rwxr-xr-x. 1 root root"));
    EXPECT_NE(std::string::npos, result.find("/bin/ls"));
-   raise(SIGTERM);
    testManager.DeInit();
    sendManager.DeInit();
 
@@ -279,7 +273,6 @@ TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
    protoMsg::ProcessReply processReply = sendManager.RunProcess(processName, processArgs);
    std::string result = processReply.result();
    EXPECT_TRUE(result.empty());
-   raise(SIGTERM);
    testManager.DeInit();
    sendManager.DeInit();
 #endif
@@ -323,7 +316,6 @@ TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
 //   LOG(DEBUG) << result2;
 //   EXPECT_EQ(std::string::npos, result2.find(testQueue.str()));
 //   EXPECT_EQ(std::string::npos, result2.find("/bin/sleep"));
-//   raise(SIGTERM);
 //   testManager.DeInit();
 //   sendManager.DeInit();
 //#endif
@@ -354,7 +346,6 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    LOG(DEBUG) << result;
    EXPECT_NE(std::string::npos, result.find(testQueue.str()));
    EXPECT_NE(std::string::npos, result.find("/bin/sleep"));
-   raise(SIGTERM);
    testManager.DeInit();
    LOG(DEBUG) << "Trying to re-initialize";
    zctx_interrupted = false;
@@ -364,7 +355,6 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    LOG(DEBUG) << result;
    EXPECT_EQ(std::string::npos, result.find(testQueue.str()));
    EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
-   raise(SIGTERM);
    testManager.DeInit();
    sendManager.DeInit();
 #endif
@@ -396,7 +386,6 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
    LOG(DEBUG) << result;
    EXPECT_EQ(std::string::npos, result.find(testQueue.str()));
    EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
-   raise(SIGTERM);
    testManager.DeInit();
    sendManager.DeInit();
 #endif
@@ -420,7 +409,6 @@ TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
    EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs, ""));
    std::this_thread::sleep_for(std::chrono::seconds(1));
    EXPECT_FALSE(sendManager.UnRegisterProcess(processName));
-   raise(SIGTERM);
    testManager.DeInit();
    sendManager.DeInit();
 #endif
