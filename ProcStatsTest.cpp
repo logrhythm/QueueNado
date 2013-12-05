@@ -296,7 +296,7 @@ TEST_F(ProcStatsTest, UpdateCpuStats_CrazyNumbers) {
    cpuWeird.success = true;
 
    usageStats.mPseudoCpuJiffies = cpuWeird;
-   EXPECT_EQ(false, usageStats.UpdateCpuStats());  // updating with weird values which failed
+   EXPECT_FALSE(usageStats.UpdateCpuStats());  // updating with weird values which failed
    
    // Measure crazy ... should ignore it all and reset back to zero
    EXPECT_EQ(usageStats.GetUserPercent(), 0);
