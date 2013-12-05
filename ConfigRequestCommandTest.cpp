@@ -128,6 +128,68 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
 #endif
 }
 
+TEST_F(ConfigRequestCommandTest, BaseConfExecute) {
+#ifdef LR_DEBUG
+   mockConf.mCommandQueue = "tcp://127.0.0.1:";
+   mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+   MockProcessManagerCommand testProcessor(mockConf);
+   EXPECT_TRUE(testProcessor.Initialize());
+
+   protoMsg::ConfigDefaultsRequest request;
+   request.set_type(protoMsg::ConfType::BASE);
+   request.add_requestedconfigparams("dpiThreads");
+   request.add_requestedconfigparams("qosmosDebugModeEnabled");
+
+   cmd.set_stringargone(request.SerializeAsString());
+   MockConfigRequestCommand doIt(cmd, autoManagedManager);
+
+
+   // BUILD UP THE FAKE RESPONSE 
+   //MockConfigRequestCommand::ManyConfDefaults defaults;
+   //auto dpiThreads = std::make_tuple("dpiThreads", "7", MockConfigRequestCommand::Ranges{"1", "12"});
+   //auto qosmosDebugEnabled = std::make_tuple("qosmosDebugModeEnabled", "false", MockConfigRequestCommand::Ranges{"false", "true"});
+   //defaults.push_back(dpiThreads);
+   //defaults.push_back(qosmosDebugEnabled);
+   
+   //doIt.EnabledMockExecuteRequest(protoMsg::ConfType::BASE, defaults);
+
+   auto reply = doIt.Execute(mockConf);
+   EXPECT_TRUE(reply.success());
+
+   protoMsg::ConfigDefaults realReply;
+   EXPECT_TRUE(reply.has_result());
+   EXPECT_TRUE(realReply.ParseFromString(reply.result()));
+
+   // Validate that we got back values
+   EXPECT_EQ(realReply.values_size(), 2);
+   const auto& readDpiValues = realReply.values(0);
+   EXPECT_TRUE(readDpiValues.has_type());
+   EXPECT_TRUE(readDpiValues.has_configname());
+   EXPECT_TRUE(readDpiValues.has_defaultu64());
+   EXPECT_TRUE(readDpiValues.has_maxu64());
+   EXPECT_TRUE(readDpiValues.has_minu64());
+   // check that the values are as expected for the dpithreads as set above
+   EXPECT_EQ(readDpiValues.type(), protoMsg::ConfType::BASE);
+   EXPECT_EQ(readDpiValues.configname(), "dpiThreads");
+   EXPECT_EQ(readDpiValues.defaultu64(), "4");
+   EXPECT_EQ(readDpiValues.minu64(), "1");
+   EXPECT_EQ(readDpiValues.maxu64(), "12");
+
+   const auto& readQosmosDebug = realReply.values(1);
+   EXPECT_TRUE(readQosmosDebug.has_type());
+   EXPECT_TRUE(readQosmosDebug.has_configname());
+   EXPECT_TRUE(readQosmosDebug.has_defaultu64());
+   EXPECT_TRUE(readQosmosDebug.has_maxu64());
+   EXPECT_TRUE(readQosmosDebug.has_minu64());
+   // check that the values are as expected for the dpithreads as set above
+   EXPECT_EQ(readQosmosDebug.type(), protoMsg::ConfType::BASE);
+   EXPECT_EQ(readQosmosDebug.configname(), "qosmosDebugModeEnabled");
+   EXPECT_EQ(readQosmosDebug.defaultu64(), "false");
+   EXPECT_EQ(readQosmosDebug.minu64(), "false");
+   EXPECT_EQ(readQosmosDebug.maxu64(), "true");
+#endif
+}
+
 TEST_F(ConfigRequestCommandTest, DISABLED_BaseConfAllValues) {
 }
 

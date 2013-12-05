@@ -66,7 +66,7 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {      // name, de
       bool success = false;
       // In our MAP we keep the mock values.  Loop through the request and see if we have a map matching
       // if we do then return that field. If not then it is considered a "failure"
-      protoMsg::ConfigDefaults protoDefaults;
+      protoMsg::ConfigDefaults protoDefaultsMsg;
       const int size = request.requestedconfigparams_size();
       if (request.has_type() && size > 0) { //E.g BASE or SYSLOG
          
@@ -86,7 +86,7 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {      // name, de
                values.set_maxu64(std::get<2>(setting).Max);          //range min
                values.set_minu64(std::get<2>(setting).Min);          //range max
 
-               auto valuePtr = protoDefaults.add_values();
+               auto valuePtr = protoDefaultsMsg.add_values();
                *valuePtr = values;
                success = true;
             }
@@ -94,7 +94,7 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {      // name, de
       }
 
       reply.set_success(success);
-      reply.set_result(protoDefaults.SerializeAsString());
+      reply.set_result(protoDefaultsMsg.SerializeAsString());
       return reply;
    }
 

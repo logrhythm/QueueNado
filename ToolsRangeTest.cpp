@@ -170,3 +170,20 @@ TEST(TestRange, RangeStringValidateOK){
    EXPECT_TRUE((RangeString{0,4}).Validate("Hi"));
    EXPECT_TRUE((RangeString{0,4}).Validate("High"));
 }
+
+TEST(TestRange, RangeStringifyMinMaxTest){
+   EXPECT_TRUE((RangeString{2, 9}).StringifyMin() == "2");
+   EXPECT_TRUE((RangeString{2, 9}).StringifyMax() == "9");
+   
+   EXPECT_TRUE((RangeInt{2, 9}).StringifyMin() == "2");
+   EXPECT_TRUE((RangeInt{2, 9}).StringifyMax() == "9");
+   
+   EXPECT_TRUE(RangeBool().StringifyMin() == "false");
+   EXPECT_TRUE(RangeBool().StringifyMax() == "true");
+   
+   EXPECT_TRUE(std::stod((RangeDouble{2, 9}).StringifyMin()) == 2);
+   EXPECT_TRUE(std::stod((RangeDouble{2, 9}).StringifyMax()) == 9);
+   
+   EXPECT_TRUE(std::stod((RangeDouble{2.2, 9.2}).StringifyMin()) == 2.2);
+   EXPECT_TRUE(std::stod((RangeDouble{2.2, 9.2}).StringifyMax()) == 9.2);
+}
