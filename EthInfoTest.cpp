@@ -30,6 +30,7 @@ TEST_F(EthInfoTest, GetIFAddrs) {
    EXPECT_TRUE(ethInfo.GetAvaliableInterfaces().empty());  
    ethInfo.mifaddr = reinterpret_cast<struct ifaddrs*>(malloc(sizeof(struct ifaddrs)));
    ethInfo.mifaddr->ifa_next = NULL;
+   
    std::string fakeName("eth1");
    ethInfo.mifaddr->ifa_name = reinterpret_cast<char*>(malloc(fakeName.size()));
    strncpy(ethInfo.mifaddr->ifa_name,fakeName.c_str(),fakeName.size());
@@ -40,10 +41,11 @@ TEST_F(EthInfoTest, GetIFAddrs) {
    ethInfo.mifaddr->ifa_next = reinterpret_cast<struct ifaddrs*>(malloc(sizeof(struct ifaddrs)));
    ASSERT_FALSE(NULL == ethInfo.mifaddr->ifa_next);
    ethInfo.mifaddr->ifa_next->ifa_next = NULL;
+   
    std::string fakeName2("eth2");
-   ethInfo.mifaddr->ifa_name = reinterpret_cast<char*>(malloc(fakeName2.size()));
+   ethInfo.mifaddr->ifa_next->ifa_name = reinterpret_cast<char*>(malloc(fakeName2.size()));
    ASSERT_FALSE(NULL == ethInfo.mifaddr->ifa_name);
-   strncpy(ethInfo.mifaddr->ifa_next->ifa_name,fakeName.c_str(),fakeName2.size());
+   strncpy(ethInfo.mifaddr->ifa_next->ifa_name,fakeName2.c_str(),fakeName2.size());
    EXPECT_TRUE(ethInfo.Initialize());
    EXPECT_EQ(2,ethInfo.GetAvaliableInterfaces().size());
    free(ethInfo.mifaddr->ifa_next->ifa_name);
