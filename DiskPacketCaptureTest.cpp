@@ -112,7 +112,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    const size_t testPacketSize = 1024 * 1024;
    MockDiskPacketCapture capture(conf);
 
-   ASSERT_TRUE(capture.Initialize(false));
+   ASSERT_TRUE(capture.Initialize());
    networkMonitor::DpiMsgLR testMessage;
    struct upacket packet;
 
@@ -183,7 +183,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitFlushedFile) {
    const size_t testPacketSize = 1024 * 1024;
    MockDiskPacketCapture capture(conf);
 
-   ASSERT_TRUE(capture.Initialize(false));
+   ASSERT_TRUE(capture.Initialize());
    networkMonitor::DpiMsgLR testMessage;
    struct upacket packet;
 
