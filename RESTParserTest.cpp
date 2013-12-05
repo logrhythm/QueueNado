@@ -34,9 +34,9 @@ TEST_F(RESTParserTest, GetIdsFromSearchForRecordsWithStaleInfo) {
            "\"_score\":null,\"fields\":{\"sessionId\":\"4fc48be8-b1ee-4b58-b9d6-4f58722ec6d8\",\"timeUpdated\":\"2013/11/11 16:56:33\","
            "\"timeStart\":\"2013/11/11 14:31:01\"},\"sort\":[1384188993000]}]}}";
    
-   std::vector<std::string> oldestSessionIds = parser.GetSessionIds(resultString);
+   auto oldestSessionIds = parser.GetSessionIds(resultString);
    ASSERT_FALSE(oldestSessionIds.empty());
-   EXPECT_TRUE("4fc48be8-b1ee-4b58-b9d6-4f58722ec6d8"==oldestSessionIds[0]);
+   EXPECT_TRUE("4fc48be8-b1ee-4b58-b9d6-4f58722ec6d8"==*oldestSessionIds.begin());
    
 }
 TEST_F(RESTParserTest, GetOldestTimeStart) {
