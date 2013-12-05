@@ -28,7 +28,6 @@ TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
    EXPECT_EQ(blank.has_siemlogging(), false);
    EXPECT_EQ(blank.has_debugsiemlogging(), false);
    EXPECT_EQ(blank.has_scrubpasswords(), false);
-   EXPECT_EQ(blank.has_reporteverything(), false);
 
    conf.updateFields(blank); // trigger Mocked ValidateBaseConf
    EXPECT_EQ(conf.mValidConf, true);   
@@ -43,8 +42,8 @@ TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
  * SHOULD make the validation to pass instead of fail
  */
 namespace {
-    const size_t gNumberOfFieldsLowerBound = 9;
-    const size_t gNumberOfFieldsUpperBound = 9;
+    const size_t gNumberOfFieldsLowerBound = 8;
+    const size_t gNumberOfFieldsUpperBound = 8;
 }
 void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    size_t index = 0;
@@ -68,7 +67,6 @@ void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_siemlogging("0") : msg.set_siemlogging("false");
    (index++ == shouldFail) ? msg.set_debugsiemlogging("0") : msg.set_debugsiemlogging("false");
    (index++ == shouldFail) ? msg.set_scrubpasswords("0") : msg.set_scrubpasswords("false");
-   (index++ == shouldFail) ? msg.set_reporteverything("0") : msg.set_reporteverything("false");
    
    // Test sanity check. Total number of used fields are :  32
    EXPECT_EQ(index, gNumberOfFieldsLowerBound) << "\t\t\t\t\t: Expected number of fields are " 
@@ -116,7 +114,6 @@ void SyslogValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_siemlogging("1") : msg.set_siemlogging("true");
    (index++ == shouldFail) ? msg.set_debugsiemlogging("1") : msg.set_debugsiemlogging("true");
    (index++ == shouldFail) ? msg.set_scrubpasswords("1") : msg.set_scrubpasswords("true");
-   (index++ == shouldFail) ? msg.set_reporteverything("1") : msg.set_reporteverything("true");
    
    // Test sanity check. Total number of used fields are :  32
    EXPECT_EQ(index, gNumberOfFieldsUpperBound) << "\t\t\t\t\t: Expected number of fields are " 

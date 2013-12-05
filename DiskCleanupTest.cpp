@@ -9,9 +9,37 @@
 #include <future>
 #include <thread>
 #include <atomic>
+#include <tuple>
 
 #ifdef LR_DEBUG
 
+TEST_F(DiskCleanupTest, RemoveDuplicateUpdatesFromLastUpdate) {
+   PathAndFileNames esFilesToRemove;
+   GMockDiskCleanup cleanup(mConf);
+   
+   
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test2", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test3", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "aaa"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   ASSERT_EQ(5,esFilesToRemove.size());
+   cleanup.RemoveDuplicateUpdatesFromLastUpdate(esFilesToRemove);
+   ASSERT_EQ(5,esFilesToRemove.size());
+   cleanup.RemoveDuplicateUpdatesFromLastUpdate(esFilesToRemove);
+   ASSERT_EQ(0,esFilesToRemove.size());
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test2", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test3", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "aaa"));
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   cleanup.RemoveDuplicateUpdatesFromLastUpdate(esFilesToRemove);
+   ASSERT_EQ(5,esFilesToRemove.size());
+   esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test5", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+   cleanup.RemoveDuplicateUpdatesFromLastUpdate(esFilesToRemove);
+   ASSERT_EQ(1,esFilesToRemove.size());
+   EXPECT_EQ("test5",std::get<0>(*esFilesToRemove.begin()));
+}
 TEST_F(DiskCleanupTest, RecalculatePCapDiskUsed) {
    GMockDiskCleanup cleanup(mConf);
    MockBoomStick transport("ipc://tmp/foo.ipc");
@@ -52,7 +80,7 @@ TEST_F(DiskCleanupTest, RecalculatePCapDiskUsedMockUsage) {
    mockStats.pcapDiskInGB = disk;
    EXPECT_CALL(cleanup, GetPcapStoreUsage(_, _))
            .WillOnce(SetArgReferee<0>(mockStats));
-   
+   cleanup.DelegateGetFileCountFromES(0,true);
    DiskCleanup::StatInfo readStats;
    cleanup.RecalculatePCapDiskUsed(readStats, es);
    EXPECT_EQ(readStats.pcapDiskInGB.Free, 2);
@@ -250,7 +278,7 @@ TEST_F(DiskCleanupTest, RemoveFiles) {
    EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB, filesNotFound));
    EXPECT_EQ(0, spaceSavedInMB);
    spaceSavedInMB = 999999;
-   filesToRemove.emplace_back(path, "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+   filesToRemove.insert(std::make_tuple<std::string,std::string>(path.c_str(), "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
    EXPECT_TRUE(stat(path.c_str(), &filestat) == 0);
    EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB, filesNotFound));
    EXPECT_EQ(0, spaceSavedInMB);
@@ -272,7 +300,7 @@ TEST_F(DiskCleanupTest, RemoveFiles) {
    EXPECT_EQ(0, system(make1MFileFile.c_str()));
 
    filesToRemove.clear();
-   filesToRemove.emplace_back(path, "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M");
+   filesToRemove.insert(std::make_tuple<std::string,std::string>(path.c_str(), "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M"));
    EXPECT_EQ(0, cleanup.RemoveFiles(filesToRemove, spaceSavedInMB, filesNotFound));
    EXPECT_EQ(1, spaceSavedInMB);
 
@@ -363,9 +391,9 @@ TEST_F(DiskCleanupTest, IterationTargetToRemove) {
    stats.aTotalFiles = 50001;
    EXPECT_EQ(1001, cleanup.IterationTargetToRemove(stats));
    stats.aTotalFiles = 5000100;
-   EXPECT_EQ(100000, cleanup.IterationTargetToRemove(stats));
+   EXPECT_EQ(100002, cleanup.IterationTargetToRemove(stats));
    stats.aTotalFiles = 1000000000;
-   EXPECT_EQ(100000, cleanup.IterationTargetToRemove(stats));
+   EXPECT_EQ(500000, cleanup.IterationTargetToRemove(stats));
 
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup0"; // file limit 0
    cleanup.ResetConf();
@@ -788,8 +816,11 @@ TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
    make10MFile += testDir.str();
    make10MFile += "/10MFile";
    EXPECT_EQ(0, system(make10MFile.c_str()));
+   mConf.mConfLocation = "resources/test.yaml.DiskCleanup91";  // file limit is 2
+   cleanup.ResetConf();
    cleanup.RecalculatePCapDiskUsed(stats, es);
    EXPECT_EQ(stats.aTotalFiles, 1);
+   
    usedMB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB);
    EXPECT_EQ(usedMB, 10);
    EXPECT_EQ(usedMB, stats.aPcapUsageInMB);
@@ -944,8 +975,8 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       capture.ResetConf();
       capture.RecalculatePCapDiskUsed(stats, es);
       EXPECT_TRUE(capture.TooMuchPCap(stats));
-
-      es.mOldestFiles.emplace_back(testDir.str() + "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M");
+      PathAndFileName element(testDir.str() + "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M");
+      es.mOldestFiles.insert(element);
       stats.canSendStats = false;
       capture.CleanupOldPcapFiles(es, stats); // empty file removed, 2 left
       EXPECT_FALSE(capture.TooMuchPCap(stats));
@@ -960,7 +991,9 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       auto sizeLimit = conf.GetPcapCaptureSizeLimit();
       EXPECT_NE(conf.GetPcapCaptureLocations()[0], conf.GetProbeLocation());
       EXPECT_TRUE(capture.TooMuchPCap(stats));
-      es.mOldestFiles.emplace_back(testDir.str() + "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1");
+      std::get<0>(element) = testDir.str() + "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
+      std::get<1>(element) = "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
+      es.mOldestFiles.insert(element);
       stats.canSendStats = false;
       capture.CleanupOldPcapFiles( es, stats); // 2MB files removed
       es.mOldestFiles.clear();
@@ -975,7 +1008,9 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       EXPECT_EQ(stats.aTotalFiles, 1);
       EXPECT_EQ(stats.aPcapUsageInMB, 1);
       EXPECT_TRUE(capture.TooMuchPCap(stats));
-      es.mOldestFiles.emplace_back(testDir.str() + "/1MFile", "1MFile");
+      std::get<0>(element) = testDir.str() + "/1MFile";
+      std::get<1>(element) = "1MFile";
+      es.mOldestFiles.insert(element);
       capture.CleanupOldPcapFiles(es, stats);
       EXPECT_FALSE(capture.TooMuchPCap(stats));
 
@@ -1007,7 +1042,8 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
       EXPECT_EQ(stats.aTotalFiles, 1);
       EXPECT_TRUE(capture.TooMuchPCap(stats));
       es.mBulkUpdateResult = false;
-      es.mOldestFiles.emplace_back(testDir.str() + "/161122fd-6681-42a3-b953-48beb5247172", "161122fd-6681-42a3-b953-48beb5247172");
+      PathAndFileName element(testDir.str() + "/161122fd-6681-42a3-b953-48beb5247172", "161122fd-6681-42a3-b953-48beb5247172");
+      es.mOldestFiles.insert(element);
       size_t filesRemoved;
       size_t spaceSaved;
       time_t oldest;
@@ -1025,6 +1061,13 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
       EXPECT_EQ(stats.aTotalFiles, 1);
       EXPECT_TRUE(capture.TooMuchPCap(stats));
       stats.canSendStats = false;
+      // the below will do nothing, we already think we've removed that file
+      capture.CleanupOldPcapFiles(es, stats);
+      capture.RecalculatePCapDiskUsed(stats, es);
+      EXPECT_TRUE(capture.TooMuchPCap(stats));
+      EXPECT_NE(stats.aTotalFiles, 0);
+      
+      // Now it will work, the old cached remove is gone
       capture.CleanupOldPcapFiles(es, stats);
       capture.RecalculatePCapDiskUsed(stats, es);
       EXPECT_FALSE(capture.TooMuchPCap(stats));
@@ -1070,8 +1113,10 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
       EXPECT_EQ(stats.aTotalFiles, 2);
       EXPECT_TRUE(capture.TooMuchPCap(stats));
       es.mBulkUpdateResult = false;
-      es.mOldestFiles.emplace_back(file1, "161122fd-6681-42a3-b953-48beb5247172");
-      es.mOldestFiles.emplace_back(file2, "161122fd-6681-42a3-b953-48beb52471724");
+      PathAndFileName element(file1, "161122fd-6681-42a3-b953-48beb5247172");
+      es.mOldestFiles.insert(element);
+      std::get<0>(element) = file2;
+      es.mOldestFiles.insert(element);
       size_t filesRemoved;
       size_t spaceSaved;
       time_t oldest;
@@ -1098,6 +1143,13 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
       EXPECT_EQ(stats.aTotalFiles, 2);
       EXPECT_TRUE(capture.TooMuchPCap(stats));
       stats.canSendStats = false;
+      capture.CleanupOldPcapFiles(es, stats);
+      capture.RecalculatePCapDiskUsed(stats, es);
+      EXPECT_TRUE(capture.TooMuchPCap(stats));
+      EXPECT_NE(stats.aTotalFiles, 0);
+      EXPECT_TRUE(boost::filesystem::exists(file1));
+      EXPECT_TRUE(boost::filesystem::exists(file2));
+      
       capture.CleanupOldPcapFiles(es, stats);
       capture.RecalculatePCapDiskUsed(stats, es);
       EXPECT_FALSE(capture.TooMuchPCap(stats));

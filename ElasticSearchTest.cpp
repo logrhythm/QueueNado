@@ -201,8 +201,8 @@ TEST_F(ElasticSearchTest, GetListOfAllIndexesSince) {
    networkMonitor::DpiMsgLR yesterMessage;
    yesterMessage.set_timeupdated(aMessage.timeupdated() - es.TwentyFourHoursInSeconds);
    networkMonitor::DpiMsgLR morrowMessage;
-   morrowMessage.set_timeupdated(aMessage.timeupdated() + es.TwentyFourHoursInSeconds);   
-   
+   morrowMessage.set_timeupdated(aMessage.timeupdated() + es.TwentyFourHoursInSeconds);
+
    std::set<std::string> validNames;
    validNames.insert(aMessage.GetESIndexName());
    validNames.insert(yesterMessage.GetESIndexName());
@@ -223,19 +223,19 @@ TEST_F(ElasticSearchTest, IndexActuallyExists) {
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-   
+
    std::set<std::string> validNames;
    validNames.insert("foo");
    validNames.insert("bar");
    es.SetValidNames(validNames);
-   
+
    EXPECT_TRUE(es.IndexActuallyExists("foo"));
    EXPECT_TRUE(es.IndexActuallyExists("bar"));
    EXPECT_FALSE(es.IndexActuallyExists(""));
    EXPECT_TRUE(es.IndexActuallyExists("_all"));
    EXPECT_FALSE(es.IndexActuallyExists("baz"));
-   
-   
+
+
 }
 
 TEST_F(ElasticSearchTest, ConstructSearchHeaderWithTime) {
@@ -254,8 +254,8 @@ TEST_F(ElasticSearchTest, ConstructSearchHeaderWithTime) {
    networkMonitor::DpiMsgLR yesterMessage;
    yesterMessage.set_timeupdated(aMessage.timeupdated() - es.TwentyFourHoursInSeconds);
    networkMonitor::DpiMsgLR morrowMessage;
-   morrowMessage.set_timeupdated(aMessage.timeupdated() + es.TwentyFourHoursInSeconds);   
-   
+   morrowMessage.set_timeupdated(aMessage.timeupdated() + es.TwentyFourHoursInSeconds);
+
    std::set<std::string> validNames;
    validNames.insert(aMessage.GetESIndexName());
    validNames.insert(yesterMessage.GetESIndexName());
@@ -1277,7 +1277,7 @@ TEST_F(ElasticSearchTest, RunQueryGetIdsFailed) {
 TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
    MockElasticSearch es(transport, false);
-   std::vector<std::tuple< std::string, std::string> > oldestFiles;
+   PathAndFileNames oldestFiles;
    const unsigned int numberOfFiles(100);
    const std::vector<std::string> paths = {
       {"/tmp"}
@@ -1287,7 +1287,8 @@ TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
    es.mRealSendAndGetReplyCommandToWorker = false;
    es.mReturnSendAndGetReplyCommandToWorker = false;
    es.mFakeGetOldestNFiles = false;
-   oldestFiles.emplace_back("foo", "bar");
+   PathAndFileName element("foo", "bar");
+   oldestFiles.insert(element);
    relevantRecords.emplace_back("foo", "bar");
    oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
@@ -1299,7 +1300,7 @@ TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
 TEST_F(ElasticSearchTest, GetOldestNFiles) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
    MockElasticSearch es(transport, false);
-   std::vector<std::tuple< std::string, std::string> > oldestFiles;
+   PathAndFileNames oldestFiles;
    const unsigned int numberOfFiles(100);
    const std::vector<std::string> paths = {
       {"/tmp"}
@@ -1310,7 +1311,8 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    es.mReturnSendAndGetReplyCommandToWorker = true;
    es.mFakeGetOldestNFiles = false;
    es.mSendAndGetReplyReply = "200|ok|{\"ok\":true,\"timed_out\":false}";
-   oldestFiles.emplace_back("foo", "bar");
+   PathAndFileName element("foo", "bar");
+   oldestFiles.insert(element);
    relevantRecords.emplace_back("foo", "bar");
    oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
@@ -1318,7 +1320,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    EXPECT_TRUE(relevantRecords.empty());
 
    es.mSendAndGetReplyReply.clear();
-   oldestFiles.emplace_back("foo", "bar");
+   oldestFiles.insert(element);
    relevantRecords.emplace_back("foo", "bar");
    oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
@@ -1345,9 +1347,9 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    EXPECT_EQ(1380495600, oldestTime);
    ASSERT_FALSE(oldestFiles.empty());
    EXPECT_EQ("/tmp/f4d63941-af67-4b76-8e68-ba0f0b5366ff",
-           std::get<0>(oldestFiles[0]));
+           std::get<0>(*oldestFiles.begin()));
    EXPECT_EQ("f4d63941-af67-4b76-8e68-ba0f0b5366ff",
-           std::get<1>(oldestFiles[0]));
+           std::get<1>(*oldestFiles.begin()));
    ASSERT_FALSE(relevantRecords.empty());
    EXPECT_EQ("network_2013_09_30",
            std::get<1>(relevantRecords[0]));
