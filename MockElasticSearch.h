@@ -81,7 +81,7 @@ public:
 
    }
 
-   void UpdateSessions(const std::vector<std::string>& oldestSessionIds,
+   void UpdateSessions(const std::set<std::string>& oldestSessionIds,
                                                               const unsigned int maxPerQuery, const time_t& indexStartTime) {
       ElasticSearch::UpdateSessions(oldestSessionIds, maxPerQuery,indexStartTime);
    }
@@ -169,8 +169,7 @@ public:
       return true;
    }
 
-   std::vector<std::tuple<std::string, std::string >>
-   GetOldestNFiles(const unsigned int numberOfFiles,
+   PathAndFileNames GetOldestNFiles(const unsigned int numberOfFiles,
            const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits) {
       if (mFakeGetOldestNFiles) {
          oldestTime = mOldestTime;
@@ -293,7 +292,7 @@ public:
    bool RunQueryGetIdsAlwaysFails;
    time_t mOldestTime;
    bool mBulkUpdateResult;
-   std::vector<std::tuple< std::string, std::string> > mOldestFiles;
+   PathAndFileNames mOldestFiles;
    bool mRealSendAndExpectOkAndAck;
    bool mRealSendAndExpectOkAndFound;
    bool mRealSendAndForgetCommandToWorker;
@@ -339,7 +338,7 @@ public:
 
    MOCK_METHOD0(Initialize, bool());
    MOCK_METHOD1(GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored, bool(time_t&));
-   MOCK_METHOD6(GetOldestNFiles, std::vector<std::tuple< std::string, std::string> >(const unsigned int numberOfFiles,
+   MOCK_METHOD6(GetOldestNFiles, PathAndFileNames(const unsigned int numberOfFiles,
            const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor,
            IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits));
    MOCK_METHOD2(SendAndGetReplyCommandToWorker, bool (const std::string& command, std::string& reply));
