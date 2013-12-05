@@ -14,8 +14,8 @@ public:
    bool InitializeStatsSender(SendStats& sendQueue) {
       return false;
    }
-   bool Initialize(const bool diskCleanThread = false) {
-      return DiskPacketCapture::Initialize(diskCleanThread);
+   bool Initialize() {
+      return DiskPacketCapture::Initialize();
    }
    void GetRunningPackets(const std::string& uuid, SessionInfo*& sessionInfo) {
       DiskPacketCapture::GetRunningPackets(uuid,sessionInfo);

@@ -18,16 +18,16 @@ protected:
    virtual void SetUp() {
       memset(reinterpret_cast<void*>(&stats),0,sizeof(stats));
       stats.currentTime = std::time(NULL);
-      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id0", "id0"));
-      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id1", "id1"));
-      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id2", "id2"));
-      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id3", "id3"));
-      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id4", "id4"));
-      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id5", "id5"));
-      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id6", "id6"));
-      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id7", "id7"));
-      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id8", "id8"));
-      bogusFileList.push_back(std::make_tuple<std::string, std::string>("/path/id9", "id9"));
+      bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id0", "id0"));
+      bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id1", "id1"));
+      bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id2", "id2"));
+      bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id3", "id3"));
+      bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id4", "id4"));
+      bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id5", "id5"));
+      bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id6", "id6"));
+      bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id7", "id7"));
+      bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id8", "id8"));
+      bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id9", "id9"));
       bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "1"));
       bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "2"));
       bogusIdsAndIndex.push_back(std::make_pair<std::string, std::string>("abc", "3"));

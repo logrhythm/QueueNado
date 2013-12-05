@@ -219,7 +219,9 @@ public:
            const size_t targetRemoved, const size_t failedRemoved) {
       return DiskCleanup::CalculateNewTotalFiles(oldTotal, targetRemoved, failedRemoved);
    }
-
+   void RemoveDuplicateUpdatesFromLastUpdate(PathAndFileNames& esFilesToRemove) {
+      DiskCleanup::RemoveDuplicateUpdatesFromLastUpdate(esFilesToRemove);
+   }
 
    bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
