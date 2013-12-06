@@ -9,6 +9,7 @@
 #include "CommandRequest.pb.h"
 #include "ConfigDefaultsRequest.pb.h"
 #include "ConfigDefaults.pb.h"
+#include "ProtoDefaults.h"
 
 #include <map>
 #include <thread>
