@@ -149,6 +149,7 @@ TEST_F(PacketCaptureTest, PacketCapturePCapClientThread_process_packets) {
    if (rawPacket) {
       free(rawPacket);
    }
+    
 }
 
 TEST_F(PacketCaptureTest, PcapVersion) {

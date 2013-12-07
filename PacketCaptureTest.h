@@ -214,7 +214,7 @@ public:
    void SetNumberOfPacketToCapture(unsigned int number);
    unsigned int GetNumberOfPacketsCaptured();
 
-   virtual int PcapDispatch(pcap_t * pcapT, int count, pcap_handler handler, u_char * uData) override {
+   virtual int PcapDispatch(pcap_t * pcapT, int count, pcap_handler handler, u_char * uData) LR_OVERRIDE {
 
       for (int i = 1; i <= mDispatchCount; ++i) {
          uint8_t* rawPacket;
