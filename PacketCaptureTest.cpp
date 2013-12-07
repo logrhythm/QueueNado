@@ -25,23 +25,6 @@ unsigned int MockPacketCapturePCap::GetNumberOfPacketsCaptured() {
    return m_numberCaptured;
 }
 
-static PacketInfo create_fake_packet() {
-   struct pcap_pkthdr *phdr = new pcap_pkthdr;
-   u_char* rawPacket = new u_char[100];
-   timeval tv;
-   tv.tv_sec = 12;
-   tv.tv_usec = 34;
-   phdr->ts = tv;
-   phdr->caplen = 100;
-   phdr->len = 100;
-
-   PacketInfo packetInfo;
-   packetInfo.packet = rawPacket;
-   packetInfo.phdr = phdr;
-
-   return packetInfo;
-}
-
 bool MockPacketCapturePCap::IsDone() {
    if (mRealIsDone) {
       return PacketCapturePCap::IsDone();
