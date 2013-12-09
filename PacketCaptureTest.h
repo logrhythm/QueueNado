@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 #include "IPacketCapture.h"
 #include "PacketCapturePCap.h"
-#include "PacketCapturePCapClientThread.h"
+#include "PacketReader.h"
 #include "pcap.h"
 #include "MockConfMaster.h"
 #include "QosmosPacketAllocator.h"
@@ -42,13 +42,6 @@ protected:
    std::string t_interface;
 
    virtual void TearDown() {
-      //std::cout << "teardownStart" << std::endl;
-#ifdef LR_DEBUG
-      if (geteuid() == 0) {
-         raise(SIGTERM);
-      }
-#endif
-      //std::cout << "teardownEnd" << std::endl;
 
    }
    std::string t_clientAddr;
@@ -84,7 +77,9 @@ public:
    mFakePutEvent(false),
    mFakePutEventTriggered(false),
    mFakePCap(false),
-   mFakePCapRetVal(1) {
+   mFakePCapRetVal(1),
+   mDispatchReturn(0),
+   mDispatchCount(1) {
    }
 
    explicit MockPacketCapturePCap(std::string& filename, networkMonitor::ConfProcessor& conf) : PacketCapturePCap(filename, conf),
@@ -104,7 +99,9 @@ public:
    mFakePutEvent(false),
    mFakePutEventTriggered(false),
    mFakePCap(false),
-   mFakePCapRetVal(1) {
+   mFakePCapRetVal(1),
+   mDispatchReturn(0),
+   mDispatchCount(1) {
    }
 
    explicit MockPacketCapturePCap(const ReceivePacketZMQ* TransferQueue, std::string& interface, networkMonitor::ConfProcessor& conf) : PacketCapturePCap(TransferQueue, interface, conf),
@@ -124,7 +121,9 @@ public:
    mFakePutEvent(false),
    mFakePutEventTriggered(false),
    mFakePCap(false),
-   mFakePCapRetVal(1) {
+   mFakePCapRetVal(1),
+   mDispatchReturn(0),
+   mDispatchCount(1) {
    }
 
    virtual ~MockPacketCapturePCap() {
@@ -181,6 +180,14 @@ public:
       return 2;
    }
 
+   void SetDispatchReturn(const int code) {
+      mDispatchReturn = code;
+   }
+
+   void SetDispatchCount(const int count) {
+      mDispatchCount = count;
+   }
+
    boost::posix_time::time_duration GetRetrySleepInterval() {
       return std::move(boost::posix_time::microseconds(5));
    }
@@ -206,25 +213,48 @@ public:
    virtual bool IsDone();
    void SetNumberOfPacketToCapture(unsigned int number);
    unsigned int GetNumberOfPacketsCaptured();
+
+   virtual int PcapDispatch(pcap_t * pcapT, int count, pcap_handler handler, u_char * uData) LR_OVERRIDE {
+
+      for (int i = 1; i <= mDispatchCount; ++i) {
+         uint8_t* rawPacket;
+         struct pcap_pkthdr *phdr;
+         phdr = &mBogusHeader;
+         timeval tv;
+         tv.tv_sec = 12;
+         tv.tv_usec = 34;
+         phdr->ts = tv;
+         phdr->caplen = 100;
+         phdr->len = 100;
+         rawPacket = (u_char*) malloc(100);
+
+         memset(mBogusPacket, 'a', 100);
+         memcpy(rawPacket, mBogusPacket, 100);
+         PacketCapturePCap::process_packets(uData, phdr, rawPacket);
+         if(rawPacket) {
+            free(rawPacket);
+         }
+      }
+      return mDispatchReturn;
+   }
    int GetPacketFromPCap(ctb_ppacket& packet);
 
-
    void IncrementTotalData(int64_t incomingData) LR_OVERRIDE {
-        PacketCapturePCap::IncrementTotalData(incomingData);
+      PacketCapturePCap::IncrementTotalData(incomingData);
    }
 
    SendStats& GetSendStatForwarder() LR_OVERRIDE {
-      if(mMockSendStatsForwarder) {
+      if (mMockSendStatsForwarder) {
          return *(mMockSendStatsForwarder.get());
       }
       return PacketCapturePCap::GetSendStatForwarder();
    }
-   
+
    void SetupSendStatForwarder() {
       mMockSendStatsForwarder.reset(new MockSendStats);
    }
-   
-   
+
+
    unsigned int m_numberCaptured;
    unsigned int m_numberToCapture;
    unsigned int m_numberOfEmptyReadsToTolerate;
@@ -236,8 +266,8 @@ public:
    bool mWarnActivatePCapHandle;
    bool mRealIsDone;
    bool mFailGetStats;
-   
-   
+
+
    uint32_t mPsRecv;
    uint32_t mPsDrop;
    uint32_t mPsIfDrop;
@@ -247,8 +277,10 @@ public:
    pcap_pkthdr mBogusHeader;
    uint8_t mBogusPacket[100];
    int mFakePCapRetVal;
+   int mDispatchReturn;
+   int mDispatchCount;
    static std::string mAnError;
-   
+
 private:
    std::unique_ptr<SendStats> mMockSendStatsForwarder;
 
@@ -340,25 +372,26 @@ public:
    bool mNeverReadable;
 };
 
-class MockPacketCapturePCapClientThread : public PacketCapturePCapClientThread {
+class MockPacketCapturePCapClientThread : public PacketReader {
 public:
 
-   explicit MockPacketCapturePCapClientThread(PacketCapturePCap *masterThread) : PacketCapturePCapClientThread(masterThread) {
+   explicit MockPacketCapturePCapClientThread(PacketCapturePCap *masterThread) : PacketReader(masterThread) {
    }
 
    MockPacketCapturePCapClientThread(PacketCapturePCap *masterThread, const SendPacketZMQ& TransferQueue) :
-   PacketCapturePCapClientThread(masterThread, TransferQueue) {
+   PacketReader(masterThread, TransferQueue) {
    }
 
    MockPacketCapturePCapClientThread(PacketCapturePCap *masterThread, const ReceivePacketZMQ* TransferQueue) :
-   PacketCapturePCapClientThread(masterThread, TransferQueue) {
+   PacketReader(masterThread, TransferQueue) {
    }
 
    void FailPacket(ctb_ppacket& packet) {
-      return PacketCapturePCapClientThread::FailPacket(packet);
+      return PacketReader::FailPacket(packet);
    }
 
    void FailPackets(std::vector<std::pair<void*, unsigned int> >& packets) {
-      return PacketCapturePCapClientThread::FailPackets(packets);
+      return PacketReader::FailPackets(packets);
    }
+
 };

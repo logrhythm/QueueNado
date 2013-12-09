@@ -432,7 +432,7 @@ TEST_F(QosmosDpiTest, ProcessPacket) {
       hdr.caplen = data.size();
       ctb_ppacket packet = NULL;
       //std::cout << "getting packet " << std::endl;
-      mPacketAllocator.PopulatePacketData(reinterpret_cast<const uint8_t*> (&data[0]), &hdr, packet);
+      mPacketAllocator.PopulatePacketData(reinterpret_cast<const u_char*> (&data[0]), &hdr, packet);
       //std::cout << "process packet " << std::endl;
       std::vector<Rifle* > sendQueue;
       Rifle* serverQueue = new Rifle("ipc:///tmp/qosmosDpiTest.ipc");
@@ -507,10 +507,10 @@ TEST_F(QosmosDpiTest, FreeAndSendCalls) {
    hdr.caplen = data.size();
    ctb_ppacket packet = NULL;
    mPacketAllocator.PopulatePacketData(
-           reinterpret_cast<const uint8_t*> (&data[0]), &hdr, packet);
+           reinterpret_cast<const u_char*> (&data[0]), &hdr, packet);
    QosmosDPI::EndPacket(packet);
    mPacketAllocator.PopulatePacketData(
-           reinterpret_cast<const uint8_t*> (&data[0]), &hdr, packet);
+           reinterpret_cast<const u_char*> (&data[0]), &hdr, packet);
    QosmosDPI::FreePacket(packet);
 }
 

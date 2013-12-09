@@ -1,8 +1,8 @@
 #include "IPacketCapture.h"
 #include "PacketCaptureReceiver.h"
 #include "PacketCaptureTest.h"
-#include "PacketCapturePCapClientThread.h"
-#include "MockSendStats.h"
+#include "PacketReader.h"
+#include "SendStats.h"
 #include <sys/socket.h>
 #include "QosmosDPI.h"
 #include <algorithm>
@@ -10,6 +10,11 @@
 
 using namespace std;
 string MockPacketCapturePCap::mAnError = "this is an error";
+
+struct PacketInfo {
+   pcap_pkthdr* phdr;
+   u_char* packet;
+};
 
 void MockPacketCapturePCap::SetNumberOfPacketToCapture(unsigned int number) {
    m_numberToCapture = number;
@@ -64,8 +69,91 @@ int MockPacketCapturePCap::GetPacketFromPCap(ctb_ppacket& packet) {
    return returnVal;
 }
 
+TEST_F(PacketCaptureTest, PacketCapturePCapClientThread_GetPacketsFromPCap) {
+#ifdef LR_DEBUG
+   PacketCaptureReceiver receiver(t_serverAddr);
+   MockPacketCapturePCap capturer(receiver.GetZMQ(), t_interface, mConf);
+   capturer.Initialize();
+
+   MockPacketCapturePCapClientThread clientThread(&capturer, receiver.GetZMQ());
+   std::vector<std::pair<void*, unsigned int> > packets = clientThread.GetPackets(100);
+   EXPECT_EQ(100, packets.size());
+   PacketCapturePCap::CleanupPackets(packets);
+
+   capturer.SetDispatchReturn(-2);
+   packets = clientThread.GetPackets(100);
+   EXPECT_EQ(1, packets.size());
+   PacketCapturePCap::CleanupPackets(packets);
+
+   capturer.SetDispatchReturn(-3);
+   packets = clientThread.GetPackets(100);
+   EXPECT_EQ(1, packets.size());
+   PacketCapturePCap::CleanupPackets(packets);
+
+   capturer.SetDispatchReturn(-4);
+   packets = clientThread.GetPackets(100);
+   EXPECT_EQ(1, packets.size());
+   PacketCapturePCap::CleanupPackets(packets);
+
+   capturer.SetDispatchReturn(1);
+   packets = clientThread.GetPackets(100);
+   EXPECT_EQ(100, packets.size());
+   PacketCapturePCap::CleanupPackets(packets);
+
+   capturer.SetDispatchCount(30);
+   packets = clientThread.GetPackets(50);
+   EXPECT_GE(packets.size(), 50);
+   PacketCapturePCap::CleanupPackets(packets);
+
+#endif
+
+}
+
+TEST_F(PacketCaptureTest, PacketCapturePCapClientThread_process_packets) {
+
+   std::vector < std::pair< void*, unsigned int >> packets;
+   uint8_t* rawPacket;
+   struct pcap_pkthdr *phdr;
+   phdr = &mBogusHeader;
+   timeval tv;
+   tv.tv_sec = 12;
+   tv.tv_usec = 34;
+   phdr->ts = tv;
+   phdr->caplen = 100;
+   phdr->len = 100;
+   rawPacket = (u_char*) malloc(100);
+
+   memset(mBogusPacket, 'a', 100);
+   memcpy(rawPacket, mBogusPacket, 100);
+   //NULL
+   PacketCapturePCap::process_packets((u_char*) & packets, NULL, NULL);
+   EXPECT_EQ(0, packets.size());
+   PacketCapturePCap::CleanupPackets(packets);
+
+   //NULL PACKET
+   PacketCapturePCap::process_packets((u_char*) & packets, phdr, NULL);
+   EXPECT_EQ(0, packets.size());
+   PacketCapturePCap::CleanupPackets(packets);
+
+   //NULL hdr
+   PacketCapturePCap::process_packets((u_char*) & packets, NULL, rawPacket);
+   EXPECT_EQ(0, packets.size());
+
+   //valid data
+   PacketCapturePCap::process_packets((u_char*) & packets, phdr, rawPacket);
+   EXPECT_EQ(1, packets.size());
+
+
+   PacketCapturePCap::CleanupPackets(packets);
+   EXPECT_EQ(0, packets.size());
+   if (rawPacket) {
+      free(rawPacket);
+   }
+    
+}
+
 TEST_F(PacketCaptureTest, PcapVersion) {
-   if (geteuid() == 0 ) {
+   if (geteuid() == 0) {
 #ifdef LR_DEBUG
       std::string interface = "NOPE";
       MockPacketCapturePCap capturer(t_clientAddr, interface, mConf);
@@ -75,22 +163,23 @@ TEST_F(PacketCaptureTest, PcapVersion) {
 }
 
 TEST_F(PacketCaptureTest, NonExistantInterface) {
-   if (geteuid() == 0 ) {
+   if (geteuid() == 0) {
 #ifdef LR_DEBUG
       std::string interface = "NOPE";
       MockPacketCapturePCap capturer(t_clientAddr, interface, mConf);
       pcap_t* handle = capturer.CreatePCapHandle();
-      ASSERT_FALSE(NULL==handle);
-      
+      ASSERT_FALSE(NULL == handle);
+
       int status = capturer.ActivatePCapHandle(handle);
-      EXPECT_EQ(PCAP_ERROR_NO_SUCH_DEVICE,status);
+      EXPECT_EQ(PCAP_ERROR_NO_SUCH_DEVICE, status);
       EXPECT_FALSE(capturer.WasActivationSuccessful(handle, status));
       EXPECT_FALSE(capturer.Initialize(true));
       pcap_close(handle);
-      
+
 #endif
    }
 }
+
 TEST_F(PacketCaptureTest, ConstructAndInitialize) {
    if (geteuid() == 0) {
 #ifdef LR_DEBUG
@@ -113,9 +202,9 @@ TEST_F(PacketCaptureTest, DynamicConstructAndInitialize) {
    if (geteuid() == 0) {
 #ifdef LR_DEBUG
       MockPacketCapturePCap* pcapturer = new MockPacketCapturePCap(t_clientAddr,
-              t_interface, mConf);
+         t_interface, mConf);
       PacketCaptureReceiver* preceiver = new PacketCaptureReceiver(
-              t_serverAddr);
+         t_serverAddr);
       delete pcapturer;
       delete preceiver;
 #endif
@@ -206,26 +295,15 @@ TEST_F(PacketCaptureTest, TimeToReportInterfaceStats) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
       MockPacketCapturePCap capturer(t_clientAddr, t_interface, mConf);
-      struct timeval tv = { 5, 0 };
-      EXPECT_TRUE(capturer.InterfaceStatsTime(tv));
-      tv.tv_sec = 10;
-      tv.tv_usec = 111111;
-      EXPECT_TRUE(capturer.InterfaceStatsTime(tv));
-      tv.tv_sec = 15;
-      tv.tv_usec = 111110;
-      EXPECT_FALSE(capturer.InterfaceStatsTime(tv));
-      tv.tv_sec = 15;
-      tv.tv_usec = 111111;
-      EXPECT_TRUE(capturer.InterfaceStatsTime(tv));
-
-      // Negative time test
-      tv.tv_sec = 12;
-      tv.tv_usec = 222222;
-      EXPECT_FALSE(capturer.InterfaceStatsTime(tv));
-      tv.tv_sec = 17;
-      tv.tv_usec = 222222;
-      EXPECT_TRUE(capturer.InterfaceStatsTime(tv));
-
+      struct timeval tv = {5, 0};
+      time_t time = std::time(NULL) + 5;
+      EXPECT_TRUE(capturer.InterfaceStatsTime(time));
+      time = time + 6;
+      EXPECT_TRUE(capturer.InterfaceStatsTime(time));
+      time = time + 4;
+      EXPECT_FALSE(capturer.InterfaceStatsTime(time));
+      time = time + 1;
+      EXPECT_TRUE(capturer.InterfaceStatsTime(time));
       capturer.Shutdown(true);
    }
 #endif
@@ -237,7 +315,7 @@ TEST_F(PacketCaptureTest, GetSomethingFromTheInterfaceSendOverExisting) {
 
       PacketCaptureReceiver receiver(t_serverAddr);
       MockPacketCapturePCap capturer(receiver.GetZMQ(), t_interface, mConf);
-      
+
       ASSERT_TRUE(capturer.Initialize());
 
       capturer.mFailGetStats = false;
@@ -246,7 +324,7 @@ TEST_F(PacketCaptureTest, GetSomethingFromTheInterfaceSendOverExisting) {
       capturer.mPsIfDrop = 2;
 
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
-              t_packetsIfDropped, t_totalData);
+         t_packetsIfDropped, t_totalData);
       EXPECT_EQ(9, t_packetsReceived); // mPsRecv - mPsDrop
       EXPECT_EQ(1, t_packetsDropped);
       EXPECT_EQ(2, t_packetsIfDropped);
@@ -256,7 +334,7 @@ TEST_F(PacketCaptureTest, GetSomethingFromTheInterfaceSendOverExisting) {
       capturer.mPsIfDrop = 4;
 
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
-              t_packetsIfDropped, t_totalData);
+         t_packetsIfDropped, t_totalData);
       EXPECT_EQ(18, t_packetsReceived); // mPsRecv - mPsDrop
       EXPECT_EQ(2, t_packetsDropped);
       EXPECT_EQ(4, t_packetsIfDropped);
@@ -266,7 +344,6 @@ TEST_F(PacketCaptureTest, GetSomethingFromTheInterfaceSendOverExisting) {
 #endif
 }
 
-
 TEST_F(PacketCaptureTest, SendWrappedValues) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
@@ -275,54 +352,51 @@ TEST_F(PacketCaptureTest, SendWrappedValues) {
       capturer.SetupSendStatForwarder(); // pseudo SendStat
 
       // dynamic cast only in the unit test. GetStatForwarder would normally return the real class type
-      MockSendStats& statForwarder = dynamic_cast<MockSendStats&>(capturer.GetSendStatForwarder());
+      MockSendStats& statForwarder = dynamic_cast<MockSendStats&> (capturer.GetSendStatForwarder());
       auto& receivedStats = statForwarder.mSendStatValues;
       ASSERT_TRUE(capturer.Initialize());
-       
+
       static const uint32_t max = std::numeric_limits<uint32_t>::max();
       capturer.mFailGetStats = false;
       capturer.mPsRecv = max;
       capturer.mPsDrop = 100;
       capturer.mPsIfDrop = 200;
-      
+
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
-              t_packetsIfDropped, t_totalData);
+         t_packetsIfDropped, t_totalData);
       ASSERT_EQ(receivedStats.size(), 4);
-      EXPECT_EQ(capturer.mPsRecv, max);  
-      EXPECT_EQ(max-100, t_packetsReceived); // mPsRecv - mPsDrop
-      EXPECT_EQ(receivedStats[0], max-100);  // SendStat (rec-dropped - last)
+      EXPECT_EQ(capturer.mPsRecv, max);
+      EXPECT_EQ(max - 100, t_packetsReceived); // mPsRecv - mPsDrop
+      EXPECT_EQ(receivedStats[0], max - 100); // SendStat (rec-dropped - last)
 
       EXPECT_EQ(100, t_packetsDropped);
       EXPECT_EQ(receivedStats[1], 100); // SendStat (dropped - last)
 
       EXPECT_EQ(200, t_packetsIfDropped);
-      EXPECT_EQ(receivedStats[2],200); // SendStat (ifDropped -last)
+      EXPECT_EQ(receivedStats[2], 200); // SendStat (ifDropped -last)
 
       // wrap the values, i.e. lower value than earlier
       receivedStats.clear();
-      capturer.mPsRecv = 10;  // 10+1+100 more
-      capturer.mPsDrop = 0;   // max-100+1 more
+      capturer.mPsRecv = 10; // 10+1+100 more
+      capturer.mPsDrop = 0; // max-100+1 more
       capturer.mPsIfDrop = 0; // max-200+1 more
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
-              t_packetsIfDropped, t_totalData);
-  
+         t_packetsIfDropped, t_totalData);
+
       ASSERT_EQ(receivedStats.size(), 4);
       EXPECT_EQ(10, t_packetsReceived); // mPsRecv - mPsDrop
       EXPECT_EQ(receivedStats[0], 111); // SendState rec - last: wrap(10 + 1, max-100)
 
       EXPECT_EQ(0, t_packetsDropped);
-      EXPECT_EQ(receivedStats[1], max-100+1); // SendStat drop: (max -100 +1)
+      EXPECT_EQ(receivedStats[1], max - 100 + 1); // SendStat drop: (max -100 +1)
 
       EXPECT_EQ(0, t_packetsIfDropped);
-      EXPECT_EQ(receivedStats[2], max-200+1);
-   
+      EXPECT_EQ(receivedStats[2], max - 200 + 1);
+
       capturer.Shutdown(true);
    }
 #endif
 }
-
-
-
 
 TEST_F(PacketCaptureTest, TotalDataWrappedValues) {
 #ifdef LR_DEBUG
@@ -332,17 +406,17 @@ TEST_F(PacketCaptureTest, TotalDataWrappedValues) {
       capturer.SetupSendStatForwarder(); // pseudo SendStat
 
       // dynamic cast only in the unit test. GetStatForwarder would normally return the real class type
-      MockSendStats& statForwarder = dynamic_cast<MockSendStats&>(capturer.GetSendStatForwarder());
+      MockSendStats& statForwarder = dynamic_cast<MockSendStats&> (capturer.GetSendStatForwarder());
       auto& receivedStats = statForwarder.mSendStatValues;
       ASSERT_TRUE(capturer.Initialize());
-       
+
       capturer.mFailGetStats = false;
       int64_t iMax = std::numeric_limits<int64_t>::max();
       capturer.IncrementTotalData(iMax);
       // start from max
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
-              t_packetsIfDropped, t_totalData);
-      size_t totalIndex  = 3;
+         t_packetsIfDropped, t_totalData);
+      size_t totalIndex = 3;
       EXPECT_EQ(t_totalData, iMax);
       EXPECT_EQ(receivedStats[totalIndex], iMax);
       receivedStats.clear();
@@ -351,25 +425,25 @@ TEST_F(PacketCaptureTest, TotalDataWrappedValues) {
       // wrap around
       capturer.IncrementTotalData(10); // i.e. 10+max --> wrap to 9
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
-              t_packetsIfDropped, t_totalData);
+         t_packetsIfDropped, t_totalData);
       EXPECT_EQ(t_totalData, 9); // latest update
-      EXPECT_EQ(receivedStats[totalIndex], 10);  // diff 10 in size from earlier
+      EXPECT_EQ(receivedStats[totalIndex], 10); // diff 10 in size from earlier
       receivedStats.clear();
 
       // small increment
-      capturer.IncrementTotalData(15); 
+      capturer.IncrementTotalData(15);
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
-              t_packetsIfDropped, t_totalData);
+         t_packetsIfDropped, t_totalData);
       EXPECT_EQ(t_totalData, 24); // 9+15
-      EXPECT_EQ(receivedStats[totalIndex], 15);  // 24-9
+      EXPECT_EQ(receivedStats[totalIndex], 15); // 24-9
       receivedStats.clear();
 
       // wrap around again. This big increment represents many small
-      capturer.IncrementTotalData(iMax);  // 24 + max --> wrap --> 23
+      capturer.IncrementTotalData(iMax); // 24 + max --> wrap --> 23
       capturer.DisplayStats(t_packetsReceived, t_packetsDropped,
-              t_packetsIfDropped, t_totalData);
-      EXPECT_EQ(t_totalData, 23); 
-      EXPECT_EQ(receivedStats[totalIndex], iMax);  
+         t_packetsIfDropped, t_totalData);
+      EXPECT_EQ(t_totalData, 23);
+      EXPECT_EQ(receivedStats[totalIndex], iMax);
       receivedStats.clear();
 
       capturer.Shutdown(true);
@@ -417,7 +491,7 @@ TEST_F(PacketCaptureTest, InterfaceDoesntExist) {
 TEST_F(PacketCaptureTest, StatsWorksEvenWithNullPCap) {
    PacketCapturePCap packetCapturer(t_clientAddr, t_interface, mConf);
    packetCapturer.DisplayStats(t_packetsReceived, t_packetsDropped,
-           t_packetsIfDropped, t_totalData);
+      t_packetsIfDropped, t_totalData);
    EXPECT_EQ(0, t_packetsReceived);
    EXPECT_EQ(0, t_packetsDropped);
    EXPECT_EQ(0, t_packetsIfDropped);
@@ -428,7 +502,7 @@ TEST_F(PacketCaptureTest, StatsWorksEvenWithFile) {
    string filename = "FtpUploadLinuxSideCapture.pcapng";
    PacketCapturePCap packetCapturer(filename, mConf);
    packetCapturer.DisplayStats(t_packetsReceived, t_packetsDropped,
-           t_packetsIfDropped, t_totalData);
+      t_packetsIfDropped, t_totalData);
    EXPECT_EQ(0, t_packetsReceived);
    EXPECT_EQ(0, t_packetsDropped);
    EXPECT_EQ(0, t_packetsIfDropped);
@@ -446,7 +520,7 @@ TEST_F(PacketCaptureTest, PCapInfo_Interface_List) {
       interfaces = t_pcapInfo.GetAllInterfaces();
       ASSERT_TRUE(interfaces.size() > 0);
       EXPECT_TRUE(
-              find(interfaces.begin(), interfaces.end(), defaultInterface[0]) != interfaces.end());
+         find(interfaces.begin(), interfaces.end(), defaultInterface[0]) != interfaces.end());
 
    } else {
       interfaces = t_pcapInfo.GetAllInterfaces();
@@ -559,21 +633,20 @@ TEST_F(PacketCaptureTest, PCapInfo_GetDefault) {
 TEST_F(PacketCaptureTest, PacketCapturePCapClientThreadConstruct) {
    PacketCaptureReceiver receiver(t_serverAddr);
    PacketCapturePCap capturer(receiver.GetZMQ(), t_interface, mConf);
-   PacketCapturePCapClientThread pThreadClass(&capturer);
+   PacketReader pThreadClass(&capturer);
 }
 
 TEST_F(PacketCaptureTest, PacketCaptureDynamicConstruction) {
    PacketCaptureReceiver receiver(t_serverAddr);
    PacketCapturePCap capturer(receiver.GetZMQ(), t_interface, mConf);
-   PacketCapturePCapClientThread* pThreadClass =
-           new PacketCapturePCapClientThread(&capturer);
+   PacketReader* pThreadClass =
+      new PacketReader(&capturer);
    delete pThreadClass;
-   pThreadClass = new PacketCapturePCapClientThread(&capturer);
+   pThreadClass = new PacketReader(&capturer);
    delete pThreadClass;
 }
 
-
-TEST_F(PacketCaptureTest, PacketCapturePCapClientThread_GetPackets) {
+TEST_F(PacketCaptureTest, PacketCapturePCapClientThread_GetPacket) {
 #ifdef LR_DEBUG
    PacketCaptureReceiver receiver(t_serverAddr);
    MockPacketCapturePCap capturer(receiver.GetZMQ(), t_interface, mConf);
@@ -609,7 +682,7 @@ TEST_F(PacketCaptureTest, FailPackets) {
    EXPECT_EQ(0, clientThread.GetInternalFailedPacketCount());
    clientThread.FailPacket(packet);
    EXPECT_EQ(1, clientThread.GetInternalFailedPacketCount());
-   uint8_t* rawPacket;
+   u_char* rawPacket;
    struct pcap_pkthdr *phdr;
    phdr = &mBogusHeader;
    timeval tv;
@@ -618,7 +691,7 @@ TEST_F(PacketCaptureTest, FailPackets) {
    phdr->ts = tv;
    phdr->caplen = 100;
    phdr->len = 100;
-   rawPacket = new uint8_t[100];
+   rawPacket = new u_char[100];
    memset(mBogusPacket, 'a', 100);
    memcpy(rawPacket, mBogusPacket, 100);
 
@@ -626,10 +699,10 @@ TEST_F(PacketCaptureTest, FailPackets) {
    EXPECT_EQ(0, clientThread.GetInternalFailedPacketCount());
    mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
    clientThread.FailPacket(packet);
-   EXPECT_TRUE(packet==NULL);
+   EXPECT_TRUE(packet == NULL);
    EXPECT_EQ(1, clientThread.GetInternalFailedPacketCount());
    mPacketAllocator.PopulatePacketData(rawPacket, phdr, packet);
-   packets.push_back(make_pair(packet,0));
+   packets.push_back(make_pair(packet, 0));
    clientThread.FailPackets(packets);
    EXPECT_TRUE(packets.empty());
    EXPECT_EQ(2, clientThread.GetInternalFailedPacketCount());
