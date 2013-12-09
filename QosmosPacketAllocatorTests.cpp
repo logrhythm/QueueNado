@@ -10,7 +10,7 @@ TEST_F(QsomosPacketAllocatorTests, Constructors) {
 TEST_F(QsomosPacketAllocatorTests, FailedMalloc) {
 #ifdef LR_DEBUG
    ctb_ppacket packet(reinterpret_cast<ctb_pkt*> (1));
-   uint8_t * rawPacket(NULL);
+   u_char * rawPacket(NULL);
    struct pcap_pkthdr * phdr(NULL);
    t_allocator.PopulatePacketData(rawPacket, phdr, packet);
    EXPECT_EQ(NULL, packet);
@@ -68,7 +68,7 @@ TEST_F(QsomosPacketAllocatorTests, TwoPacketConversions) {
 
          inputFile.read(reinterpret_cast<char*> (buffer), length);
          ASSERT_FALSE(!inputFile && inputFile.gcount() < length);
-         unsigned char* rawData = buffer;
+         u_char* rawData = buffer;
 
          t_allocator.PopulatePacketData(rawData, header, dataPointer);
          ASSERT_FALSE(dataPointer == NULL);
