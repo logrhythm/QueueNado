@@ -1,8 +1,8 @@
 #include "IPacketCapture.h"
 #include "PacketCaptureReceiver.h"
 #include "PacketCaptureTest.h"
-#include "PacketCapturePCapClientThread.h"
-#include "MockSendStats.h"
+#include "PacketReader.h"
+#include "SendStats.h"
 #include <sys/socket.h>
 #include "QosmosDPI.h"
 #include <algorithm>
