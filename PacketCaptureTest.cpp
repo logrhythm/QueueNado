@@ -2,7 +2,7 @@
 #include "PacketCaptureReceiver.h"
 #include "PacketCaptureTest.h"
 #include "PacketReader.h"
-#include "MockSendStats.h"
+#include "SendStats.h"
 #include <sys/socket.h>
 #include "QosmosDPI.h"
 #include <algorithm>
