@@ -6,20 +6,6 @@ class MockQosmosPacketAllocator : public QosmosPacketAllocator {
 public:
    MockQosmosPacketAllocator() : mMallocpacketFail(false){};
 
-   size_t NumberOfKnownHashes() {
-      return mPacketPositions.size();
-   }
-
-   size_t NumberOfFreeHashes() {
-      return mFreePositions.size();
-   }
-
-   size_t SizeOfgivenHashData(unsigned int hash) {
-
-      return 0;
-
-   }
-
    ctb_ppacket MallocpPacket() {
       if (mMallocpacketFail) {
          return NULL;
@@ -29,9 +15,5 @@ public:
 
    bool mMallocpacketFail;
 protected:
-   //	std::map<unsigned int, std::vector<unsigned int> > mPacketHashes;
-   //	std::map<unsigned int, std::vector<std::string > > mPackets;
-   //	std::map<unsigned int, boost::recursive_mutex* > mMutexes;
-   //	boost::recursive_mutex mMutex;
 private:
 };

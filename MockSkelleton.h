@@ -28,9 +28,7 @@ public:
       if (mRepeating) {
          EndListendAndRepeat();
       }
-      if (nullptr == mRepeaterThread) {
-         mRepeaterThread.reset(nullptr);
-      }
+      mRepeaterThread.reset(nullptr);
    }
 
    /**

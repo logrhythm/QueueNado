@@ -62,7 +62,8 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
-          -L${prefix}/lib
+          -L${prefix}/lib \
+          -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free 
 
 INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libZMQ \
@@ -79,7 +80,8 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libsystem \
          -I/usr/local/probe/include
 
-DYNAMIC_LIBS=-ltcmalloc_minimal -lsyslog -lZMQ -llrdpi -lstats -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
+DYNAMIC_LIBS=-ltcmalloc \
+             -lsyslog -lZMQ -llrdpi -lstats -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log \
              -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal 
@@ -235,7 +237,13 @@ ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=
 ToolsTest_LDADD=${DYNAMIC_LIBS}
 ToolsTest_LDFLAGS=${BASE_LIBS}
 
-ToolsTest_SOURCES=main.cpp ToolsTestMakeUnique.cpp ToolsTestStringFix.cpp ToolsTestFileIO.cpp EthInfoTest.cpp ToolsRangeTest.cpp
+ToolsTest_SOURCES=main.cpp \
+ToolsTestMakeUnique.cpp \
+ToolsTestStringFix.cpp \
+ToolsTestFileIO.cpp \
+EthInfoTest.cpp \
+WorkerThreadTest.cpp \
+ToolsRangeTest.cpp
 ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
 
 JSONEncoderTest_LDADD=${DYNAMIC_LIBS}

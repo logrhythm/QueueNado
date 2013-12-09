@@ -11,20 +11,13 @@ void SimulatorThread(DpiMsgLRPool* testPool, const int iterations) {
    std::vector<networkMonitor::DpiMsgLR*> messages;
 
    for (int i = 0; i < iterations; i++) {
-      std::vector<networkMonitor::DpiMsgLR*> temp;
       messages.push_back(testPool->GetDpiMsg());
-      for (auto it = messages.begin(); it != messages.end(); it++) {
-
-         if (rand() % 0x2 == 0) {
-            ASSERT_TRUE(testPool->ReturnDpiMsg(&(*it)));
-         } else {
-            temp.push_back(*it);
-         }
-      }
-      messages = std::move(temp);
    }
    for (auto jt = messages.begin(); jt != messages.end(); jt++) {
       ASSERT_TRUE(testPool->ReturnDpiMsg(&(*jt)));
+   }
+   for (auto jt = messages.begin(); jt != messages.end(); jt++) {
+      ASSERT_FALSE(testPool->ReturnDpiMsg(&(*jt)));
    }
 }
 
@@ -50,12 +43,12 @@ TEST_F(DpiMsgLRPoolTest, OverThreshold) {
 }
 
 TEST_F(DpiMsgLRPoolTest, ReportSize) {
-    MockDpiMsgLRPool pool;
-    DpiMsgLRPool::FreePoolOfMessages fPool;
-    DpiMsgLRPool::UsedPoolOfMessages uPool;
-    EXPECT_FALSE(pool.ReportSize(1, fPool, uPool));
-    std::this_thread::sleep_for(std::chrono::seconds(6));
-    EXPECT_TRUE(pool.ReportSize(1, fPool, uPool));
+   MockDpiMsgLRPool pool;
+   DpiMsgLRPool::FreePoolOfMessages fPool;
+   DpiMsgLRPool::UsedPoolOfMessages uPool;
+   EXPECT_FALSE(pool.ReportSize(1, fPool, uPool));
+   std::this_thread::sleep_for(std::chrono::seconds(6));
+   EXPECT_TRUE(pool.ReportSize(1, fPool, uPool));
 }
 
 TEST_F(DpiMsgLRPoolTest, GetStatsSender) {
@@ -105,12 +98,12 @@ TEST_F(DpiMsgLRPoolTest, SetStatsTimersThatDoesntExist) {
 #endif
 
 TEST_F(DpiMsgLRPoolTest, Construction) {
-   DpiMsgLRPool* pTestObject = new DpiMsgLRPool;
-   delete pTestObject;
+   DpiMsgLRPool& pTestObject = DpiMsgLRPool::Instance();
+   pTestObject;
 }
 
 TEST_F(DpiMsgLRPoolTest, GetAMessageAndReturnIt) {
-   DpiMsgLRPool testPool;
+   DpiMsgLRPool& testPool = DpiMsgLRPool::Instance();
 
    networkMonitor::DpiMsgLR* message1 = testPool.GetDpiMsg();
 
@@ -130,19 +123,58 @@ TEST_F(DpiMsgLRPoolTest, GetAMessageAndReturnIt) {
 
 TEST_F(DpiMsgLRPoolTest, HammerTime) {
    std::vector<std::thread*> threads;
-   DpiMsgLRPool testPool;
+   DpiMsgLRPool& testPool = DpiMsgLRPool::Instance();
 #ifdef LR_DEBUG
-   int iterations = 10;
+   int threadCount = 500;
+   int retries = 1;
 #else
-   int iterations = 1000;
+   int threadCount = 500;
+   int retries = 5;
 #endif
-   for (int i = 0; i < iterations; i++) {
-      threads.push_back(new std::thread(SimulatorThread, &testPool, rand() % 1000));
+   int tries = 1;
+   while (tries <= retries) {
+      for (int i = 0; i < threadCount; i++) {
+         threads.push_back(new std::thread(SimulatorThread, &testPool, 200));
+      }
+      for (auto jt = threads.begin(); jt != threads.end(); jt++) {
+         (*jt)->join();
+         delete *jt;
+      }
+      threads.clear();
+      std::cout << tries << " Itteration(s) complete" << std::endl;
+      ++tries;
    }
-   for (auto jt = threads.begin(); jt != threads.end(); jt++) {
-      (*jt)->join();
-      delete *jt;
+}
+
+TEST_F(DpiMsgLRPoolTest, ValidateAllMessagesInAThread) {
+   DpiMsgLRPool& testPool = DpiMsgLRPool::Instance();
+#ifdef LR_DEBUG
+   //   int messageCount = 5000;
+   //   int retries = 5;
+   int messageCount = 2000;
+   int retries = 1;
+#else
+   int messageCount = 40000;
+   int retries = 20;
+#endif
+   int tries = 1;
+   std::vector<networkMonitor::DpiMsgLR*> messages;
+   while (tries <= retries) {
+
+      for (int i = 0; i < messageCount; i++) {
+         messages.push_back(testPool.GetDpiMsg());
+      }
+      for (auto jt = messages.begin(); jt != messages.end(); jt++) {
+         ASSERT_TRUE(testPool.ReturnDpiMsg(&(*jt)));
+      }
+      for (auto jt = messages.begin(); jt != messages.end(); jt++) {
+         ASSERT_FALSE(testPool.ReturnDpiMsg(&(*jt)));
+      }
+      messages.clear();
+      std::cout << tries << " Itteration(s) complete" << std::endl;
+      ++tries;
    }
+
 }
 #ifdef LR_DEBUG
 
@@ -176,5 +208,3 @@ TEST_F(DpiMsgLRPoolTest, DpiMsgSize) {
    delete testMsg;
 }
 #endif
-
-
