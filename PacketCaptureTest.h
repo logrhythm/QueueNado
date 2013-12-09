@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 #include "IPacketCapture.h"
 #include "PacketCapturePCap.h"
-#include "PacketCapturePCapClientThread.h"
+#include "PacketReader.h"
 #include "pcap.h"
 #include "MockConfMaster.h"
 #include "QosmosPacketAllocator.h"
