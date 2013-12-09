@@ -13,4 +13,7 @@ public:
    CommandFactory::CreationCallback CheckRegistration(const protoMsg::CommandRequest_CommandType type) {
       return mCommandFactory.GetCommandCallback(type);
    }
+   void SetTimeout(const unsigned int timeout) {
+      CommandProcessor::SetTimeout(timeout);
+   }
 };
