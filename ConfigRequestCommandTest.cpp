@@ -128,7 +128,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
 #endif
 }
 
-TEST_F(ConfigRequestCommandTest, BaseConfExecute) {
+TEST_F(ConfigRequestCommandTest, BaseConfExecuteUsingRealDefaultValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
@@ -142,16 +142,6 @@ TEST_F(ConfigRequestCommandTest, BaseConfExecute) {
 
    cmd.set_stringargone(request.SerializeAsString());
    MockConfigRequestCommand doIt(cmd, autoManagedManager);
-
-
-   // BUILD UP THE FAKE RESPONSE 
-   //MockConfigRequestCommand::ManyConfDefaults defaults;
-   //auto dpiThreads = std::make_tuple("dpiThreads", "7", MockConfigRequestCommand::Ranges{"1", "12"});
-   //auto qosmosDebugEnabled = std::make_tuple("qosmosDebugModeEnabled", "false", MockConfigRequestCommand::Ranges{"false", "true"});
-   //defaults.push_back(dpiThreads);
-   //defaults.push_back(qosmosDebugEnabled);
-   
-   //doIt.EnabledMockExecuteRequest(protoMsg::ConfType::BASE, defaults);
 
    auto reply = doIt.Execute(mockConf);
    EXPECT_TRUE(reply.success());

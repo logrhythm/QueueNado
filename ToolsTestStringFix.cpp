@@ -74,3 +74,55 @@ TEST_F(ToolsTestStringFix, ToUpper){
    EXPECT_TRUE(!upper.compare(stringfix::to_upper("Tests")) == 0);
    EXPECT_TRUE(!upper.compare(stringfix::to_upper("aTest")) == 0);
 }
+
+TEST_F(ToolsTestStringFix, ToLowerNums){
+   const std::string upper("123test456");
+   EXPECT_TRUE(upper.compare(stringfix::to_lower("123test456")) == 0);
+   EXPECT_TRUE(upper.compare(stringfix::to_lower("123TEST456")) == 0);
+   EXPECT_TRUE(upper.compare(stringfix::to_lower("123teSt456")) == 0);
+   EXPECT_TRUE(!upper.compare(stringfix::to_lower("123te3St456")) == 0);
+   EXPECT_TRUE(!upper.compare(stringfix::to_lower("test")) == 0);
+}
+
+TEST_F(ToolsTestStringFix, ToLowerSpecialChars){
+   const std::string upper("<>123te!st45&6*");
+   EXPECT_TRUE(upper.compare(stringfix::to_lower("<>123te!st45&6*")) == 0);
+   EXPECT_TRUE(upper.compare(stringfix::to_lower("<>123TE!ST45&6*")) == 0);
+   EXPECT_TRUE(upper.compare(stringfix::to_lower("<>123te!St45&6*")) == 0);
+   EXPECT_TRUE(!upper.compare(stringfix::to_lower("123teSt456")) == 0);
+}
+
+TEST_F(ToolsTestStringFix, ToUpperNums){
+   const std::string upper("123TEST456");
+   EXPECT_TRUE(upper.compare(stringfix::to_upper("123TEST456")) == 0);
+   EXPECT_TRUE(upper.compare(stringfix::to_upper("123test456")) == 0);
+   EXPECT_TRUE(upper.compare(stringfix::to_upper("123teSt456")) == 0);
+   EXPECT_TRUE(!upper.compare(stringfix::to_upper("123te3St456")) == 0);
+   EXPECT_TRUE(!upper.compare(stringfix::to_upper("test")) == 0);
+}
+
+TEST_F(ToolsTestStringFix, ToUpperSpecialChars){
+   const std::string upper("<>123TE!ST45&6*");
+   EXPECT_TRUE(upper.compare(stringfix::to_upper("<>123te!st45&6*")) == 0);
+   EXPECT_TRUE(upper.compare(stringfix::to_upper("<>123TE!ST45&6*")) == 0);
+   EXPECT_TRUE(upper.compare(stringfix::to_upper("<>123te!St45&6*")) == 0);
+   EXPECT_TRUE(!upper.compare(stringfix::to_upper("123teSt456")) == 0);
+}
+
+TEST_F(ToolsTestStringFix, EmptyString){
+   const std::string empty("");
+   EXPECT_TRUE(empty.compare(stringfix::to_upper("")) == 0);
+   EXPECT_TRUE(empty.compare(stringfix::to_upper("t")) != 0);
+   EXPECT_TRUE(empty.compare(stringfix::to_lower("")) == 0);
+   EXPECT_TRUE(empty.compare(stringfix::to_lower("t")) != 0);
+}
+
+TEST_F(ToolsTestStringFix, NumbersOnlyString){
+   const std::string num("456");
+   EXPECT_TRUE(num.compare(stringfix::to_upper("456")) == 0);
+   EXPECT_TRUE(num.compare(stringfix::to_upper("456t")) != 0);
+   EXPECT_TRUE(num.compare(stringfix::to_upper("")) != 0);
+   EXPECT_TRUE(num.compare(stringfix::to_lower("456")) == 0);
+   EXPECT_TRUE(num.compare(stringfix::to_lower("456t")) != 0);
+   EXPECT_TRUE(num.compare(stringfix::to_lower("")) != 0);
+}
