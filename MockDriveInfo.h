@@ -9,11 +9,11 @@ public:
    : DriveInfo(parted) {
    }
 
-   bool BuildDriveInfo(const std::string& deviceDetails) override {
+   bool BuildDriveInfo(const std::string& deviceDetails) LR_OVERRIDE {
       return DriveInfo::BuildDriveInfo(deviceDetails);
    }
 
-   bool BuildPartitionInfo(const std::string& partitionDetails) override {
+   bool BuildPartitionInfo(const std::string& partitionDetails) LR_OVERRIDE {
       return DriveInfo::BuildPartitionInfo(partitionDetails);
    }
 };
