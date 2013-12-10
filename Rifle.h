@@ -3,7 +3,7 @@
 #include <string>
 #include "CZMQToolkit.h"
 
-#define SIZE_OF_STAKE_BUNDLE 200
+#define SIZE_OF_STAKE_BUNDLE 1000
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
 class Rifle {
