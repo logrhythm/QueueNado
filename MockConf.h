@@ -230,7 +230,7 @@ public:
       return mIntermediateFlowEnabled;
    }
 
-   bool UnknownCaptureEnabled() LR_OVERRIDE {
+   bool PacketCaptureEnabled() LR_OVERRIDE {
       return mUnknownCaptureEnabled;
    }
 
