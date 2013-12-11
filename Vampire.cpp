@@ -85,7 +85,8 @@ bool Vampire::PrepareToBeShot() {
    }
    if (!mContext) {
       mContext = zctx_new();
-      zctx_set_hwm(mContext, GetHighWater()); // HWM on internal thread communication
+      zctx_set_sndhwm(mContext, GetHighWater());
+      zctx_set_rcvhwm(mContext, GetHighWater());// HWM on internal thread communication
       //zctx_set_linger(mContext, mLinger); // linger for a millisecond on close
       zctx_set_iothreads(mContext, GetIOThreads());
    }

@@ -330,38 +330,38 @@ bool CZMQToolkit::PassMessageAlong(void* sourceSocket, void* destSocket) {
  * @return 
  *   If the call succeeded 
  */
-bool CZMQToolkit::SendStringContentsToSocket(void* sourceSocket, void* destSocket) {
-   if (! sourceSocket || ! destSocket) {
-      LOG(WARNING) << "Invalid Socket!";
-      return false;
-   }
-   zmsg_t* message = zmsg_recv(sourceSocket);
-   if (! CZMQToolkit::IsValidMessage(message)) {
-      if (message) {
-         zmsg_destroy(&message);
-      }
-      LOG(WARNING) << "Invalid Message!";
-      return false;
-   }
-   zframe_t* frame = zmsg_last(message);
-   std::string* slug = * (reinterpret_cast<std::string**> (zframe_data(frame)));
-   zmsg_destroy(&message);
-   zmsg_t* shot = zmsg_new();
-   zmsg_pushmem(shot, "", 0);
-   frame = zframe_new_zero_copy(&(*slug)[0], slug->size(), nullfree, NULL);
-   zmsg_add(shot, frame);
-   if (zmsg_send(&shot, destSocket) != 0) {
-
-      int err = zmq_errno();
-      std::string error(zmq_strerror(err));
-      LOG(WARNING) << "Failed on send " << error;
-      if (shot) {
-         zmsg_destroy(&shot);
-      }
-      return false;
-   }
-   return true;
-}
+//bool CZMQToolkit::SendStringContentsToSocket(void* sourceSocket, void* destSocket) {
+//   if (! sourceSocket || ! destSocket) {
+//      LOG(WARNING) << "Invalid Socket!";
+//      return false;
+//   }
+//   zmsg_t* message = zmsg_recv(sourceSocket);
+//   if (! CZMQToolkit::IsValidMessage(message)) {
+//      if (message) {
+//         zmsg_destroy(&message);
+//      }
+//      LOG(WARNING) << "Invalid Message!";
+//      return false;
+//   }
+//   zframe_t* frame = zmsg_last(message);
+//   std::string* slug = * (reinterpret_cast<std::string**> (zframe_data(frame)));
+//   zmsg_destroy(&message);
+//   zmsg_t* shot = zmsg_new();
+//   zmsg_pushmem(shot, "", 0);
+//   frame = zframe_new_zero_copy(&(*slug)[0], slug->size(), nullfree, NULL);
+//   zmsg_add(shot, frame);
+//   if (zmsg_send(&shot, destSocket) != 0) {
+//
+//      int err = zmq_errno();
+//      std::string error(zmq_strerror(err));
+//      LOG(WARNING) << "Failed on send " << error;
+//      if (shot) {
+//         zmsg_destroy(&shot);
+//      }
+//      return false;
+//   }
+//   return true;
+//}
 
 /**
  * Read a multipart message from the source, send the first part to one

@@ -48,7 +48,6 @@ public:
    static bool PopAndDiscardMessage(void* socket);
    static bool SendSizeTToSocket(void* socket, const size_t size);
    static bool PassMessageAlong(void* sourceSocket, void* destSocket);
-   static bool SendStringContentsToSocket(void* sourceSocket, void* destSocket);
    static bool IsValidMessage(zmsg_t* message);
    static void SendShutdownMessage(void* socket);
    static std::string* GetStringFromMessage(zmsg_t*& message);

@@ -84,7 +84,8 @@ bool Rifle::Aim() {
    }
    if (!mContext) {
       mContext = zctx_new();
-      zctx_set_hwm(mContext, GetHighWater()); // HWM on internal thread communication
+      zctx_set_sndhwm(mContext, GetHighWater());
+      zctx_set_rcvhwm(mContext, GetHighWater());
       //zctx_set_linger(mContext, mLinger); // linger for a millisecond on close
       zctx_set_iothreads(mContext, mIOThredCount);
    }
@@ -186,10 +187,16 @@ bool Rifle::FireZeroCopy(std::string* zero, const size_t size, void (*FreeFuncti
 
       if (zmq_poll(items, 1, waitToFire) > 0) {
          if (items[0].revents & ZMQ_POLLOUT) {
-            zmsg_t* message = zmsg_new();
-            zframe_t* frame = zframe_new_zero_copy(&((*zero)[0]), size, FreeFunction, zero);
-            zmsg_add(message, frame);
-            success = CZMQToolkit::SendExistingMessage(message, mChamber);
+
+            zmq_msg_t message;
+            zmq_msg_init_data(&message, &((*zero)[0]), size, FreeFunction, zero);
+//            zmsg_t* message = zmsg_new();
+//            zframe_t* frame = zframe_new_zero_copy(&((*zero)[0]), size, FreeFunction, zero);
+//            zmsg_add(message, frame);
+//            success = CZMQToolkit::SendExistingMessage(message, mChamber);
+            if ((int) size == zmq_msg_send(&message, mChamber, ZMQ_DONTWAIT)) {
+               success = true;
+            }
          } else {
             LOG(WARNING) << "Error on Zmq socket send: " << zmq_strerror(zmq_errno());
          }

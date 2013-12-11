@@ -100,7 +100,8 @@ bool Crowbar::Wield() {
    if (! mContext) {
       mContext = zctx_new();
       zctx_set_linger(mContext, 0); // linger for a millisecond on close
-      zctx_set_hwm(mContext, GetHighWater()); // HWM on internal thread communicaiton
+      zctx_set_sndhwm(mContext, GetHighWater());
+      zctx_set_rcvhwm(mContext, GetHighWater()); // HWM on internal thread communicaiton
       zctx_set_iothreads(mContext, 1);
    }
    if (! mTip) {
