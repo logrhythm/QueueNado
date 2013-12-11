@@ -37,7 +37,8 @@ protected:
       zctx_interrupted = false;
       mContext = zctx_new();
       zctx_set_linger(mContext, 10); // linger for a millisecond on close
-      zctx_set_hwm(mContext, 10); // HWM on internal thread communicaiton
+      zctx_set_rcvhwm(mContext, 10);
+      zctx_set_sndhwm(mContext, 10);// HWM on internal thread communicaiton
       zctx_set_iothreads(mContext, 2);
       void* socket = zsocket_new(mContext, ZMQ_REP);
       if (socket != NULL) {
