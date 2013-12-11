@@ -199,6 +199,7 @@ bool Rifle::FireZeroCopy(std::string* zero, const size_t size, void (*FreeFuncti
    }
    if (!success && zero) {
       delete zero;
+      zero = NULL;
    }
    return success;
 }
