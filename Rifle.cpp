@@ -174,6 +174,14 @@ bool Rifle::Fire(const std::string& bullet, const int waitToFire) {
    }
 }
 
+/**
+ * Fire a string without copying it to zeromq. 
+ * @param zero
+ * @param size
+ * @param FreeFunction
+ * @param waitToFire
+ * @return 
+ */
 bool Rifle::FireZeroCopy(std::string* zero, const size_t size, void (*FreeFunction)(void*, void*), const int waitToFire) {
    bool success = false;
    if (!mChamber) {
@@ -190,12 +198,9 @@ bool Rifle::FireZeroCopy(std::string* zero, const size_t size, void (*FreeFuncti
 
             zmq_msg_t message;
             zmq_msg_init_data(&message, &((*zero)[0]), size, FreeFunction, zero);
-//            zmsg_t* message = zmsg_new();
-//            zframe_t* frame = zframe_new_zero_copy(&((*zero)[0]), size, FreeFunction, zero);
-//            zmsg_add(message, frame);
-//            success = CZMQToolkit::SendExistingMessage(message, mChamber);
             if ((int) size == zmq_msg_send(&message, mChamber, ZMQ_DONTWAIT)) {
                success = true;
+               zero = NULL;
             }
          } else {
             LOG(WARNING) << "Error on Zmq socket send: " << zmq_strerror(zmq_errno());
