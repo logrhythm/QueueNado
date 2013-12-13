@@ -412,7 +412,7 @@ TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
    EXPECT_EQ(NetworkConfigCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG));
    EXPECT_EQ(NtpConfigCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NTP_CONFIG));
    EXPECT_EQ(ShutdownCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN));
-
+   EXPECT_EQ(ConfigRequestCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_CONFIG_REQUEST));
    raise(SIGTERM);
 #endif
 }
