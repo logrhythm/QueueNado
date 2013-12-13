@@ -80,7 +80,15 @@ public:
    virtual ~MockElasticSearch() {
 
    }
-
+   bool NotFound(const std::string& reply) {
+      return ElasticSearch::NotFound(reply);
+   }
+   bool ESUnavaliable(const std::string& reply) {
+      return ElasticSearch::ESUnavaliable(reply);
+   }
+   bool IsZMQSocketTimeout(const std::string& reply) {
+      return ElasticSearch::IsZMQSocketTimeout(reply);
+   }
    void UpdateSessions(const std::set<std::string>& oldestSessionIds,
                                                               const unsigned int maxPerQuery, const time_t& indexStartTime) {
       ElasticSearch::UpdateSessions(oldestSessionIds, maxPerQuery,indexStartTime);
