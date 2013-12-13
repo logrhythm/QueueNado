@@ -315,7 +315,7 @@ TEST_F(ConfigRequestCommandTest, SyslogConfAllValues) {
    request.add_requestedconfigparams("syslogMaxLineLength");
    request.add_requestedconfigparams("siemLogging");
    request.add_requestedconfigparams("debugSiemLogging");
-   request.add_requestedconfigparams("reportEverything");
+   //request.add_requestedconfigparams("reportEverything");
    request.add_requestedconfigparams("scrubPasswords");
 
    cmd.set_stringargone(request.SerializeAsString());
@@ -336,7 +336,7 @@ TEST_F(ConfigRequestCommandTest, SyslogConfAllValues) {
    checkRealReply(realReply, "syslogMaxLineLength", protoMsg::ConfType::SYSLOG, "1999", "200", "2000", it++);
    checkRealReply(realReply, "siemLogging", protoMsg::ConfType::SYSLOG, "true", "false", "true", it++);
    checkRealReply(realReply, "debugSiemLogging", protoMsg::ConfType::SYSLOG, "true", "false", "true", it++);
-   checkRealReply(realReply, "reportEverything", protoMsg::ConfType::SYSLOG, "false", "false", "true", it++);
+   //checkRealReply(realReply, "reportEverything", protoMsg::ConfType::SYSLOG, "false", "false", "true", it++);
    checkRealReply(realReply, "scrubPasswords", protoMsg::ConfType::SYSLOG, "false", "false", "true", it++);
 #endif
 }
