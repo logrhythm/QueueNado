@@ -1204,7 +1204,7 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
    protoMsg::SyslogConf msg;
    msg.set_syslogenabled("true");
    msg.set_sysloglogagentip("123.123.123");
-   msg.set_reporteverything("true");
+   //msg.set_reporteverything("true");
    msg.set_sysloglogagentport("777");
    msg.set_syslogtcpenabled("false");
    EXPECT_EQ("false", msg.syslogtcpenabled());
@@ -1255,15 +1255,15 @@ TEST_F(ConfProcessorTests, testConfSyslogDisabled) {
    EXPECT_FALSE(conf.getSyslogEnabled());
 }
 
-TEST_F(ConfProcessorTests, testConfReportEverything) {
-   protoMsg::SyslogConf msg;
-   std::string reportEverything("true");
-   msg.set_reporteverything(reportEverything);
-   Conf conf(mTestConf);
-   conf.setPath(mWriteLocation);
-   conf.updateFields(msg);
-   EXPECT_TRUE(conf.getReportEveythingEnabled());
-}
+//TEST_F(ConfProcessorTests, testConfReportEverything) {
+//   protoMsg::SyslogConf msg;
+//   std::string reportEverything("true");
+//   msg.set_reporteverything(reportEverything);
+//   Conf conf(mTestConf);
+//   conf.setPath(mWriteLocation);
+//   conf.updateFields(msg);
+//   EXPECT_TRUE(conf.getReportEveythingEnabled());
+//}
 
 TEST_F(ConfProcessorTests, testConfQosmosDebugModeEnabled) {
    protoMsg::BaseConf msg;

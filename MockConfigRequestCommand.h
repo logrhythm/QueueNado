@@ -83,9 +83,9 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {      // name, de
                protoMsg::ConfigDefaults_DefaultValues values;        //Repeated (array of DefaultValues)
                values.set_type(request.type());                      //E.g. BASE or SYSLOG
                values.set_configname(std::get<0>(setting));          //paramName
-               values.set_defaultu64(std::get<1>(setting));          //default value
-               values.set_maxu64(std::get<2>(setting).Max);          //range min
-               values.set_minu64(std::get<2>(setting).Min);          //range max
+               values.set_defaultval(std::get<1>(setting));          //default value
+               values.set_max(std::get<2>(setting).Max);          //range min
+               values.set_min(std::get<2>(setting).Min);          //range max
 
                auto valuePtr = protoDefaultsMsg.add_values();
                *valuePtr = values;

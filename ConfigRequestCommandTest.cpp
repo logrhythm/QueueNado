@@ -52,16 +52,16 @@ TEST_F(ConfigRequestCommandTest, BaseConfOneSetOfValues) {
    const auto& defaultValues = realReply.values(0);
    EXPECT_TRUE(defaultValues.has_type());
    EXPECT_TRUE(defaultValues.has_configname());
-   EXPECT_TRUE(defaultValues.has_defaultu64());
-   EXPECT_TRUE(defaultValues.has_maxu64());
-   EXPECT_TRUE(defaultValues.has_minu64());
+   EXPECT_TRUE(defaultValues.has_defaultval());
+   EXPECT_TRUE(defaultValues.has_max());
+   EXPECT_TRUE(defaultValues.has_min());
 
    // check that the values are as expected for the dpithreads as set above
    EXPECT_EQ(defaultValues.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(defaultValues.configname(), "dpiThreads");
-   EXPECT_EQ(defaultValues.defaultu64(), "7");
-   EXPECT_EQ(defaultValues.minu64(), "1");
-   EXPECT_EQ(defaultValues.maxu64(), "12");
+   EXPECT_EQ(defaultValues.defaultval(), "7");
+   EXPECT_EQ(defaultValues.min(), "1");
+   EXPECT_EQ(defaultValues.max(), "12");
 #endif
 }
 
@@ -103,28 +103,28 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
    const auto& readDpiValues = realReply.values(0);
    EXPECT_TRUE(readDpiValues.has_type());
    EXPECT_TRUE(readDpiValues.has_configname());
-   EXPECT_TRUE(readDpiValues.has_defaultu64());
-   EXPECT_TRUE(readDpiValues.has_maxu64());
-   EXPECT_TRUE(readDpiValues.has_minu64());
+   EXPECT_TRUE(readDpiValues.has_defaultval());
+   EXPECT_TRUE(readDpiValues.has_max());
+   EXPECT_TRUE(readDpiValues.has_min());
    // check that the values are as expected for the dpithreads as set above
    EXPECT_EQ(readDpiValues.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(readDpiValues.configname(), "dpiThreads");
-   EXPECT_EQ(readDpiValues.defaultu64(), "7");
-   EXPECT_EQ(readDpiValues.minu64(), "1");
-   EXPECT_EQ(readDpiValues.maxu64(), "12");
+   EXPECT_EQ(readDpiValues.defaultval(), "7");
+   EXPECT_EQ(readDpiValues.min(), "1");
+   EXPECT_EQ(readDpiValues.max(), "12");
 
    const auto& readQosmosDebug = realReply.values(1);
    EXPECT_TRUE(readQosmosDebug.has_type());
    EXPECT_TRUE(readQosmosDebug.has_configname());
-   EXPECT_TRUE(readQosmosDebug.has_defaultu64());
-   EXPECT_TRUE(readQosmosDebug.has_maxu64());
-   EXPECT_TRUE(readQosmosDebug.has_minu64());
+   EXPECT_TRUE(readQosmosDebug.has_defaultval());
+   EXPECT_TRUE(readQosmosDebug.has_max());
+   EXPECT_TRUE(readQosmosDebug.has_min());
    // check that the values are as expected for the dpithreads as set above
    EXPECT_EQ(readQosmosDebug.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(readQosmosDebug.configname(), "qosmosDebugModeEnabled");
-   EXPECT_EQ(readQosmosDebug.defaultu64(), "false");
-   EXPECT_EQ(readQosmosDebug.minu64(), "false");
-   EXPECT_EQ(readQosmosDebug.maxu64(), "true");
+   EXPECT_EQ(readQosmosDebug.defaultval(), "false");
+   EXPECT_EQ(readQosmosDebug.min(), "false");
+   EXPECT_EQ(readQosmosDebug.max(), "true");
 #endif
 }
 
@@ -155,28 +155,28 @@ TEST_F(ConfigRequestCommandTest, BaseConfExecuteUsingRealDefaultValues) {
    const auto& readDpiValues = realReply.values(0);
    EXPECT_TRUE(readDpiValues.has_type());
    EXPECT_TRUE(readDpiValues.has_configname());
-   EXPECT_TRUE(readDpiValues.has_defaultu64());
-   EXPECT_TRUE(readDpiValues.has_maxu64());
-   EXPECT_TRUE(readDpiValues.has_minu64());
+   EXPECT_TRUE(readDpiValues.has_defaultval());
+   EXPECT_TRUE(readDpiValues.has_max());
+   EXPECT_TRUE(readDpiValues.has_min());
    // check that the values are as expected for the dpithreads as set above
    EXPECT_EQ(readDpiValues.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(readDpiValues.configname(), "dpiThreads");
-   EXPECT_EQ(readDpiValues.defaultu64(), "4");
-   EXPECT_EQ(readDpiValues.minu64(), "1");
-   EXPECT_EQ(readDpiValues.maxu64(), "12");
+   EXPECT_EQ(readDpiValues.defaultval(), "4");
+   EXPECT_EQ(readDpiValues.min(), "1");
+   EXPECT_EQ(readDpiValues.max(), "12");
 
    const auto& readQosmosDebug = realReply.values(1);
    EXPECT_TRUE(readQosmosDebug.has_type());
    EXPECT_TRUE(readQosmosDebug.has_configname());
-   EXPECT_TRUE(readQosmosDebug.has_defaultu64());
-   EXPECT_TRUE(readQosmosDebug.has_maxu64());
-   EXPECT_TRUE(readQosmosDebug.has_minu64());
+   EXPECT_TRUE(readQosmosDebug.has_default());
+   EXPECT_TRUE(readQosmosDebug.has_max());
+   EXPECT_TRUE(readQosmosDebug.has_min());
    // check that the values are as expected for the dpithreads as set above
    EXPECT_EQ(readQosmosDebug.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(readQosmosDebug.configname(), "qosmosDebugModeEnabled");
-   EXPECT_EQ(readQosmosDebug.defaultu64(), "false");
-   EXPECT_EQ(readQosmosDebug.minu64(), "false");
-   EXPECT_EQ(readQosmosDebug.maxu64(), "true");
+   EXPECT_EQ(readQosmosDebug.defaultval(), "false");
+   EXPECT_EQ(readQosmosDebug.min(), "false");
+   EXPECT_EQ(readQosmosDebug.max(), "true");
 #endif
 }
 
@@ -190,15 +190,15 @@ void checkRealReply(protoMsg::ConfigDefaults realReply,
    const auto& readReply = realReply.values(it);
    EXPECT_TRUE(readReply.has_type());
    EXPECT_TRUE(readReply.has_configname());
-   EXPECT_TRUE(readReply.has_defaultu64());
-   EXPECT_TRUE(readReply.has_maxu64());
-   EXPECT_TRUE(readReply.has_minu64());
+   EXPECT_TRUE(readReply.has_defaultval());
+   EXPECT_TRUE(readReply.has_max());
+   EXPECT_TRUE(readReply.has_min());
 
    EXPECT_EQ(readReply.type(), type);
    EXPECT_EQ(readReply.configname(), configName);
-   EXPECT_EQ(readReply.defaultu64(), defaultVal);
-   EXPECT_EQ(readReply.minu64(), min);
-   EXPECT_EQ(readReply.maxu64(), max);
+   EXPECT_EQ(readReply.defaultval(), defaultVal);
+   EXPECT_EQ(readReply.min(), min);
+   EXPECT_EQ(readReply.max(), max);
 }
 
 TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
