@@ -168,7 +168,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfExecuteUsingRealDefaultValues) {
    const auto& readQosmosDebug = realReply.values(1);
    EXPECT_TRUE(readQosmosDebug.has_type());
    EXPECT_TRUE(readQosmosDebug.has_configname());
-   EXPECT_TRUE(readQosmosDebug.has_default());
+   EXPECT_TRUE(readQosmosDebug.has_defaultval());
    EXPECT_TRUE(readQosmosDebug.has_max());
    EXPECT_TRUE(readQosmosDebug.has_min());
    // check that the values are as expected for the dpithreads as set above
