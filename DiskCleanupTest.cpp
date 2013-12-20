@@ -10,7 +10,174 @@
 #include <thread>
 #include <atomic>
 #include <tuple>
+TEST_F(DiskCleanupTest, TooMuchPCap) {
+#ifdef LR_DEBUG
+   if (geteuid() == 0) {
 
+      MockElasticSearch es(false);
+    
+      es.mUpdateDocAlwaysPasses = true;
+      es.RunQueryGetIdsAlwaysPasses = true;
+      MockDiskCleanup capture(mConf);
+      capture.mRealFilesSystemAccess = true;
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
+      capture.ResetConf();
+      capture.RecalculatePCapDiskUsed(stats, es);
+      ASSERT_FALSE(capture.TooMuchPCap(stats));
+      EXPECT_FALSE(capture.TooMuchPCap(stats));
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup2";
+      capture.ResetConf();
+      capture.RecalculatePCapDiskUsed(stats, es);
+      EXPECT_FALSE(capture.TooMuchPCap(stats));
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup3";
+      
+      capture.ResetConf();
+
+      EXPECT_FALSE(capture.TooMuchPCap(stats));
+
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup4";
+      
+      capture.ResetConf();
+      
+      EXPECT_FALSE(capture.TooMuchPCap(stats));
+      
+      std::string makeSmallFile = "touch ";
+      
+      makeSmallFile += testDir.str();
+      
+      makeSmallFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 1 empty file
+
+      EXPECT_EQ(0, system(makeSmallFile.c_str()));
+      
+      time_t timeFirst = std::time(NULL);
+      
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      
+      capture.RecalculatePCapDiskUsed(stats, es);
+
+      EXPECT_EQ(stats.aPcapUsageInMB, 0); // 0MB
+
+      EXPECT_EQ(stats.aTotalFiles, 1);
+
+      EXPECT_TRUE(capture.TooMuchPCap(stats)); // 1 file, limit 1 file
+
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::KByte), 4);
+
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB), 0);
+
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup5";
+ 
+      capture.ResetConf();
+
+      EXPECT_FALSE(capture.TooMuchPCap(stats));
+
+      std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
+
+      make1MFileFile += testDir.str();
+
+      make1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
+
+      EXPECT_EQ(0, system(make1MFileFile.c_str()));
+
+      time_t timeSecond = std::time(NULL);
+
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB), 1); // 2 files: 1MB + (4KByte folder overhead)
+
+      capture.RecalculatePCapDiskUsed(stats, es);
+
+      EXPECT_TRUE(capture.TooMuchPCap(stats));
+
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup6";
+
+      capture.ResetConf();
+
+      EXPECT_FALSE(capture.TooMuchPCap(stats));
+ 
+
+      // 1 byte less than 1 MB. Keep subtracting that from the calculations below
+      size_t byte = 1;
+
+      make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of=";
+
+      make1MFileFile += testDir.str();
+
+      make1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
+
+      EXPECT_EQ(0, system(make1MFileFile.c_str()));
+
+      time_t timeThird = std::time(NULL);
+ 
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+
+      // 3 files: 2MB + (4KByte folder overhead) - 1byte
+      
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
+              (2 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
+
+      capture.RecalculatePCapDiskUsed(stats, es);
+
+      EXPECT_FALSE(capture.TooMuchPCap(stats));
+
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup7";
+
+      capture.ResetConf();
+ 
+      EXPECT_TRUE(capture.TooMuchPCap(stats));
+
+      size_t spaceSaved(0);
+
+      auto location = capture.GetConf().GetFirstPcapCaptureLocation();
+
+      EXPECT_EQ(testDir.str() + "/", location);
+ 
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+ 
+      EXPECT_EQ(1, capture.BruteForceCleanupOfOldFiles(location, timeSecond, spaceSaved)); // 2 files, empty file removed
+
+      EXPECT_EQ(0, spaceSaved);
+
+      capture.RecalculatePCapDiskUsed(stats, es);
+
+      EXPECT_FALSE(capture.TooMuchPCap(stats));
+
+      EXPECT_EQ(2, stats.aTotalFiles);
+
+      // 2MB + (4KByte folder overhead) - 1byte
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
+              (2 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
+
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup8";
+      capture.ResetConf();
+      EXPECT_TRUE(capture.TooMuchPCap(stats));
+      EXPECT_EQ(stats.aTotalFiles, 2);
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      EXPECT_EQ(1, capture.BruteForceCleanupOfOldFiles(testDir.str(), timeThird, spaceSaved));
+      capture.RecalculatePCapDiskUsed(stats, es);
+      EXPECT_EQ(1, stats.aTotalFiles);
+      EXPECT_EQ(1, spaceSaved); //left is 1 file: 1MB-1byte + (4KByte folder overhead) 
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
+              (1 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
+      capture.RecalculatePCapDiskUsed(stats, es);
+      EXPECT_TRUE(capture.TooMuchPCap(stats)); // 1MB limit vs 1MB-1byte + 4KByte
+
+      mConf.mConfLocation = "resources/test.yaml.DiskCleanup9"; // 1MB limit, 1 file limit
+      capture.ResetConf();
+      EXPECT_TRUE(capture.TooMuchPCap(stats));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      EXPECT_EQ(1, capture.BruteForceCleanupOfOldFiles(testDir.str(), std::time(NULL), spaceSaved));
+      EXPECT_EQ(1, spaceSaved); // 
+      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
+              (0 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT));
+
+      capture.RecalculatePCapDiskUsed(stats, es);
+      EXPECT_EQ(0, stats.aTotalFiles);
+      EXPECT_FALSE(capture.TooMuchPCap(stats));
+
+   }
+#endif
+}
 #ifdef LR_DEBUG
 
 TEST_F(DiskCleanupTest, RemoveDuplicateUpdatesFromLastUpdate) {
@@ -466,129 +633,7 @@ TEST_F(DiskCleanupTest, DISABLED_ValgrindGetOrderedMapOfFiles) {
 }
 #endif
 
-TEST_F(DiskCleanupTest, TooMuchPCap) {
-#ifdef LR_DEBUG
-   if (geteuid() == 0) {
-      MockElasticSearch es(false);
-      es.mUpdateDocAlwaysPasses = true;
-      es.RunQueryGetIdsAlwaysPasses = true;
 
-      MockDiskCleanup capture(mConf);
-      capture.mRealFilesSystemAccess = true;
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
-      capture.ResetConf();
-      capture.RecalculatePCapDiskUsed(stats, es);
-      ASSERT_FALSE(capture.TooMuchPCap(stats));
-
-
-      EXPECT_FALSE(capture.TooMuchPCap(stats));
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup2";
-      capture.ResetConf();
-      capture.RecalculatePCapDiskUsed(stats, es);
-      EXPECT_FALSE(capture.TooMuchPCap(stats));
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup3";
-      capture.ResetConf();
-      EXPECT_FALSE(capture.TooMuchPCap(stats));
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup4";
-      capture.ResetConf();
-      EXPECT_FALSE(capture.TooMuchPCap(stats));
-      std::string makeSmallFile = "touch ";
-      makeSmallFile += testDir.str();
-      makeSmallFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 1 empty file
-
-      EXPECT_EQ(0, system(makeSmallFile.c_str()));
-      time_t timeFirst = std::time(NULL);
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-
-      capture.RecalculatePCapDiskUsed(stats, es);
-      EXPECT_EQ(stats.aPcapUsageInMB, 0); // 0MB
-      EXPECT_EQ(stats.aTotalFiles, 1);
-      EXPECT_TRUE(capture.TooMuchPCap(stats)); // 1 file, limit 1 file
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::KByte), 4);
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB), 0);
-
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup5";
-      capture.ResetConf();
-      EXPECT_FALSE(capture.TooMuchPCap(stats));
-      std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
-      make1MFileFile += testDir.str();
-      make1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
-
-      EXPECT_EQ(0, system(make1MFileFile.c_str()));
-      time_t timeSecond = std::time(NULL);
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB), 1); // 2 files: 1MB + (4KByte folder overhead)
-
-      capture.RecalculatePCapDiskUsed(stats, es);
-      EXPECT_TRUE(capture.TooMuchPCap(stats));
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup6";
-      capture.ResetConf();
-      EXPECT_FALSE(capture.TooMuchPCap(stats));
-
-      // 1 byte less than 1 MB. Keep subtracting that from the calculations below
-      size_t byte = 1;
-
-      make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of=";
-      make1MFileFile += testDir.str();
-      make1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
-      EXPECT_EQ(0, system(make1MFileFile.c_str()));
-      time_t timeThird = std::time(NULL);
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      // 3 files: 2MB + (4KByte folder overhead) - 1byte
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
-              (2 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
-
-
-      capture.RecalculatePCapDiskUsed(stats, es);
-      EXPECT_FALSE(capture.TooMuchPCap(stats));
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup7";
-      capture.ResetConf();
-      EXPECT_TRUE(capture.TooMuchPCap(stats));
-      size_t spaceSaved(0);
-      auto location = capture.GetConf().GetFirstPcapCaptureLocation();
-      EXPECT_EQ(testDir.str() + "/", location);
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      EXPECT_EQ(1, capture.BruteForceCleanupOfOldFiles(location, timeSecond, spaceSaved)); // 2 files, empty file removed
-      EXPECT_EQ(0, spaceSaved);
-      capture.RecalculatePCapDiskUsed(stats, es);
-      EXPECT_FALSE(capture.TooMuchPCap(stats));
-      EXPECT_EQ(2, stats.aTotalFiles);
-      // 2MB + (4KByte folder overhead) - 1byte
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
-              (2 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
-
-
-
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup8";
-      capture.ResetConf();
-      EXPECT_TRUE(capture.TooMuchPCap(stats));
-      EXPECT_EQ(stats.aTotalFiles, 2);
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      EXPECT_EQ(1, capture.BruteForceCleanupOfOldFiles(testDir.str(), timeThird, spaceSaved));
-      capture.RecalculatePCapDiskUsed(stats, es);
-      EXPECT_EQ(1, stats.aTotalFiles);
-      EXPECT_EQ(1, spaceSaved); //left is 1 file: 1MB-1byte + (4KByte folder overhead) 
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
-              (1 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
-      capture.RecalculatePCapDiskUsed(stats, es);
-      EXPECT_TRUE(capture.TooMuchPCap(stats)); // 1MB limit vs 1MB-1byte + 4KByte
-
-      mConf.mConfLocation = "resources/test.yaml.DiskCleanup9"; // 1MB limit, 1 file limit
-      capture.ResetConf();
-      EXPECT_TRUE(capture.TooMuchPCap(stats));
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      EXPECT_EQ(1, capture.BruteForceCleanupOfOldFiles(testDir.str(), std::time(NULL), spaceSaved));
-      EXPECT_EQ(1, spaceSaved); // 
-      EXPECT_EQ(FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::Byte),
-              (0 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT));
-
-      capture.RecalculatePCapDiskUsed(stats, es);
-      EXPECT_EQ(0, stats.aTotalFiles);
-      EXPECT_FALSE(capture.TooMuchPCap(stats));
-   }
-#endif
-}
 
 TEST_F(DiskCleanupTest, TooMuchPCapsAtManyLocations) {
 #ifdef LR_DEBUG
