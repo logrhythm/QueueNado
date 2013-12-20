@@ -10,6 +10,7 @@
 #include <thread>
 #include <atomic>
 #include <tuple>
+extern std::string gProgramName;
 TEST_F(DiskCleanupTest, TooMuchPCap) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
@@ -18,7 +19,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
     
       es.mUpdateDocAlwaysPasses = true;
       es.RunQueryGetIdsAlwaysPasses = true;
-      MockDiskCleanup capture(mConf);
+      MockDiskCleanup capture(mConf,gProgramName);
       capture.mRealFilesSystemAccess = true;
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
       capture.ResetConf();
@@ -182,7 +183,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
 
 TEST_F(DiskCleanupTest, RemoveDuplicateUpdatesFromLastUpdate) {
    PathAndFileNames esFilesToRemove;
-   GMockDiskCleanup cleanup(mConf);
+   GMockDiskCleanup cleanup(mConf,gProgramName);
    
    
    esFilesToRemove.insert(std::make_tuple<std::string,std::string>("test1", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
@@ -208,7 +209,7 @@ TEST_F(DiskCleanupTest, RemoveDuplicateUpdatesFromLastUpdate) {
    EXPECT_EQ("test5",std::get<0>(*esFilesToRemove.begin()));
 }
 TEST_F(DiskCleanupTest, RecalculatePCapDiskUsed) {
-   GMockDiskCleanup cleanup(mConf);
+   GMockDiskCleanup cleanup(mConf,gProgramName);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    GMockElasticSearch es(transport, false);
 
@@ -231,7 +232,7 @@ TEST_F(DiskCleanupTest, RecalculatePCapDiskUsed) {
 
 // Added since it after a merge mixed up the Free, Total and Used values
 TEST_F(DiskCleanupTest, RecalculatePCapDiskUsedMockUsage) {
-   GMockDiskCleanup cleanup(mConf);
+   GMockDiskCleanup cleanup(mConf,gProgramName);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    GMockElasticSearch es(transport, false);
 
@@ -256,7 +257,7 @@ TEST_F(DiskCleanupTest, RecalculatePCapDiskUsedMockUsage) {
 }
 
 TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESNoFiles) {
-   GMockDiskCleanup cleanup(mConf);
+   GMockDiskCleanup cleanup(mConf,gProgramName);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    GMockElasticSearch es(transport, false);
    cleanup.DelegateGetFileCountFromES(1234,true);
@@ -275,7 +276,7 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESNoFiles) {
 }
 
 TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESNoRemove) {
-   GMockDiskCleanup cleanup(mConf);
+   GMockDiskCleanup cleanup(mConf,gProgramName);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    GMockElasticSearch es(transport, false);
    cleanup.DelegateGetFileCountFromES(1234,true);
@@ -296,7 +297,7 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESNoRemove) {
 }
 
 TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESMarkMatchMax) {
-   GMockDiskCleanup cleanup(mConf);
+   GMockDiskCleanup cleanup(mConf,gProgramName);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    GMockElasticSearch es(transport, false);
    cleanup.DelegateGetFileCountFromES(1234,true);
@@ -316,7 +317,7 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESMarkMatchMax) {
 }
 
 TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESShortIterations) {
-   GMockDiskCleanup cleanup(mConf);
+   GMockDiskCleanup cleanup(mConf,gProgramName);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    GMockElasticSearch es(transport, false);
    cleanup.DelegateGetFileCountFromES(1234,true);
@@ -338,7 +339,7 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESShortIterations) {
 }
 
 TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESDoubleReturns) {
-   GMockDiskCleanup cleanup(mConf);
+   GMockDiskCleanup cleanup(mConf,gProgramName);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    GMockElasticSearch es(transport, false);
    cleanup.DelegateGetFileCountFromES(1234,true);
@@ -363,7 +364,7 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESDoubleReturns) {
 }
 
 TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESOddIterations) {
-   GMockDiskCleanup cleanup(mConf);
+   GMockDiskCleanup cleanup(mConf,gProgramName);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    GMockElasticSearch es(transport, false);
    cleanup.DelegateGetFileCountFromES(1234,true);
@@ -389,7 +390,7 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESOddIterations) {
 
 
 TEST_F(DiskCleanupTest, MarkFileAsRemovedInES) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
    MockBoomStick transport("ipc://tmp/foo.ipc");
    MockElasticSearch es(transport, false);
    IdsAndIndexes recordsToUpdate;
@@ -404,7 +405,7 @@ TEST_F(DiskCleanupTest, MarkFileAsRemovedInES) {
 }
 
 TEST_F(DiskCleanupTest, RemoveFile) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
 
    std::string path;
    path += testDir.str();
@@ -426,7 +427,7 @@ TEST_F(DiskCleanupTest, RemoveFile) {
 }
 
 TEST_F(DiskCleanupTest, RemoveFiles) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
    PathAndFileNames filesToRemove;
    size_t spaceSavedInMB(99999);
    struct stat filestat;
@@ -482,7 +483,7 @@ TEST_F(DiskCleanupTest, RemoveFiles) {
 }
 
 TEST_F(DiskCleanupTest, RemoveOlderFilesFromPath) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
    PathAndFileNames filesToFind;
    std::string path;
    path += testDir.str();
@@ -505,7 +506,7 @@ TEST_F(DiskCleanupTest, RemoveOlderFilesFromPath) {
 }
 
 TEST_F(DiskCleanupTest, TimeToForceAClean) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
    time_t lastClean(0);
    cleanup.SetLastForcedClean(std::time(NULL),lastClean);
    EXPECT_FALSE(cleanup.TimeForBruteForceCleanup(lastClean));
@@ -514,7 +515,7 @@ TEST_F(DiskCleanupTest, TimeToForceAClean) {
 }
 
 TEST_F(DiskCleanupTest, WayTooManyFiles) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
 
 
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
@@ -534,7 +535,7 @@ TEST_F(DiskCleanupTest, WayTooManyFiles) {
 
 TEST_F(DiskCleanupTest, CalculateNewTotalFiles) {
 
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
    EXPECT_EQ(0, cleanup.CalculateNewTotalFiles(0, 0, 0));
    EXPECT_EQ(0, cleanup.CalculateNewTotalFiles(0, 0, 1));
    EXPECT_EQ(0, cleanup.CalculateNewTotalFiles(0, 1, 0));
@@ -546,7 +547,7 @@ TEST_F(DiskCleanupTest, CalculateNewTotalFiles) {
 }
 
 TEST_F(DiskCleanupTest, IterationTargetToRemove) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup11"; // file limit 30000000
    cleanup.ResetConf();
    stats.aTotalFiles = 0;
@@ -574,7 +575,7 @@ TEST_F(DiskCleanupTest, IterationTargetToRemove) {
 }
 
 TEST_F(DiskCleanupTest, LastIterationAmount) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
 
    EXPECT_TRUE(cleanup.LastIterationAmount(0));
    EXPECT_TRUE(cleanup.LastIterationAmount(1));
@@ -597,7 +598,7 @@ TEST_F(DiskCleanupTest, LastIterationAmount) {
 }
 
 TEST_F(DiskCleanupTest, CleanupMassiveOvershoot) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup0"; // file limit 0
    cleanup.ResetConf();
    stats.aTotalFiles = 1000;
@@ -618,7 +619,7 @@ TEST_F(DiskCleanupTest, DISABLED_ValgrindGetOrderedMapOfFiles) {
    MockElasticSearch es(false);
    es.mUpdateDocAlwaysPasses = true;
 
-   MockDiskCleanup capture(mConf);
+   MockDiskCleanup capture(mConf,gProgramName);
    size_t maxToRemove = 5000;
    size_t filesRemoved(0);
    size_t spaceRemoved(0);
@@ -642,7 +643,7 @@ TEST_F(DiskCleanupTest, TooMuchPCapsAtManyLocations) {
       es.mUpdateDocAlwaysPasses = true;
       es.RunQueryGetIdsAlwaysPasses = true;
 
-      MockDiskCleanup capture(mConf);
+      MockDiskCleanup capture(mConf,gProgramName);
       capture.mRealFilesSystemAccess = true;
       mConf.mConfLocation = "resources/test.yaml.GetPcapStoreUsage1";
       ASSERT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap0"));
@@ -702,7 +703,7 @@ TEST_F(DiskCleanupTest, TooMuchPCapsAtManyLocations) {
 #ifdef LR_DEBUG
 
 TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageSamePartition) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
    cleanup.mRealFilesSystemAccess = true;
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
    cleanup.ResetConf();
@@ -739,10 +740,10 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageSamePartition) {
 // since the test is for verifying how it works on partitions
 
 TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
-   DiskUsage home("/home/tmp/TooMuchPcap");
-   DiskUsage root("/tmp/TooMuchPcap");
+   DiskUsage home("/home/tmp/TooMuchPcap",gProgramName);
+   DiskUsage root("/tmp/TooMuchPcap",gProgramName);
    if (home.FileSystemID() != root.FileSystemID()) {
-      MockDiskCleanup cleanup(mConf);
+      MockDiskCleanup cleanup(mConf,gProgramName);
       cleanup.mRealFilesSystemAccess = true;
       cleanup.mUseMockConf = true;
       auto& mockedConf = cleanup.mMockedConf;
@@ -772,8 +773,8 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
       // Using 2 different partitions for pcaps
       auto size = DiskUsage::Size::MB;
       cleanup.GetPcapStoreUsage(stats, size); // high granularity in case something changes on the system
-      DiskUsage atRoot{scopedRoot.mTestDir.str()};
-      DiskUsage atHome(scopedHome.mTestDir.str());
+      DiskUsage atRoot({scopedRoot.mTestDir.str()},gProgramName);
+      DiskUsage atHome(scopedHome.mTestDir.str(),gProgramName);
 
       auto isFree = atRoot.DiskFree(size) + atHome.DiskFree(size);
       auto isUsed = atRoot.DiskUsed(size) + atHome.DiskUsed(size);
@@ -788,7 +789,7 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
       make1MFileFile += scopedHome.mTestDir.str();
       make1MFileFile += "/10MFile";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
-      DiskUsage atHome2(scopedHome.mTestDir.str());
+      DiskUsage atHome2(scopedHome.mTestDir.str(),gProgramName);
       size_t usedMByte = atHome2.DiskUsed(size);
       cleanup.GetPcapStoreUsage(stats, size);
       EXPECT_EQ(stats.pcapDiskInGB.Used, isUsed + 10);
@@ -804,7 +805,7 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
 #ifdef LR_DEBUG
 
 TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
    cleanup.mRealFilesSystemAccess = true;
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
    cleanup.ResetConf();
@@ -837,7 +838,7 @@ TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
 #ifdef LR_DEBUG
 
 TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
-   MockDiskCleanup cleanup(mConf);
+   MockDiskCleanup cleanup(mConf,gProgramName);
    MockElasticSearch es(false);
    cleanup.mRealFilesSystemAccess = true;
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
@@ -888,11 +889,11 @@ TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
 // since it is the actual partition calculations and checks that are important
 
 TEST_F(DiskCleanupTest, DISABLED_SystemTest_RecalculatePCapDiskUsedManyPartitions) {
-   DiskUsage home("/home/tmp/TooMuchPcap");
-   DiskUsage root("/tmp/TooMuchPcap");
+   DiskUsage home("/home/tmp/TooMuchPcap",gProgramName);
+   DiskUsage root("/tmp/TooMuchPcap",gProgramName);
    MockElasticSearch es(false);
    if (home.FileSystemID() != root.FileSystemID()) {
-      MockDiskCleanup cleanup(mConf);
+      MockDiskCleanup cleanup(mConf,gProgramName);
       cleanup.mRealFilesSystemAccess = true;
       cleanup.mUseMockConf = true;
       auto& mockedConf = cleanup.mMockedConf;
@@ -924,8 +925,8 @@ TEST_F(DiskCleanupTest, DISABLED_SystemTest_RecalculatePCapDiskUsedManyPartition
       size_t totalFiles;
       cleanup.RecalculatePCapDiskUsed(stats, es);
       EXPECT_EQ(totalFiles, 0);
-      DiskUsage atRoot{scopedRoot.mTestDir.str()};
-      DiskUsage atHome(scopedHome.mTestDir.str());
+      DiskUsage atRoot({scopedRoot.mTestDir.str()},gProgramName);
+      DiskUsage atHome(scopedHome.mTestDir.str(),gProgramName);
       auto size = DiskUsage::Size::MB;
       // Measure disk usage before we add anything
       size_t usedMB_1 = atHome.DiskUsed(size);
@@ -985,7 +986,7 @@ TEST_F(DiskCleanupTest, DISABLED_SystemTest_RecalculatePCapDiskUsedManyPartition
 TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
-      MockDiskCleanup capture(mConf);
+      MockDiskCleanup capture(mConf,gProgramName);
       capture.mRealFilesSystemAccess = true;
 
       MockElasticSearch es(false);
@@ -1070,7 +1071,7 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFiles) {
 
       MockElasticSearch es(false);
 
-      MockDiskCleanup capture(mConf);
+      MockDiskCleanup capture(mConf,gProgramName);
       std::string makeSmallFile = "touch ";
       makeSmallFile += testDir.str();
       makeSmallFile += "/161122fd-6681-42a3-b953-48beb5247172";
@@ -1127,7 +1128,7 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
       DiskCleanup::DiskSpace pcapDisk{100, 0, 0}; // total, free, used
       MockElasticSearch es(false);
 
-      MockDiskCleanup capture(mConf);
+      MockDiskCleanup capture(mConf,gProgramName);
 
       // Fake two capture locations
       EXPECT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap0"));
@@ -1206,7 +1207,7 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
 
 TEST_F(DiskCleanupTest, TooMuchSearch) {
 
-   MockDiskCleanup diskCleanup(mConf);
+   MockDiskCleanup diskCleanup(mConf,gProgramName);
 
    EXPECT_FALSE(diskCleanup.TooMuchSearch(0, 0));
    EXPECT_TRUE(diskCleanup.TooMuchSearch(0, 100));
@@ -1219,7 +1220,7 @@ TEST_F(DiskCleanupTest, TooMuchSearch) {
 TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
 
 
-   MockDiskCleanup diskCleanup(mConf);
+   MockDiskCleanup diskCleanup(mConf,gProgramName);
    diskCleanup.mFailRemoveSearch = true;
    diskCleanup.mFailFileSystemInfo = true;
    std::promise<bool> promisedFinished;
@@ -1238,7 +1239,7 @@ TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
 }
 
 TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
-   MockDiskCleanup diskCleanup(mConf);
+   MockDiskCleanup diskCleanup(mConf,gProgramName);
 
    diskCleanup.mFileSystemInfoCountdown = 3;
    diskCleanup.mFailFileSystemInfo = true;
@@ -1264,7 +1265,7 @@ TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
 }
 
 TEST_F(DiskCleanupTest, RemoveGetsTheOldestMatch) {
-   MockDiskCleanup diskCleanup(mConf);
+   MockDiskCleanup diskCleanup(mConf,gProgramName);
    MockElasticSearch es(false);
 
    es.mFakeIndexList = true;
@@ -1274,7 +1275,7 @@ TEST_F(DiskCleanupTest, RemoveGetsTheOldestMatch) {
 }
 
 TEST_F(DiskCleanupTest, FSMath) {
-   MockDiskCleanup diskCleanup(mConf);
+   MockDiskCleanup diskCleanup(mConf,gProgramName);
    diskCleanup.mFleSystemInfo.f_bfree = 100 << B_TO_MB_SHIFT;
    diskCleanup.mFleSystemInfo.f_frsize = 1024;
    diskCleanup.mFleSystemInfo.f_blocks = 109 << B_TO_MB_SHIFT;
@@ -1293,7 +1294,7 @@ TEST_F(DiskCleanupTest, FSMath) {
 }
 
 TEST_F(DiskCleanupTest, DontDeleteTheLastIndex) {
-   MockDiskCleanup diskCleanup(mConf);
+   MockDiskCleanup diskCleanup(mConf,gProgramName);
    MockElasticSearch es(false);
    es.mMockListOfIndexes.clear();
    es.mFakeIndexList = true;
@@ -1308,7 +1309,7 @@ TEST_F(DiskCleanupTest, DontDeleteTheLastIndex) {
 }
 
 TEST_F(DiskCleanupTest, SendStats) {
-   MockDiskCleanup diskCleanup(mConf);
+   MockDiskCleanup diskCleanup(mConf,gProgramName);
    size_t valueInByte = 1024* 4096;
    DiskCleanup::PacketCaptureFilesystemDetails zeroed{0,0,0,0};
    DiskCleanup::PacketCaptureFilesystemDetails detailsWithValues{valueInByte,valueInByte,valueInByte,valueInByte};

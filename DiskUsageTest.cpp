@@ -10,7 +10,7 @@
 #include "MockDiskUsage.h"
 #include "Conf.h"
 #include <cmath>
-
+extern std::string gProgramName;
 
 namespace {
    struct statvfs GetDefaultMockStatvs() {
@@ -41,7 +41,7 @@ TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_MB) {
 
 
 TEST(DiskUsage, FailedReading) {
-   DiskUsage usage("abc");
+   DiskUsage usage("abc",gProgramName);
    auto bytesUsed = usage.DiskUsed(DiskUsage::Size::Byte);
    auto bytesTotal = usage.DiskTotal(DiskUsage::Size::Byte);
    auto bytesFree = usage.DiskFree(DiskUsage::Size::Byte);
@@ -64,7 +64,7 @@ TEST(DiskUsage, ReadAtStartup) {
    stat.f_favail = 4798215;
    
    
-   MockDiskUsage usage(stat);
+   MockDiskUsage usage(stat,gProgramName);
    usage.Update();
    auto bytesUsed = usage.DiskUsed(DiskUsage::Size::Byte);
    auto bytesTotal = usage.DiskTotal(DiskUsage::Size::Byte);
@@ -98,7 +98,7 @@ TEST(DiskUsage, ReadAtStartup) {
 
 
 TEST(DiskUsage, ByteToKByteToMBToGB) {
-   MockDiskUsage usage(GetDefaultMockStatvs());
+   MockDiskUsage usage(GetDefaultMockStatvs(),gProgramName);
    usage.Update();
    auto bytesUsed = usage.DiskUsed(DiskUsage::Size::Byte);
    auto bytesTotal = usage.DiskTotal(DiskUsage::Size::Byte);
@@ -136,7 +136,7 @@ TEST(DiskUsage, ByteToKByteToMBToGB) {
 
 
 TEST(DiskUsage, PercentageUsed) {
-   MockDiskUsage usage(GetDefaultMockStatvs());
+   MockDiskUsage usage(GetDefaultMockStatvs(),gProgramName);
    usage.Update();
 
    double usePercentage = usage.DiskUsedPercentage();
@@ -146,7 +146,7 @@ TEST(DiskUsage, PercentageUsed) {
 
 
 TEST(DiskUsage, CheckValuesByte) {
-   MockDiskUsage usage(GetDefaultMockStatvs());
+   MockDiskUsage usage(GetDefaultMockStatvs(),gProgramName);
    auto used = usage.DiskUsed(DiskUsage::Size::Byte);
    auto total = usage.DiskTotal(DiskUsage::Size::Byte);
    auto free = usage.DiskFree(DiskUsage::Size::Byte);
@@ -163,7 +163,7 @@ TEST(DiskUsage, CheckValuesByte) {
 
 
 TEST(DiskUsage, CheckValuesKByte) {
-   MockDiskUsage usage(GetDefaultMockStatvs());
+   MockDiskUsage usage(GetDefaultMockStatvs(),gProgramName);
    auto used = usage.DiskUsed(DiskUsage::Size::KByte);
    auto total = usage.DiskTotal(DiskUsage::Size::KByte);
    auto free = usage.DiskFree(DiskUsage::Size::KByte);
@@ -181,7 +181,7 @@ TEST(DiskUsage, CheckValuesKByte) {
 
 TEST(DiskUsage, CheckValuesMB) {
 
-   MockDiskUsage usage(GetDefaultMockStatvs());
+   MockDiskUsage usage(GetDefaultMockStatvs(),gProgramName);
    auto used = usage.DiskUsed(DiskUsage::Size::MB);
    auto total = usage.DiskTotal(DiskUsage::Size::MB);
    auto free = usage.DiskFree(DiskUsage::Size::MB);
@@ -198,7 +198,7 @@ TEST(DiskUsage, CheckValuesMB) {
 
 
 TEST(DiskUsage, CheckValuesGB) {
-   MockDiskUsage usage(GetDefaultMockStatvs());
+   MockDiskUsage usage(GetDefaultMockStatvs(),gProgramName);
    auto used = usage.DiskUsed(DiskUsage::Size::GB);
    auto total = usage.DiskTotal(DiskUsage::Size::GB);
    auto free = usage.DiskFree(DiskUsage::Size::GB);
@@ -219,9 +219,9 @@ TEST(DiskUsage, CheckValuesGB) {
 //  "/" and "/home" will ALWAYS be on separate
 //     disk partitions and "/mnt" will always be on the "/" partition
 TEST(DiskUsage, FileSystemID) {
-  DiskUsage root{"/"};
-  DiskUsage home{"/home"};
-  DiskUsage mnt{"/mnt"};
+  DiskUsage root({"/"},gProgramName);
+  DiskUsage home({"/home"},gProgramName);
+  DiskUsage mnt({"/mnt"},gProgramName);
   EXPECT_NE(root.FileSystemID(), home.FileSystemID());
   EXPECT_EQ(root.FileSystemID(), mnt.FileSystemID());
   LOG(INFO) << "\n/home\t\t" << home.FileSystemID() 
@@ -253,7 +253,7 @@ TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_GB) {
 
 TEST(DiskUsage, DISABLED_doPrintouts) {
  
-   DiskUsage usage("/home/pcap");
+   DiskUsage usage("/home/pcap",gProgramName);
    auto used = usage.DiskUsed(DiskUsage::Size::MB);
    auto total = usage.DiskTotal(DiskUsage::Size::MB);
    auto free = usage.DiskFree(DiskUsage::Size::MB);
@@ -272,7 +272,7 @@ TEST(DiskUsage, DISABLED_doPrintouts) {
 // BUT: df and du differ in answer with about 5.8% or more ?? with 
 // df giving the higher answer
 TEST(DiskUsage, DISABLED_ToWaysToCheck) {
-  DiskUsage home{"/home/"};
+  DiskUsage home({"/home/"},gProgramName);
   auto homeUsed = home.DiskUsed(DiskUsage::Size::KByte);
   auto homeAsFolder = FolderUsage::DiskUsed("/home/", DiskUsage::Size::KByte);
   

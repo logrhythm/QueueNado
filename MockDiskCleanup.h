@@ -6,11 +6,12 @@
 #include <MockDiskUsage.h>
 #include "BoolReturns.h"
 #include "gmock/gmock.h"
+extern std::string gProgramName;
 
 class MockDiskCleanup : public DiskCleanup {
 public:
 
-   MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
+   MockDiskCleanup(networkMonitor::ConfSlave& conf, const std::string& programName) : DiskCleanup(conf,programName), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
    mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
            mIsShutdownResult(false), mDoPseudoGetUpdatedDiskInfo(false), mUseMockConf(false) {
@@ -97,7 +98,7 @@ public:
          mockStatvs.f_files = 1;
          mockStatvs.f_ffree = 1;
          mockStatvs.f_favail = 1;
-         MockDiskUsage disk(mockStatvs);
+         MockDiskUsage disk(mockStatvs,gProgramName);
 
          disk.Update();
          stats.pcapDiskInGB.Free = disk.DiskFree(size);
@@ -121,7 +122,7 @@ public:
             mockStatvs.f_files = 1;
             mockStatvs.f_ffree = 1;
             mockStatvs.f_favail = 1;
-            MockDiskUsage disk(mockStatvs);
+            MockDiskUsage disk(mockStatvs,gProgramName);
 
             disk.Update();
             stats.probeDiskInGB.Free = disk.DiskFree(size);
@@ -249,7 +250,7 @@ using ::testing::SetArgReferee;
 class GMockDiskCleanup : public MockDiskCleanup {
 public:
 
-   GMockDiskCleanup(networkMonitor::ConfSlave& conf) : MockDiskCleanup(conf), mFileCount(0), mMarkResult(true),
+   GMockDiskCleanup(networkMonitor::ConfSlave& conf, const std::string programName) : MockDiskCleanup(conf,programName), mFileCount(0), mMarkResult(true),
    mFileCountSuccess(true) {
    }
 
