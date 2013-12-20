@@ -8,8 +8,13 @@
 #include "BaseConfMsg.pb.h"
 #include <thread>
 #include <google/protobuf/stubs/common.h>
+
+std::string gProgramName;
+
 int main(int argc, char *argv[])
 {
+   gProgramName = argv[0];
+   std::cout << gProgramName << std::endl;
    GOOGLE_PROTOBUF_VERIFY_VERSION;
 
    // Start the g2log logger running
@@ -21,11 +26,6 @@ int main(int argc, char *argv[])
 
    ::testing::InitGoogleTest(&argc, argv);
    int retval = RUN_ALL_TESTS();
-//   if (geteuid() == 0 ) {
-//      seteuid(500);
-//      int ignoreVal = RUN_ALL_TESTS();
-//      seteuid(0);
-//   }
    google::protobuf::ShutdownProtobufLibrary();
    g2::shutDownLogging();
    std::this_thread::sleep_for(std::chrono::seconds(5));

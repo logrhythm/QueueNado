@@ -82,9 +82,10 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -include /usr/include/fenv.h
 
 DYNAMIC_LIBS=-ltcmalloc \
+             -llib_g2log \
              -lsyslog -lZMQ -llrdpi -lstats -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
-             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log \
+             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf \
              -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal 
 
 ZMQTest_LDADD=${DYNAMIC_LIBS}

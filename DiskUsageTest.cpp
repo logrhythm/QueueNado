@@ -27,7 +27,17 @@ namespace {
       return toMock;
    }
 }
+TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_MB) {
+   std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
+   make1MFileFile += testDir.str();
+   make1MFileFile += "/1MFile";
+   EXPECT_EQ(0, system(make1MFileFile.c_str()));
 
+   size_t usedMB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::KByte);
+   EXPECT_EQ(usedMB, 1024+4); // overhead
+   usedMB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB);
+   EXPECT_EQ(usedMB, 1);
+}
 
 
 TEST(DiskUsage, FailedReading) {
@@ -223,17 +233,7 @@ TEST(DiskUsage, FileSystemID) {
 
 
 
-TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_MB) {
-   std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
-   make1MFileFile += testDir.str();
-   make1MFileFile += "/1MFile";
-   EXPECT_EQ(0, system(make1MFileFile.c_str()));
 
-   size_t usedMB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::KByte);
-   EXPECT_EQ(usedMB, 1024+4); // overhead
-   usedMB = FolderUsage::DiskUsed(testDir.str(), DiskUsage::Size::MB);
-   EXPECT_EQ(usedMB, 1);
-}
 
 
 TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_GB) {
