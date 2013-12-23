@@ -62,7 +62,8 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
-          -L${prefix}/lib
+          -L${prefix}/lib \
+          -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free 
 
 INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libZMQ \
@@ -77,9 +78,11 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libelasticsearch \
          -I${abs_top_srcdir}/source/libtools \
          -I${abs_top_srcdir}/source/libsystem \
-         -I/usr/local/probe/include
+         -I/usr/local/probe/include \
+         -include /usr/include/fenv.h
 
-DYNAMIC_LIBS=-ltcmalloc_minimal -lsyslog -lZMQ -llrdpi -lstats -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
+DYNAMIC_LIBS=-ltcmalloc \
+             -lsyslog -lZMQ -llrdpi -lstats -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -llib_g2log \
              -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal 
@@ -96,17 +99,17 @@ ZMQTest_SOURCES=main.cpp \
 ShotgunAlienTests_LDADD=${DYNAMIC_LIBS}
 ShotgunAlienTests_LDFLAGS=${BASE_LIBS}
 ShotgunAlienTests_SOURCES=main.cpp ShotgunAlienTests.cpp
-ShotgunAlienTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+ShotgunAlienTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 BoomStickTest_LDADD=${DYNAMIC_LIBS}
 BoomStickTest_LDFLAGS=${BASE_LIBS}
 BoomStickTest_SOURCES=main.cpp BoomStickTest.cpp
-BoomStickTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+BoomStickTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 RifleVampireTests_LDADD=${DYNAMIC_LIBS}
 RifleVampireTests_LDFLAGS=${BASE_LIBS}
 RifleVampireTests_SOURCES=main.cpp RifleVampireTests.cpp
-RifleVampireTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+RifleVampireTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 QosmosCodeGeneratorTest_LDADD=${DYNAMIC_LIBS}
 QosmosCodeGeneratorTest_LDFLAGS=${BASE_LIBS}
@@ -151,7 +154,7 @@ ConfProcessorTests_SOURCES=main.cpp \
 	ConfNtpProcessorTests.cpp \
 	ConfBaseValidationTests.cpp \
 	ConfSyslogValidationTests.cpp
-ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 CommandProcessorTests_LDADD=${DYNAMIC_LIBS}
 CommandProcessorTests_LDFLAGS=${BASE_LIBS}
@@ -168,58 +171,60 @@ CommandProcessorTests_SOURCES=main.cpp \
         MockRestartSyslogCommand.h \
         MockConfNtpToReadFile.h \
         MockConfNtp.h \
-	MockProcessManagerCommand.h \
-	ConfigRequestCommandTest.cpp \
-	ConfigRequestCommandTest.h \
-	MockConfigRequestCommand.h
-CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\" ${INCLUDES}
+		MockProcessManagerCommand.h \
+		MockDriveInfo.h \
+		ConfigRequestCommandTest.cpp \
+		ConfigRequestCommandTest.h \
+		MockConfigRequestCommand.h
+CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\" ${INCLUDES}  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
+
 
 SysLoggerTest_LDADD=${DYNAMIC_LIBS}
 SysLoggerTest_LDFLAGS=${BASE_LIBS}
 SysLoggerTest_SOURCES=main.cpp SysLoggerTest.cpp
-SysLoggerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+SysLoggerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 
 RuleEngineTest_LDADD=${DYNAMIC_LIBS}
 RuleEngineTest_LDFLAGS=${BASE_LIBS}
 RuleEngineTest_SOURCES=main.cpp RuleEngineTest.cpp
-RuleEngineTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+RuleEngineTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 
 StatsAccumulatorTest_LDADD=${DYNAMIC_LIBS}
 StatsAccumulatorTest_LDFLAGS=${BASE_LIBS}
 StatsAccumulatorTest_SOURCES=main.cpp StatsAccumulatorTest.cpp
-StatsAccumulatorTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+StatsAccumulatorTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 
 SendStatsTest_LDADD=${DYNAMIC_LIBS}
 SendStatsTest_LDFLAGS=${BASE_LIBS}
 SendStatsTest_SOURCES=main.cpp SendStatsTest.cpp
-SendStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+SendStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 
 ProcStatsTest_LDADD=${DYNAMIC_LIBS}
 ProcStatsTest_LDFLAGS=${BASE_LIBS}
 ProcStatsTest_SOURCES=main.cpp ProcStatsTest.cpp TCMallocStatsTest.cpp ProcMemStatsTest.cpp
-ProcStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+ProcStatsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 ProcessManagerTest_LDADD=${DYNAMIC_LIBS}
 ProcessManagerTest_LDFLAGS=${BASE_LIBS}
 ProcessManagerTest_SOURCES=main.cpp ProcessManagerTest.cpp
-ProcessManagerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+ProcessManagerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 
 DpiMsgLRTest_LDADD=${DYNAMIC_LIBS}
 DpiMsgLRTest_LDFLAGS=${BASE_LIBS}
 DpiMsgLRTest_SOURCES=main.cpp DpiMsgLRTest.cpp DpiMsgLRPoolTest.cpp
-DpiMsgLRTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+DpiMsgLRTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 
 TestTCPIPDirectionlessHash_LDADD=${DYNAMIC_LIBS}
 TestTCPIPDirectionlessHash_LDFLAGS=${BASE_LIBS}
 TestTCPIPDirectionlessHash_SOURCES=main.cpp \
         TestTCPIPDirectionlessHash.cpp
-TestTCPIPDirectionlessHash_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+TestTCPIPDirectionlessHash_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 LuaExecuterTest_LDADD=${DYNAMIC_LIBS}
 LuaExecuterTest_LDFLAGS=${BASE_LIBS}
@@ -227,47 +232,53 @@ LuaExecuterTest_SOURCES=main.cpp \
         LuaExecuterTest.cpp \
         LuaFunctionsTest.cpp
 LuaExecuterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  \
--DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+-DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 ThreadContainerTest_LDADD=${DYNAMIC_LIBS}
 ThreadContainerTest_LDFLAGS=${BASE_LIBS}
 ThreadContainerTest_SOURCES=main.cpp ThreadContainerTest.cpp
-ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+ThreadContainerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 ToolsTest_LDADD=${DYNAMIC_LIBS}
 ToolsTest_LDFLAGS=${BASE_LIBS}
 
-ToolsTest_SOURCES=main.cpp ToolsTestMakeUnique.cpp ToolsTestStringFix.cpp ToolsTestFileIO.cpp EthInfoTest.cpp ToolsRangeTest.cpp
-ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+ToolsTest_SOURCES=main.cpp \
+ToolsTestMakeUnique.cpp \
+ToolsTestStringFix.cpp \
+ToolsTestFileIO.cpp \
+EthInfoTest.cpp \
+WorkerThreadTest.cpp \
+ToolsRangeTest.cpp
+ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 JSONEncoderTest_LDADD=${DYNAMIC_LIBS}
 JSONEncoderTest_LDFLAGS=${BASE_LIBS}
 JSONEncoderTest_SOURCES=main.cpp JSONEncoderTest.cpp
-JSONEncoderTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+JSONEncoderTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 transferZeromqTest_LDADD=${DYNAMIC_LIBS}
 transferZeromqTest_LDFLAGS=${BASE_LIBS}
 transferZeromqTest_SOURCES=main.cpp transferZeromqTest.cpp
-transferZeromqTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+transferZeromqTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 RESTBuilderTest_LDADD=${DYNAMIC_LIBS}
 RESTBuilderTest_LDFLAGS=${BASE_LIBS}
 RESTBuilderTest_SOURCES=main.cpp RESTBuilderTest.cpp RESTParserTest.cpp
-RESTBuilderTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+RESTBuilderTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 ElasticSearchTest_LDADD=${DYNAMIC_LIBS}
 ElasticSearchTest_LDFLAGS=${BASE_LIBS}
 ElasticSearchTest_SOURCES=main.cpp ElasticSearchTest.cpp
-ElasticSearchTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+ElasticSearchTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 ConversionTest_LDADD=${DYNAMIC_LIBS}
 ConversionTest_LDFLAGS=${BASE_LIBS}
 ConversionTest_SOURCES=main.cpp ConversionTest.cpp
-ConversionTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+ConversionTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 nmTest_LDADD=${DYNAMIC_LIBS}
 nmTest_LDFLAGS=${BASE_LIBS}
-nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+nmTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 nmTest_SOURCES=main.cpp \
  CommandFactoryTests.cpp \
  CommandProcessorTests.cpp \
@@ -310,6 +321,6 @@ nmTest_SOURCES=main.cpp \
 SyslogReporterTest_LDADD=${DYNAMIC_LIBS}
 SyslogReporterTest_LDFLAGS=${BASE_LIBS}
 SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp MockSyslogReporter.h
-SyslogReporterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"
+SyslogReporterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 #	SysLoggerTest.cpp \  conflicts with Rule Engine

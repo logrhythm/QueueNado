@@ -36,7 +36,6 @@ public:
    mOverrideGetPcapCaptureLocations(true),
    mOverrideGetFirstCaptureLocation(true),
    mSyslogEnabled(true),
-   mReportEverything(false),
    mDpiThreads(3),
    mPCAPETimeOut(12),
    mQosmosExpirePerCallback(1),
@@ -114,10 +113,6 @@ public:
 
    std::string getPath(void) LR_OVERRIDE {
       return mPath;
-   }
-
-   bool getReportEveythingEnabled(void) LR_OVERRIDE {
-      return mReportEverything;
    }
 
    unsigned int getDpiThreads() LR_OVERRIDE {
@@ -233,7 +228,7 @@ public:
       return mIntermediateFlowEnabled;
    }
 
-   bool UnknownCaptureEnabled() LR_OVERRIDE {
+   bool PacketCaptureEnabled() LR_OVERRIDE {
       return mUnknownCaptureEnabled;
    }
 
@@ -345,7 +340,6 @@ public:
    bool mOverrideGetPcapCaptureLocations;
    bool mOverrideGetFirstCaptureLocation;
    bool mSyslogEnabled;
-   bool mReportEverything;
    unsigned int mDpiThreads;
    unsigned int mPCAPETimeOut;
    unsigned int mQosmosExpirePerCallback;

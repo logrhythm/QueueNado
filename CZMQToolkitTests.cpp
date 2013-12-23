@@ -258,53 +258,6 @@ TEST_F(CZMQToolkitTests, PassMessageAlongShutdownMsg) {
 
 }
 
-TEST_F(CZMQToolkitTests, SendStringContentsToSocketFailures) {
-   ASSERT_TRUE(mRepSocket != NULL);
-   ASSERT_TRUE(mReqSocket != NULL);
-   ASSERT_FALSE(CZMQToolkit::SendStringContentsToSocket(NULL, NULL));
-   ASSERT_FALSE(CZMQToolkit::SendStringContentsToSocket(mRepSocket, NULL));
-   ASSERT_FALSE(CZMQToolkit::SendStringContentsToSocket(NULL, mReqSocket));
-   zmsg_t* message = NULL;
-   ASSERT_TRUE(CZMQToolkit::GetStringFromMessage(message) == NULL);
-
-   zctx_destroy(&mContext);
-   ASSERT_FALSE(CZMQToolkit::SendStringContentsToSocket(mRepSocket, mReqSocket));
-}
-
-TEST_F(CZMQToolkitTests, SendStringContentsToSocket) {
-   ASSERT_TRUE(mRepSocket != NULL);
-   ASSERT_TRUE(mReqSocket != NULL);
-
-   zmsg_t* message = zmsg_new();
-   ASSERT_TRUE(CZMQToolkit::GetStringFromMessage(message) == NULL);
-   std::string expectedString("abc");
-   std::string* aString = new std::string(expectedString);
-   zmsg_addmem(message, &(aString), sizeof (std::string*));
-   ASSERT_EQ(0, zmsg_send(&message, mReqSocket));
-   ASSERT_TRUE(CZMQToolkit::SendStringContentsToSocket(mRepSocket, mRepSocket));
-   zmsg_t* reply = zmsg_recv(mReqSocket);
-   ASSERT_FALSE(reply == NULL);
-   ASSERT_EQ(2, zmsg_size(reply));
-   zframe_t* frame = zmsg_pop(reply);
-   zframe_destroy(&frame);
-   std::string* aReply = CZMQToolkit::GetStringFromMessage(reply);
-   ASSERT_FALSE(aReply == NULL);
-   ASSERT_EQ(expectedString, *aReply);
-   zmsg_destroy(&reply);
-   delete aReply;
-   delete aString;
-}
-
-TEST_F(CZMQToolkitTests, SendStringContentsToSocketShutdownMsg) {
-   ASSERT_TRUE(mRepSocket != NULL);
-   ASSERT_TRUE(mReqSocket != NULL);
-   ASSERT_TRUE(mReqSocket2 != NULL);
-
-   CZMQToolkit::SendShutdownMessage(mReqSocket);
-   ASSERT_FALSE(CZMQToolkit::SendStringContentsToSocket(mRepSocket, mRepSocket));
-
-}
-
 TEST_F(CZMQToolkitTests, ForkPartsOfMessageTwoDirectionsFailures) {
    ASSERT_TRUE(mRepSocket != NULL);
    ASSERT_TRUE(mReqSocket != NULL);

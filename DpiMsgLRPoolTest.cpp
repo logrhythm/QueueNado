@@ -98,12 +98,12 @@ TEST_F(DpiMsgLRPoolTest, SetStatsTimersThatDoesntExist) {
 #endif
 
 TEST_F(DpiMsgLRPoolTest, Construction) {
-   DpiMsgLRPool* pTestObject = new DpiMsgLRPool;
-   delete pTestObject;
+   DpiMsgLRPool& pTestObject = DpiMsgLRPool::Instance();
+   pTestObject;
 }
 
 TEST_F(DpiMsgLRPoolTest, GetAMessageAndReturnIt) {
-   DpiMsgLRPool testPool;
+   DpiMsgLRPool& testPool = DpiMsgLRPool::Instance();
 
    networkMonitor::DpiMsgLR* message1 = testPool.GetDpiMsg();
 
@@ -123,7 +123,7 @@ TEST_F(DpiMsgLRPoolTest, GetAMessageAndReturnIt) {
 
 TEST_F(DpiMsgLRPoolTest, HammerTime) {
    std::vector<std::thread*> threads;
-   DpiMsgLRPool testPool;
+   DpiMsgLRPool& testPool = DpiMsgLRPool::Instance();
 #ifdef LR_DEBUG
    int threadCount = 500;
    int retries = 1;
@@ -147,7 +147,7 @@ TEST_F(DpiMsgLRPoolTest, HammerTime) {
 }
 
 TEST_F(DpiMsgLRPoolTest, ValidateAllMessagesInAThread) {
-   DpiMsgLRPool testPool;
+   DpiMsgLRPool& testPool = DpiMsgLRPool::Instance();
 #ifdef LR_DEBUG
    //   int messageCount = 5000;
    //   int retries = 5;
@@ -208,5 +208,3 @@ TEST_F(DpiMsgLRPoolTest, DpiMsgSize) {
    delete testMsg;
 }
 #endif
-
-

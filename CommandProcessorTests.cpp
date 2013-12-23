@@ -89,9 +89,6 @@ TEST_F(CommandProcessorTests, GetStatusTests) {
 
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
 
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandAlwaysFails::Construct);
@@ -149,14 +146,11 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
    EXPECT_FALSE(realReply.success());
    EXPECT_TRUE(realReply.result() == "Command Not Found");
 
-   raise(SIGTERM);
 }
 
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
 
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
@@ -195,7 +189,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
    } while (!zctx_interrupted && count++ < 100);
-   testProcessor.timeout = 1;
+   testProcessor.SetTimeout(1);
    std::this_thread::sleep_for(std::chrono::milliseconds(2001));
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
@@ -204,17 +198,13 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
    EXPECT_FALSE(realReply.success());
    EXPECT_TRUE(realReply.result() == "Command Not Found");
 
-   raise(SIGTERM);
 }
 
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) {
 
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
-   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommand::Construct);
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
 
    Crowbar sender(conf.getCommandQueue());
    ASSERT_TRUE(sender.Wield());
@@ -236,7 +226,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) 
    requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
    requestMsg.set_async(false);
    requestMsg.set_stringargone(replyMsg.result());
-   testProcessor.timeout = 0;
+   testProcessor.SetTimeout(0);
    std::this_thread::sleep_for(std::chrono::milliseconds(2001));
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
@@ -244,14 +234,12 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) 
    realReply.ParseFromString(reply);
    EXPECT_FALSE(realReply.success());
    EXPECT_TRUE(realReply.result() == "Command Not Found") << " : " << realReply.result();
-   raise(SIGTERM);
+
 }
 
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusExitApp) {
 
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
@@ -276,9 +264,6 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusExitApp) {
 }
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
 
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommand::Construct);
@@ -336,13 +321,10 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
    EXPECT_FALSE(realReply.success());
    EXPECT_TRUE(realReply.result() == "Command Not Found");
 
-   raise(SIGTERM);
 }
 
 TEST_F(CommandProcessorTests, CommandStatusFailureTests) {
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    Crowbar sender(conf.getCommandQueue());
@@ -374,37 +356,34 @@ TEST_F(CommandProcessorTests, CommandStatusFailureTests) {
    EXPECT_FALSE(realReply.success());
    EXPECT_TRUE("Command Not Found" == realReply.result());
 
-   raise(SIGTERM);
 }
 #endif
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
-   MockConf conf;
+
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+   ASSERT_DEATH({MockConf conf;
    conf.mCommandQueue = "invalid";
    CommandProcessor testProcessor(conf);
    EXPECT_FALSE(testProcessor.Initialize());
-   protoMsg::CommandRequest requestMsg;
+   },"Cannot start command reader listener queue");
 
 #endif
 }
 
 TEST_F(CommandProcessorTests, ConstructAndInitialize) {
 #ifdef LR_DEBUG
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+
    CommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
-   raise(SIGTERM);
+
 #endif
 }
 
 TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
 #ifdef LR_DEBUG
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    EXPECT_EQ(UpgradeCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_UPGRADE));
@@ -414,15 +393,12 @@ TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
    EXPECT_EQ(NtpConfigCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NTP_CONFIG));
    EXPECT_EQ(ShutdownCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN));
    EXPECT_EQ(ConfigRequestCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_CONFIG_REQUEST));
-   raise(SIGTERM);
 #endif
 }
 
 TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
 #ifdef LR_DEBUG
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+
    CommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -436,15 +412,13 @@ TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
    protoMsg::CommandReply replyMsg;
    replyMsg.ParseFromString(reply);
    EXPECT_FALSE(replyMsg.success());
-   raise(SIGTERM);
+
 #endif
 }
 
 TEST_F(CommandProcessorTests, CommandSendReceive) {
 #ifdef LR_DEBUG
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_UPGRADE, MockUpgradeCommand::Construct);
@@ -460,7 +434,7 @@ TEST_F(CommandProcessorTests, CommandSendReceive) {
    protoMsg::CommandReply replyMsg;
    replyMsg.ParseFromString(reply);
    EXPECT_TRUE(replyMsg.success());
-   raise(SIGTERM);
+
 #endif
 }
 
@@ -890,7 +864,7 @@ TEST_F(CommandProcessorTests, PseudoShutdown) {
    replyMsg.ParseFromString(reply);
    EXPECT_TRUE(replyMsg.success());
    EXPECT_TRUE(MockShutdownCommand::wasShutdownCalled);
-   raise(SIGTERM);
+
 #endif
 }
 

@@ -7,57 +7,10 @@ TEST_F(QsomosPacketAllocatorTests, Constructors) {
 
 }
 
-
-//TEST_F ( QsomosPacketAllocatorTests, ReturnPacketData_PopulatePacketData) {
-//	string aString = "ABCDEF";
-//	size_t stringSize = aString.size();
-//	unsigned char* dataPointer(NULL);
-//    ASSERT_EQ(0,t_allocator.NumberOfKnownHashes());
-//	ASSERT_EQ(0,t_allocator.SizeOfgivenHashData((uLong)dataPointer));
-//
-//	t_allocator.PopulatePacketData(aString,dataPointer);
-//	ASSERT_TRUE(dataPointer != NULL);
-//    EXPECT_EQ(1,t_allocator.NumberOfKnownHashes());
-//
-//    t_allocator.ReturnPacketData(dataPointer,stringSize);
-//    ASSERT_EQ(0,t_allocator.NumberOfKnownHashes());
-//    ASSERT_EQ(1,t_allocator.NumberOfFreeHashes());
-//    ASSERT_EQ(0,t_allocator.SizeOfgivenHashData((uLong)dataPointer));
-//
-//    //verify that memory is reused
-//
-//    aString = "abcdef";
-//	t_allocator.PopulatePacketData(aString,dataPointer);
-//	ASSERT_TRUE(dataPointer != NULL);
-//    EXPECT_EQ(1,t_allocator.NumberOfKnownHashes());
-//    ASSERT_EQ(0,t_allocator.NumberOfFreeHashes());
-//    aString = "123456";
-//
-//    t_allocator.PopulatePacketData(aString,dataPointer);
-//    ASSERT_TRUE(dataPointer != NULL);
-//    EXPECT_EQ(2,t_allocator.NumberOfKnownHashes());
-//
-//    t_allocator.ReturnPacketData(dataPointer,stringSize);
-//    ASSERT_EQ(1,t_allocator.NumberOfKnownHashes());
-//    ASSERT_EQ(1,t_allocator.NumberOfFreeHashes());
-//}
-
-TEST_F(QsomosPacketAllocatorTests, Liars) {
-   string aString = "ABCDEF";
-   size_t stringSize = aString.size();
-   ctb_ppacket dataPointer(NULL);
-   ASSERT_EQ(0, t_allocator.NumberOfKnownHashes());
-
-   t_allocator.ReturnPacketData(dataPointer);
-   ASSERT_EQ(0, t_allocator.NumberOfKnownHashes());
-   ASSERT_EQ(0, t_allocator.SizeOfgivenHashData(0));
-
-}
-
 TEST_F(QsomosPacketAllocatorTests, FailedMalloc) {
 #ifdef LR_DEBUG
    ctb_ppacket packet(reinterpret_cast<ctb_pkt*> (1));
-   uint8_t * rawPacket(NULL);
+   u_char * rawPacket(NULL);
    struct pcap_pkthdr * phdr(NULL);
    t_allocator.PopulatePacketData(rawPacket, phdr, packet);
    EXPECT_EQ(NULL, packet);
@@ -115,13 +68,13 @@ TEST_F(QsomosPacketAllocatorTests, TwoPacketConversions) {
 
          inputFile.read(reinterpret_cast<char*> (buffer), length);
          ASSERT_FALSE(!inputFile && inputFile.gcount() < length);
-         unsigned char* rawData = buffer;
+         u_char* rawData = buffer;
 
          t_allocator.PopulatePacketData(rawData, header, dataPointer);
          ASSERT_FALSE(dataPointer == NULL);
          struct pcap_pkthdr * header2(NULL);
          unsigned char* raw2(NULL);
-         ASSERT_TRUE(t_allocator.PopulatrePCapData(dataPointer, header2, raw2));
+         ASSERT_TRUE(t_allocator.PopulatePCapData(dataPointer, header2, raw2));
          char* rawheader2(NULL);
          t_allocator.GetHeaderForDiskWriting(header2, rawheader2);
          ASSERT_TRUE(rawheader2 != NULL);

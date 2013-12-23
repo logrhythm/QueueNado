@@ -179,21 +179,10 @@ TEST_F(QosmosCodeGeneratorTests, generateAllEventCallMultiple) {
       r = functionBodyStream.str();
       ASSERT_TRUE(regex_search(lines[5 + CALLBACK_FUNCTION_LINES * i], r));
 
-      r = "[[:space:]]*+if \\(gReportEverything\\)";
-
+      r = "[[:space:]]*+\\}[[:space:]]*+";
       ASSERT_TRUE(regex_search(lines[9 + CALLBACK_FUNCTION_LINES * i], r));
-
-      r = "[[:space:]]*+\\{[[:space:]]*+";
+      r = "[[:space:]]*+\\}[[:space:]]*+";
       ASSERT_TRUE(regex_search(lines[10 + CALLBACK_FUNCTION_LINES * i], r));
-      r = "[[:space:]]*+event_send_data\\(uapp_cnx, event, 0\\)\\;";
-      ASSERT_TRUE(regex_search(lines[11 + CALLBACK_FUNCTION_LINES * i], r));
-      r = "[[:space:]]*+\\}[[:space:]]*+";
-      ASSERT_TRUE(regex_search(lines[12 + CALLBACK_FUNCTION_LINES * i], r));
-
-      r = "[[:space:]]*+\\}[[:space:]]*+";
-      ASSERT_TRUE(regex_search(lines[13 + CALLBACK_FUNCTION_LINES * i], r));
-      r = "[[:space:]]*+\\}[[:space:]]*+";
-      ASSERT_TRUE(regex_search(lines[14 + CALLBACK_FUNCTION_LINES * i], r));
    }
 
 

@@ -31,6 +31,7 @@ using namespace networkMonitor;
 #include "MockConf.h"
 #include "MockEthInfo.h"
 
+
 /**
  * Found a bug that when calling ConfSlave::Instance and get conf I could 
  * potentially get defaults instead of actually getting the conf.
@@ -1105,7 +1106,6 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ(13, conf.getPCAPBuffsize());
    //   EXPECT_EQ("eth0", conf.getPCAPInterface()); this is now internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_TRUE(conf.getReportEveythingEnabled());
    EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
    EXPECT_EQ(250000, conf.getDpiHalfSessions());
    EXPECT_FALSE(conf.EnableIPDefragmentation());
@@ -1150,7 +1150,6 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    EXPECT_EQ(13, conf.getPCAPBuffsize());
    //   EXPECT_EQ("eth0", conf.getPCAPInterface());  this is now internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_TRUE(conf.getReportEveythingEnabled());
    EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
    EXPECT_EQ(1, conf.getStatsIntervalSeconds());
 }
@@ -1182,7 +1181,6 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    EXPECT_EQ(PCAP_BUFFER_SIZE, conf.getPCAPBuffsize());
    //   EXPECT_EQ("", conf.getPCAPInterface());  internally validated
    EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_FALSE(conf.getReportEveythingEnabled());
    EXPECT_EQ(MAX_SYSLOG_LINE_RFC_5426, conf.getSyslogMaxLineLength());
    EXPECT_EQ(DEFAULT_STATS_INTERVAL_SEC, conf.getStatsIntervalSeconds());
    EXPECT_EQ("scripts", conf.getScriptsDir());
@@ -1204,7 +1202,6 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
    protoMsg::SyslogConf msg;
    msg.set_syslogenabled("true");
    msg.set_sysloglogagentip("123.123.123");
-   //msg.set_reporteverything("true");
    msg.set_sysloglogagentport("777");
    msg.set_syslogtcpenabled("false");
    EXPECT_EQ("false", msg.syslogtcpenabled());
@@ -1224,8 +1221,6 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
    msg.set_syslogtcpenabled("true");
    conf.updateFields(msg);
    EXPECT_TRUE(conf.getSyslogTcpEnabled());
-
-   EXPECT_TRUE(conf.getReportEveythingEnabled());
 }
 
 TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
@@ -1242,7 +1237,6 @@ TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    EXPECT_FALSE(conf.getSyslogTcpEnabled()); // default is UDP
 
    EXPECT_TRUE(conf.getScrubPasswordsEnabled());
-   EXPECT_FALSE(conf.getReportEveythingEnabled());
 }
 
 TEST_F(ConfProcessorTests, testConfSyslogDisabled) {
@@ -1254,16 +1248,6 @@ TEST_F(ConfProcessorTests, testConfSyslogDisabled) {
    conf.updateFields(msg);
    EXPECT_FALSE(conf.getSyslogEnabled());
 }
-
-//TEST_F(ConfProcessorTests, testConfReportEverything) {
-//   protoMsg::SyslogConf msg;
-//   std::string reportEverything("true");
-//   msg.set_reporteverything(reportEverything);
-//   Conf conf(mTestConf);
-//   conf.setPath(mWriteLocation);
-//   conf.updateFields(msg);
-//   EXPECT_TRUE(conf.getReportEveythingEnabled());
-//}
 
 TEST_F(ConfProcessorTests, testConfQosmosDebugModeEnabled) {
    protoMsg::BaseConf msg;

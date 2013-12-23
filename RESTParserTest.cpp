@@ -15,6 +15,30 @@ namespace {
 }
 #ifdef LR_DEBUG
 
+TEST_F(RESTParserTest, GetIdsFromSearchForRecordsWithStaleInfo) {
+   RESTParser parser;
+   
+   std::string resultString = "{\"took\":113,\"timed_out\":false,\"_shards\":"
+           "{\"total\":69,\"successful\":66,\"failed\":3,\"failures\":"
+           "[{\"index\":\"kibana-int\",\"shard\":1,\"status\":400,\"reason\":"
+           "\"foo\"},";
+ //          "\"SearchParseException[[kibana-int][1]: from[-1],size[-1]: Parse Failure [Failed to parse source [\n{\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"captureRemoved\" : true}},{ \"term\" : {\"latestUpdate\" : true}},{ \"numeric_range\" : {\"flowSessionCount\" : { \"gt\" : \"1\" }}}]}}},\"_cache\":false,\"from\": 0,\"size\":1,\"fields\": [\"sessionId\", \"timeUpdated\", \"timeStart\"]}}]]]; nested: QueryParsingException[[kibana-int] failed to find mapping for field [flowSessionCount]]; \"},"
+   resultString+="{\"index\":\"kibana-int\",\"shard\":0,\"status\":400,\"reason\":"
+            "\"foo\"},";
+//          "\"SearchParseException[[kibana-int][0]: from[-1],size[-1]: Parse Failure [Failed to parse source [\n{\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"captureRemoved\" : true}},{ \"term\" : {\"latestUpdate\" : true}},{ \"numeric_range\" : {\"flowSessionCount\" : { \"gt\" : \"1\" }}}]}}},\"_cache\":false,\"from\": 0,\"size\":1,\"fields\": [\"sessionId\", \"timeUpdated\", \"timeStart\"]}}]]]; nested: QueryParsingException[[kibana-int] failed to find mapping for field [flowSessionCount]]; \"},"
+   resultString+="{\"index\":\"upgrade\",\"shard\":0,\"status\":400,\"reason\":"
+            "\"foo\"}]},";
+//          "\"SearchParseException[[upgrade][0]: from[-1],size[-1]: Parse Failure [Failed to parse source [\n{\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"captureRemoved\" : true}},{ \"term\" : {\"latestUpdate\" : true}},{ \"numeric_range\" : {\"flowSessionCount\" : { \"gt\" : \"1\" }}}]}}},\"_cache\":false,\"from\": 0,\"size\":1,\"fields\": [\"sessionId\", \"timeUpdated\", \"timeStart\"]}}]]]; nested: QueryParsingException[[upgrade] failed to find mapping for field [flowSessionCount]]; \"}]},"
+   resultString+="\"hits\":{\"total\":279,\"max_score\":null,\"hits\":"
+           "[{\"_index\":\"network_2013_11_11\",\"_type\":\"meta\",\"_id\":\"4fc48be8-b1ee-4b58-b9d6-4f58722ec6d8_14\","
+           "\"_score\":null,\"fields\":{\"sessionId\":\"4fc48be8-b1ee-4b58-b9d6-4f58722ec6d8\",\"timeUpdated\":\"2013/11/11 16:56:33\","
+           "\"timeStart\":\"2013/11/11 14:31:01\"},\"sort\":[1384188993000]}]}}";
+   
+   auto oldestSessionIds = parser.GetSessionIds(resultString);
+   ASSERT_FALSE(oldestSessionIds.empty());
+   EXPECT_TRUE("4fc48be8-b1ee-4b58-b9d6-4f58722ec6d8"==*oldestSessionIds.begin());
+   
+}
 TEST_F(RESTParserTest, GetOldestTimeStart) {
    RESTParser parser;
    
