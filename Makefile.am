@@ -78,7 +78,8 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libelasticsearch \
          -I${abs_top_srcdir}/source/libtools \
          -I${abs_top_srcdir}/source/libsystem \
-         -I/usr/local/probe/include
+         -I/usr/local/probe/include \
+         -include /usr/include/fenv.h
 
 DYNAMIC_LIBS=-ltcmalloc \
              -lsyslog -lZMQ -llrdpi -lstats -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
