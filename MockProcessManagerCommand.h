@@ -8,7 +8,7 @@
 class MockProcessManagerCommand : public ProcessManager {
 public:
 
-   MockProcessManagerCommand(const Conf& conf) : ProcessManager(conf),
+   MockProcessManagerCommand(const Conf& conf, const std::string& programName) : ProcessManager(conf,programName),
    mReturnCode(0),
    mInit(true),
    mSuccess(true),

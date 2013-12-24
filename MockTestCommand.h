@@ -20,8 +20,8 @@ public:
       return reply;
    }
 
-   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
-      std::shared_ptr<Command> command(new MockTestCommand(request));
+   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request, const std::string& programName) {
+      std::shared_ptr<Command> command(new MockTestCommand(request,programName));
       return command;
    }
    protoMsg::CommandReply GetResult() {
@@ -35,7 +35,7 @@ public:
    protoMsg::CommandRequest mRequest;
 protected:
 
-   explicit MockTestCommand(const protoMsg::CommandRequest& request) :
+   MockTestCommand(const protoMsg::CommandRequest& request, const std::string& programName) : Command(programName),
    mResult("TestCommand"), mSuccess(true), mRequest(request) {
 
    }
@@ -46,14 +46,14 @@ class MockTestCommandAlwaysFails : public MockTestCommand {
 public:
    virtual ~MockTestCommandAlwaysFails() {
    }
-   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
-      std::shared_ptr<Command> command(new MockTestCommandAlwaysFails(request));
+   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request, const std::string& programName) {
+      std::shared_ptr<Command> command(new MockTestCommandAlwaysFails(request,programName));
       return command;
    }
 
 protected:
 
-   explicit MockTestCommandAlwaysFails(const protoMsg::CommandRequest& request) : MockTestCommand(request) {
+   MockTestCommandAlwaysFails(const protoMsg::CommandRequest& request, const std::string& programName) : MockTestCommand(request,programName) {
       mResult="TestCommandFails";
       mSuccess=false;
       mRequest=request;
@@ -64,8 +64,8 @@ class MockTestCommandRunsForever : public MockTestCommand {
 public:
    virtual ~MockTestCommandRunsForever() {
    }
-   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
-      std::shared_ptr<Command> command(new MockTestCommandRunsForever(request));
+   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request, const std::string& programName) {
+      std::shared_ptr<Command> command(new MockTestCommandRunsForever(request,programName));
       return command;
    }
    virtual protoMsg::CommandReply Execute(const Conf& conf) {
@@ -78,7 +78,7 @@ public:
    }
 protected:
 
-   explicit MockTestCommandRunsForever(const protoMsg::CommandRequest& request) : MockTestCommand(request) {
+   MockTestCommandRunsForever(const protoMsg::CommandRequest& request, const std::string& programName) : MockTestCommand(request, programName) {
 
    }
 };

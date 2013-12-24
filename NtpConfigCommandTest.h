@@ -8,6 +8,7 @@
 #include "MockConf.h"
 #include "CommandRequest.pb.h"
 
+extern std::string gProgramName;
 class NtpConfigCommandTest : public ::testing::Test {
 public:
 
@@ -18,7 +19,7 @@ public:
 protected:
 
    virtual void SetUp() {
-      autoManagedManager = new MockProcessManagerCommand(conf);
+      autoManagedManager = new MockProcessManagerCommand(conf,gProgramName);
       cmd.set_type(protoMsg::CommandRequest_CommandType_NTP_CONFIG);
    };
 

@@ -2,9 +2,9 @@
 #include "UpgradeCommand.h"
 #include <g2loglevels.hpp>
 #include "g2log.hpp"
-
+extern std::string gProgramName;
 TEST_F(CommandFactoryTests, ConstructNoRegsistered) {
-   CommandFactory factory;
+   CommandFactory factory(gProgramName);
    protoMsg::CommandRequest request;
    request.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    std::shared_ptr<Command> notRegistered= factory.GetCommand(request);
@@ -12,7 +12,7 @@ TEST_F(CommandFactoryTests, ConstructNoRegsistered) {
    ASSERT_EQ(nullptr,notRegistered.get());
 }
 TEST_F(CommandFactoryTests, ConstructRegsistered) {
-   CommandFactory factory;
+   CommandFactory factory(gProgramName);
    protoMsg::CommandRequest request;
    request.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    std::shared_ptr<Command> notRegistered= factory.GetCommand(request);

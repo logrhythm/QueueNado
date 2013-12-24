@@ -2,9 +2,10 @@
 
 #include "CommandProcessor.h"
 #include "CommandFactory.h"
+
 class MockCommandProcessor : public CommandProcessor {
 public:
-   explicit MockCommandProcessor(const Conf& conf) : CommandProcessor(conf) {}
+   explicit MockCommandProcessor(const Conf& conf, const std::string& programName) : CommandProcessor(conf,programName) {}
    virtual ~MockCommandProcessor() {}
    void ChangeRegistration(const protoMsg::CommandRequest_CommandType type, CommandFactory::CreationCallback callback) {
       mCommandFactory.UnregisterCommand(type);

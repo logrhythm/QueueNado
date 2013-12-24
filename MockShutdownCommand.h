@@ -13,8 +13,9 @@ public:
    static bool wasShutdownCalled;
    static bool callRealShutdownCommand;
    
-   MockShutdownCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager) 
-   : ShutdownCommand(request, processManager) {
+   MockShutdownCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager,
+           const std::string& programName) 
+   : ShutdownCommand(request, processManager, programName) {
    }
 
    virtual ~MockShutdownCommand() {
@@ -23,8 +24,9 @@ public:
    // NEVER, use this function unless you are absolutely sure what will happen. It will
    // create the REAL ProcessManager which WILL execute the command if 
    // 'callRealShutdownCommand' is set to true. If it is then your PC will shut off.
-   static std::shared_ptr<Command> FatalAndDangerousConstruct(const protoMsg::CommandRequest& request) {
-      std::shared_ptr<Command> command(new MockShutdownCommand(request, nullptr));
+   static std::shared_ptr<Command> FatalAndDangerousConstruct(const protoMsg::CommandRequest& request,
+           const std::string& programName) {
+      std::shared_ptr<Command> command(new MockShutdownCommand(request, nullptr,programName));
       return command;
       
    }

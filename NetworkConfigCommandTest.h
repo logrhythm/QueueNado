@@ -31,7 +31,8 @@ public:
    using NetworkConfigCommand::AddNmControlled;
    using NetworkConfigCommand::AddPeerDns;
 
-   NetworkConfigCommandTest(const protoMsg::CommandRequest& request, ProcessManager* processManager) : mStatSuccess(true), NetworkConfigCommand(request, processManager) {
+   NetworkConfigCommandTest(const protoMsg::CommandRequest& request,
+           ProcessManager* processManager, const std::string& programName) : mStatSuccess(true), NetworkConfigCommand(request, processManager, programName) {
    }
    
 

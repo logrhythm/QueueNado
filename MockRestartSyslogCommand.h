@@ -17,17 +17,21 @@
 
 struct MockRestartSyslogCommand : public RestartSyslogCommand {
 
-   MockRestartSyslogCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager = nullptr)
-   : RestartSyslogCommand(request, processManager) {
+   MockRestartSyslogCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager, const std::string& programName)
+   : RestartSyslogCommand(request, processManager,programName) {
 
        MockRestartSyslogCommand::mSyslogMsg.ParseFromString(request.stringargone());
    }
+   MockRestartSyslogCommand(const protoMsg::CommandRequest& request, const std::string& programName)
+   : RestartSyslogCommand(request, programName) {
 
+       MockRestartSyslogCommand::mSyslogMsg.ParseFromString(request.stringargone());
+   }
    virtual ~MockRestartSyslogCommand() {
    }
 
-   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
-      std::shared_ptr<Command> command(new MockRestartSyslogCommand(request));
+   static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request, const std::string& programName) {
+      std::shared_ptr<Command> command(new MockRestartSyslogCommand(request, programName));
       return command;
    }
 

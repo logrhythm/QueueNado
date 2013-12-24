@@ -14,7 +14,8 @@ class RebootCommandTest : public RebootCommand {
 public:
    using RebootCommand::DoTheReboot;
 
-   RebootCommandTest(const protoMsg::CommandRequest& request, ProcessManager* processManager) : RebootCommand(request, processManager) {
+   RebootCommandTest(const protoMsg::CommandRequest& request, ProcessManager* processManager,
+           const std::string& programName) : RebootCommand(request, processManager, programName) {
    }
 
    virtual ~RebootCommandTest() {

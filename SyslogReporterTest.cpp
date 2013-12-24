@@ -16,7 +16,7 @@
 #include <chrono>
 //#include "DpiMsgLR.h"
 //#include "luajit-2.0/lua.hpp"
-
+extern std::string gProgramName;
 void ZeroCopyDelete(void*, void* data) {
    std::string* theString = reinterpret_cast<std::string*> (data);
    delete theString;
@@ -206,7 +206,7 @@ TEST_F(SyslogReporterTest, SendStatTime) {
 TEST_F(SyslogReporterTest, SyslogInitialize) {
    MockConfSlave slave;
    slave.mConfLocation = "resources/test.yaml.Syslog2";
-   MockCommandProcessor testProcessor(slave.GetConf());
+   MockCommandProcessor testProcessor(slave.GetConf(),gProgramName);
    EXPECT_TRUE(testProcessor.Initialize());
 
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART, MockRestartSyslogCommand::Construct);

@@ -4,7 +4,7 @@
 class MockProcessManager : public ProcessManager {
 public:
 
-   MockProcessManager(const Conf& conf) : ProcessManager(conf), mKillFails(false),
+   MockProcessManager(const Conf& conf, const std::string& programName) : ProcessManager(conf,programName), mKillFails(false),
    mExecFails(false) {
    }
 

@@ -5,7 +5,7 @@
 #include "CommandRequest.pb.h"
 #include "MockConf.h"
 
-
+extern std::string gProgramName;
 class DriveInfoCommandTest : public ::testing::Test {
 public:
 
@@ -13,7 +13,7 @@ public:
 
 protected:
    virtual void SetUp() {
-      autoManagedManager = new MockProcessManagerCommand(conf);
+      autoManagedManager = new MockProcessManagerCommand(conf,gProgramName);
       cmd.set_type(protoMsg::CommandRequest_CommandType_DRIVEINFO);
    }
 

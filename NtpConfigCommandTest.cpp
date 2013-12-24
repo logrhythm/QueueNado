@@ -14,18 +14,19 @@
 #include <boost/lexical_cast.hpp>
 
 
+extern std::string gProgramName;
 TEST_F(NtpConfigCommandTest, DoesItCompileAndLink) {
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    
    protoMsg::CommandRequest requestMsg;
    requestMsg.set_type(protoMsg::CommandRequest_CommandType_NTP_CONFIG); 
-   std::shared_ptr<Command> cmd = NtpConfigCommand::Construct(requestMsg);
+   std::shared_ptr<Command> cmd = NtpConfigCommand::Construct(requestMsg,gProgramName);
    ASSERT_NE(cmd.get(), nullptr);
    SUCCEED();
 }
 
 TEST_F(NtpConfigCommandTest, Construct) {
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    SUCCEED();
 }
 
@@ -33,7 +34,7 @@ TEST_F(NtpConfigCommandTest, Construct) {
 TEST_F(NtpConfigCommandTest, InValidCommand) {
    protoMsg::Ntp ntp;
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    auto reply = doIt.Execute(conf);
    ASSERT_FALSE(reply.success());
 }
@@ -42,7 +43,7 @@ TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd) {
    protoMsg::Ntp ntp;
    ntp.set_master_server(""); // only the master needs to be defined.. here with nothing
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
 
@@ -63,7 +64,7 @@ TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd) {
 TEST_F(NtpConfigCommandTest, EnableNTPWithNoServer__ExpectingInvalidCmd) {
    protoMsg::Ntp ntp;
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    auto reply = doIt.Execute(conf);
    ASSERT_FALSE(reply.success());
    
@@ -82,7 +83,7 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithMasterServer__ExpectingValidCmd) {
    protoMsg::Ntp ntp;
    ntp.set_master_server("10.128.64.251");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
 
@@ -117,7 +118,7 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveMaster__ExpectingValidCmd) {
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    doIt.oneServerAlive = {"10.128.64.251"};
  
    auto reply = doIt.Execute(conf);
@@ -153,7 +154,7 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveBackupServer__ExpectingValidCmd) 
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    doIt.oneServerAlive = {"10.128.64.252"};
  
    auto reply = doIt.Execute(conf);
@@ -197,7 +198,7 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveMasterAndAliveServer__ExpectingVa
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
@@ -236,7 +237,7 @@ TEST_F(NtpConfigCommandTest, MultipleEnableCmds__ExpectingValidCmd) {
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
 #endif
@@ -248,7 +249,7 @@ TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd) {
    ntp.set_master_server("");
    ntp.set_backup_server("");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    for (int i = 0; i < 10; ++i) {
       auto reply = doIt.Execute(conf);
       ASSERT_TRUE(reply.success());
@@ -262,7 +263,7 @@ TEST_F(NtpConfigCommandTest, ThrowTestsIsServerAlive) {
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    
    autoManagedManager->mSuccess = true;
    autoManagedManager->mReturnCode = 0;
@@ -298,7 +299,7 @@ TEST_F(NtpConfigCommandTest, ThrowTestsForceTimeSync) {
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    
  
    protoMsg::ProcessReply reply; 
@@ -330,7 +331,7 @@ TEST_F(NtpConfigCommandTest, ThrowTestsTriggerNtpdChange) {
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
    
    //  for ntp a "failed" ntpdate -q  will still result in "success" but with nonzero return
    autoManagedManager->mSuccess = true;
@@ -360,7 +361,7 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
    conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);   
-   MockCommandProcessor testProcessor(conf);
+   MockCommandProcessor testProcessor(conf,gProgramName);
    EXPECT_TRUE(testProcessor.Initialize());
    
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_NTP_CONFIG, MockNtpConfigCommand::Construct);
@@ -382,17 +383,4 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
    raise(SIGTERM);
 }
 
-
-
-// Example run:
-//sudo service ntpd stop; sudo service ntpd status; sudo ./test/CommandProcessorTests --gtest_filter=*Real*;sudo service ntpd statu
-TEST_F(NtpConfigCommandTest, DISABLED_Real__Start__ExpectingFileChange) {
-   protoMsg::Ntp ntp;
-   ntp.set_master_server("10.128.64.252");
-   cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, new ProcessManager(conf)); //autoManagedManager); 
-   auto reply = doIt.Execute(conf);
-   ASSERT_TRUE(reply.success());
-   raise(SIGTERM);
-}
 
