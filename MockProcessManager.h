@@ -20,14 +20,6 @@ public:
       }
       return ProcessManager::KillPid(pid);
    }
-   
-   //no override keyword because it's LRVIRTUAL
-   int RunExecVE(const char* command, char** arguments, char** environment) {
-      if (mExecFails) {
-         return -1;
-      }
-      return ProcessManager::RunExecVE(command, arguments, environment);
-   }
 
    virtual bool CheckPidExists(const int pid) override {
       return ProcessManager::CheckPidExists(pid);
