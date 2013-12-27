@@ -1,4 +1,5 @@
 #!/bin/sh
+export LANG=C
 chmod 777 .libs
 chmod 777 .libs/* 
 chmod 777 .
