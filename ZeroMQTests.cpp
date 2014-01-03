@@ -154,9 +154,10 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterClientSetup) {
    fastCopyQueue.ClientSetup(emptyString, socket);
    ASSERT_TRUE(socket == NULL);
 
-   ASSERT_FALSE((socket = fastCopyQueue.GetSocket(context)) == NULL);
-   fastCopyQueue.ClientSetup(binding.str(), socket);
-   ASSERT_TRUE(socket == NULL);
+// the new versions of ZMQ have fixed the inproc connection order issue making order arbitrary
+//   ASSERT_FALSE((socket = fastCopyQueue.GetSocket(context)) == NULL);
+//   fastCopyQueue.ClientSetup(binding.str(), socket);
+//   ASSERT_TRUE(socket == NULL);
 
    void* serverSocket = NULL;
    ASSERT_FALSE((serverSocket = fastCopyQueue.GetSocket(context)) == NULL);
