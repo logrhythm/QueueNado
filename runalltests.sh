@@ -10,6 +10,7 @@ touch ../ZMQTest.junit.xml ../PacketCaptureTest.junit.xml ../DpiMsgLRTest.junit.
 chmod 777 ../*.xml
 export LUA_PATH=/usr/local/probe/bin/\?.lua\;/usr/local/probe/share/lua/5.1/\?.lua\;/usr/local/probe/share/lua/5.1/\?/init.lua\;/usr/local/probe/libLua/\?.lua\;/usr/local/probe/apiLua/\?.lua\;/usr/local/probe/apiLua/usr/\?.lua\;\;
 export LUA_CPATH=/usr/local/probe/lib/lua/5.1/\?.so\;/usr/local/probe/libLua/\?.lua\;/usr/local/probe/apiLua/\?.lua\;/usr/local/probe/apiLua/usr/\?.lua\;
+set -e
 ../source/MotherForker ./ZMQTest --gtest_output=xml:../ZMQTest.junit.xml
 ../source/MotherForker ./PacketCaptureTest --gtest_output=xml:../PacketCaptureTest.junit.xml
 ../source/MotherForker ./DpiMsgLRTest --gtest_output=xml:../DpiMsgLRTest.junit.xml

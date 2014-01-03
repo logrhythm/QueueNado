@@ -27,16 +27,153 @@
 
 extern std::string gProgramName;
 #ifdef LR_DEBUG
+//
+//  The Mock Shutdown sets a flag if the DoTheShutdown gets triggered. 
+//  As long as the Mock is not tampered with and the ChangeRegistration below is in order
+//  this test will NOT shutdown your PC, only fake it. 
+//
+//  If you tamper with the details mentioned, all bets are OFF!
+//
+
+TEST_F(CommandProcessorTests, PseudoShutdown) {
+#ifdef LR_DEBUG
+
+MockCommandProcessor* testProcessor;
+   {
+      MockConf conf;
+      conf.mCommandQueue = "tcp://127.0.0.1:";
+      conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+      testProcessor = new MockCommandProcessor(conf, gProgramName);
+      EXPECT_TRUE(testProcessor->Initialize());
+      LOG(INFO) << "Executing Real command with real Processor but with Mocked Shutdown function";
+      // NEVER CHANGE the LINE below. If it is set to true your PC will shut down
+      MockShutdownCommand::callRealShutdownCommand = false;
+      MockShutdownCommand::wasShutdownCalled = false;
+
+      testProcessor->ChangeRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN, MockShutdownCommand::FatalAndDangerousConstruct);
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      Crowbar sender(conf.getCommandQueue());
+      ASSERT_TRUE(sender.Wield());
+      protoMsg::CommandRequest requestMsg;
+      requestMsg.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
+      protoMsg::ShutdownMsg shutdown;
+      shutdown.set_now(true);
+      requestMsg.set_stringargone(shutdown.SerializeAsString());
+      
+      sender.Swing(requestMsg.SerializeAsString());
+      std::string reply;
+      sender.BlockForKill(reply);
+      EXPECT_FALSE(reply.empty());
+      protoMsg::CommandReply replyMsg;
+      replyMsg.ParseFromString(reply);
+      EXPECT_TRUE(replyMsg.success());
+      EXPECT_TRUE(MockShutdownCommand::wasShutdownCalled);
+      delete testProcessor;
+
+   }
+
+   
+#endif
+}
+
+TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) {
+
+   MockCommandProcessor testProcessor(conf, gProgramName);
+   EXPECT_TRUE(testProcessor.Initialize());
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
+
+   Crowbar sender(conf.getCommandQueue());
+   ASSERT_TRUE(sender.Wield());
+   protoMsg::CommandRequest requestMsg;
+   unsigned int count(0);
+   std::string reply;
+   protoMsg::CommandReply realReply;
+   protoMsg::CommandReply replyMsg;
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
+   requestMsg.set_async(true);
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+
+   replyMsg.ParseFromString(reply);
+   EXPECT_TRUE(replyMsg.success());
+   count = 0;
+
+   requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
+   requestMsg.set_async(false);
+   requestMsg.set_stringargone(replyMsg.result());
+   testProcessor.SetTimeout(0);
+   std::this_thread::sleep_for(std::chrono::milliseconds(2001));
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   realReply.ParseFromString(reply);
+   EXPECT_FALSE(realReply.success());
+   EXPECT_TRUE(realReply.result() == "Command Not Found") << " : " << realReply.result();
+
+}
+
+TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
+
+
+   MockCommandProcessor testProcessor(conf, gProgramName);
+   EXPECT_TRUE(testProcessor.Initialize());
+   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
+
+   Crowbar sender(conf.getCommandQueue());
+   ASSERT_TRUE(sender.Wield());
+   protoMsg::CommandRequest requestMsg;
+   unsigned int count(0);
+   std::string reply;
+   protoMsg::CommandReply realReply;
+   protoMsg::CommandReply replyMsg;
+   requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
+   requestMsg.set_async(true);
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+
+   replyMsg.ParseFromString(reply);
+   EXPECT_TRUE(replyMsg.success());
+   count = 0;
+
+   requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
+   requestMsg.set_async(false);
+   requestMsg.set_stringargone(replyMsg.result());
+   do {
+      requestMsg.set_stringargone(replyMsg.result());
+      sender.Swing(requestMsg.SerializeAsString());
+      std::string reply;
+      sender.BlockForKill(reply);
+      EXPECT_FALSE(reply.empty());
+      realReply.ParseFromString(reply);
+      if (realReply.has_completed() && realReply.completed()) {
+         break;
+      } else {
+         EXPECT_TRUE(realReply.result() == "Command running");
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+   } while (!zctx_interrupted && count++ < 100);
+   testProcessor.SetTimeout(1);
+   std::this_thread::sleep_for(std::chrono::milliseconds(2001));
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   realReply.ParseFromString(reply);
+   EXPECT_FALSE(realReply.success());
+   EXPECT_TRUE(realReply.result() == "Command Not Found");
+
+}
 
 TEST_F(CommandProcessorTests, ExecuteForkTests) {
    protoMsg::CommandRequest requestMsg;
    requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
    requestMsg.set_async(true);
-   std::shared_ptr<Command> holdMe(MockTestCommand::Construct(requestMsg,gProgramName));
+   std::shared_ptr<Command> holdMe(MockTestCommand::Construct(requestMsg, gProgramName));
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
    conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   std::shared_ptr<std::atomic<bool> > threadRefSet = std::make_shared<std::atomic<bool> >(false);
+   std::shared_ptr < std::atomic<bool> > threadRefSet = std::make_shared < std::atomic<bool> >(false);
 
    unsigned int count(0);
    std::weak_ptr<Command> weakCommand(holdMe);
@@ -68,7 +205,7 @@ TEST_F(CommandProcessorTests, GetStatusTests) {
    protoMsg::CommandRequest requestMsg;
    requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
    requestMsg.set_async(true);
-   std::shared_ptr<Command> holdMe(MockTestCommand::Construct(requestMsg,gProgramName));
+   std::shared_ptr<Command> holdMe(MockTestCommand::Construct(requestMsg, gProgramName));
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
    conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
@@ -90,7 +227,7 @@ TEST_F(CommandProcessorTests, GetStatusTests) {
 
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
 
-   MockCommandProcessor testProcessor(conf,gProgramName);
+   MockCommandProcessor testProcessor(conf, gProgramName);
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandAlwaysFails::Construct);
 
@@ -149,99 +286,10 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
 
 }
 
-TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
-
-
-   MockCommandProcessor testProcessor(conf,gProgramName);
-   EXPECT_TRUE(testProcessor.Initialize());
-   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
-
-   Crowbar sender(conf.getCommandQueue());
-   ASSERT_TRUE(sender.Wield());
-   protoMsg::CommandRequest requestMsg;
-   unsigned int count(0);
-   std::string reply;
-   protoMsg::CommandReply realReply;
-   protoMsg::CommandReply replyMsg;
-   requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
-   requestMsg.set_async(true);
-   sender.Swing(requestMsg.SerializeAsString());
-   sender.BlockForKill(reply);
-   EXPECT_FALSE(reply.empty());
-
-   replyMsg.ParseFromString(reply);
-   EXPECT_TRUE(replyMsg.success());
-   count = 0;
-
-   requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
-   requestMsg.set_async(false);
-   requestMsg.set_stringargone(replyMsg.result());
-   do {
-      requestMsg.set_stringargone(replyMsg.result());
-      sender.Swing(requestMsg.SerializeAsString());
-      std::string reply;
-      sender.BlockForKill(reply);
-      EXPECT_FALSE(reply.empty());
-      realReply.ParseFromString(reply);
-      if (realReply.has_completed() && realReply.completed()) {
-         break;
-      } else {
-         EXPECT_TRUE(realReply.result() == "Command running");
-      }
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-   } while (!zctx_interrupted && count++ < 100);
-   testProcessor.SetTimeout(1);
-   std::this_thread::sleep_for(std::chrono::milliseconds(2001));
-   sender.Swing(requestMsg.SerializeAsString());
-   sender.BlockForKill(reply);
-   EXPECT_FALSE(reply.empty());
-   realReply.ParseFromString(reply);
-   EXPECT_FALSE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Command Not Found");
-
-}
-
-TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) {
-
-   MockCommandProcessor testProcessor(conf,gProgramName);
-   EXPECT_TRUE(testProcessor.Initialize());
-   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
-
-   Crowbar sender(conf.getCommandQueue());
-   ASSERT_TRUE(sender.Wield());
-   protoMsg::CommandRequest requestMsg;
-   unsigned int count(0);
-   std::string reply;
-   protoMsg::CommandReply realReply;
-   protoMsg::CommandReply replyMsg;
-   requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
-   requestMsg.set_async(true);
-   sender.Swing(requestMsg.SerializeAsString());
-   sender.BlockForKill(reply);
-   EXPECT_FALSE(reply.empty());
-
-   replyMsg.ParseFromString(reply);
-   EXPECT_TRUE(replyMsg.success());
-   count = 0;
-
-   requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
-   requestMsg.set_async(false);
-   requestMsg.set_stringargone(replyMsg.result());
-   testProcessor.SetTimeout(0);
-   std::this_thread::sleep_for(std::chrono::milliseconds(2001));
-   sender.Swing(requestMsg.SerializeAsString());
-   sender.BlockForKill(reply);
-   EXPECT_FALSE(reply.empty());
-   realReply.ParseFromString(reply);
-   EXPECT_FALSE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Command Not Found") << " : " << realReply.result();
-
-}
-
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusExitApp) {
 
 
-   MockCommandProcessor testProcessor(conf,gProgramName);
+   MockCommandProcessor testProcessor(conf, gProgramName);
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
 
@@ -263,9 +311,10 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusExitApp) {
    raise(SIGTERM);
    std::this_thread::sleep_for(std::chrono::milliseconds(1001));
 }
+
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
 
-   MockCommandProcessor testProcessor(conf,gProgramName);
+   MockCommandProcessor testProcessor(conf, gProgramName);
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommand::Construct);
 
@@ -326,7 +375,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
 
 TEST_F(CommandProcessorTests, CommandStatusFailureTests) {
 
-   MockCommandProcessor testProcessor(conf,gProgramName);
+   MockCommandProcessor testProcessor(conf, gProgramName);
    EXPECT_TRUE(testProcessor.Initialize());
    Crowbar sender(conf.getCommandQueue());
    ASSERT_TRUE(sender.Wield());
@@ -365,10 +414,10 @@ TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 
    ::testing::FLAGS_gtest_death_test_style = "threadsafe";
    ASSERT_DEATH({MockConf conf;
-   conf.mCommandQueue = "invalid";
-   CommandProcessor testProcessor(conf,gProgramName);
-   EXPECT_FALSE(testProcessor.Initialize());
-   },"Cannot start command reader listener queue");
+      conf.mCommandQueue = "invalid";
+      CommandProcessor testProcessor(conf, gProgramName);
+      EXPECT_FALSE(testProcessor.Initialize());
+      std::this_thread::sleep_for(std::chrono::seconds(1));}, "Cannot start command reader listener queue");
 
 #endif
 }
@@ -376,7 +425,7 @@ TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
 TEST_F(CommandProcessorTests, ConstructAndInitialize) {
 #ifdef LR_DEBUG
 
-   CommandProcessor testProcessor(conf,gProgramName);
+   CommandProcessor testProcessor(conf, gProgramName);
    EXPECT_TRUE(testProcessor.Initialize());
 
 #endif
@@ -385,7 +434,7 @@ TEST_F(CommandProcessorTests, ConstructAndInitialize) {
 TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
 #ifdef LR_DEBUG
 
-   MockCommandProcessor testProcessor(conf,gProgramName);
+   MockCommandProcessor testProcessor(conf, gProgramName);
    EXPECT_TRUE(testProcessor.Initialize());
    EXPECT_EQ(UpgradeCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_UPGRADE));
    EXPECT_EQ(RestartSyslogCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART));
@@ -400,7 +449,7 @@ TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
 TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
 #ifdef LR_DEBUG
 
-   CommandProcessor testProcessor(conf,gProgramName);
+   CommandProcessor testProcessor(conf, gProgramName);
    EXPECT_TRUE(testProcessor.Initialize());
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
    Crowbar sender(conf.getCommandQueue());
@@ -420,7 +469,7 @@ TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
 TEST_F(CommandProcessorTests, CommandSendReceive) {
 #ifdef LR_DEBUG
 
-   MockCommandProcessor testProcessor(conf,gProgramName);
+   MockCommandProcessor testProcessor(conf, gProgramName);
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_UPGRADE, MockUpgradeCommand::Construct);
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -444,25 +493,25 @@ TEST_F(CommandProcessorTests, CommandSendReceive) {
 TEST_F(CommandProcessorTests, UpgradeCommandInit) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
 #endif
 }
 
 TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = upg.Execute(conf);
@@ -478,14 +527,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
 TEST_F(CommandProcessorTests, DynamicUpgradeCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest* upg = new UpgradeCommandTest(cmd, processManager,gProgramName);
+   UpgradeCommandTest* upg = new UpgradeCommandTest(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = upg->Execute(conf);
@@ -502,14 +551,14 @@ TEST_F(CommandProcessorTests, DynamicUpgradeCommandExecSuccess) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeCreatePassPhrase) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.CreatePassPhraseFile();
@@ -523,14 +572,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeCreatePassPhrase) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCreatePassPhrase) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.CreatePassPhraseFile();
@@ -544,14 +593,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCreatePassPhrase) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeDecryptFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.DecryptFile();
@@ -565,14 +614,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeDecryptFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessDecryptFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.DecryptFile();
@@ -586,14 +635,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessDecryptFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeRenameDecryptedFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.RenameDecryptedFile();
@@ -607,14 +656,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeRenameDecryptedFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRenameDecryptedFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.RenameDecryptedFile();
@@ -628,14 +677,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRenameDecryptedFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeUntarFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.UntarFile();
@@ -649,14 +698,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeUntarFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessUntarFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.UntarFile();
@@ -670,14 +719,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessUntarFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnRunUpgradeScript) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.RunUpgradeScript();
@@ -691,14 +740,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnRunUpgradeScript) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRunUpgradeScript) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.RunUpgradeScript();
@@ -712,14 +761,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRunUpgradeScript) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCleanUploadDir) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.CleanUploadDir();
@@ -733,14 +782,14 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCleanUploadDir) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCleanUploadDir) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       upg.CleanUploadDir();
@@ -754,7 +803,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCleanUploadDir) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailInitProcessManager) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->setInit(false);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
@@ -762,7 +811,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailInitProcessManager) {
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager,gProgramName);
+   UpgradeCommandTest upg(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = upg.Execute(conf);
@@ -780,13 +829,13 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailInitProcessManager) {
 TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RebootCommandTest reboot(cmd, processManager,gProgramName);
+   RebootCommandTest reboot(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = reboot.Execute(conf);
@@ -804,13 +853,13 @@ TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
 TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
-   MockShutdownCommand shutdown(cmd, processManager,gProgramName);
+   MockShutdownCommand shutdown(cmd, processManager, gProgramName);
    MockShutdownCommand::callRealShutdownCommand = true;
    bool exception = false;
    try {
@@ -826,48 +875,7 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
 #endif
 }
 
-//
-//  The Mock Shutdown sets a flag if the DoTheShutdown gets triggered. 
-//  As long as the Mock is not tampered with and the ChangeRegistration below is in order
-//  this test will NOT shutdown your PC, only fake it. 
-//
-//  If you tamper with the details mentioned, all bets are OFF!
-//
 
-TEST_F(CommandProcessorTests, PseudoShutdown) {
-#ifdef LR_DEBUG
-   MockConf conf;
-   conf.mCommandQueue = "tcp://127.0.0.1:";
-   conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockCommandProcessor testProcessor(conf,gProgramName);
-   EXPECT_TRUE(testProcessor.Initialize());
-   LOG(INFO) << "Executing Real command with real Processor but with Mocked Shutdown function";
-   // NEVER CHANGE the LINE below. If it is set to true your PC will shut down
-   MockShutdownCommand::callRealShutdownCommand = false;
-   MockShutdownCommand::wasShutdownCalled = false;
-
-
-   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN, MockShutdownCommand::FatalAndDangerousConstruct);
-   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-   Crowbar sender(conf.getCommandQueue());
-   ASSERT_TRUE(sender.Wield());
-   protoMsg::CommandRequest requestMsg;
-   requestMsg.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
-
-   protoMsg::ShutdownMsg shutdown;
-   shutdown.set_now(true);
-   requestMsg.set_stringargone(shutdown.SerializeAsString());
-   sender.Swing(requestMsg.SerializeAsString());
-   std::string reply;
-   sender.BlockForKill(reply);
-   EXPECT_FALSE(reply.empty());
-   protoMsg::CommandReply replyMsg;
-   replyMsg.ParseFromString(reply);
-   EXPECT_TRUE(replyMsg.success());
-   EXPECT_TRUE(MockShutdownCommand::wasShutdownCalled);
-
-#endif
-}
 
 
 
@@ -888,13 +896,13 @@ TEST_F(CommandProcessorTests, PseudoShutdown) {
 TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RebootCommandTest reboot(cmd, processManager,gProgramName);
+   RebootCommandTest reboot(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       reboot.DoTheReboot();
@@ -908,13 +916,13 @@ TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
 TEST_F(CommandProcessorTests, RebootCommandFailSuccessDoTheUpgrade) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RebootCommandTest reboot(cmd, processManager,gProgramName);
+   RebootCommandTest reboot(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       reboot.DoTheReboot();
@@ -930,13 +938,13 @@ TEST_F(CommandProcessorTests, RebootCommandFailSuccessDoTheUpgrade) {
 TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RestartSyslogCommandTest reboot(cmd, processManager,gProgramName);
+   RestartSyslogCommandTest reboot(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = reboot.Execute(conf);
@@ -956,13 +964,13 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_UDP) {
    conf.mSyslogConfName = "/tmp/test.nm.rsyslog.conf"; // dummy file. won't be created
    conf.mSyslogProtocol = false; // udp
    conf.mSyslogAgentIp = "123.123.123";
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RestartSyslogCommandTest reboot(cmd, processManager,gProgramName);
+   RestartSyslogCommandTest reboot(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       reboot.UpdateSyslog(conf);
@@ -985,13 +993,13 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_TCP) {
    conf.mSyslogConfName = "/tmp/test.nm.rsyslog.conf"; // dummy file. won't be created
    conf.mSyslogProtocol = true; // "TCP";
    conf.mSyslogAgentIp = "123.123.123";
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RestartSyslogCommandTest reboot(cmd, processManager,gProgramName);
+   RestartSyslogCommandTest reboot(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       reboot.UpdateSyslog(conf);
@@ -1010,19 +1018,19 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_TCP) {
    expected.append("\\$ActionQueueSaveOnShutdown on # save messages to disk on shutdown\n");
    expected.append("local4.* @@123.123.123:1234\" > /tmp/test.nm.rsyslog.conf");
    EXPECT_TRUE(cmdArgs == expected) << "\ncmdArgs:\t" << cmdArgs << "\nexpected:\t" << expected;
-  #endif
+#endif
 }
 
 TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailedUpdate) {
 #ifdef LR_DEBUG
    MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RestartSyslogCommandTest reboot(cmd, processManager,gProgramName);
+   RestartSyslogCommandTest reboot(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       reboot.UpdateSyslog(conf);
@@ -1030,21 +1038,20 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailedUpdate) {
       exception = true;
    }
    ASSERT_TRUE(exception);
-   
+
 #endif
 }
-
 
 TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailRestart) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RestartSyslogCommandTest reboot(cmd, processManager,gProgramName);
+   RestartSyslogCommandTest reboot(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       reboot.Restart();
@@ -1059,13 +1066,13 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailRestart) {
 TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailSuccessRestart) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_REBOOT);
-   RestartSyslogCommandTest reboot(cmd, processManager,gProgramName);
+   RestartSyslogCommandTest reboot(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       reboot.Restart();
@@ -1082,10 +1089,10 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailSuccessRestart) {
 TEST_F(CommandProcessorTests, NetworkConfigCommandInit) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
 
 #endif 
 }
@@ -1093,7 +1100,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandInit) {
 TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("Success!");
@@ -1102,7 +1109,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
    protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::DHCP);
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = ncct.Execute(conf);
@@ -1119,7 +1126,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
 TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("Success!");
@@ -1128,7 +1135,7 @@ TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
    protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::DHCP);
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest* ncct = new NetworkConfigCommandTest(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest* ncct = new NetworkConfigCommandTest(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = ncct->Execute(conf);
@@ -1146,14 +1153,14 @@ TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
 TEST_F(CommandProcessorTests, NetworkConfigCommandBadInterfaceMsg) {
 
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("Success!");
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
    cmd.set_stringargone("BadInterfaceMsg");
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = ncct.Execute(conf);
@@ -1170,7 +1177,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandBadInterfaceMsg) {
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
 
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->setInit(false);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
@@ -1180,7 +1187,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
    protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::DHCP);
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = ncct.Execute(conf);
@@ -1197,7 +1204,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailInterfaceMethodNotSet) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("Success!");
@@ -1205,7 +1212,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInterfaceMethodNotSet) {
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
    protoMsg::NetInterface interfaceConfig;
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = ncct.Execute(conf);
@@ -1220,7 +1227,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInterfaceMethodNotSet) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("Success!");
@@ -1231,7 +1238,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
    interfaceConfig.set_ipaddress("192.168.1.1");
    interfaceConfig.set_netmask("255.255.255.0");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = ncct.Execute(conf);
@@ -1246,7 +1253,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth1) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1256,7 +1263,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth1) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("eth1");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    ncct.setStatFail();
    bool exception = false;
    try {
@@ -1270,7 +1277,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth1) {
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm2) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1280,7 +1287,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm2) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("em2");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    ncct.setStatFail();
    bool exception = false;
    try {
@@ -1294,7 +1301,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm2) {
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth2) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1304,7 +1311,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth2) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("eth2");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    ncct.setStatFail();
    bool exception = false;
    try {
@@ -1318,7 +1325,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth2) {
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm3) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1328,7 +1335,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm3) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("em3");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    ncct.setStatFail();
    bool exception = false;
    try {
@@ -1342,7 +1349,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm3) {
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgFileExists) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1352,7 +1359,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgFileExists) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("NoIface");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    ncct.setStatFail();
    bool exception = false;
    try {
@@ -1366,7 +1373,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgFileExists) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1376,7 +1383,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile)
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("NoIface");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.BackupIfcfgFile();
@@ -1393,7 +1400,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile)
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -1403,7 +1410,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("NoIface");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.BackupIfcfgFile();
@@ -1420,7 +1427,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeRestoreIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1430,7 +1437,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeRestoreIfcfgFile
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("NoIface");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.RestoreIfcfgFile();
@@ -1447,7 +1454,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeRestoreIfcfgFile
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessRestoreIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -1457,7 +1464,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessRestoreIfcfgFile) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("NoIface");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.RestoreIfcfgFile();
@@ -1474,7 +1481,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessRestoreIfcfgFile) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1484,7 +1491,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) 
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("NoIface");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.ResetIfcfgFile();
@@ -1502,7 +1509,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) 
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -1512,7 +1519,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("NoIface");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.ResetIfcfgFile();
@@ -1530,7 +1537,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1540,7 +1547,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
    interfaceConfig.set_method(protoMsg::DHCP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddBootProto("dhcp");
@@ -1556,7 +1563,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -1566,7 +1573,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddBootProto("none");
@@ -1582,7 +1589,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1592,7 +1599,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddIpAddr();
@@ -1607,7 +1614,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1618,7 +1625,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_ipaddress("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddIpAddr();
@@ -1633,7 +1640,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1644,7 +1651,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_ipaddress("192.168.1.1");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddIpAddr();
@@ -1660,7 +1667,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -1671,7 +1678,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_ipaddress("192.168.1.1");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddIpAddr();
@@ -1687,7 +1694,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1697,7 +1704,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddNetmask();
@@ -1712,7 +1719,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1723,7 +1730,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_netmask("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddNetmask();
@@ -1738,7 +1745,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1749,7 +1756,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_netmask("255.255.255.0");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddNetmask();
@@ -1765,7 +1772,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -1776,7 +1783,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_netmask("255.255.255.0");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddNetmask();
@@ -1792,7 +1799,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1802,7 +1809,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddGateway();
@@ -1817,7 +1824,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1828,7 +1835,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_gateway("192.168.1.100");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddGateway();
@@ -1844,7 +1851,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -1855,7 +1862,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_gateway("192.168.1.100");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddGateway();
@@ -1871,7 +1878,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -1882,7 +1889,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_gateway("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddGateway();
@@ -1897,7 +1904,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1908,7 +1915,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddDnsServers();
@@ -1924,7 +1931,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -1935,7 +1942,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddDnsServers();
@@ -1951,7 +1958,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -1962,7 +1969,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddDnsServers();
@@ -1977,7 +1984,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -1988,7 +1995,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddDns1();
@@ -2004,7 +2011,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -2015,7 +2022,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddDns1();
@@ -2031,7 +2038,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2042,7 +2049,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddDns2();
@@ -2058,7 +2065,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -2069,7 +2076,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddDns2();
@@ -2085,7 +2092,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDomain) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2096,7 +2103,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDomain) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_searchdomains("schq.secious.com");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddDomain();
@@ -2112,7 +2119,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDomain) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -2123,7 +2130,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_searchdomains("schq.secious.com");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddDomain();
@@ -2139,7 +2146,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddDomainEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2150,7 +2157,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDomainEmptyString) {
    interfaceConfig.set_interface("ethx");
    interfaceConfig.set_searchdomains("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddDomain();
@@ -2165,7 +2172,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDomainEmptyString) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceDown) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2175,7 +2182,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceDown)
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.InterfaceDown();
@@ -2190,7 +2197,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceDown)
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -2200,7 +2207,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.InterfaceDown();
@@ -2216,7 +2223,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2226,7 +2233,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.InterfaceUp();
@@ -2241,7 +2248,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -2251,7 +2258,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.InterfaceUp();
@@ -2266,7 +2273,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandStaticNoExtraRetriesOnSuccessfulInterfaceUp) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("");
@@ -2276,7 +2283,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandStaticNoExtraRetriesOnSuccessf
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("eth0");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.InterfaceUp();
@@ -2291,7 +2298,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandStaticNoExtraRetriesOnSuccessf
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDhcpNoExtraRetriesOnSuccessfulInterfaceUp) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
    processManager->SetResult("");
@@ -2301,7 +2308,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDhcpNoExtraRetriesOnSuccessful
    interfaceConfig.set_method(protoMsg::DHCP);
    interfaceConfig.set_interface("eth0");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.InterfaceUp();
@@ -2316,7 +2323,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDhcpNoExtraRetriesOnSuccessful
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2326,7 +2333,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddOnBoot();
@@ -2342,7 +2349,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -2352,7 +2359,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddOnBoot();
@@ -2368,7 +2375,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2378,7 +2385,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled)
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddNmControlled();
@@ -2394,7 +2401,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled)
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -2404,7 +2411,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
    interfaceConfig.set_method(protoMsg::STATICIP);
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddNmControlled();
@@ -2420,7 +2427,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2431,7 +2438,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
    interfaceConfig.set_interface("ethx");
    // No DNS Servers or Search Domains set, which causes PEERDNS=no on output
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddPeerDns();
@@ -2447,7 +2454,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDomainNo) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2459,7 +2466,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDoma
    interfaceConfig.set_dnsservers("");
    // DNS Server is empty string and no Search Domains set, which causes PEERDNS=no on output
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddPeerDns();
@@ -2475,7 +2482,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDoma
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2487,7 +2494,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptySt
    interfaceConfig.set_searchdomains("");
    // No DNS Server and Search Domains is empty string, which causes PEERDNS=no on output
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddPeerDns();
@@ -2503,7 +2510,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptySt
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStrings) {
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(1);
    processManager->SetResult("Failed!");
@@ -2516,7 +2523,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStri
    interfaceConfig.set_searchdomains("");
    // DNS Server and Search Domains are both empty strings, which causes PEERDNS=no on output
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddPeerDns();
@@ -2533,7 +2540,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStri
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
 
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf,gProgramName);
+   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
    processManager->SetSuccess(false);
    processManager->SetReturnCode(0);
    processManager->SetResult("Failed!");
@@ -2546,7 +2553,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    interfaceConfig.set_searchdomains("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager,gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
    bool exception = false;
    try {
       ncct.AddPeerDns();

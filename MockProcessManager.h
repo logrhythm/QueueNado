@@ -5,12 +5,18 @@ class MockProcessManager : public ProcessManager {
 public:
 
    MockProcessManager(const Conf& conf, const std::string& programName) : ProcessManager(conf,programName), mKillFails(false),
-   mExecFails(false) {
+   mExecFails(false), mRealInit(true) {
    }
 
    virtual ~MockProcessManager() {
    }
-
+   virtual bool Initialize() {
+      if (mRealInit) {
+         return ProcessManager::Initialize();
+      } else {
+         return true;
+      }
+   }
    using ProcessManager::StartDaemon;
    using ProcessManager::StopProcess;
 
@@ -48,4 +54,16 @@ public:
    bool mKillFails;
    bool mExecFails;
    std::string mPidDir;
+   bool mRealInit;
+};
+
+class MockProcessManagerNoInit : public MockProcessManager {
+   public:
+   MockProcessManagerNoInit(const Conf& conf, const std::string& programName) : MockProcessManager(conf,programName) {
+      mRealInit = false;
+   }
+
+   virtual ~MockProcessManagerNoInit() {
+   }
+   
 };
