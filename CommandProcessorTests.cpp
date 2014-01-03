@@ -1177,7 +1177,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandBadInterfaceMsg) {
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
 
    const MockConf conf;
-   MockProcessManagerCommand* processManager = new MockProcessManagerCommand(conf, gProgramName);
+   std::unique_ptr<MockProcessManagerCommand> processManager(new MockProcessManagerCommand(conf, gProgramName));
    processManager->setInit(false);
    processManager->SetSuccess(true);
    processManager->SetReturnCode(0);
@@ -1187,7 +1187,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
    protoMsg::NetInterface interfaceConfig;
    interfaceConfig.set_method(protoMsg::DHCP);
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager, gProgramName);
+   NetworkConfigCommandTest ncct(cmd, processManager.get(), gProgramName);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = ncct.Execute(conf);
@@ -1198,7 +1198,6 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
    }
 
    ASSERT_FALSE(exception);
-
 
 }
 
