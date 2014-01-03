@@ -19,6 +19,7 @@
 
 #include "tempFileCreate.h"
 #include "MsgUuid.h"
+#include "DpiMsgLRPool.h"
 
 // System test -- for now not disabled
 TEST_F(DiskPacketCaptureTest, SystemTest_VerifyGetCaptureFirstLocation) {
@@ -113,58 +114,59 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    MockDiskPacketCapture capture(conf);
 
    ASSERT_TRUE(capture.Initialize());
-   networkMonitor::DpiMsgLR testMessage;
+   DpiMsgLRPool& pool = DpiMsgLRPool::Instance();
+   networkMonitor::DpiMsgLR* testMessage = pool.GetDpiMsg();
    struct upacket packet;
 
-   testMessage.set_sessionid("123456789012345678901234567890123456");
-   testMessage.set_packettotal(0);
-   testMessage.set_packetsdelta(0);
-   testMessage.set_bytessource(0);
-   testMessage.set_bytesdest(0);
-   testMessage.set_bytestotal(0);
-   testMessage.set_bytestotaldelta(0);
-   testMessage.set_captured(true);
+   testMessage->set_sessionid("123456789012345678901234567890123456");
+   testMessage->set_packettotal(0);
+   testMessage->set_packetsdelta(0);
+   testMessage->set_bytessource(0);
+   testMessage->set_bytesdest(0);
+   testMessage->set_bytestotal(0);
+   testMessage->set_bytestotaldelta(0);
+   testMessage->set_captured(true);
 
    packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
    packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
    packet.p->len = (testPacketSize);
    for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
-      testMessage.set_packettotal(testMessage.packettotal() + 1);
-      testMessage.set_packetsdelta(testMessage.packetsdelta() + 1);
+      testMessage->set_packettotal(testMessage->packettotal() + 1);
+      testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
       if (i % 2 == 0) {
-         testMessage.set_bytessource(testMessage.bytessource() + packet.p->len);
+         testMessage->set_bytessource(testMessage->bytessource() + packet.p->len);
       } else {
-         testMessage.set_bytesdest(testMessage.bytesdest() + packet.p->len);
+         testMessage->set_bytesdest(testMessage->bytesdest() + packet.p->len);
       }
-      capture.SavePacket(&testMessage, &packet);
+      capture.SavePacket(testMessage, &packet);
    }
-   EXPECT_TRUE(capture.WriteSavedSessionToDisk(&testMessage));
-   EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage.packettotal());
-   EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage.bytessource() + testMessage.bytesdest());
-   EXPECT_TRUE(testMessage.written());
+   EXPECT_TRUE(capture.WriteSavedSessionToDisk(testMessage));
+   EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage->packettotal());
+   EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage->bytessource() + testMessage->bytesdest());
+   EXPECT_TRUE(testMessage->written());
    struct stat statbuf;
 
-   std::string testFile = testDir.str() + "/" + testMessage.sessionid();
+   std::string testFile = testDir.str() + "/" + testMessage->sessionid();
    ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
    EXPECT_TRUE(conf.mMaxIndividualPCap * testPacketSize >= statbuf.st_size);
    EXPECT_TRUE((conf.mMaxIndividualPCap - 1) * testPacketSize <= statbuf.st_size);
 
    remove(testFile.c_str());
    for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
-      testMessage.set_packettotal(testMessage.packettotal() + 1);
-      testMessage.set_packetsdelta(testMessage.packetsdelta() + 1);
+      testMessage->set_packettotal(testMessage->packettotal() + 1);
+      testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
       if (i % 2 == 0) {
-         testMessage.set_bytessource(testMessage.bytessource() + packet.p->len);
+         testMessage->set_bytessource(testMessage->bytessource() + packet.p->len);
       } else {
-         testMessage.set_bytesdest(testMessage.bytesdest() + packet.p->len);
+         testMessage->set_bytesdest(testMessage->bytesdest() + packet.p->len);
       }
-      capture.SavePacket(&testMessage, &packet);
-      EXPECT_FALSE(capture.WriteSavedSessionToDisk(&testMessage));
+      capture.SavePacket(testMessage, &packet);
+      EXPECT_FALSE(capture.WriteSavedSessionToDisk(testMessage));
    }
-   EXPECT_FALSE(testMessage.written());
-   EXPECT_FALSE(testMessage.captured());
-   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2), testMessage.packettotal());
-   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage.bytessource() + testMessage.bytesdest());
+   EXPECT_FALSE(testMessage->written());
+   EXPECT_FALSE(testMessage->captured());
+   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2), testMessage->packettotal());
+   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage->bytessource() + testMessage->bytesdest());
 
    ASSERT_NE(0, stat(testFile.c_str(), &statbuf));
 
@@ -184,39 +186,40 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitFlushedFile) {
    MockDiskPacketCapture capture(conf);
 
    ASSERT_TRUE(capture.Initialize());
-   networkMonitor::DpiMsgLR testMessage;
+   DpiMsgLRPool& pool = DpiMsgLRPool::Instance();
+   networkMonitor::DpiMsgLR* testMessage = pool.GetDpiMsg();
    struct upacket packet;
 
-   testMessage.set_sessionid("123456789012345678901234567890123456");
-   testMessage.set_packettotal(0);
-   testMessage.set_packetsdelta(0);
-   testMessage.set_bytessource(9 * testPacketSize);
-   testMessage.set_bytesdest(0);
-   testMessage.set_bytestotal(0);
-   testMessage.set_bytestotaldelta(0);
-   testMessage.set_captured(true);
-   testMessage.set_written(true);
+   testMessage->set_sessionid("123456789012345678901234567890123456");
+   testMessage->set_packettotal(0);
+   testMessage->set_packetsdelta(0);
+   testMessage->set_bytessource(9 * testPacketSize);
+   testMessage->set_bytesdest(0);
+   testMessage->set_bytestotal(0);
+   testMessage->set_bytestotaldelta(0);
+   testMessage->set_captured(true);
+   testMessage->set_written(true);
 
 
    packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
    packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
    packet.p->len = (testPacketSize);
    for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
-      testMessage.set_packettotal(testMessage.packettotal() + 1);
-      testMessage.set_packetsdelta(testMessage.packetsdelta() + 1);
+      testMessage->set_packettotal(testMessage->packettotal() + 1);
+      testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
       if (i % 2 == 0) {
-         testMessage.set_bytessource(testMessage.bytessource() + packet.p->len);
+         testMessage->set_bytessource(testMessage->bytessource() + packet.p->len);
       } else {
-         testMessage.set_bytesdest(testMessage.bytesdest() + packet.p->len);
+         testMessage->set_bytesdest(testMessage->bytesdest() + packet.p->len);
       }
-      capture.SavePacket(&testMessage, &packet);
-      capture.WriteSavedSessionToDisk(&testMessage);
+      capture.SavePacket(testMessage, &packet);
+      capture.WriteSavedSessionToDisk(testMessage);
    }
-   EXPECT_FALSE(testMessage.written());
-   EXPECT_FALSE(testMessage.captured());
+   EXPECT_FALSE(testMessage->written());
+   EXPECT_FALSE(testMessage->captured());
    struct stat statbuf;
 
-   std::string testFile = testDir.str() + "/" + testMessage.sessionid();
+   std::string testFile = testDir.str() + "/" + testMessage->sessionid();
    ASSERT_NE(0, stat(testFile.c_str(), &statbuf));
    free(packet.p->data);
    free(packet.p);
@@ -389,14 +392,16 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
    
    std::string base = {"testLocation"};
    const size_t buckets = 256;
+   std::map<int, int> counters;
    for(int i = 0; i <= 0xFF; ++i) {
       std::string location = base;
       location.append(std::to_string(i));
       conf.mPCapCaptureLocations.push_back(location);
+      counters[i] = 0;
    }
    auto locations = conf.GetPcapCaptureLocations();
-   const auto max = 2040;
-   std::map<int, int> counters;
+   const auto max = 102400;
+   
    for(auto loop = 0; loop < max; ++loop) {
       
       
@@ -417,7 +422,6 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
       ASSERT_NE(0, count.second);
    }
    ASSERT_EQ(locations.size(), 256);
-   ASSERT_EQ(counters.size(), buckets);
 #endif
 }
 
@@ -565,37 +569,39 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
       unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
       p.data = data;
-      networkMonitor::DpiMsgLR dpiMsg1;
-      dpiMsg1.set_sessionid("FlowOne");
-      capture.SavePacket(&dpiMsg1, &packet);
+      
+      DpiMsgLRPool& pool = DpiMsgLRPool::Instance();
+      networkMonitor::DpiMsgLR* dpiMsg1 = pool.GetDpiMsg();
+      dpiMsg1->set_sessionid("012345678901234567890123456789012345");
+      capture.SavePacket(dpiMsg1, &packet);
       EXPECT_EQ(1, capture.NewTotalMemory(0));
-      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr) - sizeof (struct pcap_pkthdr) - 1;
-      capture.SavePacket(&dpiMsg1, &packet);
+      capture.SavePacket(dpiMsg1, &packet);
       EXPECT_EQ(1, capture.NewTotalMemory(0));
-      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
       p.len = 1;
-      networkMonitor::DpiMsgLR dpiMsg2;
-      dpiMsg2.set_sessionid("FlowTwo");
-      capture.SavePacket(&dpiMsg2, &packet);
+      networkMonitor::DpiMsgLR* dpiMsg2 = pool.GetDpiMsg();
+      dpiMsg2->set_sessionid("012345678901234567890123456789012346");
+      capture.SavePacket(dpiMsg2, &packet);
       EXPECT_EQ(2, capture.NewTotalMemory(0));
-      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012346"));
 
       conf.mPCapCaptureMemoryLimit = 2;
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
       capture.mFailFlush = true;
-      capture.SavePacket(&dpiMsg2, &packet);
+      capture.SavePacket(dpiMsg2, &packet);
       EXPECT_EQ(2, capture.NewTotalMemory(0));
-      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012346"));
 
       conf.mPCapCaptureMemoryLimit = 3;
       EXPECT_EQ(3, capture.NewTotalMemory((1024 * 1024)));
 
-      capture.RemoveDataFromRunningPackets(&dpiMsg1);
+      capture.RemoveDataFromRunningPackets(dpiMsg1);
       EXPECT_EQ(0, capture.NewTotalMemory(0));
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
 
    }
    ASSERT_FALSE(capture.Initialize());
@@ -625,22 +631,23 @@ TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit_FlushingToManyLocations) {
       unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
       p.data = data;
-      networkMonitor::DpiMsgLR dpiMsg;
-      dpiMsg.set_sessionid("FlowOne");
+      DpiMsgLRPool& pool = DpiMsgLRPool::Instance();
+      networkMonitor::DpiMsgLR* dpiMsg = pool.GetDpiMsg();
+      dpiMsg->set_sessionid("012345678901234567890123456789012345");
       EXPECT_EQ(0, capture.NewTotalMemory(0));
-      capture.SavePacket(&dpiMsg, &packet);
+      capture.SavePacket(dpiMsg, &packet);
       EXPECT_EQ(1, capture.NewTotalMemory(0));
       ASSERT_EQ(0, capture.mFilesWritten.size()); // Not yet flushed
 
       
-      dpiMsg.set_sessionid("FlowTwo");
-      capture.SavePacket(&dpiMsg, &packet);
+      dpiMsg->set_sessionid("012345678901234567890123456789012346");
+      capture.SavePacket(dpiMsg, &packet);
       
       // Verify that all is still kept in memory and not flushed
       ASSERT_EQ(0, capture.mFilesWritten.size()); 
       EXPECT_EQ(2, capture.NewTotalMemory(0));
-      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
-      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowTwo")); 
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012346")); 
 
       
       capture.mFailFlush = false;
@@ -650,12 +657,12 @@ TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit_FlushingToManyLocations) {
 
 
       // 
-      dpiMsg.set_sessionid("FlowTwo");
-      capture.SavePacket(&dpiMsg, &packet);
+      dpiMsg->set_sessionid("012345678901234567890123456789012346");
+      capture.SavePacket(dpiMsg, &packet);
       EXPECT_EQ(1, capture.NewTotalMemory(0)); // FlowOne still left
       ASSERT_EQ(1, capture.mFilesWritten.size()); // FlowTwo flushed
-      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne")); // not flushed
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo")); // flushed
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012345")); // not flushed
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012346")); // flushed
 
       // Post: thread-id used in SavePacket
       // Any attempt to save a packet when we are over the limit will result in a discarded package
@@ -667,15 +674,15 @@ TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit_FlushingToManyLocations) {
       //      2) Save packets 
       //      3) Lower the bar and save another packet --> which triggers the flush of the file (and the erase mentioned above)
       conf.mPCapCaptureMemoryLimit = 10; 
-      dpiMsg.set_sessionid("FlowOne");
-      capture.SavePacket(&dpiMsg, &packet); // 1 -> 2
-      capture.SavePacket(&dpiMsg, &packet); // 2 -> 3
-      EXPECT_EQ(3, capture.CurrentMemoryForFlow("FlowOne")); // not flushed
+      dpiMsg->set_sessionid("012345678901234567890123456789012345");
+      capture.SavePacket(dpiMsg, &packet); // 1 -> 2
+      capture.SavePacket(dpiMsg, &packet); // 2 -> 3
+      EXPECT_EQ(3, capture.CurrentMemoryForFlow("012345678901234567890123456789012345")); // not flushed
       conf.mPCapCaptureMemoryLimit = 1; 
-      capture.SavePacket(&dpiMsg, &packet); // FlowOne is now also flushed
+      capture.SavePacket(dpiMsg, &packet); // FlowOne is now also flushed
 
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne")); // not flushed
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo")); // flushed
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012345")); // not flushed
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012346")); // flushed
       ASSERT_EQ(2, capture.mFilesWritten.size()); // FlowTwo flushed
 
    }
@@ -705,31 +712,32 @@ TEST_F(DiskPacketCaptureTest, AutoFlushOnMemoryLimit) {
       unsigned char data[(1024 * 1024) - sizeof (struct pcap_pkthdr)];
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
       p.data = data;
-      networkMonitor::DpiMsgLR dpiMsg;
-      dpiMsg.set_sessionid("FlowOne");
-      capture.SavePacket(&dpiMsg, &packet);
+      DpiMsgLRPool& pool = DpiMsgLRPool::Instance();
+      networkMonitor::DpiMsgLR* dpiMsg = pool.GetDpiMsg();
+      dpiMsg->set_sessionid("012345678901234567890123456789012345");
+      capture.SavePacket(dpiMsg, &packet);
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr) - sizeof (struct pcap_pkthdr) - 1;
-      capture.SavePacket(&dpiMsg, &packet);
+      capture.SavePacket(dpiMsg, &packet);
       p.len = 1;
-      dpiMsg.set_sessionid("FlowTwo");
-      capture.SavePacket(&dpiMsg, &packet);
+      dpiMsg->set_sessionid("012345678901234567890123456789012346");
+      capture.SavePacket(dpiMsg, &packet);
       EXPECT_EQ(2, capture.NewTotalMemory(0));
-      EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
+      EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012346"));
 
       conf.mPCapCaptureMemoryLimit = 2;
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
       capture.mFailFlush = false;
-      capture.SavePacket(&dpiMsg, &packet);
+      capture.SavePacket(dpiMsg, &packet);
       ASSERT_EQ(1, capture.mFilesWritten.size());
       // cleanup is an unordered map, the flow that gets picked could very based on the 
       // pointer hash
       if ("FlowOne" == *capture.mFilesWritten.begin()) {
-         EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
-         EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowTwo"));
+         EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
+         EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012346"));
       } else {
-         EXPECT_EQ(1, capture.CurrentMemoryForFlow("FlowOne"));
-         EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowTwo"));
+         EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
+         EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012346"));
       }
       EXPECT_EQ(1, capture.NewTotalMemory(0));
 
@@ -765,35 +773,36 @@ TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
       unsigned char* data = new unsigned char[(1024 * 1024 * 10) - sizeof (struct pcap_pkthdr)];
       p.len = 2 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
       p.data = data;
-      networkMonitor::DpiMsgLR dpiMsg;
-      dpiMsg.set_sessionid("FlowOne");
-      dpiMsg.set_written(false);
-      capture.SavePacket(&dpiMsg, &packet);
+      DpiMsgLRPool& pool = DpiMsgLRPool::Instance();
+      networkMonitor::DpiMsgLR* dpiMsg = pool.GetDpiMsg();
+      dpiMsg->set_sessionid("012345678901234567890123456789012345");
+      dpiMsg->set_written(false);
+      capture.SavePacket(dpiMsg, &packet);
 
-      EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
-      EXPECT_FALSE(dpiMsg.written());
-      EXPECT_EQ(2, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(0, capture.CurrentDiskForFlow("012345678901234567890123456789012345"));
+      EXPECT_FALSE(dpiMsg->written());
+      EXPECT_EQ(2, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
       p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
-      capture.SavePacket(&dpiMsg, &packet);
-      EXPECT_EQ(2, capture.CurrentDiskForFlow("FlowOne"));
-      EXPECT_TRUE(dpiMsg.written());
-      dpiMsg.set_written(false);
-      EXPECT_EQ(4, capture.CurrentMemoryForFlow("FlowOne"));
+      capture.SavePacket(dpiMsg, &packet);
+      EXPECT_EQ(2, capture.CurrentDiskForFlow("012345678901234567890123456789012345"));
+      EXPECT_TRUE(dpiMsg->written());
+      dpiMsg->set_written(false);
+      EXPECT_EQ(4, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
       p.len = 5 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
-      capture.SavePacket(&dpiMsg, &packet);
+      capture.SavePacket(dpiMsg, &packet);
 
-      EXPECT_EQ(6, capture.CurrentDiskForFlow("FlowOne"));
-      EXPECT_TRUE(dpiMsg.written());
-      dpiMsg.set_written(false);
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(6, capture.CurrentDiskForFlow("012345678901234567890123456789012345"));
+      EXPECT_TRUE(dpiMsg->written());
+      dpiMsg->set_written(false);
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
 
       conf.mMaxIndividualPCap = 11;
       p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
-      capture.SavePacket(&dpiMsg, &packet);
-      EXPECT_EQ(6, capture.CurrentDiskForFlow("FlowOne"));
-      EXPECT_FALSE(dpiMsg.written());
-      dpiMsg.set_written(false);
-      EXPECT_EQ(4, capture.CurrentMemoryForFlow("FlowOne"));
+      capture.SavePacket(dpiMsg, &packet);
+      EXPECT_EQ(6, capture.CurrentDiskForFlow("012345678901234567890123456789012345"));
+      EXPECT_FALSE(dpiMsg->written());
+      dpiMsg->set_written(false);
+      EXPECT_EQ(4, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
       delete []data;
    }
    ASSERT_FALSE(capture.Initialize());
@@ -829,18 +838,18 @@ TEST_F(DiskPacketCaptureTest, PacketCaptureDisabled) {
       p.len = 2 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
       p.data = data;
       networkMonitor::DpiMsgLR dpiMsg;
-      dpiMsg.set_sessionid("FlowOne");
+      dpiMsg.set_sessionid("012345678901234567890123456789012345");
       dpiMsg.set_written(false);
       capture.SavePacket(&dpiMsg, &packet);
-      EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
+      EXPECT_EQ(0, capture.CurrentDiskForFlow("012345678901234567890123456789012345"));
       EXPECT_FALSE(dpiMsg.written());
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
 
       p.len = 4 * (1024 * 1024) - sizeof (struct pcap_pkthdr);
       capture.SavePacket(&dpiMsg, &packet);
-      EXPECT_EQ(0, capture.CurrentDiskForFlow("FlowOne"));
+      EXPECT_EQ(0, capture.CurrentDiskForFlow("012345678901234567890123456789012345"));
       EXPECT_FALSE(dpiMsg.written());
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("FlowOne"));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
 
       delete []data;
    }
