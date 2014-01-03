@@ -183,17 +183,19 @@ TEST_F(DpiMsgLRPoolTest, DpiMsgSize) {
    MockDpiMsgLRPool testPool;
    Conf conf = networkMonitor::ConfSlave::Instance().GetConf();
    const auto threshold = conf.GetDpiRecycleTheshold();
-
+   size_t msgBaseSize;
    networkMonitor::DpiMsgLR* testMsg = new networkMonitor::DpiMsgLR;
-   static std::string oneHundredByteString = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+   msgBaseSize = testMsg->SpaceUsed();
+   static std::string oneHundredByteString = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012";
 
-   while (testMsg->SpaceUsed() < threshold - 100 * 100) {
-      for (int i = 0; i < 100; i++) {
+   while (testMsg->SpaceUsed() < (threshold - 100 * 100 )) {
+      for (int i = 0; i < 100 && testMsg->SpaceUsed() < (threshold - 100 * 100 ); i++) {
          testMsg->add_accept_encodingq_proto_http(oneHundredByteString);
       }
+      
    }
    EXPECT_FALSE(testPool.DpiMsgTooBig(testMsg, threshold));
-   for (int i = 0; i < 100; i++) {
+   for (int i = 0; i < 150; i++) {
       testMsg->add_accept_encodingq_proto_http(oneHundredByteString);
    }
    EXPECT_TRUE(testPool.DpiMsgTooBig(testMsg, threshold));
