@@ -11,44 +11,43 @@
 #include "ConfProcessor.h"
 #include "boost/lexical_cast.hpp"
 #include <csignal>
-
 class ConfProcessorTests : public ::testing::Test {
 public:
 
-   ConfProcessorTests() {
-   };
+    ConfProcessorTests() {
+    };
 protected:
-   std::string mWriteLocation;
-   std::string mWriteInterfaceLocation;
-   std::string mTestConf;
-   std::string mTestInterfaceConf;
-   std::string mTestNtpConf;
-   std::string mTestSyslogConf;
+    std::string mWriteLocation;
+    std::string mWriteInterfaceLocation;
+    std::string mTestConf;
+    std::string mTestInterfaceConf;
+    std::string mTestNtpConf;
+    std::string mTestSyslogConf;
 
-   virtual void SetUp() {
-      int pid = getpid();
-      std::string pidString = boost::lexical_cast<std::string > (pid);
-      mWriteLocation = "/tmp/test.yaml." + pidString;
-      mWriteInterfaceLocation = "/tmp/test.yaml.Interface." + pidString;
-      remove(mWriteLocation.c_str());
-      remove(mWriteInterfaceLocation.c_str());
-      mTestConf = "resources/test.yaml";
-      mTestInterfaceConf = "resources/test.yaml.Interface";
-      mTestSyslogConf = "resources/test/yaml.Syslog";
-   };
+    virtual void SetUp() {
+        int pid = getpid();
+        std::string pidString = boost::lexical_cast<std::string > (pid);
+        mWriteLocation = "/tmp/test.yaml." + pidString;
+        mWriteInterfaceLocation = "/tmp/test.yaml.Interface." + pidString;
+        remove(mWriteLocation.c_str());
+        remove(mWriteInterfaceLocation.c_str());
+        mTestConf = "resources/test.yaml";
+        mTestInterfaceConf = "resources/test.yaml.Interface";
+        mTestSyslogConf = "resources/test/yaml.Syslog";
+    };
 
-   virtual void TearDown() {
-      std::string syslogWriteLocation = mWriteLocation;
-      syslogWriteLocation += ".Syslog";
-      std::string qosmosWriteLocation = mWriteLocation;
-      qosmosWriteLocation == ".Qosmos";
-      remove(mWriteLocation.c_str());
-      remove(syslogWriteLocation.c_str());
-      remove(qosmosWriteLocation.c_str());
-   };
-
-   void StartTimedSection(const double expectedTimePerTransaction, const unsigned int totalTransactions) {
-      t_expectedTime = expectedTimePerTransaction * totalTransactions * 1000000.0;
+    virtual void TearDown() {
+       std::string syslogWriteLocation = mWriteLocation;
+       syslogWriteLocation += ".Syslog";
+       std::string qosmosWriteLocation = mWriteLocation;
+       qosmosWriteLocation == ".Qosmos";
+       remove(mWriteLocation.c_str());
+       remove(syslogWriteLocation.c_str());
+       remove(qosmosWriteLocation.c_str());
+    };
+    
+    void StartTimedSection(const double expectedTimePerTransaction,const unsigned int totalTransactions) {
+      t_expectedTime = expectedTimePerTransaction*totalTransactions * 1000000.0;
       t_totalTransactions = totalTransactions;
       gettimeofday(&t_startTime, NULL);
    }
@@ -60,7 +59,7 @@ protected:
       std::cout << std::dec << "Elapsed Time :" << t_elapsedUS / 1000000L << "." << std::setfill('0') << std::setw(6) << t_elapsedUS % 1000000 << "s" << std::endl;
       double totalTransactionsPS = (t_totalTransactions * 1.0) / (t_elapsedUS * 1.0 / 1000000.0);
       std::cout << "Transactions/second :" << totalTransactionsPS << std::endl;
-
+      
    }
 
    bool TimedSectionPassed() {
