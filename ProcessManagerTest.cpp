@@ -172,7 +172,7 @@ TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFilesWithOtherPidsInDir) {
    MockProcessManager processManager(conf, gProgramName);
    processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
-   request.set_realexecstring("ProcessManagerTest");
+   request.set_realexecstring("lt-ProcessManagerTest");
    request.set_keeprunning(true);
    request.set_path("/fake/path");
    int pid = getpid();
