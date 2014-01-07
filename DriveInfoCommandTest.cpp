@@ -23,7 +23,7 @@ TEST_F(DriveInfoCommandTest, DoesMockWork) {
    request.set_type(::protoMsg::CommandRequest_CommandType_DRIVEINFO);
    protoMsg::CommandReply reply = testCommand.Execute(conf);
 
-   EXPECT_EQ(autoManagedManager->getRunCommand(), "/sbin/parted");
+   EXPECT_EQ(autoManagedManager->getRunCommand(), "/usr/local/probe/sbin/parted");
    EXPECT_EQ(autoManagedManager->getRunArgs(), " -lm print");
 
    EXPECT_FALSE(reply.success());
@@ -225,7 +225,7 @@ TEST_F(DriveInfoCommandTest, ExecuteWhiteBoxCommandOnNoDas86) {
    autoManagedManager->SetResult(partedReading.result);
 
    protoMsg::CommandReply reply = testCommand.Execute(conf);
-   EXPECT_EQ(autoManagedManager->getRunCommand(), "/sbin/parted");
+   EXPECT_EQ(autoManagedManager->getRunCommand(), "/usr/local/probe/sbin/parted");
    EXPECT_EQ(autoManagedManager->getRunArgs(), " -lm print");
 
    EXPECT_TRUE(reply.success());
@@ -300,7 +300,7 @@ TEST_F(DriveInfoCommandTest, ExecuteWhiteBoxCommandOnDas119) {
    autoManagedManager->SetResult(partedReading.result);
 
    protoMsg::CommandReply reply = testCommand.Execute(conf);
-   EXPECT_EQ(autoManagedManager->getRunCommand(), "/sbin/parted");
+   EXPECT_EQ(autoManagedManager->getRunCommand(), "/usr/local/probe/sbin/parted");
    EXPECT_EQ(autoManagedManager->getRunArgs(), " -lm print");
 
    EXPECT_TRUE(reply.success());
