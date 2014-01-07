@@ -9,6 +9,8 @@
 #include "MockConf.h"
 #include "CommandRequest.pb.h"
 
+extern std::string gProgramName;
+
 class ConfigRequestCommandTest : public ::testing::Test {
 public:
    ConfigRequestCommandTest() {
@@ -17,7 +19,7 @@ public:
 
 protected:
  void SetUp() {
-      autoManagedManager = new MockProcessManagerCommand(mockConf);
+      autoManagedManager = new MockProcessManagerCommand(mockConf, gProgramName);
       cmd.set_type(protoMsg::CommandRequest_CommandType_CONFIG_REQUEST);
    };
 

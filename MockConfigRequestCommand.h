@@ -29,8 +29,8 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {      // name, de
    typedef std::tuple<std::string, std::string, Ranges> OneConfDefault;
    typedef std::vector<OneConfDefault> ManyConfDefaults;
 
-   MockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager)
-   : ConfigRequestCommand(request, processManager), mMockExecuteRequest(false) {
+   MockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager, const std::string& programName)
+   : ConfigRequestCommand(request, processManager, programName), mMockExecuteRequest(false) {
    }
 
    ManyConfDefaults HelperGetConfDefaults(protoMsg::ConfType::Type type) {
@@ -116,8 +116,8 @@ private:
 class GMockConfigRequestCommand : public MockConfigRequestCommand {
 public:
 
-   GMockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager) :
-   MockConfigRequestCommand(request, processManager) {
+   GMockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager, const std::string& programName) :
+   MockConfigRequestCommand(request, processManager, programName) {
    }
 
    virtual ~GMockConfigRequestCommand() = default;
