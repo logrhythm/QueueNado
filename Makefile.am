@@ -172,9 +172,13 @@ CommandProcessorTests_SOURCES=main.cpp \
         MockRestartSyslogCommand.h \
         MockConfNtpToReadFile.h \
         MockConfNtp.h \
-	MockProcessManagerCommand.h \
-        MockDriveInfo.h
+		MockProcessManagerCommand.h \
+		MockDriveInfo.h \
+		ConfigRequestCommandTest.cpp \
+		ConfigRequestCommandTest.h \
+		MockConfigRequestCommand.h
 CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\" ${INCLUDES}  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
+
 
 SysLoggerTest_LDADD=${DYNAMIC_LIBS}
 SysLoggerTest_LDFLAGS=${BASE_LIBS}
@@ -312,7 +316,8 @@ nmTest_SOURCES=main.cpp \
  ThreadContainerTest.cpp \
  DriveInfoCommandTest.cpp \
  ToolsTestMakeUnique.cpp \
- ToolsTestStringFix.cpp
+ ToolsTestStringFix.cpp \
+ TestProtoDefaultsMethods.cpp
 
 SyslogReporterTest_LDADD=${DYNAMIC_LIBS}
 SyslogReporterTest_LDFLAGS=${BASE_LIBS}
