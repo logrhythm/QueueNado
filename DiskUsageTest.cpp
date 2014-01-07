@@ -52,7 +52,7 @@ TEST(DiskUsage, FailedReading) {
    EXPECT_EQ(bytesFree, 0);
    EXPECT_EQ(usePercentage, 0);
 }
-
+#ifdef LR_DEBUG
 TEST(DiskUsage, ReadAtStartup) {
    struct statvfs stat;
    stat.f_bsize = 4096;
@@ -208,7 +208,7 @@ TEST(DiskUsage, CheckValuesGB) {
    EXPECT_EQ(std::ceil(1000 * percentage), std::ceil(1000 * 18.0621));
 }
 
-
+#endif
 
 // Under the assumptions  that
 //  "/" and "/home" will ALWAYS be on separate
