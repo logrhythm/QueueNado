@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gtest/gtest.h"
-#include "BoomStickTest.h"
 #include "BoomStick.h"
 #include <pthread.h>
 
