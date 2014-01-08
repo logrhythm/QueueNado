@@ -2,6 +2,7 @@
 
 #include <czmq.h>
 #include <boost/thread.hpp>
+#include "boost/lexical_cast.hpp"
 std::atomic<int> RifleVampireTests::mShotsDeleted;
 
 void TestDeleteString(void*, void* data) {
@@ -65,7 +66,6 @@ void RifleVampireTests::RifleThread(int numberOfMessages,
    rifle.SetHighWater(hwm);
    rifle.SetIOThreads(ioThreads);
    rifle.SetOwnSocket(ownSocket);
-   std::cout << "Shooting at : " << rifle.GetBinding() << std::endl;
    rifle.Aim();
    std::stringstream ss;
    for (int i = 0; i < numberOfMessages; i++) {
@@ -94,7 +94,6 @@ void RifleVampireTests::ShootStakeThread(int numberOfMessages,
    } else {
       rifle.SetOwnSocket(true);
    }
-   std::cout << "Shooting at : " << rifle.GetBinding() << std::endl;
    rifle.Aim();
    std::stringstream ss;
    unsigned int hash(0);
@@ -124,7 +123,6 @@ void RifleVampireTests::ShootZeroCopyThread(int numberOfMessages,
    } else {
       rifle.SetOwnSocket(true);
    }
-   std::cout << "Shooting at : " << rifle.GetBinding() << std::endl;
    rifle.Aim();
    std::stringstream ss;
    unsigned int hash(0);
@@ -216,7 +214,6 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
    delete rifle;
    return;
 #endif   
-   std::cout << "Rifle at :" << rifle->GetBinding() << std::endl;
 
    std::string exampleData(dataSize, 'a');
    std::vector<boost::thread*> theVampires;
@@ -237,7 +234,6 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
          break;
       }
    }
-   std::cout << "Staking Vampires..." << std::endl;
    for (auto it = theVampires.begin();
            it != theVampires.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
@@ -245,7 +241,6 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
       delete *it;
    }
    EndTimedSection();
-   std::cout << "Done." << std::endl;
    EXPECT_TRUE(TimedSectionPassed());
    delete rifle;
 }
@@ -261,7 +256,6 @@ void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOTh
    delete rifle;
    return;
 #endif   
-   std::cout << "Rifle at :" << rifle->GetBinding() << std::endl;
    std::string exampleString(dataSize, 'a');
    std::vector<std::pair< void*, unsigned int> > exampleData;
    for (int i = 0; i < SIZE_OF_STAKE_BUNDLE && !zctx_interrupted; i++) {
@@ -285,7 +279,6 @@ void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOTh
          break;
       }
    }
-   std::cout << "Staking Vampires..." << std::endl;
    for (auto it = theVampires.begin();
            it != theVampires.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
@@ -293,7 +286,6 @@ void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOTh
       delete *it;
    }
    EndTimedSection();
-   std::cout << "Done." << std::endl;
    EXPECT_TRUE(TimedSectionPassed());
    delete rifle;
 }
@@ -337,7 +329,6 @@ void RifleVampireTests::NRiflesOneVampireBenchmarkZeroCopy(int nRifles, int nIOT
       }
    }
 
-   std::cout << "Collecting Rifles..." << std::endl;
    for (auto it = theRifles.begin();
            it != theRifles.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
@@ -345,7 +336,6 @@ void RifleVampireTests::NRiflesOneVampireBenchmarkZeroCopy(int nRifles, int nIOT
       delete *it;
    }
    EndTimedSection();
-   std::cout << "Done." << std::endl;
    EXPECT_TRUE(TimedSectionPassed());
    EXPECT_EQ(nShotsPerRifle * nRifles, mShotsDeleted);
 }
@@ -388,7 +378,6 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
       }
    }
 
-   std::cout << "Collecting Rifles..." << std::endl;
    for (auto it = theRifles.begin();
            it != theRifles.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
@@ -396,7 +385,6 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
       delete *it;
    }
    EndTimedSection();
-   std::cout << "Done." << std::endl;
    EXPECT_TRUE(TimedSectionPassed());
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCLargeSize) {
