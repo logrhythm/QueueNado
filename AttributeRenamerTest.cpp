@@ -1,4 +1,5 @@
 #include "AttributeRenamerTest.h"
+#include "MockAttributeRenamer.h"
 #include <memory>
 
 namespace {
@@ -13,20 +14,38 @@ namespace {
 }
 
 TEST_F(AttributeRenamerTest, ConstructAndInitialize) {
-   AttributeRenamer renamer;
+   MockAttributeRenamer renamer;
    EXPECT_FALSE(renamer.Initialize("/file/does/not/exist"));
    EXPECT_TRUE(renamer.Initialize("../conf/remapping.yaml"));
    EXPECT_TRUE(renamer.Initialize("../conf/remapping.yaml"));
    {
-      std::unique_ptr<AttributeRenamer> renamerPtr(new AttributeRenamer);
+      std::unique_ptr<MockAttributeRenamer> renamerPtr(new MockAttributeRenamer);
       EXPECT_TRUE(renamerPtr->Initialize("../conf/remapping.yaml"));
    }
 }
 
 TEST_F(AttributeRenamerTest, BasicRenaming) {
-   AttributeRenamer renamer;
+   MockAttributeRenamer renamer;
    ASSERT_TRUE(renamer.Initialize("resources/remapping.yaml"));
    
-   EXPECT_TRUE("logrhythm_ack_number" == renamer.GetNewName("ack_number"));
-   EXPECT_TRUE("notFound" == renamer.GetNewName("notFound"));
+   EXPECT_TRUE("logrhythm_ack_number" == renamer.GetNewName("ack_number","#"));
+   EXPECT_TRUE("#notFound" == renamer.GetNewName("notFound","#"));
+}
+TEST_F(AttributeRenamerTest, ResetRenaming) {
+   MockAttributeRenamer renamer;
+   ASSERT_TRUE(renamer.Initialize("resources/remapping.yaml"));
+   
+   EXPECT_TRUE("logrhythm_ack_number" == renamer.GetNewName("ack_number","#"));
+   EXPECT_TRUE("#notFound" == renamer.GetNewName("notFound","#"));
+   ASSERT_FALSE(renamer.Initialize("/file/does/not/exist"));
+   EXPECT_TRUE("#ack_number" == renamer.GetNewName("ack_number","#"));
+   EXPECT_TRUE("#notFound" == renamer.GetNewName("notFound","#"));
+}
+TEST_F(AttributeRenamerTest, Singleton) {
+   AttributeRenamer& attributeRenamer = AttributeRenamer::Instance();
+   AttributeRenamer& attributeRenamer2 = AttributeRenamer::Instance();
+   ASSERT_EQ(&attributeRenamer,&attributeRenamer2);
+   ASSERT_TRUE(attributeRenamer.Initialize("../conf/remapping.yaml"));
+   EXPECT_FALSE(attributeRenamer.Initialize("../conf/remapping.yaml"));
+   EXPECT_FALSE(attributeRenamer2.Initialize("../conf/remapping.yaml"));
 }

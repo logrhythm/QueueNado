@@ -326,5 +326,5 @@ SyslogReporterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\
 
 AttributeRenamerTest_LDADD=${DYNAMIC_LIBS}
 AttributeRenamerTest_LDFLAGS=${BASE_LIBS}
-AttributeRenamerTest_SOURCES=main.cpp AttributeRenamerTest.cpp 
+AttributeRenamerTest_SOURCES=main.cpp AttributeRenamerTest.cpp MockAttributeRenamer.h
 AttributeRenamerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
