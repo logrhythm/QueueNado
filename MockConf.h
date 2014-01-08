@@ -8,10 +8,6 @@
 #include "Conf.h"
 #include "include/global.h"
 #include "MockValidateConf.h"
-#include "Range.h"
-#include <g2log.hpp>
-#include <functional>
-#include <exception>
 
 class MockConf : public Conf {
 public:

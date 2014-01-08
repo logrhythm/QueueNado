@@ -19,7 +19,7 @@ public:
    mIgnoreBaseConfValidation(true) {
    }
 
-   ~MockValidateConf() {
+   virtual ~MockValidateConf() {
    }
 
    bool ValidateBaseConf(protoMsg::BaseConf& msg) LR_OVERRIDE {
