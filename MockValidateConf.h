@@ -13,35 +13,22 @@ class MockValidateConf : public ValidateConf {
 public:
 
    MockValidateConf() :
-
    mValidConf(true),
-   mIgnoreSyslogConfValidation(true),
-   mIgnoreBaseConfValidation(true) {
-   }
+   mIgnoreConfValidation(true){}
+   virtual ~MockValidateConf(){}
 
-   virtual ~MockValidateConf() {
-   }
-
-   bool ValidateBaseConf(protoMsg::BaseConf& msg) LR_OVERRIDE {
-      if (mIgnoreBaseConfValidation) {
+   
+   bool ValidateConfFieldValues(::google::protobuf::Message& msg, const std::string &type) LR_OVERRIDE {
+      if (mIgnoreConfValidation) {
          return true;
       }
-      mValidConf = mValidationOfConf.ValidateBaseConf(msg);
-      return mValidConf;
-   }
-
-   bool ValidateSyslogConf(protoMsg::SyslogConf& msg) LR_OVERRIDE {
-      if (mIgnoreSyslogConfValidation) {
-         return true;
-      }
-      mValidConf = mValidationOfConf.ValidateSyslogConf(msg);
+      mValidConf = mValidationOfConf.ValidateConfFieldValues(msg, type);
       return mValidConf;
    }
 
    ValidateConf mValidationOfConf;
    bool mValidConf;
-   bool mIgnoreSyslogConfValidation;
-   bool mIgnoreBaseConfValidation;
+   bool mIgnoreConfValidation;
 };
 
 

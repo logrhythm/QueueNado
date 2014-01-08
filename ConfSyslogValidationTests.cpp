@@ -14,7 +14,7 @@ using namespace std;
 
 TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
    MockConf conf;
-   conf.GetValidateConf().mIgnoreSyslogConfValidation = false;
+   conf.GetValidateConf().mIgnoreConfValidation = false;
 
    EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
    protoMsg::SyslogConf blank;
@@ -27,7 +27,7 @@ TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
    EXPECT_EQ(blank.has_debugsiemlogging(), false);
    EXPECT_EQ(blank.has_scrubpasswords(), false);
 
-   conf.updateFields(blank); // trigger Mocked ValidateBaseConf
+   conf.updateFields(blank); // trigger Mocked ValidateConfFieldValues
    EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
 }
 
@@ -44,7 +44,7 @@ namespace {
 void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
-   conf.GetValidateConf().mIgnoreSyslogConfValidation = false;
+   conf.GetValidateConf().mIgnoreConfValidation = false;
    conf.GetValidateConf().mValidConf = false;
 
    protoMsg::SyslogConf msg;
@@ -92,7 +92,7 @@ void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
 void SyslogValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
-   conf.GetValidateConf().mIgnoreSyslogConfValidation = false;
+   conf.GetValidateConf().mIgnoreConfValidation = false;
 
    protoMsg::SyslogConf msg;
 

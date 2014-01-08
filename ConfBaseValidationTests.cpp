@@ -14,12 +14,12 @@ using namespace std;
 
 TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillSucceed) {
    MockConf conf;
-   conf.GetValidateConf().mIgnoreBaseConfValidation = false;
+   conf.GetValidateConf().mIgnoreConfValidation = false;
 
    EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
    protoMsg::BaseConf blank;
    EXPECT_EQ(blank.has_dpithreads(), false);
-   conf.updateFields(blank); // trigger Mocked ValidateBaseConf
+   conf.updateFields(blank); // trigger Mocked ValidateConfFieldValues
    EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
 }
 
@@ -27,7 +27,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillSucceed) {
 
 TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    MockConf conf;
-   conf.GetValidateConf().mIgnoreBaseConfValidation = false;
+   conf.GetValidateConf().mIgnoreConfValidation = false;
    EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
 
    protoMsg::BaseConf right;
@@ -49,7 +49,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
 
    wrong.set_dpithreads("Hello World!");
    EXPECT_EQ(wrong.has_dpithreads(), true);
-   conf.GetValidateConf().ValidateBaseConf(wrong); // this should clear the field
+   conf.GetValidateConf().ValidateConfFieldValues(wrong, {"BASE"}); // this should clear the field
    EXPECT_EQ(wrong.has_dpithreads(), false);
 }
 
@@ -66,7 +66,7 @@ namespace {
 void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
-   conf.GetValidateConf().mIgnoreBaseConfValidation = false;
+   conf.GetValidateConf().mIgnoreConfValidation = false;
    conf.GetValidateConf().mValidConf = false;
    //conf.GetValidateConf().GetChecker().mValidCheck = false;
 
@@ -145,7 +145,7 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
 void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
-   conf.GetValidateConf().mIgnoreBaseConfValidation = false;
+   conf.GetValidateConf().mIgnoreConfValidation = false;
    conf.GetValidateConf().mValidConf = false;
 
    protoMsg::BaseConf msg;
