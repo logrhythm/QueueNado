@@ -1332,20 +1332,20 @@ TEST_F(ConfProcessorTests, testEnableIPDefragmentation) {
 
 TEST_F(ConfProcessorTests, teststatsAccumulatorQueue) {
    protoMsg::BaseConf msg;
-   msg.set_statsaccumulatorqueue("12347");
+   msg.set_statsaccumulatorqueue("123456");// at least 6 characters
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ("12347", conf.getStatsAccumulatorQueue());
+   EXPECT_EQ("123456", conf.getStatsAccumulatorQueue());
 }
 
 TEST_F(ConfProcessorTests, teststatsQueue) {
    protoMsg::BaseConf msg;
-   msg.set_sendstatsqueue("12347");
+   msg.set_sendstatsqueue("123456");
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ("12347", conf.getSendStatsQueue());
+   EXPECT_EQ("123456", conf.getSendStatsQueue());
 }
 
 TEST_F(ConfProcessorTests, testSiemLogging) {
@@ -1363,15 +1363,14 @@ TEST_F(ConfProcessorTests, testSiemLogging) {
 
 TEST_F(ConfProcessorTests, testCommandQueue) {
    protoMsg::BaseConf msg;
-   msg.set_commandqueue("false");
+   msg.set_commandqueue("this is false"); // minimum 6 characters
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ("false", conf.getCommandQueue());
-   msg.set_commandqueue("true");
+   EXPECT_EQ("this is false", conf.getCommandQueue());
+   msg.set_commandqueue("now it is true");
    conf.updateFields(msg);
-   EXPECT_EQ("true", conf.getCommandQueue());
-
+   EXPECT_EQ("now it is true", conf.getCommandQueue());
 }
 
 TEST_F(ConfProcessorTests, testSiemDebugLogging) {
