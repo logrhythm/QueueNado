@@ -4,10 +4,11 @@
 #include "Range.h"
 
 TEST(TestProtoDefaults, GetConfDefaultsOK) {
+   using namespace protoDefaults;
    protoDefaults::ConfDefaults defaults1 = protoDefaults::GetConfDefaults("BASE");
    EXPECT_TRUE(defaults1.size() > 0);
-   EXPECT_TRUE(std::get<0>(defaults1[0]).compare("dpiThreads") == 0);
-   EXPECT_TRUE((*std::get<2>(defaults1[0])).Validate("4")); //4 DPI Threads
+   EXPECT_TRUE(std::get<indexName>(defaults1[0]).compare("dpiThreads") == 0);
+   EXPECT_TRUE((*std::get<indexRange>(defaults1[0])).Validate("4")); //4 DPI Threads
 
    protoDefaults::ConfDefaults defaults2 = protoDefaults::GetConfDefaults("TEST");
    EXPECT_TRUE(defaults2.size() == 0);
@@ -47,20 +48,21 @@ TEST(TestProtoDefaults, GetConfParamDefaultOK){
 }
 
 TEST(TestProtoDefaults, GetConfParamOK){
+   using namespace protoDefaults;
    protoDefaults::ConfDefaults confDefaults = protoDefaults::GetConfDefaults("BASE");
    
-   EXPECT_TRUE((std::get<0>(protoDefaults::GetConfParam(confDefaults, "dpiThreads2"))).size() == 0);
-   EXPECT_TRUE((std::get<1>(protoDefaults::GetConfParam(confDefaults, "dpiThreads2"))).size() == 0);
-   EXPECT_TRUE(std::get<2>(protoDefaults::GetConfParam(confDefaults, "dpiThreads2")) == nullptr);
+   EXPECT_TRUE((std::get<indexName>(protoDefaults::GetConfParam(confDefaults, "dpiThreads2"))).size() == 0);
+   EXPECT_TRUE((std::get<indexDefault>(protoDefaults::GetConfParam(confDefaults, "dpiThreads2"))).size() == 0);
+   EXPECT_TRUE(std::get<indexRange>(protoDefaults::GetConfParam(confDefaults, "dpiThreads2")) == nullptr);
    
    std::string str("dpiThreads");
-   EXPECT_TRUE((std::get<0>(protoDefaults::GetConfParam(confDefaults, str))).size() > 0);
-   EXPECT_TRUE((std::get<1>(protoDefaults::GetConfParam(confDefaults, str))).size() > 0);
-   EXPECT_TRUE(std::get<2>(protoDefaults::GetConfParam(confDefaults, str)) != nullptr);
+   EXPECT_TRUE((std::get<indexName>(protoDefaults::GetConfParam(confDefaults, str))).size() > 0);
+   EXPECT_TRUE((std::get<indexDefault>(protoDefaults::GetConfParam(confDefaults, str))).size() > 0);
+   EXPECT_TRUE(std::get<indexRange>(protoDefaults::GetConfParam(confDefaults, str)) != nullptr);
 
-   EXPECT_TRUE(str.compare(std::get<0>(protoDefaults::GetConfParam(confDefaults, str))) == 0);
-   EXPECT_TRUE((std::get<1>(protoDefaults::GetConfParam(confDefaults, str))).compare("4") == 0);
-   EXPECT_TRUE((*std::get<2>(protoDefaults::GetConfParam(confDefaults, str))).Validate("4")); //Int
-   EXPECT_TRUE(!(*std::get<2>(protoDefaults::GetConfParam(confDefaults, str))).Validate("f")); //Int
+   EXPECT_TRUE(str.compare(std::get<indexName>(protoDefaults::GetConfParam(confDefaults, str))) == 0);
+   EXPECT_TRUE((std::get<indexDefault>(protoDefaults::GetConfParam(confDefaults, str))).compare("4") == 0);
+   EXPECT_TRUE((*std::get<indexRange>(protoDefaults::GetConfParam(confDefaults, str))).Validate("4")); //Int
+   EXPECT_TRUE(!(*std::get<indexRange>(protoDefaults::GetConfParam(confDefaults, str))).Validate("f")); //Int
    
 }
