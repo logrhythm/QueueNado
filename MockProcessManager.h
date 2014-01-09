@@ -51,7 +51,9 @@ public:
    virtual void SetPidDir(const std::string pidDir) override {
       ProcessManager::SetPidDir(pidDir);
    }
-
+   LR_VIRTUAL pid_t GetParentPid() {
+      return ProcessManager::GetParentPid();
+   }
    bool mKillFails;
    bool mExecFails;
    std::string mPidDir;
