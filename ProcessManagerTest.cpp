@@ -22,9 +22,9 @@ TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    ProcessManager testManager(conf, gProgramName);
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    ProcessManager sendManager(conf, gProgramName);
-   EXPECT_TRUE(sendManager.Initialize());
+   ASSERT_TRUE(sendManager.Initialize());
    std::string processName("/bin/sh");
    std::string processArgs;
    EnvironmentMapping env;
@@ -57,9 +57,9 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    ProcessManager testManager(conf, gProgramName);
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    ProcessManager sendManager(conf, gProgramName);
-   EXPECT_TRUE(sendManager.Initialize());
+   ASSERT_TRUE(sendManager.Initialize());
    std::string processName("/bin/sleep");
    std::string processArgs;
    processArgs = "5";
@@ -78,7 +78,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    testManager.DeInit();
    LOG(DEBUG) << "Trying to re-initialize";
    zctx_interrupted = false;
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    processReply = sendManager.RunProcess(processName, processArgs);
    result = processReply.result();
    LOG(DEBUG) << result;
@@ -97,9 +97,9 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager testManager(conf, gProgramName);
    testManager.mExecFails = true;
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    ProcessManager sendManager(conf, gProgramName);
-   EXPECT_TRUE(sendManager.Initialize());
+   ASSERT_TRUE(sendManager.Initialize());
    std::string processName("/bin/broken");
    std::string processArgs;
    processArgs = "0";
@@ -246,7 +246,7 @@ TEST_F(ProcessManagerTest, ConstructAndInitialize) {
    conf.mProcessManagmentQueue = testQueue.str();
 
    ProcessManager testManager(conf, gProgramName);
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    testManager.DeInit();
    ProcessManager* testManagerPoint = new ProcessManager(conf, gProgramName);
    delete testManagerPoint;
@@ -262,7 +262,7 @@ TEST_F(ProcessManagerTest, RunProcess) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    ProcessManager testManager(conf, gProgramName);
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    std::string processName("/bin/ls");
    std::string processArgs;
    processArgs = "-l /bin/ls";
@@ -283,7 +283,7 @@ TEST_F(ProcessManagerTest, RunNonExistantProcess) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    ProcessManager testManager(conf, gProgramName);
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    std::string processName("/bin/lsssss");
    std::string processArgs;
    processArgs = "-l /bin/ls";
@@ -303,7 +303,7 @@ TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    ProcessManager testManager(conf, gProgramName);
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    conf.mProcessManagmentQueue = "invalid";
    ProcessManager sendManager(conf, gProgramName);
    EXPECT_FALSE(sendManager.Initialize());
@@ -321,9 +321,9 @@ TEST_F(ProcessManagerTest, RunProcessFromAnotherObject) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    ProcessManager testManager(conf, gProgramName);
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    ProcessManager sendManager(conf, gProgramName);
-   EXPECT_TRUE(sendManager.Initialize());
+   ASSERT_TRUE(sendManager.Initialize());
    std::string processName("/bin/ls");
    std::string processArgs;
    processArgs = "-l /bin/ls";
@@ -345,9 +345,9 @@ TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    ProcessManager testManager(conf, gProgramName);
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    ProcessManager sendManager(conf, gProgramName);
-   EXPECT_TRUE(sendManager.Initialize());
+   ASSERT_TRUE(sendManager.Initialize());
    std::string processName("/bin/lsssss");
    std::string processArgs;
    processArgs = "-l /bin/ls";
@@ -367,9 +367,9 @@ TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
 //   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
 //   conf.mProcessManagmentQueue = testQueue.str();
 //   ProcessManager testManager(conf);
-//   EXPECT_TRUE(testManager.Initialize());
+//   ASSERT_TRUE(testManager.Initialize());
 //   ProcessManager sendManager(conf);
-//   EXPECT_TRUE(sendManager.Initialize());
+//   ASSERT_TRUE(sendManager.Initialize());
 //   std::string processName("/bin/sleep");
 //   std::string processArgs;
 //   processArgs = "4";
@@ -414,9 +414,9 @@ TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager testManager(conf, gProgramName);
    testManager.mKillFails = true;
-   EXPECT_TRUE(testManager.Initialize());
+   ASSERT_TRUE(testManager.Initialize());
    ProcessManager sendManager(conf, gProgramName);
-   EXPECT_TRUE(sendManager.Initialize());
+   ASSERT_TRUE(sendManager.Initialize());
    std::string processName("/bin/sleep");
    std::string processArgs;
    processArgs = "5";
