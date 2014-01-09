@@ -12,7 +12,7 @@ namespace {
       return false;
    }
 }
-
+#ifdef LR_DEBUG
 TEST_F(AttributeRenamerTest, ConstructAndInitialize) {
    MockAttributeRenamer renamer;
    EXPECT_FALSE(renamer.Initialize("/file/does/not/exist"));
@@ -41,6 +41,19 @@ TEST_F(AttributeRenamerTest, ResetRenaming) {
    EXPECT_TRUE("#ack_number" == renamer.GetNewName("ack_number","#"));
    EXPECT_TRUE("#notFound" == renamer.GetNewName("notFound","#"));
 }
+TEST_F(AttributeRenamerTest, EmptyFields) {
+   MockAttributeRenamer attributeRenamer;
+   ASSERT_TRUE(attributeRenamer.Initialize("resources/remapping-empty.yaml"));
+   EXPECT_TRUE("#ack_number" == attributeRenamer.GetNewName("ack_number","#"));
+   EXPECT_TRUE("#VTP_mgmt_domain" == attributeRenamer.GetNewName("VTP_mgmt_domain","#"));
+   
+}
+
+TEST_F(AttributeRenamerTest, CorruptYaml) {
+   MockAttributeRenamer attributeRenamer;
+   ASSERT_FALSE(attributeRenamer.Initialize("resources/remapping-corrupt.yaml"));
+}
+#endif
 TEST_F(AttributeRenamerTest, Singleton) {
    AttributeRenamer& attributeRenamer = AttributeRenamer::Instance();
    AttributeRenamer& attributeRenamer2 = AttributeRenamer::Instance();
