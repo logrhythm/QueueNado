@@ -109,7 +109,7 @@ void StatsAccumulatorTest::VerifyAccumulatedStats(std::string sentStatKey,
          EXPECT_EQ(rcvStatValue, expectedStatValue);
 
          uint64_t rcvTimeValue = statsMsg.time();
-         EXPECT_EQ(rcvTimeValue, expectedTime);
+         EXPECT_TRUE(expectedTime - 1 <= rcvTimeValue && expectedTime + 1 >= rcvTimeValue);
          return;
       }
    }

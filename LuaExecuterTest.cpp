@@ -404,7 +404,7 @@ TEST_F(LuaExecuterTest, PacketRuleBenchmarkReBuilds) {
    std::vector<void*> args;
    args.push_back(&dpiMsg);
    args.push_back(packet);
-   StartTimedSection(.00009, iterations);
+   StartTimedSection(.00018, iterations);
    for (unsigned int i = 0; i < iterations; i++) {
       EXPECT_TRUE(executer.RegisterRule(rule));
       EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
@@ -438,7 +438,7 @@ TEST_F(LuaExecuterTest, PacketRuleBenchmark) {
    args.push_back(&dpiMsg);
    args.push_back(packet);
    EXPECT_TRUE(executer.RegisterRule(rule));
-   StartTimedSection(.0000005, iterations);
+   StartTimedSection(.0000010, iterations);
    for (unsigned int i = 0; i < iterations; i++) {
 
       EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
