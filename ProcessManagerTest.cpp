@@ -7,6 +7,13 @@
 #include "ProcessReply.pb.h"
 #include <unistd.h>
 extern std::string gProgramName;
+TEST_F(ProcessManagerTest, StartedWithoutMotherForker) {
+   #ifdef LR_DEBUG
+   MockConf conf;
+   MockProcessManagerNoMotherForker testManager(conf,gProgramName);
+   EXPECT_FALSE(testManager.Initialize());
+#endif
+}
 TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
 #ifdef LR_DEBUG
 
