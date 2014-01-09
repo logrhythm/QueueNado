@@ -2,7 +2,6 @@
 
 #include <czmq.h>
 #include <boost/thread.hpp>
-#include "boost/lexical_cast.hpp"
 std::atomic<int> RifleVampireTests::mShotsDeleted;
 
 void TestDeleteString(void*, void* data) {
@@ -46,7 +45,7 @@ std::string RifleVampireTests::GetTcpLocation() {
    int min = 7000;
    int port = (rand() % (max - min)) + min;
    std::string tcpLocation("tcp://127.0.0.1:");
-   tcpLocation.append(boost::lexical_cast<std::string > (port));
+   tcpLocation.append(std::to_string(port));
    return tcpLocation;
 }
 
@@ -54,7 +53,7 @@ std::string RifleVampireTests::GetIpcLocation() {
    int pid = getpid();
    std::string ipcLocation("ipc:///tmp/");
    ipcLocation.append("RifleVampireTests");
-   ipcLocation.append(boost::lexical_cast<std::string > (pid));
+   ipcLocation.append(std::to_string(pid));
    ipcLocation.append(".ipc");
    return ipcLocation;
 }
