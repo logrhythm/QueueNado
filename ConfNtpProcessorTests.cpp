@@ -157,6 +157,7 @@ TEST_F(ConfProcessorTests, DISABLED_NtpMessagePassedBetweenMasterAndSlave) {
 #endif
 }
 
+// SHOULD BE RUN AS ROOT or it can cause a sigterminate
 TEST_F(ConfProcessorTests, TestReconcileNewNtpConf) {
 #ifdef LR_DEBUG
    MockConfMaster master;

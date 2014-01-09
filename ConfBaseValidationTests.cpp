@@ -10,143 +10,48 @@
 #ifdef LR_DEBUG
 using namespace std;
 
-namespace {
-   Range gMax = {1, std::numeric_limits<uint32_t>::max()};
-}
 // Not set fields are NOT failure, they will just be ignored 
 
 TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillSucceed) {
    MockConf conf;
-   conf.mIgnoreBaseConfValidation = false;
+   conf.GetValidateConf().mIgnoreConfValidation = false;
 
-   EXPECT_EQ(conf.mValidConf, true);
+   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
    protoMsg::BaseConf blank;
    EXPECT_EQ(blank.has_dpithreads(), false);
-   conf.updateFields(blank); // trigger Mocked ValidateBaseConf
-   EXPECT_EQ(conf.mValidConf, true);
+   conf.updateFields(blank); // trigger Mocked ValidateConfFieldValues
+   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
 }
 
-// Erronous fields WILL be cleared
+// Erroneous fields WILL be cleared
 
 TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    MockConf conf;
-   conf.mIgnoreBaseConfValidation = false;
-   EXPECT_EQ(conf.mValidConf, true);
+   conf.GetValidateConf().mIgnoreConfValidation = false;
+   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
 
    protoMsg::BaseConf right;
    right.set_dpithreads("2");
    conf.updateFields(right);
-   EXPECT_EQ(conf.mValidConf, true);
+   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
 
-
-
-   // Verify that erronous fields are cleared and ignored
+   // Verify that erroneous fields are cleared and ignored
    protoMsg::BaseConf wrong = conf.getProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
    wrong.set_dpithreads("Hello World!");
-   conf.mValidConf = true;
+   conf.GetValidateConf().mValidConf = true;
    conf.updateFields(wrong);
    EXPECT_EQ(wrong.has_dpithreads(), true); // copies are not cleared
-   EXPECT_EQ(conf.mValidConf, false);
+   EXPECT_EQ(conf.GetValidateConf().mValidConf, false);
 
    wrong = conf.getProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
 
    wrong.set_dpithreads("Hello World!");
    EXPECT_EQ(wrong.has_dpithreads(), true);
-   conf.ValidateBaseConf(wrong); // this should clear the field
+   conf.GetValidateConf().ValidateConfFieldValues(wrong, {"BASE"}); // this should clear the field
    EXPECT_EQ(wrong.has_dpithreads(), false);
 }
-
-TEST_F(ConfProcessorTests, BaseConfValidationNumbers) {
-   MockConf conf;
-   conf.mIgnoreBaseConfValidation = false;
-   EXPECT_EQ(conf.mValidConf, true);
-
-   EXPECT_NO_THROW(conf.CheckNumber("", gMax)); // check for empty
-   EXPECT_EQ(conf.mValidConf, false);
-   conf.mValidConf = true;
-
-   EXPECT_NO_THROW(conf.CheckNumber("Hello World!", gMax)); // check for empty
-   EXPECT_EQ(conf.mValidConf, false);
-   conf.mValidConf = true;
-
-   EXPECT_ANY_THROW(conf.CheckNumberForNegative("-123"));
-   EXPECT_EQ(conf.mValidConf, false);
-   EXPECT_NO_THROW(conf.CheckNumberForNegative("123"));
-   EXPECT_EQ(conf.mValidConf, true);
-
-   EXPECT_ANY_THROW(conf.CheckNumberForSize(std::to_string(gMax.higher + 1), gMax));
-   EXPECT_EQ(conf.mValidConf, false);
-   EXPECT_NO_THROW(conf.CheckNumberForSize(std::to_string(gMax.higher), gMax));
-   EXPECT_EQ(conf.mValidConf, true);
-
-   protoMsg::BaseConf msg;
-   msg.set_dpithreads("10");
-
-   conf.CheckNumber(msg.dpithreads(), Range {
-      1, 12
-   });
-   EXPECT_EQ(conf.mValidConf, true);
-}
-
-TEST_F(ConfProcessorTests, BaseConfValidationText) {
-   MockConf conf;
-   conf.mIgnoreBaseConfValidation = false;
-   EXPECT_EQ(conf.mValidConf, true);
-
-
-   conf.mValidConf = false;
-   EXPECT_NO_THROW(conf.CheckString(""));
-   EXPECT_EQ(conf.mValidConf, true);
-   conf.mValidConf = true;
-
-   conf.mValidConf = false;
-   EXPECT_NO_THROW(conf.CheckString("Hello World!"));
-   EXPECT_EQ(conf.mValidConf, true);
-
-
-   std::string text(1000, 'x');
-   conf.mValidConf = false;
-   EXPECT_NO_THROW(conf.CheckString(text));
-   EXPECT_EQ(conf.mValidConf, true);
-   conf.mValidConf = false;
-   EXPECT_NO_THROW(conf.CheckStringForSize(text));
-   EXPECT_EQ(conf.mValidConf, true);
-
-   // validate size failures
-   conf.mValidConf = true;
-   text.append({"y"});
-   EXPECT_NO_THROW(conf.CheckString(text));
-   EXPECT_EQ(conf.mValidConf, false);
-
-   conf.mValidConf = true;
-   EXPECT_ANY_THROW(conf.CheckStringForSize(text));
-   EXPECT_EQ(conf.mValidConf, false);
-}
-
-TEST_F(ConfProcessorTests, BaseConfValidationBool) {
-   MockConf conf;
-   conf.mIgnoreBaseConfValidation = false;
-   EXPECT_EQ(conf.mValidConf, true);
-
-   conf.mValidConf = true;
-   EXPECT_NO_THROW(conf.CheckBool(""));
-   EXPECT_EQ(conf.mValidConf, false);
-
-   conf.mValidConf = true;
-   EXPECT_NO_THROW(conf.CheckBool("Hello World!"));
-   EXPECT_EQ(conf.mValidConf, false);
-
-   conf.mValidConf = false;
-   EXPECT_NO_THROW(conf.CheckBool("true"));
-   EXPECT_EQ(conf.mValidConf, true);
-
-   conf.mValidConf = false;
-   EXPECT_NO_THROW(conf.CheckBool("false"));
-   EXPECT_EQ(conf.mValidConf, true);
-}
-
 
 /**
  * Sets all fields except for the given @param shouldFail. 
@@ -161,8 +66,9 @@ namespace {
 void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
-   conf.mIgnoreBaseConfValidation = false;
-   conf.mValidConf = false;
+   conf.GetValidateConf().mIgnoreConfValidation = false;
+   conf.GetValidateConf().mValidConf = false;
+   //conf.GetValidateConf().GetChecker().mValidCheck = false;
 
    protoMsg::BaseConf msg;
 
@@ -191,7 +97,8 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_qosmosexpirepercallback("0") : msg.set_qosmosexpirepercallback("1");
    (index++ == shouldFail) ? msg.set_qosmostcpreassemblyenabled(invalidBool) : msg.set_qosmostcpreassemblyenabled(validBool);
    (index++ == shouldFail) ? msg.set_qosmosipdefragmentationenabled(invalidBool) : msg.set_qosmosipdefragmentationenabled(validBool);
-   // next three are used in jave only, cannot be changed through the UI
+   
+   // next three are used in java only, cannot be changed through the UI
    (index++ == shouldFail) ? msg.set_dbclustername(invalidText) : msg.set_dbclustername(validText);
    (index++ == shouldFail) ? msg.set_dburl(invalidText) : msg.set_dburl(validText);
    (index++ == shouldFail) ? msg.set_statsaggregationqueue(invalidText) : msg.set_statsaggregationqueue(validText);
@@ -209,13 +116,14 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_syslogrecvqueuesize("9") : msg.set_syslogrecvqueuesize("10");
    (index++ == shouldFail) ? msg.set_syslogsendqueuesize("9") : msg.set_syslogsendqueuesize("10");
    (index++ == shouldFail) ? msg.set_pcaprecordstoclearpercycle("0") : msg.set_pcaprecordstoclearpercycle("1");
+   
    // Test sanity check. Total number of used fields are :  34
    EXPECT_EQ(index, gNumberOfFieldsLowerBound) << "\t\t\t\t\t: Expected number of fields are "
            << gNumberOfFieldsLowerBound << " unless you added more?";
    conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsLowerBound) {
-      if (false == conf.mValidConf) {
+      if (false == conf.GetValidateConf().mValidConf) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);
          return;
       }
@@ -226,7 +134,7 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    // We can only reach this if 'shouldFail' was less than number of fields
    // in this case me MUST have failed or else this test or Conf.cpp has changed
    //  (or is corrupt)
-   if (true == conf.mValidConf) {
+   if (true == conf.GetValidateConf().mValidConf) {
       FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
       return;
    }
@@ -237,8 +145,8 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
 void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
-   conf.mIgnoreBaseConfValidation = false;
-   conf.mValidConf = false;
+   conf.GetValidateConf().mIgnoreConfValidation = false;
+   conf.GetValidateConf().mValidConf = false;
 
    protoMsg::BaseConf msg;
 
@@ -267,7 +175,8 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_qosmosexpirepercallback("201") : msg.set_qosmosexpirepercallback("200");
    (index++ == shouldFail) ? msg.set_qosmostcpreassemblyenabled(invalidBool) : msg.set_qosmostcpreassemblyenabled(validBool);
    (index++ == shouldFail) ? msg.set_qosmosipdefragmentationenabled(invalidBool) : msg.set_qosmosipdefragmentationenabled(validBool);
-   // next three are used in jave only, cannot be changed through the UI
+   
+   // next three are used in java only, cannot be changed through the UI
    (index++ == shouldFail) ? msg.set_dbclustername(invalidText) : msg.set_dbclustername(validText);
    (index++ == shouldFail) ? msg.set_dburl(invalidText) : msg.set_dburl(validText);
    (index++ == shouldFail) ? msg.set_statsaggregationqueue(invalidText) : msg.set_statsaggregationqueue(validText);
@@ -291,7 +200,7 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsUpperBound) {
-      if (false == conf.mValidConf) {
+      if (false == conf.GetValidateConf().mValidConf) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);
          return;
       }
@@ -302,7 +211,7 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    // We can only reach this if 'shouldFail' was less than number of fields
    // in this case me MUST have failed or else this test or Conf.cpp has changed
    //  (or is corrupt)
-   if (true == conf.mValidConf) {
+   if (true == conf.GetValidateConf().mValidConf) {
       FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
       return;
    }
@@ -330,8 +239,5 @@ TEST_F(ConfProcessorTests, BaseConfValidationInternalRepairBaseConf) {
    auto check = conf.InternallyRepairBaseConf();
    EXPECT_EQ(check, true);
 }
-
-
-
 
 #endif //  LR_DEBUG
