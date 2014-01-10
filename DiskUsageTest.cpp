@@ -276,7 +276,7 @@ TEST(PcapDiskUsage, DoCalculateARealMountPoint) {
 
 
 
-TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateFolderUsage__ExpectingOnlyFolder) {
+TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateFolderUsage__ExpectingOnlyONEFolder) {
    GMockPcapDiskUsage pcapUsage{{testDir.str()}, gProgramName}; 
 
    // Forward the OnceCalculate to the real object's DoCalculateMountPoints
@@ -346,56 +346,37 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDiskUsage__ExpectingOnlyDisk) {
 }
 
 
-//TEST_F(RaIIFolderUsage, Pcap_DiskUsageWithPcapAndProbeOnSamePartition) {
-//   std::string pcap0 = testDir.str(), pcap1 = testDir.str();
-//   pcap0.append("/pcap0");
-//   pcap1.append("/pcap1"); // RAII remove of folder at test exit
-//   
-//   std::string mkdir0{"mkdir -p "};
-//   mkdir0.append(pcap0);
-//   
-//   std::string mkdir1{"mkdir -p "};
-//   mkdir1.append(pcap1);
-//   
-//   ASSERT_EQ(0, system(mkdir0.c_str()));
-//   ASSERT_EQ(0, system(mkdir1.c_str()));
-//   
-//   std::string first_1MFileFile = {"dd bs=1024 count=1024 if=/dev/zero of="};
-//   first_1MFileFile += pcap0;
-//   first_1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
-//   EXPECT_EQ(0, system(first_1MFileFile.c_str()));
-//   
-//   std::string second_1MFileFile = {"dd bs=1024 count=1024 if=/dev/zero of="};
-//   second_1MFileFile += pcap1;
-//   second_1MFileFile += "/cccdddddddddddddddddddddddddddddd1M";
-//   EXPECT_EQ(0, system(second_1MFileFile.c_str()));
-//   
-//   
-//   std::string ignored{};
-//   PcapDiskUsage pcapUsage{{pcap0, pcap1}, pcap0, gProgramName};
-//   auto total = pcapUsage.GetTotalDiskUsage(DiskUsage::Size::MB); // hangs on popen in DiskUsage::FolderUsage
-//   EXPECT_GT(total.total, 0);
-//   EXPECT_GT(total.free, 0);
-//   EXPECT_EQ(total.used, 3);
-//
-//   
-////   GMockPcapDiskUsage pcapUsage{{pcap0, pcap1}, ignored, gProgramName}; 
-////   ON_CALL(pcapUsage, IsSeparatedFromProbeDisk()).WillByDefault(Return(false));
-////   //ON_CALL(pcapUsage, GetTotalDiskUsage(_)).WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::Delegate_GetTotalDiskUsage)); // invoke the real call
-////   PcapDiskUsage::Usage empty;
-////   ON_CALL(pcapUsage, GetTotalDiskUsage(_)).WillByDefault(Return(empty));//Invoke(&pcapUsage, &GMockPcapDiskUsage::Delegate_GetTotalDiskUsage)); // invoke the real call
-////           
-////           
-////   EXPECT_CALL(pcapUsage, IsSeparatedFromProbeDisk()).Times(1);
-////   EXPECT_CALL(pcapUsage, GetTotalDiskUsage(_)).Times(1);
-////   //WillOnce(Invoke(&pcapUsage, &GMockPcapDiskUsage::GetTotalDiskUsage));
-////   //Times(1);
-////   
-////   auto total = pcapUsage.GetTotalDiskUsage(DiskUsage::Size::MB);
-////   EXPECT_GT(total.total, 0);
-////   EXPECT_GT(total.free, 0);
-////   EXPECT_EQ(total.used, 3);
-//}
+TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateREALFolderUsage) {
+   
+   std::string first_1MFileFile = {"dd bs=1024 count=1024 if=/dev/zero of="};
+   first_1MFileFile += testDir.str();
+   first_1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
+   EXPECT_EQ(0, system(first_1MFileFile.c_str()));
+   
+   std::string second_1MFileFile = {"dd bs=1024 count=1024 if=/dev/zero of="};
+   second_1MFileFile += testDir.str();
+   second_1MFileFile += "/cccdddddddddddddddddddddddddddddd1M";
+   EXPECT_EQ(0, system(second_1MFileFile.c_str()));
+   
+   GMockPcapDiskUsage pcapUsage{{testDir.str()}, gProgramName}; 
+    // Forward the OnceCalculate to the real object's DoCalculateMountPoints
+   ON_CALL(pcapUsage, OnceCalculateMountPoints())
+           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__OnceCalculateMountPoints));
+   ON_CALL(pcapUsage, GetFolderUsage(_,_,_))
+           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__GetFolderUsage));
+   
+   ON_CALL(pcapUsage, GetDiskUsage(_,_))
+           .WillByDefault(Return(1000000));  // should NOT be called
+   
+   EXPECT_CALL(pcapUsage, OnceCalculateMountPoints()).Times(1);
+   EXPECT_CALL(pcapUsage, GetFolderUsage(_,_,_)).Times(1); // Only the folder check should be called
+   EXPECT_CALL(pcapUsage, GetDiskUsage(_,_)).Times(0); 
+   
+   auto value = pcapUsage.GetTotalDiskUsage(DiskUsage::Size::MB);
+   EXPECT_EQ(value.used, 2);
+}
+   
+   
 
 
 
