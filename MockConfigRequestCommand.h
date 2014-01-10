@@ -58,7 +58,7 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {      // name, de
    // It is basically just an exercise in moving values between protoMessages 
    // ConfigDefaultsRequest, ConfigDefaults, CommandReply and CommandRequest
 
-   protoMsg::CommandReply ExecuteRequest(const protoMsg::ConfigDefaultsRequest& request) override {
+   protoMsg::CommandReply ExecuteRequest(const protoMsg::ConfigDefaultsRequest& request) LR_OVERRIDE {
       if (!mMockExecuteRequest) {
          return ConfigRequestCommand::ExecuteRequest(request);
       }

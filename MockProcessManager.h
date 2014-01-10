@@ -4,12 +4,13 @@
 class MockProcessManager : public ProcessManager {
 public:
 
-   MockProcessManager(const Conf& conf, const std::string& programName) : ProcessManager(conf,programName), mKillFails(false),
+   MockProcessManager(const Conf& conf, const std::string& programName) : ProcessManager(conf, programName), mKillFails(false),
    mExecFails(false), mRealInit(true) {
    }
 
    virtual ~MockProcessManager() {
    }
+
    virtual bool Initialize() {
       if (mRealInit) {
          return ProcessManager::Initialize();
@@ -50,7 +51,9 @@ public:
    virtual void SetPidDir(const std::string pidDir) override {
       ProcessManager::SetPidDir(pidDir);
    }
-
+   LR_VIRTUAL pid_t GetParentPid() {
+      return ProcessManager::GetParentPid();
+   }
    bool mKillFails;
    bool mExecFails;
    std::string mPidDir;
@@ -58,12 +61,29 @@ public:
 };
 
 class MockProcessManagerNoInit : public MockProcessManager {
-   public:
-   MockProcessManagerNoInit(const Conf& conf, const std::string& programName) : MockProcessManager(conf,programName) {
+public:
+
+   MockProcessManagerNoInit(const Conf& conf, const std::string& programName) : MockProcessManager(conf, programName) {
       mRealInit = false;
    }
 
    virtual ~MockProcessManagerNoInit() {
    }
-   
+
+};
+
+class MockProcessManagerNoMotherForker : public MockProcessManager {
+public:
+
+   MockProcessManagerNoMotherForker(const Conf& conf, const std::string& programName) : MockProcessManager(conf, programName) {
+
+   }
+
+   pid_t GetParentPid() {
+      return 1;
+   }
+
+   virtual ~MockProcessManagerNoMotherForker() {
+   }
+
 };
