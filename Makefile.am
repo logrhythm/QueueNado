@@ -140,7 +140,7 @@ PacketCaptureTest_SOURCES=main.cpp PacketCaptureTest.cpp
 
 DiskUsageTest_LDADD=${DYNAMIC_LIBS}
 DiskUsageTest_LDFLAGS=${BASE_LIBS}
-DiskUsageTest_SOURCES=main.cpp DiskUsageTest.cpp
+DiskUsageTest_SOURCES=main.cpp DiskUsageTest.cpp MockPcapDiskUsage.h
 
 
 MsgUuidTest_LDADD=${DYNAMIC_LIBS}

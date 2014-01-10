@@ -239,6 +239,91 @@ TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_GB) {
    EXPECT_EQ(usedGB, 1);
 }
 
+
+
+TEST(PcapDiskUsage, GMockFiddlingAndForwardingToRealFunctions) {
+   GMockPcapDiskUsage pcapUsage{{}, {}}; 
+   
+   // Forward all calls to the REAL functions
+   ON_CALL(pcapUsage, IsSeparatedFromProbeDisk())
+           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::Delegate_IsSeparatedFromProbeDisk));
+
+   ON_CALL(pcapUsage, GetTotalDiskUsage(_))
+           .WillByDefault(Invoke(&pcapUsage, &PcapDiskUsage::GetTotalDiskUsage));
+
+   // remove gmock warning about returning default values
+   EXPECT_CALL(pcapUsage, IsSeparatedFromProbeDisk()).Times(2); 
+   EXPECT_CALL(pcapUsage, GetTotalDiskUsage(_)).Times(1); 
+
+   // testing access of the real function and what they return
+   // WHAT the functions return is not of interest in this test function
+   auto value = pcapUsage.IsSeparatedFromProbeDisk(); // is separated: 1st call
+   EXPECT_TRUE(true == value || false == value); // not of interest
+
+   auto diskUsage = pcapUsage.GetTotalDiskUsage(DiskUsage::Size::KByte); // is separated 2nd call
+   EXPECT_EQ(diskUsage.free, 0);
+   EXPECT_EQ(diskUsage.used, 0);
+   EXPECT_EQ(diskUsage.total, 0);
+}
+
+
+
+TEST_F(RaIIFolderUsage, Pcap_DiskUsageWithPcapAndProbeOnSamePartition) {
+   std::string pcap0 = testDir.str(), pcap1 = testDir.str();
+   pcap0.append("/pcap0");
+   pcap1.append("/pcap1"); // RAII remove of folder at test exit
+   
+   std::string mkdir0{"mkdir -p "};
+   mkdir0.append(pcap0);
+   
+   std::string mkdir1{"mkdir -p "};
+   mkdir1.append(pcap1);
+   
+   ASSERT_EQ(0, system(mkdir0.c_str()));
+   ASSERT_EQ(0, system(mkdir1.c_str()));
+   
+   std::string first_1MFileFile = {"dd bs=1024 count=1024 if=/dev/zero of="};
+   first_1MFileFile += pcap0;
+   first_1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
+   EXPECT_EQ(0, system(first_1MFileFile.c_str()));
+   
+   std::string second_1MFileFile = {"dd bs=1024 count=1024 if=/dev/zero of="};
+   second_1MFileFile += pcap1;
+   second_1MFileFile += "/cccdddddddddddddddddddddddddddddd1M";
+   EXPECT_EQ(0, system(second_1MFileFile.c_str()));
+   
+   
+   std::string ignored{};
+   PcapDiskUsage pcapUsage{{pcap0, pcap1}, pcap0};
+   auto total = pcapUsage.GetTotalDiskUsage(DiskUsage::Size::MB); // hangs on popen in DiskUsage::FolderUsage
+   EXPECT_GT(total.total, 0);
+   EXPECT_GT(total.free, 0);
+   EXPECT_EQ(total.used, 3);
+
+   
+//   GMockPcapDiskUsage pcapUsage{{pcap0, pcap1}, ignored}; 
+//   ON_CALL(pcapUsage, IsSeparatedFromProbeDisk()).WillByDefault(Return(false));
+//   //ON_CALL(pcapUsage, GetTotalDiskUsage(_)).WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::Delegate_GetTotalDiskUsage)); // invoke the real call
+//   PcapDiskUsage::Usage empty;
+//   ON_CALL(pcapUsage, GetTotalDiskUsage(_)).WillByDefault(Return(empty));//Invoke(&pcapUsage, &GMockPcapDiskUsage::Delegate_GetTotalDiskUsage)); // invoke the real call
+//           
+//           
+//   EXPECT_CALL(pcapUsage, IsSeparatedFromProbeDisk()).Times(1);
+//   EXPECT_CALL(pcapUsage, GetTotalDiskUsage(_)).Times(1);
+//   //WillOnce(Invoke(&pcapUsage, &GMockPcapDiskUsage::GetTotalDiskUsage));
+//   //Times(1);
+//   
+//   auto total = pcapUsage.GetTotalDiskUsage(DiskUsage::Size::MB);
+//   EXPECT_GT(total.total, 0);
+//   EXPECT_GT(total.free, 0);
+//   EXPECT_EQ(total.used, 3);
+}
+
+
+
+
+
+
 TEST(DiskUsage, DISABLED_doPrintouts) {
 
    DiskUsage usage("/home/pcap", gProgramName);
