@@ -28,6 +28,7 @@ DiskCleanupTest \
 DiskUsageTest \
 ThreadContainerTest \
 ToolsTest \
+AttributeRenamerTest \
 SyslogReporterTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
@@ -44,6 +45,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libelasticsearch/ \
           -Wl,-R${abs_top_srcdir}/source/libtools/ \
           -Wl,-R${abs_top_srcdir}/source/libsystem/ \
+          -Wl,-R${abs_top_srcdir}/source/libremap/ \
           -Wl,-R/usr/local/probe/lib/ \
           -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
@@ -59,6 +61,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libelasticsearch/ \
           -L${abs_top_srcdir}/source/libtools/ \
           -L${abs_top_srcdir}/source/libsystem/ \
+          -L${abs_top_srcdir}/source/libremap/ \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
@@ -78,6 +81,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libelasticsearch \
          -I${abs_top_srcdir}/source/libtools \
          -I${abs_top_srcdir}/source/libsystem \
+         -I${abs_top_srcdir}/source/libremap \
          -I/usr/local/probe/include \
          -include /usr/include/fenv.h
 
@@ -86,7 +90,7 @@ DYNAMIC_LIBS=-ltcmalloc \
              -lsyslog -lZMQ -llrdpi -lstats -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf \
-             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal -lfork
+             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal -lfork -lremap
 
 ZMQTest_LDADD=${DYNAMIC_LIBS}
 ZMQTest_LDFLAGS=${BASE_LIBS}
@@ -318,10 +322,14 @@ nmTest_SOURCES=main.cpp \
  ToolsTestMakeUnique.cpp \
  ToolsTestStringFix.cpp \
  TestProtoDefaultsMethods.cpp
+#	SysLoggerTest.cpp \  conflicts with Rule Engine
 
 SyslogReporterTest_LDADD=${DYNAMIC_LIBS}
 SyslogReporterTest_LDFLAGS=${BASE_LIBS}
 SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp MockSyslogReporter.h
 SyslogReporterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
-#	SysLoggerTest.cpp \  conflicts with Rule Engine
+AttributeRenamerTest_LDADD=${DYNAMIC_LIBS}
+AttributeRenamerTest_LDFLAGS=${BASE_LIBS}
+AttributeRenamerTest_SOURCES=main.cpp AttributeRenamerTest.cpp MockAttributeRenamer.h
+AttributeRenamerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
