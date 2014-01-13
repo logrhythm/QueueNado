@@ -2,6 +2,9 @@
 #include "ValidateConf.cpp"
 #include "gtest/gtest.h"
 #include "Range.h"
+#include "PcapDiskUsage.h"
+#include "Conf.h"
+#include "include/global.h"
 
 TEST(TestProtoDefaults, GetConfDefaultsOK) {
    using namespace protoDefaults;
@@ -37,7 +40,16 @@ TEST(TestProtoDefaults, GetRangeOK){
    
    //Shouldn't exist:
    EXPECT_TRUE(protoDefaults::GetRange(confDefaults, "pcapInterface2").use_count() == 0);
+}
 
+TEST(TestProtoDefaults, SYSTEM_CaptureSizeLimits){
+   protoDefaults::ConfDefaults confDefaults = protoDefaults::GetConfDefaults("BASE");
+   auto rangePtr = protoDefaults::GetRange(confDefaults, "captureSizeLimit"); // int
+   Conf conf;
+   PcapDiskUsage usage{conf.GetPcapCaptureLocations(), global::GetProgramName()};
+   auto maxUsage = 80 * usage.GetTotalDiskUsage(MemorySize::MB).total / 100;
+   auto maxFromDefaults = rangePtr->StringifyMax();
+   EXPECT_EQ(maxUsage, std::stoul(maxFromDefaults));
 }
 
 TEST(TestProtoDefaults, GetConfParamDefaultOK){

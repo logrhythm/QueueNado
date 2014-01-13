@@ -62,9 +62,9 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
 
       EXPECT_TRUE(capture.TooMuchPCap(stats)); // 1 file, limit 1 file
       DiskUsage usage(testDir.str(),gProgramName);
-      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::KByte), 4);
+      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte), 4);
 
-      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::MB), 0);
+      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB), 0);
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup5";
  
@@ -84,7 +84,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
 
       std::this_thread::sleep_for(std::chrono::seconds(1));
 
-      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::MB), 1); // 2 files: 1MB + (4KByte folder overhead)
+      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB), 1); // 2 files: 1MB + (4KByte folder overhead)
 
       capture.RecalculatePCapDiskUsed(stats, es);
 
@@ -114,7 +114,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
 
       // 3 files: 2MB + (4KByte folder overhead) - 1byte
       
-      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::Byte),
+      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte),
               (2 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
 
       capture.RecalculatePCapDiskUsed(stats, es);
@@ -146,7 +146,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       EXPECT_EQ(2, stats.aTotalFiles);
 
       // 2MB + (4KByte folder overhead) - 1byte
-      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::Byte),
+      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte),
               (2 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup8";
@@ -158,7 +158,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       capture.RecalculatePCapDiskUsed(stats, es);
       EXPECT_EQ(1, stats.aTotalFiles);
       EXPECT_EQ(1, spaceSaved); //left is 1 file: 1MB-1byte + (4KByte folder overhead) 
-      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::Byte),
+      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte),
               (1 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT) - byte);
       capture.RecalculatePCapDiskUsed(stats, es);
       EXPECT_TRUE(capture.TooMuchPCap(stats)); // 1MB limit vs 1MB-1byte + 4KByte
@@ -169,7 +169,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       std::this_thread::sleep_for(std::chrono::seconds(1));
       EXPECT_EQ(1, capture.BruteForceCleanupOfOldFiles(testDir.str(), std::time(NULL), spaceSaved));
       EXPECT_EQ(1, spaceSaved); // 
-      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::Byte),
+      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte),
               (0 << B_TO_MB_SHIFT) + (4 << B_TO_KB_SHIFT));
 
       capture.RecalculatePCapDiskUsed(stats, es);
@@ -715,7 +715,7 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageSamePartition) {
 
    // Same partition: disk usage for pcap is calulcated on the folder itself
    // free and total should be huge since it is on the root partition
-   cleanup.GetPcapStoreUsage(stats, DiskUsage::Size::KByte);
+   cleanup.GetPcapStoreUsage(stats, MemorySize::KByte);
    size_t spaceToCreateADirectory = 4;
    EXPECT_EQ(stats.pcapDiskInGB.Used, spaceToCreateADirectory); // overhead creating dir
 
@@ -724,10 +724,10 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageSamePartition) {
    make1MFileFile += "/1MFile";
    EXPECT_EQ(0, system(make1MFileFile.c_str()));
    DiskUsage usage(testDir.str(), gProgramName);
-   size_t usedKByte = usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::KByte);
+   size_t usedKByte = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte);
    EXPECT_EQ(usedKByte, 1024 + spaceToCreateADirectory); // including 4: overhead
 
-   cleanup.GetPcapStoreUsage(stats, DiskUsage::Size::KByte);
+   cleanup.GetPcapStoreUsage(stats, MemorySize::KByte);
    EXPECT_EQ(stats.pcapDiskInGB.Used, 1024 + spaceToCreateADirectory);
 }
 #endif
@@ -772,7 +772,7 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
 
 
       // Using 2 different partitions for pcaps
-      auto size = DiskUsage::Size::MB;
+      auto size = MemorySize::MB;
       cleanup.GetPcapStoreUsage(stats, size); // high granularity in case something changes on the system
       DiskUsage atRoot({scopedRoot.mTestDir.str()},gProgramName);
       DiskUsage atHome(scopedHome.mTestDir.str(),gProgramName);
@@ -826,8 +826,8 @@ TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
    DiskCleanup::DiskSpace pcapDiskInKByte{0, 0, 0};
    DiskCleanup::DiskSpace probeDiskInKByte{0, 0, 0};
 
-   cleanup.GetPcapStoreUsage(stats, DiskUsage::Size::KByte);
-   cleanup.GetProbeFileSystemInfo(stats, DiskUsage::Size::KByte);
+   cleanup.GetPcapStoreUsage(stats, MemorySize::KByte);
+   cleanup.GetProbeFileSystemInfo(stats, MemorySize::KByte);
 
    // Same partition. For "free" and "total" used memory should be the same for 
    //  GetTotal..., GetProbe... and getPcap
@@ -861,7 +861,7 @@ TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
    cleanup.RecalculatePCapDiskUsed(stats, es);
    EXPECT_EQ(stats.aTotalFiles, 0);
    DiskUsage usage(testDir.str(), gProgramName);
-   size_t usedMB = usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::MB);
+   size_t usedMB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB);
    EXPECT_EQ(usedMB, 0);
    EXPECT_EQ(usedMB, stats.aPcapUsageInMB);
 
@@ -874,12 +874,12 @@ TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
    
    cleanup.RecalculatePCapDiskUsed(stats, es); // returns in GB
    EXPECT_EQ(stats.aTotalFiles, 1);
-   usedMB = usage.RecursiveFolderDiskUsed("/tmp/TooMuchPcap/", DiskUsage::Size::MB);
+   usedMB = usage.RecursiveFolderDiskUsed("/tmp/TooMuchPcap/", MemorySize::MB);
    EXPECT_EQ(usedMB, 10);
    EXPECT_EQ(usedMB, stats.aPcapUsageInMB);
 
 
-   cleanup.GetPcapStoreUsage(stats, DiskUsage::Size::KByte);
+   cleanup.GetPcapStoreUsage(stats, MemorySize::KByte);
    size_t spaceToCreateADirectory = 4;
    EXPECT_EQ(stats.pcapDiskInGB.Used, 10240 + spaceToCreateADirectory);
 }
@@ -935,7 +935,7 @@ TEST_F(DiskCleanupTest, DISABLED_SystemTest_RecalculatePCapDiskUsedManyPartition
       EXPECT_EQ(totalFiles, 0);
       DiskUsage atRoot({scopedRoot.mTestDir.str()},gProgramName);
       DiskUsage atHome(scopedHome.mTestDir.str(),gProgramName);
-      auto size = DiskUsage::Size::MB;
+      auto size = MemorySize::MB;
       // Measure disk usage before we add anything
       size_t usedMB_1 = atHome.DiskUsed(size);
       size_t usedMB_2 = atRoot.DiskUsed(size);
@@ -1055,7 +1055,7 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       EXPECT_EQ(1, stats.aTotalFiles);
       size_t ByteTotalLeft = 1052672;
       DiskUsage usage(testDir.str(), gProgramName);
-      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::Byte), ByteTotalLeft);
+      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte), ByteTotalLeft);
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
       capture.ResetConf();
@@ -1290,14 +1290,14 @@ TEST_F(DiskCleanupTest, FSMath) {
    diskCleanup.mFleSystemInfo.f_blocks = 109 << B_TO_MB_SHIFT;
    diskCleanup.mFleSystemInfo.f_frsize = 1024;
 
-   diskCleanup.GetPcapStoreUsage(stats, DiskUsage::Size::GB);
+   diskCleanup.GetPcapStoreUsage(stats, MemorySize::GB);
    EXPECT_EQ(100, stats.pcapDiskInGB.Free);
    EXPECT_EQ(109, stats.pcapDiskInGB.Total);
 
    diskCleanup.mRealFilesSystemAccess = true;
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
    diskCleanup.ResetConf();
-   diskCleanup.GetPcapStoreUsage(stats, DiskUsage::Size::GB);
+   diskCleanup.GetPcapStoreUsage(stats, MemorySize::GB);
    EXPECT_NE(0, stats.pcapDiskInGB.Free);
    EXPECT_NE(0, stats.pcapDiskInGB.Total);
 }

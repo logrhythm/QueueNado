@@ -3,9 +3,11 @@
 #include "Conf.h"
 #include "MockConf.h"
 #include "BaseConfMsg.pb.h"
+#include "ProtoDefaults.h"
 #include <g2log.hpp>
 #include <functional>
 #include <limits>
+#include <string>
 
 #ifdef LR_DEBUG
 using namespace std;
@@ -186,11 +188,17 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_enablepacketcapture(invalidBool) : msg.set_enablepacketcapture(validBool);
 
    (index++ == shouldFail) ? msg.set_capturefilelimit("2147483648") : msg.set_capturefilelimit("2147483647");
-   (index++ == shouldFail) ? msg.set_capturesizelimit("1000001") : msg.set_capturesizelimit("1000000");
+
+   protoDefaults::ConfDefaults confDefaults = protoDefaults::GetConfDefaults("BASE");
+   auto rangePtr = protoDefaults::GetRange(confDefaults, "captureSizeLimit"); // int
+   auto captureSizeLimitTooMuch = std::to_string(1+ std::stoul(rangePtr->StringifyMax()));  
+   (index++ == shouldFail) ? msg.set_capturesizelimit(captureSizeLimitTooMuch) : msg.set_capturesizelimit(rangePtr->StringifyMax());
+   
    (index++ == shouldFail) ? msg.set_capturememorylimit("16001") : msg.set_capturememorylimit("16000");
    (index++ == shouldFail) ? msg.set_capturemaxpackets("2147483648") : msg.set_capturemaxpackets("2147483647");
    (index++ == shouldFail) ? msg.set_captureindividualfilelimit("2000001") : msg.set_captureindividualfilelimit("2000000");
 
+   
    (index++ == shouldFail) ? msg.set_syslogrecvqueuesize("10001") : msg.set_syslogrecvqueuesize("10000");
    (index++ == shouldFail) ? msg.set_syslogsendqueuesize("10001") : msg.set_syslogsendqueuesize("10000");
    (index++ == shouldFail) ? msg.set_pcaprecordstoclearpercycle("20001") : msg.set_pcaprecordstoclearpercycle("20000");

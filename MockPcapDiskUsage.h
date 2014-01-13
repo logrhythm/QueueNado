@@ -8,6 +8,7 @@
 #pragma once
 #include "gmock/gmock.h"
 #include "PcapDiskUsage.h"
+#include "include/global.h"
 #include <vector>
 #include <string>
 using ::testing::_;
@@ -36,11 +37,11 @@ public:
       return PcapDiskUsage::DoCalculateMountPoints(locations);
    }
 
-   size_t GetDiskUsage(DiskUsage& disk, const DiskUsage::Size& size) LR_OVERRIDE {
+   size_t GetDiskUsage(DiskUsage& disk, const MemorySize& size) LR_OVERRIDE {
       return PcapDiskUsage::GetDiskUsage(disk, size);
    }
 
-   size_t GetFolderUsage(const std::string& path, DiskUsage& disk, const DiskUsage::Size& size) LR_OVERRIDE {
+   size_t GetFolderUsage(const std::string& path, DiskUsage& disk, const MemorySize& size) LR_OVERRIDE {
       return PcapDiskUsage::GetFolderUsage(path, disk, size);
    }
    std::vector<std::string> mLocations;
@@ -54,11 +55,11 @@ public:
    }
 
 
-   //MOCK_METHOD1(GetTotalDiskUsage, PcapDiskUsage::Usage(const DiskUsage::Size&));
+   //MOCK_METHOD1(GetTotalDiskUsage, PcapDiskUsage::Usage(const MemorySize&));
    MOCK_METHOD0(OnceCalculateMountPoints, PcapStorage());
    MOCK_METHOD1(DoCalculateMountPoints, PcapStorage(const std::vector<std::string>&));
-   MOCK_METHOD2(GetDiskUsage, size_t(DiskUsage&, const DiskUsage::Size&));
-   MOCK_METHOD3(GetFolderUsage, size_t(const std::string&, DiskUsage&, const DiskUsage::Size&));
+   MOCK_METHOD2(GetDiskUsage, size_t(DiskUsage&, const MemorySize&));
+   MOCK_METHOD3(GetFolderUsage, size_t(const std::string&, DiskUsage&, const MemorySize&));
    
    
    void DelegateFolderUsage(size_t value) {
@@ -70,7 +71,7 @@ public:
       return MockPcapDiskUsage::DoCalculateMountPoints(mLocations);
    }
    
-   size_t CallConcrete__GetFolderUsage(const std::string& path, DiskUsage& disk, const DiskUsage::Size& size) {
+   size_t CallConcrete__GetFolderUsage(const std::string& path, DiskUsage& disk, const MemorySize& size) {
       return MockPcapDiskUsage::GetFolderUsage(path, disk, size);
    }
 };

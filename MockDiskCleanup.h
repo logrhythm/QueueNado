@@ -7,6 +7,7 @@
 #include "BoolReturns.h"
 #include "gmock/gmock.h"
 #include "MockPcapDiskUsage.h"
+#include "include/global.h"
 #include <vector>
 extern std::string gProgramName;
 
@@ -88,7 +89,7 @@ public:
    }
 
    LR_VIRTUAL void GetPcapStoreUsage(DiskCleanup::StatInfo& stats,
-           const DiskUsage::Size size) LR_OVERRIDE {
+           const MemorySize size) LR_OVERRIDE {
       if (mRealFilesSystemAccess) {
          DiskCleanup::GetPcapStoreUsage(stats, size);
       } else {
@@ -111,7 +112,7 @@ public:
    }
 
    void GetProbeFileSystemInfo(DiskCleanup::StatInfo& stats,
-           const DiskUsage::Size size) LR_OVERRIDE {
+           const MemorySize size) LR_OVERRIDE {
       if (!mFailFileSystemInfo) {
          if (mRealFilesSystemAccess) {
             DiskCleanup::GetProbeFileSystemInfo(stats, size);
@@ -266,7 +267,7 @@ public:
    MOCK_METHOD0(IsShutdown, bool());
    MOCK_METHOD3(RemoveFiles, int(const PathAndFileNames& filesToRemove, size_t& spaceSavedInMB, size_t& filesNotFound));
    MOCK_METHOD2(GetFileCountFromES, bool(ElasticSearch& es,size_t& count));
-   MOCK_METHOD2(GetPcapStoreUsage, void(DiskCleanup::StatInfo& pcapDiskInGB, const DiskUsage::Size size));
+   MOCK_METHOD2(GetPcapStoreUsage, void(DiskCleanup::StatInfo& pcapDiskInGB, const MemorySize size));
    MOCK_METHOD3(MarkFilesAsRemovedInES, bool(const IdsAndIndexes& relevantRecords, const networkMonitor::DpiMsgLR& updateMsg,ElasticSearch& es));
    MOCK_METHOD1(RunOptimize, bool(ElasticSearch& es));
 
