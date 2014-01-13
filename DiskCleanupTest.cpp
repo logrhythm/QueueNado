@@ -422,7 +422,7 @@ TEST_F(DiskCleanupTest, RemoveFile) {
    EXPECT_TRUE(stat(path.c_str(), &filestat) == 0);
    EXPECT_TRUE(cleanup.RemoveFile(path));
    EXPECT_FALSE(stat(path.c_str(), &filestat) == 0);
-   EXPECT_TRUE(cleanup.RemoveFile(path)); // Missing is ok
+   EXPECT_FALSE(cleanup.RemoveFile(path)); // Missing file gives false return
    EXPECT_FALSE(stat(path.c_str(), &filestat) == 0);
 }
 
@@ -778,10 +778,15 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
       DiskUsage atHome(scopedHome.mTestDir.str(),gProgramName);
 
       auto isFree = atRoot.DiskFree(size) + atHome.DiskFree(size);
-      auto isUsed = atRoot.DiskUsed(size) + atHome.DiskUsed(size);
-      auto isTotal = atRoot.DiskTotal(size) + atHome.DiskTotal(size);
       EXPECT_EQ(stats.pcapDiskInGB.Free, isFree) << ". home: " << atHome.DiskFree(size) << ". root:" << atRoot.DiskFree(size);
-      EXPECT_EQ(stats.pcapDiskInGB.Used, isUsed) << ". home: " << atHome.DiskUsed(size) << ". root:" << atRoot.DiskUsed(size);
+
+
+      auto isUsed1 = atRoot.RecursiveFolderDiskUsed(scopedRoot.mTestDir.str(), size);
+      auto isUsed2 = atHome.RecursiveFolderDiskUsed(scopedHome.mTestDir.str(),size);
+      auto isUsed = isUsed1 + isUsed2;
+      EXPECT_EQ(stats.pcapDiskInGB.Used, isUsed) << ". home: " << isUsed2 << ". root:" << isUsed1;
+
+      auto isTotal = atRoot.DiskTotal(size) + atHome.DiskTotal(size);
       EXPECT_EQ(stats.pcapDiskInGB.Total, isTotal) << ". home: " << atHome.DiskTotal(size) << ". root:" << atRoot.DiskTotal(size);
 
 
@@ -791,10 +796,10 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
       make1MFileFile += "/10MFile";
       EXPECT_EQ(0, system(make1MFileFile.c_str()));
       DiskUsage atHome2(scopedHome.mTestDir.str(),gProgramName);
-      size_t usedMByte = atHome2.DiskUsed(size);
+      size_t usedMByte = atHome2.RecursiveFolderDiskUsed(scopedHome.mTestDir.str(),size);
       cleanup.GetPcapStoreUsage(stats, size);
       EXPECT_EQ(stats.pcapDiskInGB.Used, isUsed + 10);
-      EXPECT_EQ(stats.pcapDiskInGB.Used, usedMByte + atRoot.DiskUsed(size));
+      EXPECT_EQ(stats.pcapDiskInGB.Used, usedMByte + atRoot.RecursiveFolderDiskUsed(scopedRoot.mTestDir.str(), size));
    }
 }
 #endif
@@ -864,13 +869,15 @@ TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
    make10MFile += testDir.str();
    make10MFile += "/10MFile";
    EXPECT_EQ(0, system(make10MFile.c_str()));
-   mConf.mConfLocation = "resources/test.yaml.DiskCleanup91";  // file limit is 2
+   mConf.mConfLocation = "resources/test.yaml.DiskCleanup10";  // file limit is 2
    cleanup.ResetConf();
-   cleanup.RecalculatePCapDiskUsed(stats, es);
+   
+   cleanup.RecalculatePCapDiskUsed(stats, es); // returns in GB
    EXPECT_EQ(stats.aTotalFiles, 1);
-   usedMB = usage.RecursiveFolderDiskUsed(testDir.str(), DiskUsage::Size::MB);
+   usedMB = usage.RecursiveFolderDiskUsed("/tmp/TooMuchPcap/", DiskUsage::Size::MB);
    EXPECT_EQ(usedMB, 10);
    EXPECT_EQ(usedMB, stats.aPcapUsageInMB);
+
 
    cleanup.GetPcapStoreUsage(stats, DiskUsage::Size::KByte);
    size_t spaceToCreateADirectory = 4;

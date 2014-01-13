@@ -6,6 +6,8 @@
 #include <MockDiskUsage.h>
 #include "BoolReturns.h"
 #include "gmock/gmock.h"
+#include "MockPcapDiskUsage.h"
+#include <vector>
 extern std::string gProgramName;
 
 class MockDiskCleanup : public DiskCleanup {
@@ -14,7 +16,8 @@ public:
    MockDiskCleanup(networkMonitor::ConfSlave& conf, const std::string& programName) : DiskCleanup(conf,programName), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
    mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
-           mIsShutdownResult(false), mDoPseudoGetUpdatedDiskInfo(false), mUseMockConf(false) {
+           mIsShutdownResult(false), mDoPseudoGetUpdatedDiskInfo(false), mUseMockConf(false), 
+           mMockPcapDiskUsage(DiskCleanup::GetConf().GetPcapCaptureLocations(), programName) {
       mFleSystemInfo.f_bfree = 1;
       mFleSystemInfo.f_frsize = 1;
       mFleSystemInfo.f_blocks = 1;
@@ -150,6 +153,11 @@ public:
       }
       return mMockedConf;
    }
+   
+   PcapDiskUsage& GetPcapUsageInstance() LR_OVERRIDE {
+      mMockPcapDiskUsage.mLocations = GetConf().GetPcapCaptureLocations();
+      return mMockPcapDiskUsage;
+   }
 
    size_t RemoveOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime, size_t& spaceSaved) {
       return DiskCleanup::RemoveOlderFilesFromPath(path, oldestTime, spaceSaved);
@@ -239,6 +247,7 @@ public:
    
    bool mUseMockConf;
    MockConf mMockedConf;
+   MockPcapDiskUsage mMockPcapDiskUsage;
 };
 using ::testing::_;
 using ::testing::Invoke;
