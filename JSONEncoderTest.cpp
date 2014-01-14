@@ -17,12 +17,12 @@ namespace {
 TEST_F(JSONEncoderTest, Valgrind) {
    networkMonitor::DpiMsgLR testMsg;
    
-   testMsg.set_sessionid("abc123");
+   testMsg.set_session_id("abc123");
    testMsg.set_written(true);
-   testMsg.set_portdest(123);
+   testMsg.set_port_dest(123);
    testMsg.add_application_endq_proto_base("abc");
    testMsg.add_application_endq_proto_base("def");
-   testMsg.set_timeupdated(123456789);
+   testMsg.set_time_updated(123456789);
    int iterations = 1000;
    while (iterations-- > 0) {
       JSONEncoder encoder(&testMsg);
@@ -44,86 +44,86 @@ TEST_F(JSONEncoderTest, EncodeAnEmptyMessage) {
 
    std::string encodedMessage = encoder.Encode();
 
-   EXPECT_FALSE(StringContains(encodedMessage,"{\"sessionId\": \"\"}"));
+   EXPECT_FALSE(StringContains(encodedMessage,"{\"session_id\": \"\"}"));
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithAString) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_sessionid("ABC123");
+   testMsg.set_session_id("ABC123");
    JSONEncoder encoder(&testMsg);
 
    std::string encodedMessage = encoder.Encode();
-   EXPECT_TRUE(StringContains(encodedMessage,"{\"sessionId\": \"ABC123\"}"));
+   EXPECT_TRUE(StringContains(encodedMessage,"{\"session_id\": \"ABC123\"}"));
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_sessionid("ABC123");
+   testMsg.set_session_id("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_portdest(123);
+   testMsg.set_port_dest(123);
    std::string encodedMessage = encoder.Encode();
-   EXPECT_TRUE(StringContains(encodedMessage,"\"portDest\": 123"));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"port_dest\": 123"));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithIpSrcDst) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_sessionid("ABC123");
+   testMsg.set_session_id("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_ipsource(0x11223344);
-   testMsg.set_ipdest(0x55667788);
+   testMsg.set_ip_source(0x11223344);
+   testMsg.set_ip_dest(0x55667788);
    std::string encodedMessage = encoder.Encode();
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"ipDest\": \"136.119.102.85\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"ipSource\": \"68.51.34.17\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"ip_dest\": \"136.119.102.85\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"ip_source\": \"68.51.34.17\""));
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithAnInt64) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_sessionid("ABC123");
+   testMsg.set_session_id("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_timedelta(12345678900L);
+   testMsg.set_time_delta(12345678900L);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"timeDelta\": 12345678900"));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"time_delta\": 12345678900"));
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithATimeT) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_sessionid("ABC123");
+   testMsg.set_session_id("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_timestart(12345678900L);
+   testMsg.set_time_start(12345678900L);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"timeStart\": \"2361/03/21 19:15:00\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"time_start\": \"2361/03/21 19:15:00\""));
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithEthSrcDst) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_sessionid("ABC123");
+   testMsg.set_session_id("ABC123");
    JSONEncoder encoder(&testMsg);
-   testMsg.set_macsource(12345678900L);
-   testMsg.set_macdest(12345678901L);
+   testMsg.set_mac_source(12345678900L);
+   testMsg.set_mac_dest(12345678901L);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"macDest\": \"35:1c:dc:df:02:00\""));   
-   EXPECT_TRUE(StringContains(encodedMessage,"\"macSource\": \"34:1c:dc:df:02:00\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"mac_dest\": \"35:1c:dc:df:02:00\""));   
+   EXPECT_TRUE(StringContains(encodedMessage,"\"mac_source\": \"34:1c:dc:df:02:00\""));
    
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_sessionid("ABC123");
+   testMsg.set_session_id("ABC123");
    testMsg.add_accept_encodingq_proto_http("1");
    testMsg.add_accept_encodingq_proto_http("2");
    testMsg.add_accept_encodingq_proto_http("3");
@@ -131,44 +131,44 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
    JSONEncoder encoder(&testMsg);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#acceptEncoding\": [\"1\", \"2\", \"3\"]"));   
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#accept_encoding\": [\"1\", \"2\", \"3\"]"));   
 
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithSingleBool) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_sessionid("ABC123");
+   testMsg.set_session_id("ABC123");
    testMsg.set_captured(true);
    JSONEncoder encoder(&testMsg);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
    EXPECT_TRUE(StringContains(encodedMessage,"\"captured\": true"));   
    testMsg.set_captured(false);
    JSONEncoder encoder2(&testMsg);
 
    encodedMessage = encoder2.EncodeWithCallback(testMsg.CleanupName);
 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
    EXPECT_TRUE(StringContains(encodedMessage,"\"captured\": false")); 
 }
 
 TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_sessionid("ABC123");
+   testMsg.set_session_id("ABC123");
    testMsg.add_uri_fullq_proto_http("1");
    testMsg.add_application_endq_proto_base("test");
    testMsg.set_application_id_endq_proto_base(1234);
-   testMsg.set_bytesdest(567);
-   testMsg.set_bytesdestdelta(567);
-   testMsg.set_bytessource(899);
-   testMsg.set_bytessourcedelta(899);
-   testMsg.set_packettotal(88);
-   testMsg.set_packetsdelta(88);
+   testMsg.set_bytes_dest(567);
+   testMsg.set_bytes_dest_delta(567);
+   testMsg.set_bytes_source(899);
+   testMsg.set_bytes_source_delta(899);
+   testMsg.set_packet_total(88);
+   testMsg.set_packets_delta(88);
    testMsg.add_loginq_proto_aim("aLogin");
    testMsg.add_domainq_proto_smb("aDomain12345");
    testMsg.add_uriq_proto_http("not/this/one");
@@ -184,22 +184,22 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
    JSONEncoder encoder(&testMsg);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
    EXPECT_TRUE(StringContains(encodedMessage,"\"#server\": [\"thisname12345\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"packetsDelta\": 88")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"packets_delta\": 88")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#uri\": [\"not/this/one\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSource\": 899")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#refererServer\": [\"notThisOne\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_source\": 899")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#referer_server\": [\"notThisOne\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#method\": [\"RUN\", \"COMMAND\", \"LONGLONGLONGLONG\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"packetTotal\": 88")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDest\": 567")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDestDelta\": 567")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSourceDelta\": 899")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"packe_total\": 88")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_dest\": 567")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_dest_delta\": 567")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_source_delta\": 899")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#subject\": [\"test3_12345\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationEnd\": [\"test\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationIdEnd\": 1234")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#application_end\": [\"test\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#application_i_end\": 1234")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#login\": [\"aLogin\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#uriFull\": [\"1\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#uri_full\": [\"1\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#version\":"" [\"4.0\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#domain\": [\"aDomain12345\"]")); 
 }
@@ -207,41 +207,41 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
 TEST_F(JSONEncoderTest, encodesQuickSearchFields) {
    networkMonitor::DpiMsgLR testMsg;
 
-   testMsg.set_sessionid("ABC123");
+   testMsg.set_session_id("ABC123");
    testMsg.add_application_endq_proto_base("test");
    testMsg.add_application_endq_proto_base("test2");
    testMsg.add_applicationq_proto_base("test");
    testMsg.add_applicationq_proto_base("test2");
-   testMsg.set_bytesdest(567);
-   testMsg.set_bytesdestdelta(67);
-   testMsg.set_bytessource(899);
-   testMsg.set_bytessourcedelta(99);
-   testMsg.set_timeupdated(1000999);
-   testMsg.set_timestart(1000000);
+   testMsg.set_bytes_dest(567);
+   testMsg.set_bytes_dest_delta(67);
+   testMsg.set_bytes_source(899);
+   testMsg.set_bytes_source_delta(99);
+   testMsg.set_time_updated(1000999);
+   testMsg.set_time_start(1000000);
 
    JSONEncoder encoder(&testMsg);
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSource\": 899")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_source\": 899")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#application\": [\"test\", \"test2\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDest\": 567")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDestDelta\": 67")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSourceDelta\": 99")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationEnd\": [\"test\", \"test2\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_dest\": 567")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_dest_delta\": 67")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_source_delta\": 99")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#application_end\": [\"test\", \"test2\"]")); 
 
    testMsg.UpdateQuickSearchFields();
    encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
-   EXPECT_TRUE(StringContains(encodedMessage,"\"sessionId\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSource\": 899")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"session_id\": \"ABC123\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_source\": 899")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"#application\": [\"test\", \"test2\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDest\": 567")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesDestDelta\": 67")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesSourceDelta\": 99")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#applicationEnd\": [\"test\", \"test2\"]"));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"applicationPath\": \"/test/test2\"")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_dest\": 567")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_dest_delta\": 67")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_source_delta\": 99")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"#application_end\": [\"test\", \"test2\"]"));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"application_path\": \"/test/test2\"")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"application\": \"test2\"")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesTotal\": 1466"));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"bytesTotalDelta\": 166"));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_total\": 1466"));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"bytes_total_delta\": 166"));
    
 }

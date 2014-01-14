@@ -254,22 +254,22 @@ TEST_F(ElasticSearchTest, GetListOfAllIndexesSince) {
    EXPECT_EQ(expectedString, es.GetListOfAllIndexesSince(0));
 
    networkMonitor::DpiMsgLR aMessage;
-   aMessage.set_timeupdated(std::time(NULL));
+   aMessage.set_time_updated(std::time(NULL));
    networkMonitor::DpiMsgLR yesterMessage;
-   yesterMessage.set_timeupdated(aMessage.timeupdated() - es.TwentyFourHoursInSeconds);
+   yesterMessage.set_time_updated(aMessage.time_updated() - es.TwentyFourHoursInSeconds);
    networkMonitor::DpiMsgLR morrowMessage;
-   morrowMessage.set_timeupdated(aMessage.timeupdated() + es.TwentyFourHoursInSeconds);
+   morrowMessage.set_time_updated(aMessage.time_updated() + es.TwentyFourHoursInSeconds);
 
    std::set<std::string> validNames;
    validNames.insert(aMessage.GetESIndexName());
    validNames.insert(yesterMessage.GetESIndexName());
    // Not adding tomorrow's message
    es.SetValidNames(validNames);
-   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find("_all") == std::string::npos);
-   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(",") == std::string::npos);
-   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(aMessage.GetESIndexName()) == std::string::npos);
-   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(yesterMessage.GetESIndexName()) == std::string::npos);
-   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(morrowMessage.GetESIndexName()) == std::string::npos);
+   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.time_updated()).find("_all") == std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.time_updated()).find(",") == std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.time_updated()).find(aMessage.GetESIndexName()) == std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.time_updated()).find(yesterMessage.GetESIndexName()) == std::string::npos);
+   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.time_updated()).find(morrowMessage.GetESIndexName()) == std::string::npos);
 }
 
 TEST_F(ElasticSearchTest, IndexActuallyExists) {
@@ -307,20 +307,20 @@ TEST_F(ElasticSearchTest, ConstructSearchHeaderWithTime) {
    std::string expectedString = "GET|/_all/meta/_search|";
    EXPECT_EQ(expectedString, es.ConstructSearchHeaderWithTime(0));
    networkMonitor::DpiMsgLR aMessage;
-   aMessage.set_timeupdated(std::time(NULL));
+   aMessage.set_time_updated(std::time(NULL));
    networkMonitor::DpiMsgLR yesterMessage;
-   yesterMessage.set_timeupdated(aMessage.timeupdated() - es.TwentyFourHoursInSeconds);
+   yesterMessage.set_time_updated(aMessage.time_updated() - es.TwentyFourHoursInSeconds);
    networkMonitor::DpiMsgLR morrowMessage;
-   morrowMessage.set_timeupdated(aMessage.timeupdated() + es.TwentyFourHoursInSeconds);
+   morrowMessage.set_time_updated(aMessage.time_updated() + es.TwentyFourHoursInSeconds);
 
    std::set<std::string> validNames;
    validNames.insert(aMessage.GetESIndexName());
    validNames.insert(yesterMessage.GetESIndexName());
    // Not adding tomorrow's message
    es.SetValidNames(validNames);
-   EXPECT_TRUE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find("_all") == std::string::npos);
-   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(",") == std::string::npos);
-   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(aMessage.GetESIndexName()) == std::string::npos);
+   EXPECT_TRUE(es.ConstructSearchHeaderWithTime(aMessage.time_updated()).find("_all") == std::string::npos);
+   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.time_updated()).find(",") == std::string::npos);
+   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.time_updated()).find(aMessage.GetESIndexName()) == std::string::npos);
 }
 
 //TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
@@ -1534,14 +1534,14 @@ TEST_F(ElasticSearchTest, GetIndexesThatAreActive) {
    std::time_t now(std::time(NULL));
 
    networkMonitor::DpiMsgLR todayMsg;
-   todayMsg.set_timeupdated(now);
+   todayMsg.set_time_updated(now);
 
    std::set<std::string> excludes = es.GetIndexesThatAreActive();
 
    EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
-   todayMsg.set_timeupdated(now - (es.TwentyFourHoursInSeconds));
+   todayMsg.set_time_updated(now - (es.TwentyFourHoursInSeconds));
    EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
-   todayMsg.set_timeupdated(now - 2 * (es.TwentyFourHoursInSeconds));
+   todayMsg.set_time_updated(now - 2 * (es.TwentyFourHoursInSeconds));
    EXPECT_FALSE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
 }
 #else
