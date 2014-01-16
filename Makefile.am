@@ -44,6 +44,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libprocess/ \
           -Wl,-R${abs_top_srcdir}/source/libelasticsearch/ \
           -Wl,-R${abs_top_srcdir}/source/libtools/ \
+          -Wl,-R${abs_top_srcdir}/source/libglobal/ \
           -Wl,-R${abs_top_srcdir}/source/libsystem/ \
           -Wl,-R${abs_top_srcdir}/source/libremap/ \
           -Wl,-R/usr/local/probe/lib/ \
@@ -60,6 +61,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/liblua/ \
           -L${abs_top_srcdir}/source/libelasticsearch/ \
           -L${abs_top_srcdir}/source/libtools/ \
+          -L${abs_top_srcdir}/source/libglobal/ \
           -L${abs_top_srcdir}/source/libsystem/ \
           -L${abs_top_srcdir}/source/libremap/ \
           -L${abs_top_srcdir}/source/ \
@@ -80,6 +82,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/liblua \
          -I${abs_top_srcdir}/source/libelasticsearch \
          -I${abs_top_srcdir}/source/libtools \
+         -I${abs_top_srcdir}/source/libglobal \
          -I${abs_top_srcdir}/source/libsystem \
          -I${abs_top_srcdir}/source/libremap \
          -I/usr/local/probe/include \
