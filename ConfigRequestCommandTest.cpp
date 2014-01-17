@@ -4,6 +4,8 @@
 #include "ConfigDefaultsRequest.pb.h"
 #include "ConfigDefaults.pb.h"
 #include "include/global.h"
+#include "ConfSlave.h"
+#include "PcapDiskUsage.h"
 #include <boost/lexical_cast.hpp>
 
 TEST_F(ConfigRequestCommandTest, DoesItCompileAndLink) {
@@ -287,7 +289,13 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    checkRealReply(realReply, "enableIntermediateFlows", protoMsg::ConfType::BASE, "true", "false", "true", it++);
    checkRealReply(realReply, "enablePacketCapture", protoMsg::ConfType::BASE, "true", "false", "true", it++);
    checkRealReply(realReply, "captureFileLimit", protoMsg::ConfType::BASE, "1000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
-   checkRealReply(realReply, "captureSizeLimit", protoMsg::ConfType::BASE, "80000", "1000", "1000000", it++);
+   
+   
+   auto conf = networkMonitor::ConfSlave::Instance().GetConf();
+   PcapDiskUsage pcapUsage{conf.GetPcapCaptureLocations()};
+   auto diskUsage = pcapUsage.GetTotalDiskUsage(MemorySize::MB);
+   ASSERT_GT(diskUsage.total, 0);
+   checkRealReply(realReply, "captureSizeLimit", protoMsg::ConfType::BASE, "80000", "1000", std::to_string(80*diskUsage.total/100), it++);
    checkRealReply(realReply, "captureMemoryLimit", protoMsg::ConfType::BASE, "1500", "1000", "16000", it++);
    checkRealReply(realReply, "captureMaxPackets", protoMsg::ConfType::BASE, "2000000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
    checkRealReply(realReply, "captureIndividualFileLimit", protoMsg::ConfType::BASE, "2000", "1", "2000000", it++);
