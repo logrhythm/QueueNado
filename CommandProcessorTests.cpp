@@ -798,32 +798,9 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCleanUploadDir) {
 #endif
 }
 
-TEST_F(CommandProcessorTests, UpgradeCommandFailInitProcessManager) {
-#ifdef LR_DEBUG
-   const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
-   processManager.setInit(false);
-   processManager.SetSuccess(true);
-   processManager.SetReturnCode(0);
-   processManager.SetResult("Failed!");
-   protoMsg::CommandRequest cmd;
-   cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
-   cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager);
-   bool exception = false;
-   try {
-      protoMsg::CommandReply reply = upg.Execute(conf);
-      ASSERT_FALSE(reply.success());
 
-   } catch (CommandFailedException e) {
-      exception = true;
-   }
-   ASSERT_FALSE(exception);
-#endif
-}
 
 //REBOOT COMMANDS
-
 TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
@@ -1153,33 +1130,6 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandBadInterfaceMsg) {
    }
    ASSERT_FALSE(exception);
 
-
-}
-
-TEST_F(CommandProcessorTests, NetworkConfigCommandFailInitProcessManager) {
-
-   const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
-   processManager.setInit(false);
-   processManager.SetSuccess(true);
-   processManager.SetReturnCode(0);
-   processManager.SetResult("Failed!");
-   protoMsg::CommandRequest cmd;
-   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::NetInterface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::DHCP);
-   cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager);
-   bool exception = false;
-   try {
-      protoMsg::CommandReply reply = ncct.Execute(conf);
-      LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
-      ASSERT_FALSE(reply.success());
-   } catch (...) {
-      exception = true;
-   }
-
-   ASSERT_FALSE(exception);
 
 }
 

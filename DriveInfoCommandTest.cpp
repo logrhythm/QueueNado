@@ -34,9 +34,11 @@ TEST_F(DriveInfoCommandTest, FailedWithBuildDriveInfo) {
    MockDriveInfo driveInfo("dummy");
    EXPECT_TRUE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6;"));
    EXPECT_TRUE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6"));
+   
+   EXPECT_TRUE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6:7:8:9:10;"));
+   EXPECT_FALSE(driveInfo.BuildDriveInfo("0:1:2:3:4;"));
 
-   EXPECT_FALSE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6:7;"));
-   EXPECT_FALSE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6:7"));
+   
 }
 TEST_F(DriveInfoCommandTest, BuildDriveInfo) {
    auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.86.nodas.txt");
