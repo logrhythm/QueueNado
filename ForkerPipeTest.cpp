@@ -53,7 +53,7 @@ TEST_F(ForkerPipeTest, ConstructUniquePipeName) {
    
    std::string name = serverPipe.ConstructUniquePipeName("");
    EXPECT_EQ("/tmp/ForkerPipeTest",name);
-   std::string name = serverPipe.ConstructUniquePipeName("fubar");
+   name = serverPipe.ConstructUniquePipeName("fubar");
    EXPECT_EQ("/tmp/ForkerPipeTest.fubar",name);
 }
 TEST_F(ForkerPipeTest, WaitForDataOnPipe) {
