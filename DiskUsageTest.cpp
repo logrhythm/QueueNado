@@ -12,7 +12,6 @@
 #include "Conf.h"
 #include "include/global.h"
 #include <cmath>
-extern std::string gProgramName;
 using ::testing::_;
 using ::testing::Invoke;
 
@@ -39,7 +38,7 @@ TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_MB) {
    make1MFileFile += testDir.str();
    make1MFileFile += "/1MFile";
    EXPECT_EQ(0, system(make1MFileFile.c_str()));
-   DiskUsage usage(testDir.str(), gProgramName);
+   DiskUsage usage(testDir.str());
    size_t usedMB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte);
    EXPECT_EQ(usedMB, 1024 + 4); // overhead
    usedMB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB);
@@ -47,7 +46,7 @@ TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_MB) {
 }
 
 TEST(DiskUsage, FailedReading) {
-   DiskUsage usage("abc", gProgramName);
+   DiskUsage usage("abc");
    auto bytesUsed = usage.DiskUsed(MemorySize::Byte);
    auto bytesTotal = usage.DiskTotal(MemorySize::Byte);
    auto bytesFree = usage.DiskFree(MemorySize::Byte);
@@ -70,7 +69,7 @@ TEST(DiskUsage, ReadAtStartup) {
    stat.f_favail = 4798215;
 
 
-   MockDiskUsage usage(stat, gProgramName);
+   MockDiskUsage usage(stat);
    usage.Update();
    auto bytesUsed = usage.DiskUsed(MemorySize::Byte);
    auto bytesTotal = usage.DiskTotal(MemorySize::Byte);
@@ -103,7 +102,7 @@ TEST(DiskUsage, ReadAtStartup) {
 }
 
 TEST(DiskUsage, ByteToKByteToMBToGB) {
-   MockDiskUsage usage(GetDefaultMockStatvs(), gProgramName);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    usage.Update();
    auto bytesUsed = usage.DiskUsed(MemorySize::Byte);
    auto bytesTotal = usage.DiskTotal(MemorySize::Byte);
@@ -140,7 +139,7 @@ TEST(DiskUsage, ByteToKByteToMBToGB) {
 }
 
 TEST(DiskUsage, PercentageUsed) {
-   MockDiskUsage usage(GetDefaultMockStatvs(), gProgramName);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    usage.Update();
 
    double usePercentage = usage.DiskUsedPercentage();
@@ -149,7 +148,7 @@ TEST(DiskUsage, PercentageUsed) {
 }
 
 TEST(DiskUsage, CheckValuesByte) {
-   MockDiskUsage usage(GetDefaultMockStatvs(), gProgramName);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(MemorySize::Byte);
    auto total = usage.DiskTotal(MemorySize::Byte);
    auto free = usage.DiskFree(MemorySize::Byte);
@@ -165,7 +164,7 @@ TEST(DiskUsage, CheckValuesByte) {
 }
 
 TEST(DiskUsage, CheckValuesKByte) {
-   MockDiskUsage usage(GetDefaultMockStatvs(), gProgramName);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(MemorySize::KByte);
    auto total = usage.DiskTotal(MemorySize::KByte);
    auto free = usage.DiskFree(MemorySize::KByte);
@@ -182,7 +181,7 @@ TEST(DiskUsage, CheckValuesKByte) {
 
 TEST(DiskUsage, CheckValuesMB) {
 
-   MockDiskUsage usage(GetDefaultMockStatvs(), gProgramName);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(MemorySize::MB);
    auto total = usage.DiskTotal(MemorySize::MB);
    auto free = usage.DiskFree(MemorySize::MB);
@@ -198,7 +197,7 @@ TEST(DiskUsage, CheckValuesMB) {
 }
 
 TEST(DiskUsage, CheckValuesGB) {
-   MockDiskUsage usage(GetDefaultMockStatvs(), gProgramName);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(MemorySize::GB);
    auto total = usage.DiskTotal(MemorySize::GB);
    auto free = usage.DiskFree(MemorySize::GB);
@@ -220,9 +219,9 @@ TEST(DiskUsage, CheckValuesGB) {
 //     disk partitions and "/mnt" will always be on the "/" partition
 
 TEST(DiskUsage, FileSystemID) {
-   DiskUsage root({"/"}, gProgramName);
-   DiskUsage home({"/home"}, gProgramName);
-   DiskUsage mnt({"/mnt"}, gProgramName);
+   DiskUsage root("/");
+   DiskUsage home("/home");
+   DiskUsage mnt("/mnt");
    EXPECT_NE(root.FileSystemID(), home.FileSystemID());
    EXPECT_EQ(root.FileSystemID(), mnt.FileSystemID());
    LOG(INFO) << "\n/home\t\t" << home.FileSystemID()
@@ -235,7 +234,7 @@ TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_GB) {
    make1GFileFile += testDir.str();
    make1GFileFile += "/1MFile";
    EXPECT_EQ(0, system(make1GFileFile.c_str()));
-   DiskUsage usage(testDir.str(), gProgramName);
+   DiskUsage usage(testDir.str());
    size_t usedGB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte);
    EXPECT_EQ(usedGB, 1048576 + 4); // 4: overhead?
    usedGB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB);
@@ -247,7 +246,7 @@ TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_GB) {
 TEST(PcapDiskUsage, DoCalculateEmptyMountPoint) {
    
    std::vector<std::string> locations{{""}, {" "}, {"           "}};
-   MockPcapDiskUsage usage(locations, gProgramName);
+   MockPcapDiskUsage usage(locations);
 
    auto storage1 = usage.DoCalculateMountPoints(locations);   
    EXPECT_EQ(storage1.size(), 0);
@@ -256,17 +255,13 @@ TEST(PcapDiskUsage, DoCalculateEmptyMountPoint) {
 TEST(PcapDiskUsage, DoCalculateARealMountPoint) {
    
    std::vector<std::string> locations{{"/"}, {"/boot"}};
-   MockPcapDiskUsage usage(locations, gProgramName);
+   MockPcapDiskUsage usage(locations);
 
    auto storage1 = usage.DoCalculateMountPoints(locations);
-   auto storage2 = usage.OnceCalculateMountPoints();
-   
    EXPECT_EQ(storage1.size(), 2);
-   EXPECT_EQ(storage2.size(), 2);
    for(auto& l : storage1) {
       LOG(DEBUG) <<  l.first << "\tIs a mount point: : " << l.second << std::endl;              
    }
-   EXPECT_TRUE(storage1 == storage2);
    ASSERT_TRUE(storage1.end() != storage1.find("/"));
    ASSERT_TRUE(storage1.end() != storage1.find("/boot/"));
    EXPECT_EQ(true, storage1["/"]);
@@ -278,18 +273,18 @@ TEST(PcapDiskUsage, DoCalculateARealMountPoint) {
 
 
 TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateFolderUsage__ExpectingOnlyONEFolder) {
-   GMockPcapDiskUsage pcapUsage{{testDir.str()}, gProgramName}; 
+   GMockPcapDiskUsage pcapUsage{{testDir.str()}}; 
 
-   // Forward the OnceCalculate to the real object's DoCalculateMountPoints
-   ON_CALL(pcapUsage, OnceCalculateMountPoints())
-           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__OnceCalculateMountPoints));
+   // Forward the DoCalculateMountPoints to the real object's DoCalculateMountPoints
+   ON_CALL(pcapUsage, DoCalculateMountPoints(_))
+           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__DoCalculateMountPoints));
    
    ON_CALL(pcapUsage, GetFolderUsage(_,_,_))
            .WillByDefault(Return(100));
    ON_CALL(pcapUsage, GetDiskUsage(_,_))
            .WillByDefault(Return(1000000));  // should not be called
    
-   EXPECT_CALL(pcapUsage, OnceCalculateMountPoints()).Times(1);
+   EXPECT_CALL(pcapUsage, DoCalculateMountPoints(_)).Times(1);
    EXPECT_CALL(pcapUsage, GetFolderUsage(_,_,_)).Times(1);
    EXPECT_CALL(pcapUsage, GetDiskUsage(_,_)).Times(0);
    
@@ -307,18 +302,18 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDuplicateFolderUsage__ExpectingO
    system(makeADir.c_str());
    
    std::vector<std::string> places{testDir.str(), subDirOnSamePartition};
-   GMockPcapDiskUsage pcapUsage{places, gProgramName}; 
+   GMockPcapDiskUsage pcapUsage{places}; 
 
-   // Forward the OnceCalculate to the real object's DoCalculateMountPoints
-   ON_CALL(pcapUsage, OnceCalculateMountPoints())
-           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__OnceCalculateMountPoints));
+   // Forward the DoCalculateMountPoints to the real object's DoCalculateMountPoints
+   ON_CALL(pcapUsage, DoCalculateMountPoints(_))
+           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__DoCalculateMountPoints));
    
    ON_CALL(pcapUsage, GetFolderUsage(_,_,_))
            .WillByDefault(Return(100));
    ON_CALL(pcapUsage, GetDiskUsage(_,_))
            .WillByDefault(Return(1000000));  // should not be called
    
-   EXPECT_CALL(pcapUsage, OnceCalculateMountPoints()).Times(1);
+   EXPECT_CALL(pcapUsage, DoCalculateMountPoints(_)).Times(1);
    EXPECT_CALL(pcapUsage, GetFolderUsage(_,_,_)).Times(1);
    EXPECT_CALL(pcapUsage, GetDiskUsage(_,_)).Times(0);
    
@@ -327,18 +322,18 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDuplicateFolderUsage__ExpectingO
 }
 
 TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDiskUsage__ExpectingOnlyDisk) {
-   GMockPcapDiskUsage pcapUsage{{"/"}, gProgramName}; 
+   GMockPcapDiskUsage pcapUsage{{"/"}}; 
 
-   // Forward the OnceCalculate to the real object's DoCalculateMountPoints
-   ON_CALL(pcapUsage, OnceCalculateMountPoints())
-           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__OnceCalculateMountPoints));
+   // Forward the DoCalculateMountPoints to the real object's DoCalculateMountPoints
+   ON_CALL(pcapUsage, DoCalculateMountPoints(_))
+           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__DoCalculateMountPoints));
    
    ON_CALL(pcapUsage, GetFolderUsage(_,_,_))
            .WillByDefault(Return(100));
    ON_CALL(pcapUsage, GetDiskUsage(_,_))
            .WillByDefault(Return(1000000));  // should not be called
    
-   EXPECT_CALL(pcapUsage, OnceCalculateMountPoints()).Times(1);
+   EXPECT_CALL(pcapUsage, DoCalculateMountPoints(_)).Times(1);
    EXPECT_CALL(pcapUsage, GetFolderUsage(_,_,_)).Times(0);
    EXPECT_CALL(pcapUsage, GetDiskUsage(_,_)).Times(1); // Only the Disk usage should be called
    
@@ -359,17 +354,17 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateREALFolderUsage) {
    second_1MFileFile += "/cccdddddddddddddddddddddddddddddd1M";
    EXPECT_EQ(0, system(second_1MFileFile.c_str()));
    
-   GMockPcapDiskUsage pcapUsage{{testDir.str()}, gProgramName}; 
-    // Forward the OnceCalculate to the real object's DoCalculateMountPoints
-   ON_CALL(pcapUsage, OnceCalculateMountPoints())
-           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__OnceCalculateMountPoints));
+   GMockPcapDiskUsage pcapUsage{{testDir.str()}}; 
+    // Forward the DoCalculateMountPoints to the real object's DoCalculateMountPoints
+   ON_CALL(pcapUsage, DoCalculateMountPoints(_))
+           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__DoCalculateMountPoints));
    ON_CALL(pcapUsage, GetFolderUsage(_,_,_))
            .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__GetFolderUsage));
    
    ON_CALL(pcapUsage, GetDiskUsage(_,_))
            .WillByDefault(Return(1000000));  // should NOT be called
    
-   EXPECT_CALL(pcapUsage, OnceCalculateMountPoints()).Times(1);
+   EXPECT_CALL(pcapUsage, DoCalculateMountPoints(_)).Times(1);
    EXPECT_CALL(pcapUsage, GetFolderUsage(_,_,_)).Times(1); // Only the folder check should be called
    EXPECT_CALL(pcapUsage, GetDiskUsage(_,_)).Times(0); 
    
@@ -386,7 +381,7 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateREALFolderUsage) {
 
 TEST(DiskUsage, DISABLED_doPrintouts) {
 
-   DiskUsage usage("/home/pcap", gProgramName);
+   DiskUsage usage("/home/pcap");
    auto used = usage.DiskUsed(MemorySize::MB);
    auto total = usage.DiskTotal(MemorySize::MB);
    auto free = usage.DiskFree(MemorySize::MB);
@@ -406,7 +401,7 @@ TEST(DiskUsage, DISABLED_doPrintouts) {
 // df giving the higher answer
 
 TEST(DiskUsage, DISABLED_ToWaysToCheck) {
-   DiskUsage home({"/home/"}, gProgramName);
+   DiskUsage home{"/home/"};
    auto homeUsed = home.DiskUsed(MemorySize::KByte);
 
    auto homeAsFolder = home.RecursiveFolderDiskUsed("/home/", MemorySize::KByte);
@@ -417,13 +412,13 @@ TEST(DiskUsage, DISABLED_ToWaysToCheck) {
 }
 
 TEST(FolderUsage, FolderDoesNotExist) {
-   DiskUsage notThere({"abc123"}, gProgramName);
+   DiskUsage notThere{"abc123"};
    auto result = notThere.RecursiveFolderDiskUsed("abc123", MemorySize::GB);
    EXPECT_EQ(result, 0);
 }
 
 TEST(FolderUsage, DISABLED_FolderDoesExist) {
-   DiskUsage notThere({"/usr/local/probe/pcap/"}, gProgramName);
+   DiskUsage notThere{"/usr/local/probe/pcap/"};
    auto result_0 = notThere.RecursiveFolderDiskUsed("/usr/local/probe/pcap/", MemorySize::GB);
    EXPECT_TRUE(result_0 > 0);
    LOG(INFO) << "GB usage was: " << result_0;

@@ -14,19 +14,18 @@
 #include <boost/lexical_cast.hpp>
 
 
-extern std::string gProgramName;
 TEST_F(NtpConfigCommandTest, DoesItCompileAndLink) {
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    
    protoMsg::CommandRequest requestMsg;
    requestMsg.set_type(protoMsg::CommandRequest_CommandType_NTP_CONFIG); 
-   std::shared_ptr<Command> cmd = NtpConfigCommand::Construct(requestMsg,gProgramName);
+   std::shared_ptr<Command> cmd = NtpConfigCommand::Construct(requestMsg);
    ASSERT_NE(cmd.get(), nullptr);
    SUCCEED();
 }
 
 TEST_F(NtpConfigCommandTest, Construct) {
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    SUCCEED();
 }
 
@@ -34,7 +33,7 @@ TEST_F(NtpConfigCommandTest, Construct) {
 TEST_F(NtpConfigCommandTest, InValidCommand) {
    protoMsg::Ntp ntp;
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    auto reply = doIt.Execute(conf);
    ASSERT_FALSE(reply.success());
 }
@@ -43,17 +42,17 @@ TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd) {
    protoMsg::Ntp ntp;
    ntp.set_master_server(""); // only the master needs to be defined.. here with nothing
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
 
-   const auto& allCmds = autoManagedManager->getTotalRunCommands();   
-   const auto& allArgs = autoManagedManager->getTotalRunArgs();
+   const auto& allCmds = autoManagedManager.getTotalRunCommands();   
+   const auto& allArgs = autoManagedManager.getTotalRunArgs();
    ASSERT_EQ(allCmds.size(), allArgs.size());
    ASSERT_EQ(allCmds.size(), 0); // previously ntpd would stop for blank ntpd servers. That is no longer the case
       
-   auto lastCmd = autoManagedManager->getRunCommand();
-   auto lastArgs = autoManagedManager->getRunArgs();
+   auto lastCmd = autoManagedManager.getRunCommand();
+   auto lastArgs = autoManagedManager.getRunArgs();
    ASSERT_EQ(lastCmd, std::string(""));
    ASSERT_EQ(lastArgs, std::string(""));
    // Nothing to do since no servers were valid or active
@@ -64,17 +63,17 @@ TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd) {
 TEST_F(NtpConfigCommandTest, EnableNTPWithNoServer__ExpectingInvalidCmd) {
    protoMsg::Ntp ntp;
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    auto reply = doIt.Execute(conf);
    ASSERT_FALSE(reply.success());
    
-   const auto& allCmds = autoManagedManager->getTotalRunCommands();   
-   const auto& allArgs = autoManagedManager->getTotalRunArgs();
+   const auto& allCmds = autoManagedManager.getTotalRunCommands();   
+   const auto& allArgs = autoManagedManager.getTotalRunArgs();
    ASSERT_EQ(allCmds.size(), allArgs.size());
    ASSERT_EQ(allCmds.size(), 0);
    
-   auto lastCmd = autoManagedManager->getRunCommand();
-   auto lastArgs = autoManagedManager->getRunArgs();
+   auto lastCmd = autoManagedManager.getRunCommand();
+   auto lastArgs = autoManagedManager.getRunArgs();
    ASSERT_EQ(lastCmd, "");
    ASSERT_EQ(lastArgs, "");
 }
@@ -83,12 +82,12 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithMasterServer__ExpectingValidCmd) {
    protoMsg::Ntp ntp;
    ntp.set_master_server("10.128.64.251");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
 
-   const auto& allCmds = autoManagedManager->getTotalRunCommands();   
-   const auto& allArgs = autoManagedManager->getTotalRunArgs();
+   const auto& allCmds = autoManagedManager.getTotalRunCommands();   
+   const auto& allArgs = autoManagedManager.getTotalRunArgs();
    ASSERT_EQ(allCmds.size(), allArgs.size());
    ASSERT_EQ(allCmds.size(), 4);
    
@@ -107,8 +106,8 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithMasterServer__ExpectingValidCmd) {
    EXPECT_EQ(allArgs[3], "ntpd start");
    
    
-   auto cmd = autoManagedManager->getRunCommand();
-   auto cmdArgs = autoManagedManager->getRunArgs();
+   auto cmd = autoManagedManager.getRunCommand();
+   auto cmdArgs = autoManagedManager.getRunArgs();
    ASSERT_EQ(cmd, std::string("service"));
    ASSERT_EQ(cmdArgs, std::string("ntpd start"));
 }
@@ -118,14 +117,14 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveMaster__ExpectingValidCmd) {
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    doIt.oneServerAlive = {"10.128.64.251"};
  
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
 
-   const auto& allCmds = autoManagedManager->getTotalRunCommands();   
-   const auto& allArgs = autoManagedManager->getTotalRunArgs();
+   const auto& allCmds = autoManagedManager.getTotalRunCommands();   
+   const auto& allArgs = autoManagedManager.getTotalRunArgs();
    ASSERT_EQ(allCmds.size(), allArgs.size());
    ASSERT_EQ(allCmds.size(), 4); // no one extra 'ping' since master will succeed
    
@@ -141,8 +140,8 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveMaster__ExpectingValidCmd) {
    EXPECT_EQ(allCmds[3], "service");
    EXPECT_EQ(allArgs[3], "ntpd start");
    
-   auto cmd = autoManagedManager->getRunCommand();
-   auto cmdArgs = autoManagedManager->getRunArgs();
+   auto cmd = autoManagedManager.getRunCommand();
+   auto cmdArgs = autoManagedManager.getRunArgs();
    ASSERT_EQ(cmd, std::string("service"));
    ASSERT_EQ(cmdArgs, std::string("ntpd start"));
 }
@@ -154,14 +153,14 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveBackupServer__ExpectingValidCmd) 
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    doIt.oneServerAlive = {"10.128.64.252"};
  
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
 
-   const auto& allCmds = autoManagedManager->getTotalRunCommands();   
-   const auto& allArgs = autoManagedManager->getTotalRunArgs();
+   const auto& allCmds = autoManagedManager.getTotalRunCommands();   
+   const auto& allArgs = autoManagedManager.getTotalRunArgs();
    ASSERT_EQ(allCmds.size(), allArgs.size());
    ASSERT_EQ(allCmds.size(), 5); // one extra 'ping' since master will fail
    
@@ -181,8 +180,8 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveBackupServer__ExpectingValidCmd) 
    EXPECT_EQ(allCmds[4], "service");
    EXPECT_EQ(allArgs[4], "ntpd start");
    
-   auto cmd = autoManagedManager->getRunCommand();
-   auto cmdArgs = autoManagedManager->getRunArgs();
+   auto cmd = autoManagedManager.getRunCommand();
+   auto cmdArgs = autoManagedManager.getRunArgs();
    ASSERT_EQ(cmd, std::string("service"));
    ASSERT_EQ(cmdArgs, std::string("ntpd start"));
   #endif
@@ -198,13 +197,13 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveMasterAndAliveServer__ExpectingVa
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
    
-   const auto& allCmds = autoManagedManager->getTotalRunCommands();   
-   const auto& allArgs = autoManagedManager->getTotalRunArgs();
+   const auto& allCmds = autoManagedManager.getTotalRunCommands();   
+   const auto& allArgs = autoManagedManager.getTotalRunArgs();
    ASSERT_EQ(allCmds.size(), allArgs.size());
    ASSERT_EQ(allCmds.size(), 4);
    
@@ -222,8 +221,8 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithAliveMasterAndAliveServer__ExpectingVa
    EXPECT_EQ(allCmds[3], "service");
    EXPECT_EQ(allArgs[3], "ntpd start");
    
-   auto lastCmd = autoManagedManager->getRunCommand();
-   auto lastArgs = autoManagedManager->getRunArgs();
+   auto lastCmd = autoManagedManager.getRunCommand();
+   auto lastArgs = autoManagedManager.getRunArgs();
    ASSERT_EQ(lastCmd, std::string("service"));
    ASSERT_EQ(lastArgs, std::string("ntpd start"));
 #endif
@@ -237,7 +236,7 @@ TEST_F(NtpConfigCommandTest, MultipleEnableCmds__ExpectingValidCmd) {
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    auto reply = doIt.Execute(conf);
    ASSERT_TRUE(reply.success());
 #endif
@@ -249,7 +248,7 @@ TEST_F(NtpConfigCommandTest, MultipleDisableCmds__ExpectingValidCmd) {
    ntp.set_master_server("");
    ntp.set_backup_server("");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    for (int i = 0; i < 10; ++i) {
       auto reply = doIt.Execute(conf);
       ASSERT_TRUE(reply.success());
@@ -263,10 +262,10 @@ TEST_F(NtpConfigCommandTest, ThrowTestsIsServerAlive) {
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    
-   autoManagedManager->mSuccess = true;
-   autoManagedManager->mReturnCode = 0;
+   autoManagedManager.mSuccess = true;
+   autoManagedManager.mReturnCode = 0;
    protoMsg::ProcessReply reply; 
    
    //Success IsServerAlive
@@ -277,15 +276,15 @@ TEST_F(NtpConfigCommandTest, ThrowTestsIsServerAlive) {
    EXPECT_TRUE(reply.success() && (reply.returncode() ==0));
    
    // Failures
-   autoManagedManager->mSuccess = false;
-   autoManagedManager->mReturnCode = 0; // unlikely scenario. it would be the opposite
+   autoManagedManager.mSuccess = false;
+   autoManagedManager.mReturnCode = 0; // unlikely scenario. it would be the opposite
    EXPECT_NO_THROW(reply = doIt.IsServerAlive("10.128.64.251"));
    EXPECT_TRUE(!reply.success() && (reply.returncode() ==0));
    EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.252"));
    EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
    
-   autoManagedManager->mSuccess = true;
-   autoManagedManager->mReturnCode = 256; // likely scenario ntpdate -q fails with return "success"
+   autoManagedManager.mSuccess = true;
+   autoManagedManager.mReturnCode = 256; // likely scenario ntpdate -q fails with return "success"
    EXPECT_NO_THROW(reply = doIt.IsServerAlive("10.128.64.251"));
    EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
    EXPECT_NO_THROW(doIt.IsServerAlive("10.128.64.252"));
@@ -299,26 +298,26 @@ TEST_F(NtpConfigCommandTest, ThrowTestsForceTimeSync) {
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    
  
    protoMsg::ProcessReply reply; 
    
    // Sucess ForceTimeSync
-   autoManagedManager->mSuccess = true;
-   autoManagedManager->mReturnCode = 0;
+   autoManagedManager.mSuccess = true;
+   autoManagedManager.mReturnCode = 0;
    EXPECT_NO_THROW(reply = doIt.ForceTimeSync("10.128.64.251"));
    EXPECT_TRUE(reply.success() && (reply.returncode() ==0));
    
    // Failures
-   autoManagedManager->mSuccess = false;
-   autoManagedManager->mReturnCode = 0;
+   autoManagedManager.mSuccess = false;
+   autoManagedManager.mReturnCode = 0;
    EXPECT_NO_THROW(reply = doIt.ForceTimeSync("10.128.64.251"));
    EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
 
    // OR:  success but failed return code
-   autoManagedManager->mSuccess = true;
-   autoManagedManager->mReturnCode = 256;
+   autoManagedManager.mSuccess = true;
+   autoManagedManager.mReturnCode = 256;
    EXPECT_NO_THROW(reply = doIt.ForceTimeSync("10.128.64.251"));
    EXPECT_TRUE(!reply.success() || (reply.returncode() !=0));
 #endif
@@ -331,16 +330,16 @@ TEST_F(NtpConfigCommandTest, ThrowTestsTriggerNtpdChange) {
    ntp.set_master_server("10.128.64.251");
    ntp.set_backup_server("10.128.64.252");
    cmd.set_stringargone(ntp.SerializeAsString());
-   MockNtpConfigCommand doIt(cmd, autoManagedManager,gProgramName);
+   MockNtpConfigCommand doIt(cmd, autoManagedManager);
    
    //  for ntp a "failed" ntpdate -q  will still result in "success" but with nonzero return
-   autoManagedManager->mSuccess = true;
-   autoManagedManager->mReturnCode = 0;
+   autoManagedManager.mSuccess = true;
+   autoManagedManager.mReturnCode = 0;
    EXPECT_NO_THROW(doIt.TriggerNtpdChange());
    
    // Trigger throw from highLevel ntp change
-   autoManagedManager->mSuccess = true;
-   autoManagedManager->mReturnCode = 1; // same as failure
+   autoManagedManager.mSuccess = true;
+   autoManagedManager.mReturnCode = 1; // same as failure
    EXPECT_ANY_THROW( doIt.TriggerNtpdChange());
    EXPECT_EQ(doIt.throwCounter, 0);
 
@@ -361,7 +360,7 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
    MockConf conf;
    conf.mCommandQueue = "tcp://127.0.0.1:";
    conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);   
-   MockCommandProcessor testProcessor(conf,gProgramName);
+   MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_NTP_CONFIG, MockNtpConfigCommand::Construct);

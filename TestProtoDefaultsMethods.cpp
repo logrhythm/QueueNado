@@ -46,7 +46,7 @@ TEST(TestProtoDefaults, SYSTEM_CaptureSizeLimits){
    protoDefaults::ConfDefaults confDefaults = protoDefaults::GetConfDefaults("BASE");
    auto rangePtr = protoDefaults::GetRange(confDefaults, "captureSizeLimit"); // int
    Conf conf;
-   PcapDiskUsage usage{conf.GetPcapCaptureLocations(), global::GetProgramName()};
+   PcapDiskUsage usage{conf.GetPcapCaptureLocations()};
    auto maxUsage = 80 * usage.GetTotalDiskUsage(MemorySize::MB).total / 100;
    auto maxFromDefaults = rangePtr->StringifyMax();
    EXPECT_EQ(maxUsage, std::stoul(maxFromDefaults));

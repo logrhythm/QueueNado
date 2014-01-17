@@ -23,14 +23,8 @@ using ::testing::Return;
 class MockPcapDiskUsage : public PcapDiskUsage {
 public:
 
-   MockPcapDiskUsage(const std::vector<std::string>& locations, const std::string& programName)
-   : PcapDiskUsage(locations, programName), mLocations(locations) {
-   }
-
-
-   // overrides to enable multiple calls          
-   PcapStorage OnceCalculateMountPoints() LR_OVERRIDE {
-      return DoCalculateMountPoints(mLocations);
+   MockPcapDiskUsage(const std::vector<std::string>& locations)
+   : PcapDiskUsage(locations), mLocations(locations) {
    }
 
    PcapStorage DoCalculateMountPoints(const std::vector<std::string>& locations) LR_OVERRIDE {
@@ -50,13 +44,10 @@ public:
 class GMockPcapDiskUsage : public MockPcapDiskUsage {
 public:
 
-   GMockPcapDiskUsage(const std::vector<std::string>& locations, const std::string& programName)
-   : MockPcapDiskUsage(locations, programName) {
+   GMockPcapDiskUsage(const std::vector<std::string>& locations)
+   : MockPcapDiskUsage(locations) {
    }
 
-
-   //MOCK_METHOD1(GetTotalDiskUsage, PcapDiskUsage::Usage(const MemorySize&));
-   MOCK_METHOD0(OnceCalculateMountPoints, PcapStorage());
    MOCK_METHOD1(DoCalculateMountPoints, PcapStorage(const std::vector<std::string>&));
    MOCK_METHOD2(GetDiskUsage, size_t(DiskUsage&, const MemorySize&));
    MOCK_METHOD3(GetFolderUsage, size_t(const std::string&, DiskUsage&, const MemorySize&));
@@ -67,8 +58,8 @@ public:
               .WillRepeatedly(Return(value));
    }
    
-   PcapStorage CallConcrete__OnceCalculateMountPoints() {
-      return MockPcapDiskUsage::DoCalculateMountPoints(mLocations);
+   PcapStorage CallConcrete__DoCalculateMountPoints(const std::vector<std::string>& loc) {
+      return MockPcapDiskUsage::DoCalculateMountPoints(loc);
    }
    
    size_t CallConcrete__GetFolderUsage(const std::string& path, DiskUsage& disk, const MemorySize& size) {
