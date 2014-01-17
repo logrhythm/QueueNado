@@ -22,7 +22,15 @@ TEST_F(ForkerPipeTest, Constructors) {
    EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.serverToClient.fifo"));
 }
 #ifdef LR_DEBUG
-
+TEST_F(ForkerPipeTest, CommandWithoutUUID) {
+   MockForkerPipe serverPipe("ForkerPipeTest", false);
+   MockForkerPipe clientPipe("ForkerPipeTest");
+   protoMsg::ForkerRequest requestProto;
+   pid_t childPid(0);
+   std::string commandId =clientPipe.CommandRequest(requestProto ,childPid);
+   EXPECT_EQ(-1,childPid);
+   EXPECT_TRUE(commandId.empty());
+}
 TEST_F(ForkerPipeTest, MakeDestoryUniqueFifos) {
    MockForkerPipe serverPipe("ForkerPipeTest", false);
    MockForkerPipe clientPipe("ForkerPipeTest");
