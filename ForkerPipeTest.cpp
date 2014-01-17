@@ -23,11 +23,6 @@ TEST_F(ForkerPipeTest, Constructors) {
 }
 #ifdef LR_DEBUG
 
-
-//LR_VIRTUAL bool GetStringFromPipeWithWait(std::string& resultString,const int waitInSeconds) {
-
-//   LR_VIRTUAL bool GetStringFromUniquePipeWithWait(const CommandId& id,std::string& resultString,const int waitInSeconds){
-
 TEST_F(ForkerPipeTest, MakeDestoryUniqueFifos) {
    MockForkerPipe serverPipe("ForkerPipeTest", false);
    MockForkerPipe clientPipe("ForkerPipeTest");
@@ -40,13 +35,31 @@ TEST_F(ForkerPipeTest, MakeDestoryUniqueFifos) {
    EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.abc"));
 }
 
-//   LR_VIRTUAL int WriteOpenUniqueFifo(const CommandId& id) {
-//   LR_VIRTUAL std::string GetTargetReceivePipe(){
-//   LR_VIRTUAL std::string GetTargetSendPipe(){
-//   LR_VIRTUAL std::string GetUUID(){
-//   LR_VIRTUAL int RunExecVE(const char* command, char** arguments, char** environment){
-//   LR_VIRTUAL bool IsChildLiving ( pid_t child ){
-
+TEST_F(ForkerPipeTest, GetTargetReceivePipe_GetTargetSendPipe) {
+   MockForkerPipe serverPipe("ForkerPipeTest", false);
+   MockForkerPipe clientPipe("ForkerPipeTest");
+   
+   std::string serverSendPipe = serverPipe.GetTargetSendPipe();
+   std::string clientSendPipe = clientPipe.GetTargetSendPipe();
+   std::string serverReceiverPipe = serverPipe.GetTargetReceivePipe();
+   std::string clientReceiverPipe = clientPipe.GetTargetReceivePipe();
+   
+   EXPECT_EQ(serverSendPipe,clientReceiverPipe);
+   EXPECT_EQ(clientSendPipe,serverReceiverPipe);
+   EXPECT_EQ("/tmp/ForkerPipeTest.serverToClient.fifo",serverSendPipe);
+   EXPECT_EQ("/tmp/ForkerPipeTest.clientToServer.fifo",clientSendPipe);
+}
+TEST_F(ForkerPipeTest, GetUUID) {
+   MockForkerPipe serverPipe("ForkerPipeTest", false);
+   MockForkerPipe clientPipe("ForkerPipeTest");
+   
+   std::string uuid = serverPipe.GetUUID();
+   std::string client_uuid = clientPipe.GetUUID();
+   EXPECT_NE(uuid,client_uuid); // verifies different seeds
+   
+   EXPECT_EQ(36,uuid.size());
+   EXPECT_EQ(36,client_uuid.size());
+}
 TEST_F(ForkerPipeTest, ConstructUniquePipeName) {
    MockForkerPipe serverPipe("ForkerPipeTest", false);
    MockForkerPipe clientPipe("ForkerPipeTest");
