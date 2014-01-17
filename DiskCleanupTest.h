@@ -51,7 +51,7 @@ protected:
       makeADir = "mkdir -p ";
       makeADir += testDir.str();
       auto result = system(makeADir.c_str());
-      LOG_IF(WARNING, -1 == result) << "Could not create directory with command: " << makeADir;
+      LOG_IF(WARNING, 0 != result) << "Could not create directory with command: " << makeADir;
       totalHits = 0;
    };
 
