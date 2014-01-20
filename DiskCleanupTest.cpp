@@ -741,37 +741,39 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageSamePartition) {
 //
 // There is no point in mocking this and using folders on the same partition
 // since the test is for verifying how it works on partitions
-
 TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
    DiskUsage home("/home/tmp/TooMuchPcap");
    DiskUsage root("/tmp/TooMuchPcap");
    if (home.FileSystemID() != root.FileSystemID()) {
+      mConf.mConfLocation += ""; // ensuring that the Conf returned is the MockConf
       MockDiskCleanup cleanup(mConf);
+      cleanup.mUseMockConf=true;
       cleanup.mRealFilesSystemAccess = true;
-      cleanup.mUseMockConf = true;
-      auto& mockedConf = cleanup.mMockedConf;
+      cleanup.mMockedConf.mOverrideGetPcapCaptureLocations = true;
+      
       tempFileCreate scopedHome(cleanup.mMockedConf, "/home/tmp/TooMuchPcap");
       tempFileCreate scopedRoot(cleanup.mMockedConf, "/tmp/TooMuchPcap");
 
       ASSERT_TRUE(scopedHome.Init());
       ASSERT_TRUE(scopedRoot.Init());
 
-      mockedConf.mPCapCaptureLocations.clear();
-      mockedConf.mPCapCaptureLocations.push_back(scopedHome.mTestDir.str());
-      mockedConf.mPCapCaptureLocations.push_back(scopedRoot.mTestDir.str());
+      // explicit writing mConf.mConf to make it clear what MockConf we are using
+      cleanup.mMockedConf.mPCapCaptureLocations.clear();
+      cleanup.mMockedConf.mPCapCaptureLocations.push_back(scopedHome.mTestDir.str());
+      cleanup.mMockedConf.mPCapCaptureLocations.push_back(scopedRoot.mTestDir.str());
 
 
+      ASSERT_EQ(cleanup.mMockedConf.GetPcapCaptureLocations().size(), 2);
+      ASSERT_EQ(cleanup.mMockedConf.GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
+      ASSERT_EQ(cleanup.mMockedConf.GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
+      EXPECT_EQ(cleanup.mMockedConf.GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
 
-      ASSERT_EQ(mockedConf.GetPcapCaptureLocations().size(), 2);
-      ASSERT_EQ(mockedConf.GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
-      ASSERT_EQ(mockedConf.GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
-      EXPECT_EQ(mockedConf.GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
-      Conf& conf = cleanup.GetConf();
-      EXPECT_EQ(conf.GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
-      EXPECT_EQ(conf.GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
-      EXPECT_EQ(conf.GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
-      EXPECT_EQ(mockedConf.GetProbeLocation(), "/usr/local/probe/");
-
+      // This is what happens in DiskClean for Pcap calculations
+      ASSERT_EQ(cleanup.GetConf().GetPcapCaptureLocations().size(), 2);
+      ASSERT_EQ(cleanup.GetConf().GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
+      ASSERT_EQ(cleanup.GetConf().GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
+      ASSERT_EQ(cleanup.GetConf().GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
+      ASSERT_EQ(cleanup.GetConf().GetProbeLocation(), "/usr/local/probe/");
 
       // Using 2 different partitions for pcaps
       auto size = MemorySize::MB;

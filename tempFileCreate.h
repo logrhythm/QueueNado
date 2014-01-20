@@ -2,6 +2,7 @@
 
 #ifdef LR_DEBUG
 #include "MockConf.h"
+#include <boost/filesystem.hpp>
 #include <g2log.hpp>
 class tempFileCreate {
 public:
@@ -18,7 +19,9 @@ public:
    ~tempFileCreate() {
       std::string makeADir = "rm -rf ";
       makeADir += mTestDir.str();
-      LOG_IF(WARNING, -1 == system(makeADir.c_str())) << "Could not remove directory with command: " << makeADir;
+      system(makeADir.c_str());
+      const bool exists = ((boost::filesystem::exists(mTestDir.str())) && (boost::filesystem::is_directory(mTestDir.str())));
+      LOG_IF(WARNING, (true == exists)) << "Could not remove directory with command: " << makeADir;
    }
 
    bool Init() {
@@ -29,8 +32,9 @@ public:
       if(stat(mTestDir.str().c_str(),&st) != 0) {
          std::string makeADir = "mkdir -p ";
          makeADir += mTestDir.str();
-         success =  system(makeADir.c_str());
-         LOG_IF(WARNING, -1 == success) << "Could not create directory with command: " << makeADir;
+         system(makeADir.c_str());
+         const bool exists = ((boost::filesystem::exists(mTestDir.str())) && (boost::filesystem::is_directory(mTestDir.str())));
+         LOG_IF(WARNING, (false == exists)) << "Could not create directory with command: " << makeADir;
       }
       return success == 0;
    }

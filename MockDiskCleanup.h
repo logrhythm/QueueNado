@@ -154,11 +154,6 @@ public:
       return mMockedConf;
    }
    
-   PcapDiskUsage& GetPcapUsageInstance() LR_OVERRIDE {
-      mMockPcapDiskUsage.mLocations = GetConf().GetPcapCaptureLocations();
-      return mMockPcapDiskUsage;
-   }
-
    size_t RemoveOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime, size_t& spaceSaved) {
       return DiskCleanup::RemoveOlderFilesFromPath(path, oldestTime, spaceSaved);
    }
