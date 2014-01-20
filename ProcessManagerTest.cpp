@@ -11,9 +11,11 @@ TEST_F(ProcessManagerTest, StartedWithoutMotherForker) {
    #ifdef LR_DEBUG
    MockConf conf;
    MockProcessManagerNoMotherForker testManager(conf);
-   EXPECT_FALSE(testManager.Initialize());
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+   ASSERT_DEATH(testManager.Initialize(),"EXIT trigger caused by broken Contract");
 #endif
 }
+
 TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
 #ifdef LR_DEBUG
 
@@ -230,18 +232,6 @@ TEST_F(ProcessManagerTest, CheckPidFalse) {
 
 
 
-TEST_F(ProcessManagerTest, ConstructAndInitializeFail) {
-#ifdef LR_DEBUG
-
-   MockConf conf;
-   conf.mProcessManagmentQueue = "invalid";
-   MockProcessManager testManager(conf);
-   EXPECT_FALSE(testManager.Initialize());
-   testManager.DeInit();
-
-#endif
-}
-
 TEST_F(ProcessManagerTest, ConstructAndInitialize) {
 #ifdef LR_DEBUG
 
@@ -313,10 +303,8 @@ TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
    ASSERT_TRUE(testManager.Initialize());
    conf.mProcessManagmentQueue = "invalid";
    MockProcessManager sendManager(conf);
-   EXPECT_FALSE(sendManager.Initialize());
-
-   testManager.DeInit();
-
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+   ASSERT_DEATH(sendManager.Initialize(), "EXIT trigger caused by broken Contract");
 #endif
 }
 

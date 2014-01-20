@@ -9,7 +9,9 @@ public:
    : ProcessManager(conf, global::GetProgramName())
    , mKillFails(false)
    , mExecFails(false)
-   , mRealInit(true) {
+   , mRealInit(true) 
+   , mOverrideParentPid(false)
+   , mParentPid(1){
    }
 
    virtual ~MockProcessManager() {
@@ -57,12 +59,17 @@ public:
    }
 
    LR_VIRTUAL pid_t GetParentPid() {
+      if(mOverrideParentPid) {
+         return mParentPid;
+      }
       return ProcessManager::GetParentPid();
    }
    bool mKillFails;
    bool mExecFails;
    std::string mPidDir;
    bool mRealInit;
+   bool mOverrideParentPid;
+   size_t mParentPid;
 };
 
 class MockProcessManagerNoInit : public MockProcessManager {
