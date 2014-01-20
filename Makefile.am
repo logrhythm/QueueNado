@@ -29,12 +29,14 @@ DiskUsageTest \
 ThreadContainerTest \
 ToolsTest \
 AttributeRenamerTest \
+ForkerPipeTest \
 SyslogReporterTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/ \
           -Wl,-R${abs_top_srcdir}/lib \
           -Wl,-R${abs_top_srcdir}/source/libZMQ/ \
+          -Wl,-R${abs_top_srcdir}/source/libfork/ \
           -Wl,-R${abs_top_srcdir}/source/liblrdpi/ \
           -Wl,-R${abs_top_srcdir}/source/libsyslog/ \
           -Wl,-R${abs_top_srcdir}/source/libstats/ \
@@ -51,6 +53,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
           -L${abs_top_srcdir}/source/libZMQ/ \
+          -L${abs_top_srcdir}/source/libfork/ \
           -L${abs_top_srcdir}/source/liblrdpi/ \
           -L${abs_top_srcdir}/source/libsyslog/ \
           -L${abs_top_srcdir}/source/libstats/ \
@@ -73,6 +76,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
 INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libZMQ \
          -I${abs_top_srcdir}/source/liblrdpi \
+         -I${abs_top_srcdir}/source/libfork \
          -I${abs_top_srcdir}/source/libsyslog \
          -I${abs_top_srcdir}/source/libstats \
          -I${abs_top_srcdir}/source/libconf \
@@ -94,6 +98,11 @@ DYNAMIC_LIBS=-ltcmalloc \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf \
              -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal -lfork -lremap
+
+ForkerPipeTest_LDADD=${DYNAMIC_LIBS} -lfork
+ForkerPipeTest_LDFLAGS=${BASE_LIBS}
+ForkerPipeTest_SOURCES=main.cpp \
+	ForkerPipeTest.cpp
 
 ZMQTest_LDADD=${DYNAMIC_LIBS}
 ZMQTest_LDFLAGS=${BASE_LIBS}
