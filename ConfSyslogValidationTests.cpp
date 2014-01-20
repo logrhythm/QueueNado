@@ -15,8 +15,8 @@ using namespace std;
 TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
    MockConf conf;
    conf.mIgnoreConfValidate = false;
-
-   EXPECT_EQ(conf.mIgnoreConfValidate, true);
+   EXPECT_EQ(conf.mValidConfValidation, true);
+   
    protoMsg::SyslogConf blank;
    EXPECT_EQ(blank.has_syslogenabled(), false);
    EXPECT_EQ(blank.has_syslogtcpenabled(), false);
