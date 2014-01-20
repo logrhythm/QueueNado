@@ -189,8 +189,8 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    EXPECT_FALSE(es.GetTotalCapturedFiles(count));
    EXPECT_EQ(0, count);
    std::string expectedQuery;
-   expectedQuery = "POST|/_all/meta/_search|{\"sort\": [ { \"timeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"written\" : true}},{ \"term\" : {\"latestUpdate\" : true}}]}}},\"_cache\":true,\"from\": 0,\"size\":1,\"fields\": "
-           "[\"sessionId\", \"timeUpdated\", \"timeStart\"]}}";
+   expectedQuery = "POST|/_all/meta/_search|{\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"written\" : true}},{ \"term\" : {\"latest_update\" : true}}]}}},\"_cache\":true,\"from\": 0,\"size\":1,\"fields\": "
+           "[\"session_id\", \"time_updated\", \"time_start\"]}}";
    EXPECT_EQ(expectedQuery, target.mLastRequest);
    target.mReplyMessage = "200|ok|"
            "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
@@ -200,7 +200,7 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"timeUpdated\":\"2013/09/30 00:00:00\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"time_updated\":\"2013/09/30 00:00:00\",\"session_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
@@ -228,7 +228,7 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"timeUpdated\":\"2013/09/30 00:00:00\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"time_updated\":\"2013/09/30 00:00:00\",\"session_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
@@ -1392,7 +1392,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"timeUpdated\":\"2013/09/30 00:00:00\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"time_updated\":\"2013/09/30 00:00:00\",\"session_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
@@ -1421,7 +1421,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"timeUpdated\":\"NIL/NIL\",\"sessionId\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"time_updated\":\"NIL/NIL\",\"session_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
