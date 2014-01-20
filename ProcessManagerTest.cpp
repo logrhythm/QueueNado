@@ -72,6 +72,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    processArgs += ss.str();
 
    protoMsg::ProcessReply processReply = sendManager.RunProcess(processName, processArgs);
+   sendManager.BlockForProcessFinished(60*60,processReply);
    std::string result = processReply.result();
    LOG(DEBUG) << result;
    EXPECT_NE(std::string::npos, result.find("/bin/sleep"));
@@ -80,6 +81,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    zctx_interrupted = false;
    ASSERT_TRUE(testManager.Initialize());
    processReply = sendManager.RunProcess(processName, processArgs);
+   sendManager.BlockForProcessFinished(60*60,processReply);
    result = processReply.result();
    LOG(DEBUG) << result;
    EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
@@ -111,6 +113,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
    ss << pid;
    processArgs += ss.str();
    protoMsg::ProcessReply processReply = sendManager.RunProcess(processName, processArgs);
+   sendManager.BlockForProcessFinished(60*60,processReply);
    std::string result = processReply.result();
    LOG(DEBUG) << result;
    EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
@@ -267,6 +270,7 @@ TEST_F(ProcessManagerTest, RunProcess) {
    std::string processArgs;
    processArgs = "-l /bin/ls";
    protoMsg::ProcessReply processReply = testManager.RunProcess(processName, processArgs);
+   testManager.BlockForProcessFinished(60*60,processReply);
    std::string result = processReply.result();
    EXPECT_NE(std::string::npos, result.find("-rwxr-xr-x. 1 root root"));
    EXPECT_NE(std::string::npos, result.find("/bin/ls"));
@@ -288,6 +292,7 @@ TEST_F(ProcessManagerTest, RunNonExistantProcess) {
    std::string processArgs;
    processArgs = "-l /bin/ls";
    protoMsg::ProcessReply processReply = testManager.RunProcess(processName, processArgs);
+   testManager.BlockForProcessFinished(60*60,processReply);
    std::string result = processReply.result();
    EXPECT_TRUE(result.empty());
    testManager.DeInit();
@@ -328,6 +333,7 @@ TEST_F(ProcessManagerTest, RunProcessFromAnotherObject) {
    std::string processArgs;
    processArgs = "-l /bin/ls";
    protoMsg::ProcessReply processReply = sendManager.RunProcess(processName, processArgs);
+   testManager.BlockForProcessFinished(60*60,processReply);
    std::string result = processReply.result();
    EXPECT_NE(std::string::npos, result.find("-rwxr-xr-x. 1 root root"));
    EXPECT_NE(std::string::npos, result.find("/bin/ls"));
@@ -352,6 +358,7 @@ TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
    std::string processArgs;
    processArgs = "-l /bin/ls";
    protoMsg::ProcessReply processReply = sendManager.RunProcess(processName, processArgs);
+   sendManager.BlockForProcessFinished(60*60,processReply);
    std::string result = processReply.result();
    EXPECT_TRUE(result.empty());
    testManager.DeInit();
