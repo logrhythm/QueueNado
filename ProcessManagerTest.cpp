@@ -308,54 +308,6 @@ TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
 #endif
 }
 
-TEST_F(ProcessManagerTest, RunProcessFromAnotherObject) {
-#ifdef LR_DEBUG
-
-   MockConf conf;
-   std::stringstream testQueue;
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager testManager(conf);
-   ASSERT_TRUE(testManager.Initialize());
-   MockProcessManager sendManager(conf);
-   ASSERT_TRUE(sendManager.Initialize());
-   std::string processName("/bin/ls");
-   std::string processArgs;
-   processArgs = "-l /bin/ls";
-   protoMsg::ProcessReply processReply = sendManager.RunProcess(processName, processArgs);
-   testManager.BlockForProcessFinished(60*60,processReply);
-   std::string result = processReply.result();
-   EXPECT_NE(std::string::npos, result.find("-rwxr-xr-x. 1 root root"));
-   EXPECT_NE(std::string::npos, result.find("/bin/ls"));
-   testManager.DeInit();
-   sendManager.DeInit();
-
-#endif
-}
-
-TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
-#ifdef LR_DEBUG
-
-   MockConf conf;
-   std::stringstream testQueue;
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager testManager(conf);
-   ASSERT_TRUE(testManager.Initialize());
-   MockProcessManager sendManager(conf);
-   ASSERT_TRUE(sendManager.Initialize());
-   std::string processName("/bin/lsssss");
-   std::string processArgs;
-   processArgs = "-l /bin/ls";
-   protoMsg::ProcessReply processReply = sendManager.RunProcess(processName, processArgs);
-   sendManager.BlockForProcessFinished(60*60,processReply);
-   std::string result = processReply.result();
-   EXPECT_TRUE(result.empty());
-   testManager.DeInit();
-   sendManager.DeInit();
-#endif
-}
-
 //TEST_F(ProcessManagerTest, RegisterDaemon) {
 //#ifdef LR_DEBUG
 //
