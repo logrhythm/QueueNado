@@ -7,7 +7,6 @@
 #pragma once
 #include "Conf.h"
 #include "include/global.h"
-#include "MockValidateConf.h"
 
 class MockConf : public Conf {
 public:
@@ -46,6 +45,8 @@ public:
    mOverrideInternalRepair(false),
    mInternalRepair(true),
    mValidateEthFailCount(0),
+   mIgnoreConfValidate(true),
+   mValidConfValidation(true),
    mMaxIndividualPCap(1000), 
    mPcapCaptureMaxPackets(999999),
    mSyslogSendQueueSize(800),
@@ -289,6 +290,15 @@ public:
       return Conf::ValidateEthConfFields(protoMap, ethInfo);
    }
 
+   bool ValidateConfFieldValues(::google::protobuf::Message& msg, const std::string &type) LR_OVERRIDE {
+      if (mIgnoreConfValidate) {
+         return true;
+      }
+      mValidConfValidation = Conf::ValidateConfFieldValues(msg, type);
+      return mValidConfValidation;
+   }
+   
+   
 
    size_t GetPCapIndividualFileLimit() {
       return mMaxIndividualPCap;
@@ -297,11 +307,7 @@ public:
       return mPcapCaptureMaxPackets;
    }
    
-   MockValidateConf& GetValidateConf() LR_OVERRIDE { 
-        return mValidateConf; 
-    }
     
-   MockValidateConf mValidateConf;
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;
@@ -350,6 +356,8 @@ public:
    bool mOverrideInternalRepair;
    bool mInternalRepair;
    int mValidateEthFailCount;
+   bool mIgnoreConfValidate;
+   bool mValidConfValidation;
 
    size_t mMaxIndividualPCap;
    size_t mPcapCaptureMaxPackets;

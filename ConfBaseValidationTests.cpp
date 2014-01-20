@@ -1,6 +1,7 @@
 
 #include "ConfProcessorTests.h"
 #include "Conf.h"
+#include "ConfSlave.h"
 #include "MockConf.h"
 #include "BaseConfMsg.pb.h"
 #include "ProtoDefaults.h"
@@ -16,42 +17,42 @@ using namespace std;
 
 TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillSucceed) {
    MockConf conf;
-   conf.GetValidateConf().mIgnoreConfValidation = false;
+   conf.mIgnoreConfValidate = false;
 
-   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
+   EXPECT_EQ(conf.mValidConfValidation, true);
    protoMsg::BaseConf blank;
    EXPECT_EQ(blank.has_dpithreads(), false);
    conf.updateFields(blank); // trigger Mocked ValidateConfFieldValues
-   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
+   EXPECT_EQ(conf.mValidConfValidation, true);
 }
 
 // Erroneous fields WILL be cleared
 
 TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    MockConf conf;
-   conf.GetValidateConf().mIgnoreConfValidation = false;
-   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
+   conf.mIgnoreConfValidate = false;
+   EXPECT_EQ(conf.mValidConfValidation, true);
 
    protoMsg::BaseConf right;
    right.set_dpithreads("2");
    conf.updateFields(right);
-   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
+   EXPECT_EQ(conf.mValidConfValidation, true);
 
    // Verify that erroneous fields are cleared and ignored
    protoMsg::BaseConf wrong = conf.getProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
    wrong.set_dpithreads("Hello World!");
-   conf.GetValidateConf().mValidConf = true;
+   conf.mValidConfValidation = true;
    conf.updateFields(wrong);
    EXPECT_EQ(wrong.has_dpithreads(), true); // copies are not cleared
-   EXPECT_EQ(conf.GetValidateConf().mValidConf, false);
+   EXPECT_EQ(conf.mValidConfValidation, false);
 
    wrong = conf.getProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
 
    wrong.set_dpithreads("Hello World!");
    EXPECT_EQ(wrong.has_dpithreads(), true);
-   conf.GetValidateConf().ValidateConfFieldValues(wrong, {"BASE"}); // this should clear the field
+   conf.ValidateConfFieldValues(wrong, {"BASE"}); // this should clear the field
    EXPECT_EQ(wrong.has_dpithreads(), false);
 }
 
@@ -68,8 +69,8 @@ namespace {
 void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
-   conf.GetValidateConf().mIgnoreConfValidation = false;
-   conf.GetValidateConf().mValidConf = false;
+   conf.mIgnoreConfValidate = false;
+   conf.mValidConfValidation = false;
    //conf.GetValidateConf().GetChecker().mValidCheck = false;
 
    protoMsg::BaseConf msg;
@@ -125,7 +126,7 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsLowerBound) {
-      if (false == conf.GetValidateConf().mValidConf) {
+      if (false == conf.mValidConfValidation) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);
          return;
       }
@@ -136,7 +137,7 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    // We can only reach this if 'shouldFail' was less than number of fields
    // in this case me MUST have failed or else this test or Conf.cpp has changed
    //  (or is corrupt)
-   if (true == conf.GetValidateConf().mValidConf) {
+   if (true == conf.mValidConfValidation) {
       FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
       return;
    }
@@ -147,8 +148,9 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
 void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
-   conf.GetValidateConf().mIgnoreConfValidation = false;
-   conf.GetValidateConf().mValidConf = false;
+   conf.mIgnoreConfValidate = false;
+   conf.mValidConfValidation = false;
+   conf.mOverrideGetPcapCaptureLocations = false;
 
    protoMsg::BaseConf msg;
 
@@ -189,8 +191,9 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
 
    (index++ == shouldFail) ? msg.set_capturefilelimit("2147483648") : msg.set_capturefilelimit("2147483647");
 
-   protoDefaults::ConfDefaults confDefaults = protoDefaults::GetConfDefaults("BASE");
-   auto rangePtr = protoDefaults::GetRange(confDefaults, "captureSizeLimit"); // int
+   ProtoDefaults getDefaults{conf.GetPcapCaptureLocations()};
+   auto confDefaults = getDefaults.GetConfDefaults("BASE");
+   auto rangePtr = getDefaults.GetRange(confDefaults, "captureSizeLimit"); // int
    auto captureSizeLimitTooMuch = std::to_string(1+ std::stoul(rangePtr->StringifyMax()));  
    (index++ == shouldFail) ? msg.set_capturesizelimit(captureSizeLimitTooMuch) : msg.set_capturesizelimit(rangePtr->StringifyMax());
    
@@ -208,7 +211,7 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsUpperBound) {
-      if (false == conf.GetValidateConf().mValidConf) {
+      if (false == conf.mValidConfValidation) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);
          return;
       }
@@ -219,7 +222,7 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    // We can only reach this if 'shouldFail' was less than number of fields
    // in this case me MUST have failed or else this test or Conf.cpp has changed
    //  (or is corrupt)
-   if (true == conf.GetValidateConf().mValidConf) {
+   if (true == conf.mValidConfValidation) {
       FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
       return;
    }
