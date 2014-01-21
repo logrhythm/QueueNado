@@ -50,16 +50,6 @@ TEST(TestProtoDefaults, GetRangeOK){
    EXPECT_TRUE(getDefaults.GetRange(confDefaults, "pcapInterface2").use_count() == 0);
 }
 
-
-TEST(TestProtoDefaults,  TriggerDefaultOnPcapCaptureSizeLimit){
-   ProtoDefaults getDefaults{{"xyz"}}; // nonsense value that DiskUsage cannot use
-  
-   auto confDefaults = getDefaults.GetConfDefaults("BASE");
-   auto rangePtr = getDefaults.GetRange(confDefaults, "captureSizeLimit"); // int
-   auto maxFromDefaults = rangePtr->StringifyMax();
-   EXPECT_EQ(80000, std::stoul(maxFromDefaults));
-}
-
 TEST(TestProtoDefaults, GetConfParamDefaultOK){
    auto conf = networkMonitor::ConfSlave::Instance().GetConf();
    auto pcapLocations = conf.GetPcapCaptureLocations();

@@ -170,7 +170,8 @@ ConfProcessorTests_SOURCES=main.cpp \
 	QosmosConfTest.cpp \
 	ConfNtpProcessorTests.cpp \
 	ConfBaseValidationTests.cpp \
-	ConfSyslogValidationTests.cpp
+	ConfSyslogValidationTests.cpp \
+        TestProtoDefaultsMethods.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 CommandProcessorTests_LDADD=${DYNAMIC_LIBS}
