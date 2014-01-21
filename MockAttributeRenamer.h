@@ -11,5 +11,8 @@ public:
       ProtectedInitialize(pathToRenameYaml,success);
       return success;
    }
+//   LR_VIRTUAL bool IsStaticField(const std::string& oldName) {
+//      return AttributeRenamer::IsStaticField(oldName);
+//   }
 };
 
