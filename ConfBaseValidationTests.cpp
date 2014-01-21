@@ -117,7 +117,7 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_syslogsendqueuesize("9") : msg.set_syslogsendqueuesize("10");
    
    (index++ == shouldFail) ? msg.set_pcaprecordstoclearpercycle("0") : msg.set_pcaprecordstoclearpercycle("1");
-   (index++ == shouldFail) ? msg.set_flowreportinterval("0") : msg.set_flowreportinterval("1");
+   (index++ == shouldFail) ? msg.set_flowreportinterval("59") : msg.set_flowreportinterval("60");
    
    // Test sanity check. Total number of used fields are :  34
    EXPECT_EQ(index, gNumberOfFieldsLowerBound) << "\t\t\t\t\t: Expected number of fields are "
@@ -197,7 +197,7 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_syslogsendqueuesize("10001") : msg.set_syslogsendqueuesize("10000");
      
    (index++ == shouldFail) ? msg.set_pcaprecordstoclearpercycle("20001") : msg.set_pcaprecordstoclearpercycle("20000");
-   (index++ == shouldFail) ? msg.set_flowreportinterval("61") : msg.set_flowreportinterval("60");
+   (index++ == shouldFail) ? msg.set_flowreportinterval("3601") : msg.set_flowreportinterval("3600");
    
    // Test sanity check. Total number of used fields are :  34
    EXPECT_EQ(index, gNumberOfFieldsUpperBound) << "\t\t\t\t\t: Expected number of fields are "

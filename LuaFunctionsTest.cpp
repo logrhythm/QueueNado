@@ -382,16 +382,18 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
 }
 
 #endif
-TEST_F(LuaFunctionsTest, SessionAge) {
-   MockConf conf;
+
    
+   
+TEST_F(LuaFunctionsTest, SessionAge) {
+   MockConf conf;   
    networkMonitor::DpiMsgLR dpiMsg;
    dpiMsg.SetConfPtr(&conf);
 
    lua_State *luaState;
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
-   conf.mFlowReportInterval = 10; // 10 minutes
+   conf.mFlowReportInterval = 10;
    LuaPacketFunctions::SessionAge(luaState);
    EXPECT_FALSE(lua_toboolean(luaState, -1));
    lua_close(luaState);
@@ -399,35 +401,21 @@ TEST_F(LuaFunctionsTest, SessionAge) {
    dpiMsg.set_timeupdated(std::time(NULL));
    lua_pushlightuserdata(luaState, &dpiMsg);
    conf.mFlowReportInterval = 999;
-    LuaPacketFunctions::SessionAge(luaState);
+   LuaPacketFunctions::SessionAge(luaState);
    EXPECT_FALSE(lua_toboolean(luaState, -1));
    lua_close(luaState);
-   
-   // Not yet time for a flow time/update
    luaState = luaL_newstate();
-   time_t pasttime = std::time(NULL) - (60*10); // back 10minutes
+   time_t pasttime = std::time(NULL) - 11;
    dpiMsg.set_timeupdated(pasttime);
    lua_pushlightuserdata(luaState, &dpiMsg);
-   conf.mFlowReportInterval = 60; // 60 minutes  
-   LuaPacketFunctions::SessionAge(luaState);
-   EXPECT_TRUE(lua_toboolean(luaState, -1));
-   EXPECT_TRUE(dpiMsg.flowtype() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
-   EXPECT_NE(pasttime, dpiMsg.timeupdated());
-   lua_close(luaState);
-   
-   
-   // Verify that past-time will trigger a flow report
-   luaState = luaL_newstate();
-   pasttime = std::time(NULL) - (60*10) -1; // back 10minutes, 1 second (to avoid race)
-   dpiMsg.set_timeupdated(pasttime);
-   lua_pushlightuserdata(luaState, &dpiMsg);
-   conf.mFlowReportInterval = 10; // 10 minutes
+   conf.mFlowReportInterval = 10;
    LuaPacketFunctions::SessionAge(luaState);
    EXPECT_TRUE(lua_toboolean(luaState, -1));
    EXPECT_TRUE(dpiMsg.flowtype() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
    EXPECT_NE(pasttime, dpiMsg.timeupdated());
    lua_close(luaState);
 }
+
 
 TEST_F(LuaFunctionsTest, DataNull) {
    networkMonitor::DpiMsgLR dpiMsg;
