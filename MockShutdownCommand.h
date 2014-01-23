@@ -12,11 +12,11 @@ public:
    using ShutdownCommand::DoTheShutdown;
    static bool wasShutdownCalled;
    static bool callRealShutdownCommand;
-   static std::unique_ptr<ProcessManager> mProcessManager;
+   static const MockConf mockConf;
+   static MockProcessManagerNoInit mockProcessManagerNoInit;
 
-   MockShutdownCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager,
-           const std::string& programName)
-   : ShutdownCommand(request, processManager, programName) {
+   MockShutdownCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager)
+   : ShutdownCommand(request, processManager) {
    }
 
    virtual ~MockShutdownCommand() {
@@ -26,20 +26,16 @@ public:
    // create the REAL ProcessManager which WILL execute the command if 
    // 'callRealShutdownCommand' is set to true. If it is then your PC will shut off.
 
-   static std::shared_ptr<Command> FatalAndDangerousConstruct(const protoMsg::CommandRequest& request,
-           const std::string& programName) {
+   static std::shared_ptr<Command> FatalAndDangerousConstruct(const protoMsg::CommandRequest& request) {
       const MockConf conf;
+      std::shared_ptr<Command> command;
+      if (callRealShutdownCommand) {
+         command.reset(new MockShutdownCommand(request, ProcessManager::Instance()));
+      } else {
 
-      if (mProcessManager.get() == nullptr) {
-         if (callRealShutdownCommand) {
-            mProcessManager.reset(new ProcessManager(conf, programName));
-         } else {
-            mProcessManager.reset(new MockProcessManagerNoInit(conf, programName));
-         }
+         command.reset(new MockShutdownCommand(request, mockProcessManagerNoInit));
       }
-      std::shared_ptr<Command> command(new MockShutdownCommand(request, mProcessManager.get(), programName));
       return command;
-
    }
 
    void DoTheShutdown() LR_OVERRIDE {
@@ -55,4 +51,5 @@ public:
 
 bool MockShutdownCommand::wasShutdownCalled = false;
 bool MockShutdownCommand::callRealShutdownCommand = false;
-std::unique_ptr<ProcessManager> MockShutdownCommand::mProcessManager(nullptr);
+const MockConf MockShutdownCommand::mockConf{};
+MockProcessManagerNoInit MockShutdownCommand::mockProcessManagerNoInit{MockShutdownCommand::mockConf};

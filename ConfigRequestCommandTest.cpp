@@ -4,15 +4,16 @@
 #include "ConfigDefaultsRequest.pb.h"
 #include "ConfigDefaults.pb.h"
 #include "include/global.h"
+#include "ConfSlave.h"
+#include "PcapDiskUsage.h"
+#include "ConfTypeMsg.pb.h"
 #include <boost/lexical_cast.hpp>
-
-extern std::string gProgramName;
 
 TEST_F(ConfigRequestCommandTest, DoesItCompileAndLink) {
 #ifdef LR_DEBUG
    protoMsg::CommandRequest request;
-   MockConfigRequestCommand mockDummy(request, nullptr, gProgramName);
-   GMockConfigRequestCommand gmockDummy(request, nullptr, gProgramName);
+   MockConfigRequestCommand mockDummy(request, ProcessManager::Instance());
+   GMockConfigRequestCommand gmockDummy(request, ProcessManager::Instance());
    SUCCEED();
 #endif
 }
@@ -21,7 +22,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfOneSetOfValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessManagerCommand testProcessor(mockConf, gProgramName);
+   MockProcessManagerCommand testProcessor(mockConf);
    EXPECT_TRUE(testProcessor.Initialize());
 
    // Pretend UI. Ask for config for the dpiThreads
@@ -29,7 +30,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfOneSetOfValues) {
    request.set_type(protoMsg::ConfType::BASE);
    request.add_requestedconfigparams("dpiThreads");
    cmd.set_stringargone(request.SerializeAsString());
-   MockConfigRequestCommand doIt(cmd, autoManagedManager, gProgramName);
+   MockConfigRequestCommand doIt(cmd, autoManagedManager);
 
 
    // Test Mock Preparation to Answer the UI
@@ -71,7 +72,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessManagerCommand testProcessor(mockConf, gProgramName);
+   MockProcessManagerCommand testProcessor(mockConf);
    EXPECT_TRUE(testProcessor.Initialize());
 
    protoMsg::ConfigDefaultsRequest request;
@@ -80,7 +81,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
    request.add_requestedconfigparams("qosmosDebugModeEnabled");
 
    cmd.set_stringargone(request.SerializeAsString());
-   MockConfigRequestCommand doIt(cmd, autoManagedManager, gProgramName);
+   MockConfigRequestCommand doIt(cmd, autoManagedManager);
 
 
    // BUILD UP THE FAKE RESPONSE 
@@ -134,7 +135,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfExecuteUsingRealDefaultValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessManagerCommand testProcessor(mockConf, gProgramName);
+   MockProcessManagerCommand testProcessor(mockConf);
    EXPECT_TRUE(testProcessor.Initialize());
 
    protoMsg::ConfigDefaultsRequest request;
@@ -143,7 +144,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfExecuteUsingRealDefaultValues) {
    request.add_requestedconfigparams("qosmosDebugModeEnabled");
 
    cmd.set_stringargone(request.SerializeAsString());
-   MockConfigRequestCommand doIt(cmd, autoManagedManager, gProgramName);
+   MockConfigRequestCommand doIt(cmd, autoManagedManager);
 
    auto reply = doIt.Execute(mockConf);
    EXPECT_TRUE(reply.success());
@@ -200,14 +201,14 @@ void checkRealReply(protoMsg::ConfigDefaults realReply,
    EXPECT_EQ(readReply.configname(), configName);
    EXPECT_EQ(readReply.defaultval(), defaultVal);
    EXPECT_EQ(readReply.min(), min);
-   EXPECT_EQ(readReply.max(), max);
+   EXPECT_EQ(readReply.max(), max) << configName;
 }
 
 TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessManagerCommand testProcessor(mockConf, gProgramName);
+   MockProcessManagerCommand testProcessor(mockConf);
    EXPECT_TRUE(testProcessor.Initialize());
 
    protoMsg::ConfigDefaultsRequest request;
@@ -251,7 +252,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    request.add_requestedconfigparams("pcapRecordsToClearPerCycle");
 
    cmd.set_stringargone(request.SerializeAsString());
-   MockConfigRequestCommand doIt(cmd, autoManagedManager, gProgramName);
+   MockConfigRequestCommand doIt(cmd, autoManagedManager);
 
    auto reply = doIt.Execute(mockConf);
    EXPECT_TRUE(reply.success());
@@ -289,6 +290,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    checkRealReply(realReply, "enableIntermediateFlows", protoMsg::ConfType::BASE, "true", "false", "true", it++);
    checkRealReply(realReply, "enablePacketCapture", protoMsg::ConfType::BASE, "true", "false", "true", it++);
    checkRealReply(realReply, "captureFileLimit", protoMsg::ConfType::BASE, "1000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
+   
    checkRealReply(realReply, "captureSizeLimit", protoMsg::ConfType::BASE, "80000", "1000", "1000000", it++);
    checkRealReply(realReply, "captureMemoryLimit", protoMsg::ConfType::BASE, "1500", "1000", "16000", it++);
    checkRealReply(realReply, "captureMaxPackets", protoMsg::ConfType::BASE, "2000000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
@@ -305,7 +307,7 @@ TEST_F(ConfigRequestCommandTest, SyslogConfAllValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessManagerCommand testProcessor(mockConf, gProgramName);
+   MockProcessManagerCommand testProcessor(mockConf);
    EXPECT_TRUE(testProcessor.Initialize());
 
    protoMsg::ConfigDefaultsRequest request;
@@ -321,7 +323,7 @@ TEST_F(ConfigRequestCommandTest, SyslogConfAllValues) {
    request.add_requestedconfigparams("scrubPasswords");
 
    cmd.set_stringargone(request.SerializeAsString());
-   MockConfigRequestCommand doIt(cmd, autoManagedManager, gProgramName);
+   MockConfigRequestCommand doIt(cmd, autoManagedManager);
 
    auto reply = doIt.Execute(mockConf);
    EXPECT_TRUE(reply.success());

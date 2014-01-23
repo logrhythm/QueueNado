@@ -6,15 +6,18 @@
 #include <MockDiskUsage.h>
 #include "BoolReturns.h"
 #include "gmock/gmock.h"
-extern std::string gProgramName;
+#include "MockPcapDiskUsage.h"
+#include "include/global.h"
+#include <vector>
 
 class MockDiskCleanup : public DiskCleanup {
 public:
 
-   MockDiskCleanup(networkMonitor::ConfSlave& conf, const std::string& programName) : DiskCleanup(conf,programName), mFailRemoveSearch(false),
+   MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
    mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
-           mIsShutdownResult(false), mDoPseudoGetUpdatedDiskInfo(false), mUseMockConf(false) {
+           mIsShutdownResult(false), mDoPseudoGetUpdatedDiskInfo(false), mUseMockConf(false), 
+           mMockPcapDiskUsage(DiskCleanup::GetConf().GetPcapCaptureLocations()) {
       mFleSystemInfo.f_bfree = 1;
       mFleSystemInfo.f_frsize = 1;
       mFleSystemInfo.f_blocks = 1;
@@ -85,7 +88,7 @@ public:
    }
 
    LR_VIRTUAL void GetPcapStoreUsage(DiskCleanup::StatInfo& stats,
-           const DiskUsage::Size size) LR_OVERRIDE {
+           const MemorySize size) LR_OVERRIDE {
       if (mRealFilesSystemAccess) {
          DiskCleanup::GetPcapStoreUsage(stats, size);
       } else {
@@ -98,7 +101,7 @@ public:
          mockStatvs.f_files = 1;
          mockStatvs.f_ffree = 1;
          mockStatvs.f_favail = 1;
-         MockDiskUsage disk(mockStatvs,gProgramName);
+         MockDiskUsage disk(mockStatvs);
 
          disk.Update();
          stats.pcapDiskInGB.Free = disk.DiskFree(size);
@@ -108,7 +111,7 @@ public:
    }
 
    void GetProbeFileSystemInfo(DiskCleanup::StatInfo& stats,
-           const DiskUsage::Size size) LR_OVERRIDE {
+           const MemorySize size) LR_OVERRIDE {
       if (!mFailFileSystemInfo) {
          if (mRealFilesSystemAccess) {
             DiskCleanup::GetProbeFileSystemInfo(stats, size);
@@ -122,7 +125,7 @@ public:
             mockStatvs.f_files = 1;
             mockStatvs.f_ffree = 1;
             mockStatvs.f_favail = 1;
-            MockDiskUsage disk(mockStatvs,gProgramName);
+            MockDiskUsage disk(mockStatvs);
 
             disk.Update();
             stats.probeDiskInGB.Free = disk.DiskFree(size);
@@ -150,7 +153,7 @@ public:
       }
       return mMockedConf;
    }
-
+   
    size_t RemoveOlderFilesFromPath(boost::filesystem::path path, const time_t oldestTime, size_t& spaceSaved) {
       return DiskCleanup::RemoveOlderFilesFromPath(path, oldestTime, spaceSaved);
    }
@@ -239,6 +242,7 @@ public:
    
    bool mUseMockConf;
    MockConf mMockedConf;
+   MockPcapDiskUsage mMockPcapDiskUsage;
 };
 using ::testing::_;
 using ::testing::Invoke;
@@ -250,14 +254,14 @@ using ::testing::SetArgReferee;
 class GMockDiskCleanup : public MockDiskCleanup {
 public:
 
-   GMockDiskCleanup(networkMonitor::ConfSlave& conf, const std::string programName) : MockDiskCleanup(conf,programName), mFileCount(0), mMarkResult(true),
+   GMockDiskCleanup(networkMonitor::ConfSlave& conf) : MockDiskCleanup(conf), mFileCount(0), mMarkResult(true),
    mFileCountSuccess(true) {
    }
 
    MOCK_METHOD0(IsShutdown, bool());
    MOCK_METHOD3(RemoveFiles, int(const PathAndFileNames& filesToRemove, size_t& spaceSavedInMB, size_t& filesNotFound));
    MOCK_METHOD2(GetFileCountFromES, bool(ElasticSearch& es,size_t& count));
-   MOCK_METHOD2(GetPcapStoreUsage, void(DiskCleanup::StatInfo& pcapDiskInGB, const DiskUsage::Size size));
+   MOCK_METHOD2(GetPcapStoreUsage, void(DiskCleanup::StatInfo& pcapDiskInGB, const MemorySize size));
    MOCK_METHOD3(MarkFilesAsRemovedInES, bool(const IdsAndIndexes& relevantRecords, const networkMonitor::DpiMsgLR& updateMsg,ElasticSearch& es));
    MOCK_METHOD1(RunOptimize, bool(ElasticSearch& es));
 

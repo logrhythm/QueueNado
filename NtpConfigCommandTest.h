@@ -8,18 +8,16 @@
 #include "MockConf.h"
 #include "CommandRequest.pb.h"
 
-extern std::string gProgramName;
 class NtpConfigCommandTest : public ::testing::Test {
 public:
 
-   NtpConfigCommandTest() {
+   NtpConfigCommandTest() : autoManagedManager(conf){
       zctx_interrupted = false;
    }
 
 protected:
 
    virtual void SetUp() {
-      autoManagedManager = new MockProcessManagerCommand(conf,gProgramName);
       cmd.set_type(protoMsg::CommandRequest_CommandType_NTP_CONFIG);
    };
 
@@ -27,7 +25,7 @@ protected:
    }
 
    const MockConf conf;
-   MockProcessManagerCommand* autoManagedManager;
+   MockProcessManagerCommand autoManagedManager;
    protoMsg::CommandRequest cmd;
 
 };

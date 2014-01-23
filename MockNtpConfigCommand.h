@@ -13,8 +13,8 @@
 
 struct MockNtpConfigCommand : public NtpConfigCommand {
 
-   MockNtpConfigCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager, const std::string& programName)
-   : NtpConfigCommand(request, processManager,programName), throwCounter(0), willFakeThrow(false) {
+   MockNtpConfigCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager)
+   : NtpConfigCommand(request, processManager), throwCounter(0), willFakeThrow(false) {
    }
 
    ~MockNtpConfigCommand() {

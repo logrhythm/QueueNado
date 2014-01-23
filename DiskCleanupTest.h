@@ -7,6 +7,7 @@
 #include <csignal>
 #include <sstream>
 #include <sys/time.h>
+#include <g2log.hpp>
 
 class DiskCleanupTest : public ::testing::Test {
 public:
@@ -49,7 +50,8 @@ protected:
 
       makeADir = "mkdir -p ";
       makeADir += testDir.str();
-      system(makeADir.c_str());
+      auto result = system(makeADir.c_str());
+      LOG_IF(WARNING, 0 != result) << "Could not create directory with command: " << makeADir;
       totalHits = 0;
    };
 

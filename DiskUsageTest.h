@@ -9,7 +9,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <cstdio>
-
+#include <cstdlib>
 
 class RaIIFolderUsage : public ::testing::Test {
 public:

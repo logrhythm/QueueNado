@@ -4,16 +4,18 @@
 #include <g2log.hpp>
 #include <string>
 #include <vector>
+#include "include/global.h"
 
 class MockProcessManagerCommand : public ProcessManager {
 public:
 
-   MockProcessManagerCommand(const Conf& conf, const std::string& programName) : ProcessManager(conf,programName),
+   MockProcessManagerCommand(const Conf& conf) 
+   : ProcessManager(conf, global::GetProgramName()),
    mReturnCode(0),
    mInit(true),
    mSuccess(true),
    mCountNumberOfRuns(0),
-   mResult({"Success"}) {
+   mResult{"Success"} {
    }
 
    bool Initialize() {

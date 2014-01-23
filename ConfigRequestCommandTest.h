@@ -9,24 +9,21 @@
 #include "MockConf.h"
 #include "CommandRequest.pb.h"
 
-extern std::string gProgramName;
-
 class ConfigRequestCommandTest : public ::testing::Test {
 public:
-   ConfigRequestCommandTest() {
+   ConfigRequestCommandTest() : autoManagedManager(mockConf){
       zctx_interrupted = false;
    }
 
 protected:
  void SetUp() {
-      autoManagedManager = new MockProcessManagerCommand(mockConf, gProgramName);
       cmd.set_type(protoMsg::CommandRequest_CommandType_CONFIG_REQUEST);
    };
 
    virtual void TearDown() {}
 
    MockConf mockConf;
-   MockProcessManagerCommand* autoManagedManager;
+   MockProcessManagerCommand autoManagedManager;
    protoMsg::CommandRequest cmd;
 };
 

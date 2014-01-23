@@ -46,6 +46,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libprocess/ \
           -Wl,-R${abs_top_srcdir}/source/libelasticsearch/ \
           -Wl,-R${abs_top_srcdir}/source/libtools/ \
+          -Wl,-R${abs_top_srcdir}/source/libglobal/ \
           -Wl,-R${abs_top_srcdir}/source/libsystem/ \
           -Wl,-R${abs_top_srcdir}/source/libremap/ \
           -Wl,-R/usr/local/probe/lib/ \
@@ -63,6 +64,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/liblua/ \
           -L${abs_top_srcdir}/source/libelasticsearch/ \
           -L${abs_top_srcdir}/source/libtools/ \
+          -L${abs_top_srcdir}/source/libglobal/ \
           -L${abs_top_srcdir}/source/libsystem/ \
           -L${abs_top_srcdir}/source/libremap/ \
           -L${abs_top_srcdir}/source/ \
@@ -84,6 +86,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/liblua \
          -I${abs_top_srcdir}/source/libelasticsearch \
          -I${abs_top_srcdir}/source/libtools \
+         -I${abs_top_srcdir}/source/libglobal \
          -I${abs_top_srcdir}/source/libsystem \
          -I${abs_top_srcdir}/source/libremap \
          -I/usr/local/probe/include \
@@ -153,7 +156,7 @@ PacketCaptureTest_SOURCES=main.cpp PacketCaptureTest.cpp
 
 DiskUsageTest_LDADD=${DYNAMIC_LIBS}
 DiskUsageTest_LDFLAGS=${BASE_LIBS}
-DiskUsageTest_SOURCES=main.cpp DiskUsageTest.cpp
+DiskUsageTest_SOURCES=main.cpp DiskUsageTest.cpp MockPcapDiskUsage.h
 
 
 MsgUuidTest_LDADD=${DYNAMIC_LIBS}
@@ -167,7 +170,8 @@ ConfProcessorTests_SOURCES=main.cpp \
 	QosmosConfTest.cpp \
 	ConfNtpProcessorTests.cpp \
 	ConfBaseValidationTests.cpp \
-	ConfSyslogValidationTests.cpp
+	ConfSyslogValidationTests.cpp \
+        TestProtoDefaultsMethods.cpp
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 CommandProcessorTests_LDADD=${DYNAMIC_LIBS}

@@ -9,22 +9,19 @@
 #include "StringFix.h"
 #include "MockDriveInfo.h"
 
-
-
-extern std::string gProgramName;
 #ifdef LR_DEBUG
 TEST_F(DriveInfoCommandTest, DoesMockWork) {
-   MockDriveInfoCommand testCommand(cmd, autoManagedManager, gProgramName);
-   autoManagedManager->SetSuccess(true);
-   autoManagedManager->SetResult("test result");
+   MockDriveInfoCommand testCommand(cmd, autoManagedManager);
+   autoManagedManager.SetSuccess(true);
+   autoManagedManager.SetResult("test result");
 
    MockConf conf;
    protoMsg::CommandRequest request;
    request.set_type(::protoMsg::CommandRequest_CommandType_DRIVEINFO);
    protoMsg::CommandReply reply = testCommand.Execute(conf);
 
-   EXPECT_EQ(autoManagedManager->getRunCommand(), "/usr/local/probe/sbin/parted");
-   EXPECT_EQ(autoManagedManager->getRunArgs(), " -lm print");
+   EXPECT_EQ(autoManagedManager.getRunCommand(), "/usr/local/probe/sbin/parted");
+   EXPECT_EQ(autoManagedManager.getRunArgs(), " -lm print");
 
    EXPECT_FALSE(reply.success());
    EXPECT_EQ(reply.result(), "Failed to parse successfully from parted output.\nResult was:\ntest result");
@@ -37,9 +34,11 @@ TEST_F(DriveInfoCommandTest, FailedWithBuildDriveInfo) {
    MockDriveInfo driveInfo("dummy");
    EXPECT_TRUE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6;"));
    EXPECT_TRUE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6"));
+   
+   EXPECT_TRUE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6:7:8:9:10;"));
+   EXPECT_FALSE(driveInfo.BuildDriveInfo("0:1:2:3:4;"));
 
-   EXPECT_FALSE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6:7;"));
-   EXPECT_FALSE(driveInfo.BuildDriveInfo("0:1:2:3:4:5:6:7"));
+   
 }
 TEST_F(DriveInfoCommandTest, BuildDriveInfo) {
    auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.86.nodas.txt");
@@ -159,7 +158,7 @@ TEST_F(DriveInfoCommandTest, BuildPartitionInfo_TestTheLastDevice) {
    EXPECT_EQ("", part1.flags());
 }
 TEST_F(DriveInfoCommandTest, ExecuteWhiteBoxCommandExtractDrivesAndPartitions) {
-   MockDriveInfoCommand testCommand(cmd, autoManagedManager,gProgramName);
+   MockDriveInfoCommand testCommand(cmd, autoManagedManager);
    auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.86.nodas.txt");
    ASSERT_FALSE(partedReading.HasFailed());
    std::vector<DriveInfo> drives = testCommand.ExtractPartedToDrives(partedReading.result);
@@ -218,15 +217,15 @@ TEST_F(DriveInfoCommandTest, ExecuteWhiteBoxCommandExtractDrivesAndPartitions) {
    }
 }
 TEST_F(DriveInfoCommandTest, ExecuteWhiteBoxCommandOnNoDas86) {
-   MockDriveInfoCommand testCommand(cmd, autoManagedManager,gProgramName);
-   autoManagedManager->SetSuccess(true);
+   MockDriveInfoCommand testCommand(cmd, autoManagedManager);
+   autoManagedManager.SetSuccess(true);
    auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.86.nodas.txt");
    ASSERT_FALSE(partedReading.HasFailed());
-   autoManagedManager->SetResult(partedReading.result);
+   autoManagedManager.SetResult(partedReading.result);
 
    protoMsg::CommandReply reply = testCommand.Execute(conf);
-   EXPECT_EQ(autoManagedManager->getRunCommand(), "/usr/local/probe/sbin/parted");
-   EXPECT_EQ(autoManagedManager->getRunArgs(), " -lm print");
+   EXPECT_EQ(autoManagedManager.getRunCommand(), "/usr/local/probe/sbin/parted");
+   EXPECT_EQ(autoManagedManager.getRunArgs(), " -lm print");
 
    EXPECT_TRUE(reply.success());
    protoMsg::DrivesInfo drives;
@@ -293,15 +292,15 @@ TEST_F(DriveInfoCommandTest, ExecuteWhiteBoxCommandOnNoDas86) {
 // *.119 also gives out some parted errors which we should 
 // successfully handle. Ref Research/test/resources/parted.119.das.txt
 TEST_F(DriveInfoCommandTest, ExecuteWhiteBoxCommandOnDas119) {
-   MockDriveInfoCommand testCommand(cmd, autoManagedManager,gProgramName);
-   autoManagedManager->SetSuccess(true);
+   MockDriveInfoCommand testCommand(cmd, autoManagedManager);
+   autoManagedManager.SetSuccess(true);
    auto partedReading = FileIO::ReadAsciiFileContent("resources/parted.119.das.txt");
    ASSERT_FALSE(partedReading.HasFailed());
-   autoManagedManager->SetResult(partedReading.result);
+   autoManagedManager.SetResult(partedReading.result);
 
    protoMsg::CommandReply reply = testCommand.Execute(conf);
-   EXPECT_EQ(autoManagedManager->getRunCommand(), "/usr/local/probe/sbin/parted");
-   EXPECT_EQ(autoManagedManager->getRunArgs(), " -lm print");
+   EXPECT_EQ(autoManagedManager.getRunCommand(), "/usr/local/probe/sbin/parted");
+   EXPECT_EQ(autoManagedManager.getRunArgs(), " -lm print");
 
    EXPECT_TRUE(reply.success());
    protoMsg::DrivesInfo drives;
@@ -495,7 +494,7 @@ TEST_F(DriveInfoCommandTest, DISABLED_TestToGetSomething) {
    protoMsg::CommandRequest request;
    MockConf conf;
    request.set_type(::protoMsg::CommandRequest_CommandType_DRIVEINFO);
-   std::shared_ptr<Command> testCommand = DriveInfoCommand::Construct(request,gProgramName);
+   std::shared_ptr<Command> testCommand = DriveInfoCommand::Construct(request);
    protoMsg::CommandReply reply = testCommand->Execute(conf);
    ASSERT_TRUE(reply.success());
    protoMsg::DrivesInfo drives;
