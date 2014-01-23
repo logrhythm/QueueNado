@@ -6,6 +6,7 @@
 #include "include/global.h"
 #include "ConfSlave.h"
 #include "PcapDiskUsage.h"
+#include "ConfTypeMsg.pb.h"
 #include <boost/lexical_cast.hpp>
 
 TEST_F(ConfigRequestCommandTest, DoesItCompileAndLink) {

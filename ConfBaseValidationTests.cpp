@@ -52,7 +52,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
 
    wrong.set_dpithreads("Hello World!");
    EXPECT_EQ(wrong.has_dpithreads(), true);
-   conf.ValidateConfFieldValues(wrong, {"BASE"}); // this should clear the field
+   conf.ValidateConfFieldValues(wrong, protoMsg::ConfType_Type_BASE); // this should clear the field
    EXPECT_EQ(wrong.has_dpithreads(), false);
 }
 
@@ -192,7 +192,7 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_capturefilelimit("2147483648") : msg.set_capturefilelimit("2147483647");
 
    ProtoDefaults getDefaults{conf.GetPcapCaptureLocations()};
-   auto confDefaults = getDefaults.GetConfDefaults("BASE");
+   auto confDefaults = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
    auto rangePtr = getDefaults.GetRange(confDefaults, "captureSizeLimit"); // int
    auto captureSizeLimitTooMuch = std::to_string(1+ std::stoul(rangePtr->StringifyMax()));  
    (index++ == shouldFail) ? msg.set_capturesizelimit(captureSizeLimitTooMuch) : msg.set_capturesizelimit(rangePtr->StringifyMax());

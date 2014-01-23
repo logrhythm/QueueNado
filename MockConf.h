@@ -290,7 +290,7 @@ public:
       return Conf::ValidateEthConfFields(protoMap, ethInfo);
    }
 
-   bool ValidateConfFieldValues(::google::protobuf::Message& msg, const std::string &type) LR_OVERRIDE {
+   bool ValidateConfFieldValues(::google::protobuf::Message& msg, const protoMsg::ConfType_Type &type) LR_OVERRIDE {
       if (mIgnoreConfValidate) {
          return true;
       }

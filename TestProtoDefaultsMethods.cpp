@@ -12,15 +12,12 @@ using namespace protoDefines;
 
 TEST(TestProtoDefaults, GetConfDefaultsOK) {
    ProtoDefaults getDefaults{{}};
-   auto defaults1 = getDefaults.GetConfDefaults("BASE");
+   auto defaults1 = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
    EXPECT_TRUE(defaults1.size() > 0);
    ASSERT_TRUE(defaults1.find("dpiThreads") != defaults1.end());
    
    auto element = defaults1.find("dpiThreads")->second;
    EXPECT_TRUE((*std::get<indexRange>(element)).Validate("4")); //4 DPI Threads
-
-   auto defaults2 = getDefaults.GetConfDefaults("TEST");
-   EXPECT_TRUE(defaults2.size() == 0);
 }
 
 TEST(TestProtoDefaults, GetRangeOK){
@@ -28,7 +25,7 @@ TEST(TestProtoDefaults, GetRangeOK){
    auto pcapLocations = conf.GetPcapCaptureLocations();
    ProtoDefaults getDefaults{pcapLocations};
    
-   auto confDefaults = getDefaults.GetConfDefaults("BASE");
+   auto confDefaults = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
    EXPECT_TRUE(!(*getDefaults.GetRange(confDefaults, "pcapRecordsToClearPerCycle")).Validate("test1")); //Int
    EXPECT_TRUE((*getDefaults.GetRange(confDefaults, "pcapRecordsToClearPerCycle")).Validate("1")); //Int
    EXPECT_TRUE(!(*getDefaults.GetRange(confDefaults, "pcapRecordsToClearPerCycle")).Validate("0")); //Int
@@ -55,7 +52,7 @@ TEST(TestProtoDefaults, GetConfParamDefaultOK){
    auto pcapLocations = conf.GetPcapCaptureLocations();
    ProtoDefaults getDefaults{pcapLocations};
    
-   auto confDefaults = getDefaults.GetConfDefaults("BASE");
+   auto confDefaults = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
    
    const std::string str("4");
    EXPECT_TRUE(getDefaults.GetConfParamDefault(confDefaults, "dpiThreads").size() > 0);
@@ -68,7 +65,7 @@ TEST(TestProtoDefaults, GetConfParamOK){
    auto pcapLocations = conf.GetPcapCaptureLocations();
    ProtoDefaults getDefaults{pcapLocations};
    
-   auto confDefaults = getDefaults.GetConfDefaults("BASE");
+   auto confDefaults = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
       
    EXPECT_TRUE((std::get<indexDefault>(getDefaults.GetConfParam(confDefaults, "dpiThreads2"))).size() == 0);
    EXPECT_TRUE(std::get<indexRange>(getDefaults.GetConfParam(confDefaults, "dpiThreads2")) == nullptr);
