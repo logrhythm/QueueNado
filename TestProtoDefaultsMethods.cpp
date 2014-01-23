@@ -8,7 +8,6 @@
 #include "Conf.h"
 #include "ProtoDefaults.h"
 
-using namespace protoDefines;
 
 TEST(TestProtoDefaults, GetConfDefaultsOK) {
    ProtoDefaults getDefaults{{}};
@@ -17,7 +16,7 @@ TEST(TestProtoDefaults, GetConfDefaultsOK) {
    ASSERT_TRUE(defaults1.find("dpiThreads") != defaults1.end());
    
    auto element = defaults1.find("dpiThreads")->second;
-   EXPECT_TRUE((*std::get<indexRange>(element)).Validate("4")); //4 DPI Threads
+   EXPECT_TRUE((*std::get<ProtoDefaults::indexRange>(element)).Validate("4")); //4 DPI Threads
 }
 
 TEST(TestProtoDefaults, GetRangeOK){
@@ -67,16 +66,16 @@ TEST(TestProtoDefaults, GetConfParamOK){
    
    auto confDefaults = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
       
-   EXPECT_TRUE((std::get<indexDefault>(getDefaults.GetConfParam(confDefaults, "dpiThreads2"))).size() == 0);
-   EXPECT_TRUE(std::get<indexRange>(getDefaults.GetConfParam(confDefaults, "dpiThreads2")) == nullptr);
-   EXPECT_TRUE((std::get<indexType>(getDefaults.GetConfParam(confDefaults, "dpiThreads2"))).size() == 0);
+   EXPECT_TRUE((std::get<ProtoDefaults::indexDefault>(getDefaults.GetConfParam(confDefaults, "dpiThreads2"))).size() == 0);
+   EXPECT_TRUE(std::get<ProtoDefaults::indexRange>(getDefaults.GetConfParam(confDefaults, "dpiThreads2")) == nullptr);
+   EXPECT_TRUE((std::get<ProtoDefaults::indexType>(getDefaults.GetConfParam(confDefaults, "dpiThreads2"))).size() == 0);
    
    std::string str("dpiThreads");
-   EXPECT_TRUE((std::get<indexDefault>(getDefaults.GetConfParam(confDefaults, str))).size() > 0);
-   EXPECT_TRUE(std::get<indexRange>(getDefaults.GetConfParam(confDefaults, str)) != nullptr);
-   EXPECT_TRUE((std::get<indexType>(getDefaults.GetConfParam(confDefaults, str))).size() > 0);
+   EXPECT_TRUE((std::get<ProtoDefaults::indexDefault>(getDefaults.GetConfParam(confDefaults, str))).size() > 0);
+   EXPECT_TRUE(std::get<ProtoDefaults::indexRange>(getDefaults.GetConfParam(confDefaults, str)) != nullptr);
+   EXPECT_TRUE((std::get<ProtoDefaults::indexType>(getDefaults.GetConfParam(confDefaults, str))).size() > 0);
 
-   EXPECT_TRUE((std::get<indexDefault>(getDefaults.GetConfParam(confDefaults, str))).compare("4") == 0);
-   EXPECT_TRUE((*std::get<indexRange>(getDefaults.GetConfParam(confDefaults, str))).Validate("4")); //Int
-   EXPECT_FALSE((*std::get<indexRange>(getDefaults.GetConfParam(confDefaults, str))).Validate("f")); //Int
+   EXPECT_TRUE((std::get<ProtoDefaults::indexDefault>(getDefaults.GetConfParam(confDefaults, str))).compare("4") == 0);
+   EXPECT_TRUE((*std::get<ProtoDefaults::indexRange>(getDefaults.GetConfParam(confDefaults, str))).Validate("4")); //Int
+   EXPECT_FALSE((*std::get<ProtoDefaults::indexRange>(getDefaults.GetConfParam(confDefaults, str))).Validate("f")); //Int
 }
