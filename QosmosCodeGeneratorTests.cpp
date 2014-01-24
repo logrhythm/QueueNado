@@ -492,7 +492,7 @@ TEST_F(QosmosCodeGeneratorTests, getInfoFailures) {
 
    vector<string> noNames = parser.getAllEventFunctionNames();
    ASSERT_TRUE(noNames.empty());
-   ASSERT_TRUE(parser.getBodyOfEvent("foo") == "");
+   ASSERT_TRUE(parser.getBodyOfEvent("foo").empty());
    string dummy1, dummy2;
    size_t sdummy1;
    ASSERT_FALSE(parser.getHookInfo("foo", dummy1, dummy2));
