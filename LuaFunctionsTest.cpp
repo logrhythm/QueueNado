@@ -403,7 +403,7 @@ TEST_F(LuaFunctionsTest, SessionAge) {
       EXPECT_FALSE(lua_toboolean(luaState, -1));
       lua_close(luaState);
       luaState = luaL_newstate();
-      dpiMsg.set_timeupdated(std::time(NULL));
+      dpiMsg.set_time_updated(std::time(NULL));
       lua_pushlightuserdata(luaState, &dpiMsg);
       conf.mFlowReportInterval = 999;
       LuaPacketFunctions::SessionAge(luaState);
@@ -411,13 +411,13 @@ TEST_F(LuaFunctionsTest, SessionAge) {
       lua_close(luaState);
       luaState = luaL_newstate();
       time_t pasttime = std::time(NULL) - 11;
-      dpiMsg.set_timeupdated(pasttime);
+      dpiMsg.set_time_updated(pasttime);
       lua_pushlightuserdata(luaState, &dpiMsg);
       conf.mFlowReportInterval = 10;
       LuaPacketFunctions::SessionAge(luaState);
       EXPECT_TRUE(lua_toboolean(luaState, -1));
-      EXPECT_TRUE(dpiMsg.flowtype() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
-      EXPECT_NE(pasttime, dpiMsg.timeupdated());
+      EXPECT_TRUE(dpiMsg.flow_type() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
+      EXPECT_NE(pasttime, dpiMsg.time_updated());
       lua_close(luaState);
    }
 }
