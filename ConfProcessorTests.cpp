@@ -1070,15 +1070,15 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    EXPECT_EQ(MAX_SYSLOG_LINE_RFC_5426, conf.getSyslogMaxLineLength());
    EXPECT_FALSE(conf.getQosmosDebugModeEnabled());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.getDpiHalfSessions());
-   EXPECT_TRUE(conf.EnableIPDefragmentation());
-   EXPECT_TRUE(conf.EnableTCPReassembly());
-   EXPECT_FALSE(conf.SiemLogging());
+   EXPECT_TRUE(conf.getEnableIPDefragmentation());
+   EXPECT_TRUE(conf.getEnableTCPReassembly());
+   EXPECT_FALSE(conf.getSiemLogging());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * 5, conf.getQosmos64BytePool());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * 2.5, conf.getQosmos128BytePool());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.getQosmos256BytePool());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * .75, conf.getQosmos512BytePool());
    EXPECT_EQ(DEFAULT_SESSION_EXPIRE_PER_PROCESS, conf.getQosmosExpirePerCallback());
-   EXPECT_FALSE(conf.SiemDebugLogging());
+   EXPECT_FALSE(conf.getSiemDebugLogging());
    confThread.Stop();
 }
 
@@ -1108,8 +1108,8 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_TRUE(conf.getSyslogEnabled());
    EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
    EXPECT_EQ(250000, conf.getDpiHalfSessions());
-   EXPECT_FALSE(conf.EnableIPDefragmentation());
-   EXPECT_FALSE(conf.EnableTCPReassembly());
+   EXPECT_FALSE(conf.getEnableIPDefragmentation());
+   EXPECT_FALSE(conf.getEnableTCPReassembly());
    EXPECT_EQ(50, conf.GetPacketRecvQueueSize());
    EXPECT_EQ(100, conf.GetPacketSendQueueSize());
    EXPECT_EQ(15000, conf.GetDPIMsgRecvQueueSize());
@@ -1118,8 +1118,8 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ(500, conf.GetSyslogSendQueueSize());
    EXPECT_EQ(1, conf.getStatsIntervalSeconds());
    EXPECT_TRUE(conf.getQosmosDebugModeEnabled());
-   EXPECT_TRUE(conf.SiemLogging());
-   EXPECT_TRUE(conf.SiemDebugLogging());
+   EXPECT_TRUE(conf.getSiemLogging());
+   EXPECT_TRUE(conf.getSiemDebugLogging());
    EXPECT_EQ(64, conf.getQosmos64BytePool());
    EXPECT_EQ(128, conf.getQosmos128BytePool());
    EXPECT_EQ(256, conf.getQosmos256BytePool());
@@ -1318,7 +1318,7 @@ TEST_F(ConfProcessorTests, testQosmosTCPReAssembly) {
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_FALSE(conf.EnableTCPReassembly());
+   EXPECT_FALSE(conf.getEnableTCPReassembly());
 }
 
 TEST_F(ConfProcessorTests, testEnableIPDefragmentation) {
@@ -1327,7 +1327,7 @@ TEST_F(ConfProcessorTests, testEnableIPDefragmentation) {
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_FALSE(conf.EnableIPDefragmentation());
+   EXPECT_FALSE(conf.getEnableIPDefragmentation());
 }
 
 TEST_F(ConfProcessorTests, teststatsAccumulatorQueue) {
@@ -1354,10 +1354,10 @@ TEST_F(ConfProcessorTests, testSiemLogging) {
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_FALSE(conf.SiemLogging());
+   EXPECT_FALSE(conf.getSiemLogging());
    msg.set_siemlogging("true");
    conf.updateFields(msg);
-   EXPECT_TRUE(conf.SiemLogging());
+   EXPECT_TRUE(conf.getSiemLogging());
 
 }
 
@@ -1379,10 +1379,10 @@ TEST_F(ConfProcessorTests, testSiemDebugLogging) {
    Conf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_FALSE(conf.SiemDebugLogging());
+   EXPECT_FALSE(conf.getSiemDebugLogging());
    msg.set_debugsiemlogging("true");
    conf.updateFields(msg);
-   EXPECT_TRUE(conf.SiemDebugLogging());
+   EXPECT_TRUE(conf.getSiemDebugLogging());
 
 }
 
@@ -1415,7 +1415,7 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    EXPECT_EQ(boost::lexical_cast<unsigned int>(pcapBufferSize), conf.getPCAPBuffsize());
    EXPECT_EQ(pcapInterface, conf.getPCAPInterface());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(syslogMaxLineLength), conf.getSyslogMaxLineLength());
-   EXPECT_TRUE(conf.SiemDebugLogging());
+   EXPECT_TRUE(conf.getSiemDebugLogging());
 }
 
 TEST_F(ConfProcessorTests, testIpOnlyProtoMessage) {
