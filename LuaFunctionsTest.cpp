@@ -4,6 +4,7 @@
 #include "MockConf.h"
 #include "g2log.hpp"
 #include "MockLuaExecuter.h"
+#include "MockLuaPacketFunctions.h"
 #include "LuaPacketFunctions.h"
 #include "LuaRuleEngineFunctions.h"
 #include "RuleEngine.h"
@@ -382,34 +383,45 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
 }
 
 #endif
-TEST_F(LuaFunctionsTest, SessionAge) {
-   networkMonitor::DpiMsgLR dpiMsg;
 
-   lua_State *luaState;
-   luaState = luaL_newstate();
-   lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushinteger(luaState, 10);
-   LuaPacketFunctions::SessionAge(luaState);
-   EXPECT_FALSE(lua_toboolean(luaState, -1));
-   lua_close(luaState);
-   luaState = luaL_newstate();
-   dpiMsg.set_time_updated(std::time(NULL));
-   lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushinteger(luaState, 999);
-   LuaPacketFunctions::SessionAge(luaState);
-   EXPECT_FALSE(lua_toboolean(luaState, -1));
-   lua_close(luaState);
-   luaState = luaL_newstate();
-   time_t pasttime = std::time(NULL) - 11;
-   dpiMsg.set_time_updated(pasttime);
-   lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushinteger(luaState, 10);
-   LuaPacketFunctions::SessionAge(luaState);
-   EXPECT_TRUE(lua_toboolean(luaState, -1));
-   EXPECT_TRUE(dpiMsg.flow_type() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
-   EXPECT_NE(pasttime, dpiMsg.time_updated());
-   lua_close(luaState);
+   
+   
+TEST_F(LuaFunctionsTest, SessionAge) {
+   MockConf conf;   
+   networkMonitor::DpiMsgLR dpiMsg;
+   {
+      MockLuaPacketFunctions luaFunctions;
+      luaFunctions.mOverrideStartPacketCapture = true;
+      luaFunctions.mOverridePacketCapturePossible = true;
+      luaFunctions.StartPacketCapture(conf);
+
+      lua_State *luaState;
+      luaState = luaL_newstate();
+      lua_pushlightuserdata(luaState, &dpiMsg);
+      conf.mFlowReportInterval = 10;
+      LuaPacketFunctions::SessionAge(luaState);
+      EXPECT_FALSE(lua_toboolean(luaState, -1));
+      lua_close(luaState);
+      luaState = luaL_newstate();
+      dpiMsg.set_timeupdated(std::time(NULL));
+      lua_pushlightuserdata(luaState, &dpiMsg);
+      conf.mFlowReportInterval = 999;
+      LuaPacketFunctions::SessionAge(luaState);
+      EXPECT_FALSE(lua_toboolean(luaState, -1));
+      lua_close(luaState);
+      luaState = luaL_newstate();
+      time_t pasttime = std::time(NULL) - 11;
+      dpiMsg.set_timeupdated(pasttime);
+      lua_pushlightuserdata(luaState, &dpiMsg);
+      conf.mFlowReportInterval = 10;
+      LuaPacketFunctions::SessionAge(luaState);
+      EXPECT_TRUE(lua_toboolean(luaState, -1));
+      EXPECT_TRUE(dpiMsg.flowtype() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
+      EXPECT_NE(pasttime, dpiMsg.timeupdated());
+      lua_close(luaState);
+   }
 }
+
 
 TEST_F(LuaFunctionsTest, DataNull) {
    networkMonitor::DpiMsgLR dpiMsg;

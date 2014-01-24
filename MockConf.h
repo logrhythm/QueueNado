@@ -50,8 +50,10 @@ public:
    mMaxIndividualPCap(1000), 
    mPcapCaptureMaxPackets(999999),
    mSyslogSendQueueSize(800),
-   mSyslogRecvQueueSize(800) {
-}
+   mSyslogRecvQueueSize(800),
+   mFlowReportInterval(10)
+   {
+   }
 
    ~MockConf() {
    }
@@ -228,6 +230,7 @@ public:
    bool PacketCaptureEnabled() LR_OVERRIDE {
       return mUnknownCaptureEnabled;
    }
+   
 
    size_t GetPcapCaptureFileLimit() LR_OVERRIDE {
       return mPCapCaptureFileLimit;
@@ -262,6 +265,11 @@ public:
    }
    
 
+   size_t GetFlowReportInterval() LR_OVERRIDE{
+      return mFlowReportInterval;
+                                              
+   }
+   
    bool SiemDebugLogging() {
       return mSiemDebug;
    }
@@ -363,4 +371,5 @@ public:
    size_t mPcapCaptureMaxPackets;
    int mSyslogSendQueueSize;
    int mSyslogRecvQueueSize;
+   int mFlowReportInterval;
 };

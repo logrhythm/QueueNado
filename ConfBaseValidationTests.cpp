@@ -62,8 +62,8 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
  * SHOULD make the validation to pass instead of fail
  */
 namespace {
-   const size_t gNumberOfFieldsLowerBound = 33;
-   const size_t gNumberOfFieldsUpperBound = 33;
+   const size_t gNumberOfFieldsLowerBound = 34;
+   const size_t gNumberOfFieldsUpperBound = 34;
 }
 
 void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
@@ -118,7 +118,9 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
 
    (index++ == shouldFail) ? msg.set_syslogrecvqueuesize("9") : msg.set_syslogrecvqueuesize("10");
    (index++ == shouldFail) ? msg.set_syslogsendqueuesize("9") : msg.set_syslogsendqueuesize("10");
+   
    (index++ == shouldFail) ? msg.set_pcaprecordstoclearpercycle("0") : msg.set_pcaprecordstoclearpercycle("1");
+   (index++ == shouldFail) ? msg.set_flowreportinterval("59") : msg.set_flowreportinterval("60");
    
    // Test sanity check. Total number of used fields are :  34
    EXPECT_EQ(index, gNumberOfFieldsLowerBound) << "\t\t\t\t\t: Expected number of fields are "
@@ -204,8 +206,11 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    
    (index++ == shouldFail) ? msg.set_syslogrecvqueuesize("10001") : msg.set_syslogrecvqueuesize("10000");
    (index++ == shouldFail) ? msg.set_syslogsendqueuesize("10001") : msg.set_syslogsendqueuesize("10000");
+     
    (index++ == shouldFail) ? msg.set_pcaprecordstoclearpercycle("20001") : msg.set_pcaprecordstoclearpercycle("20000");
-   // Test sanity check. Total number of used fields are :  33
+   (index++ == shouldFail) ? msg.set_flowreportinterval("3601") : msg.set_flowreportinterval("3600");
+   
+   // Test sanity check. Total number of used fields are :  34
    EXPECT_EQ(index, gNumberOfFieldsUpperBound) << "\t\t\t\t\t: Expected number of fields are "
            << gNumberOfFieldsUpperBound << " unless you added more?";
    conf.updateFields(msg);
