@@ -14,9 +14,9 @@ using namespace std;
 
 TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
    MockConf conf;
-   conf.GetValidateConf().mIgnoreConfValidation = false;
-
-   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
+   conf.mIgnoreConfValidate = false;
+   EXPECT_EQ(conf.mValidConfValidation, true);
+   
    protoMsg::SyslogConf blank;
    EXPECT_EQ(blank.has_syslogenabled(), false);
    EXPECT_EQ(blank.has_syslogtcpenabled(), false);
@@ -28,7 +28,7 @@ TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
    EXPECT_EQ(blank.has_scrubpasswords(), false);
 
    conf.updateFields(blank); // trigger Mocked ValidateConfFieldValues
-   EXPECT_EQ(conf.GetValidateConf().mValidConf, true);
+   EXPECT_EQ(conf.mValidConfValidation, true);
 }
 
 /**
@@ -44,8 +44,8 @@ namespace {
 void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
-   conf.GetValidateConf().mIgnoreConfValidation = false;
-   conf.GetValidateConf().mValidConf = false;
+   conf.mIgnoreConfValidate = false;
+   conf.mValidConfValidation = false;
 
    protoMsg::SyslogConf msg;
 
@@ -70,7 +70,7 @@ void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsLowerBound) {
-      if (false == conf.GetValidateConf().mValidConf) {
+      if (false == conf.mValidConfValidation) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);
          return;
       }
@@ -81,7 +81,7 @@ void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    // We can only reach this if 'shouldFail' was less than number of fields
    // in this case me MUST have failed or else this test or Conf.cpp has changed
    //  (or is corrupt)
-   if (true == conf.GetValidateConf().mValidConf) {
+   if (true == conf.mValidConfValidation) {
       FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
       return;
    }
@@ -92,7 +92,7 @@ void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
 void SyslogValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    size_t index = 0;
    MockConf conf;
-   conf.GetValidateConf().mIgnoreConfValidation = false;
+   conf.mIgnoreConfValidate = false;
 
    protoMsg::SyslogConf msg;
 
@@ -117,7 +117,7 @@ void SyslogValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsUpperBound) {
-      if (false == conf.GetValidateConf().mValidConf) {
+      if (false == conf.mValidConfValidation) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);
          return;
       }
@@ -128,7 +128,7 @@ void SyslogValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    // We can only reach this if 'shouldFail' was less than number of fields
    // in this case me MUST have failed or else this test or Conf.cpp has changed
    //  (or is corrupt)
-   if (true == conf.GetValidateConf().mValidConf) {
+   if (true == conf.mValidConfValidation) {
       FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
       return;
    }

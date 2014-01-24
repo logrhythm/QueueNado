@@ -6,14 +6,16 @@
 #include "g2log.hpp"
 #include "ProcessReply.pb.h"
 #include <unistd.h>
-extern std::string gProgramName;
+
 TEST_F(ProcessManagerTest, StartedWithoutMotherForker) {
    #ifdef LR_DEBUG
    MockConf conf;
-   MockProcessManagerNoMotherForker testManager(conf,gProgramName);
-   EXPECT_FALSE(testManager.Initialize());
+   MockProcessManagerNoMotherForker testManager(conf);
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+   ASSERT_DEATH(testManager.Initialize(),"EXIT trigger caused by broken Contract");
 #endif
 }
+
 TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
 #ifdef LR_DEBUG
 
@@ -21,9 +23,10 @@ TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
    std::stringstream testQueue;
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
-   ProcessManager testManager(conf, gProgramName);
+   MockProcessManager testManager{conf};
    ASSERT_TRUE(testManager.Initialize());
-   ProcessManager sendManager(conf, gProgramName);
+   
+   MockProcessManager sendManager(conf);
    ASSERT_TRUE(sendManager.Initialize());
    std::string processName("/bin/sh");
    std::string processArgs;
@@ -56,9 +59,10 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    std::stringstream testQueue;
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
-   ProcessManager testManager(conf, gProgramName);
+   MockProcessManager testManager(conf);
+   testManager.mRealInit = true;
    ASSERT_TRUE(testManager.Initialize());
-   ProcessManager sendManager(conf, gProgramName);
+   MockProcessManager sendManager(conf);
    ASSERT_TRUE(sendManager.Initialize());
    std::string processName("/bin/sleep");
    std::string processArgs;
@@ -97,10 +101,10 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
    std::stringstream testQueue;
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager testManager(conf, gProgramName);
+   MockProcessManager testManager(conf);
    testManager.mExecFails = true;
    ASSERT_TRUE(testManager.Initialize());
-   ProcessManager sendManager(conf, gProgramName);
+   MockProcessManager sendManager(conf);
    ASSERT_TRUE(sendManager.Initialize());
    std::string processName("/bin/broken");
    std::string processArgs;
@@ -124,7 +128,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
 
 TEST_F(ProcessManagerTest, WriteAndDeletePid) {
    Conf conf;
-   MockProcessManager processManager(conf, gProgramName);
+   MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    int pid = getpid();
    //the mock moves the run dir to be /tmp so this writes a file /tmp/[id].pid
@@ -134,7 +138,7 @@ TEST_F(ProcessManagerTest, WriteAndDeletePid) {
 
 TEST_F(ProcessManagerTest, WritePidThenReclaimAndDelete) {
    Conf conf;
-   MockProcessManager processManager(conf, gProgramName);
+   MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
    request.set_realexecstring("ProcessManagerTest");
@@ -150,7 +154,7 @@ TEST_F(ProcessManagerTest, WritePidThenReclaimAndDelete) {
 
 TEST_F(ProcessManagerTest, ReclaimNonExistentPid) {
    Conf conf;
-   MockProcessManager processManager(conf, gProgramName);
+   MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
    request.set_realexecstring("ProcessManagerTest");
@@ -163,7 +167,7 @@ TEST_F(ProcessManagerTest, ReclaimNonExistentPid) {
 
 TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFiles) {
    Conf conf;
-   MockProcessManager processManager(conf, gProgramName);
+   MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
    request.set_realexecstring("ProcessManagerTest");
@@ -179,7 +183,7 @@ TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFiles) {
 
 TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFilesWithOtherPidsInDir) {
    Conf conf;
-   MockProcessManager processManager(conf, gProgramName);
+   MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
    request.set_realexecstring("lt-ProcessManagerTest");
@@ -211,7 +215,7 @@ TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFilesWithOtherPidsInDir) {
 
 TEST_F(ProcessManagerTest, CheckPidTrue) {
    Conf conf;
-   MockProcessManager processManager(conf, gProgramName);
+   MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    int pid = getpid();
    EXPECT_TRUE(processManager.CheckPidExists(pid));
@@ -219,7 +223,7 @@ TEST_F(ProcessManagerTest, CheckPidTrue) {
 
 TEST_F(ProcessManagerTest, CheckPidFalse) {
    Conf conf;
-   MockProcessManager processManager(conf, gProgramName);
+   MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    int maxPid = 32768;
    LOG(INFO) << "checking for pid that can't exist";
@@ -227,18 +231,6 @@ TEST_F(ProcessManagerTest, CheckPidFalse) {
 }
 
 
-
-TEST_F(ProcessManagerTest, ConstructAndInitializeFail) {
-#ifdef LR_DEBUG
-
-   MockConf conf;
-   conf.mProcessManagmentQueue = "invalid";
-   ProcessManager testManager(conf, gProgramName);
-   EXPECT_FALSE(testManager.Initialize());
-   testManager.DeInit();
-
-#endif
-}
 
 TEST_F(ProcessManagerTest, ConstructAndInitialize) {
 #ifdef LR_DEBUG
@@ -248,10 +240,10 @@ TEST_F(ProcessManagerTest, ConstructAndInitialize) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
 
-   ProcessManager testManager(conf, gProgramName);
+   MockProcessManager testManager(conf);
    ASSERT_TRUE(testManager.Initialize());
    testManager.DeInit();
-   ProcessManager* testManagerPoint = new ProcessManager(conf, gProgramName);
+   MockProcessManager* testManagerPoint = new MockProcessManager(conf);
    delete testManagerPoint;
 
 #endif
@@ -264,7 +256,7 @@ TEST_F(ProcessManagerTest, RunProcess) {
    std::stringstream testQueue;
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
-   ProcessManager testManager(conf, gProgramName);
+   MockProcessManager testManager(conf);
    ASSERT_TRUE(testManager.Initialize());
    std::string processName("/bin/ls");
    std::string processArgs;
@@ -286,7 +278,7 @@ TEST_F(ProcessManagerTest, RunNonExistantProcess) {
    std::stringstream testQueue;
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
-   ProcessManager testManager(conf, gProgramName);
+   MockProcessManager testManager(conf);
    ASSERT_TRUE(testManager.Initialize());
    std::string processName("/bin/lsssss");
    std::string processArgs;
@@ -307,62 +299,12 @@ TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
    std::stringstream testQueue;
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
-   ProcessManager testManager(conf, gProgramName);
+   MockProcessManager testManager(conf);
    ASSERT_TRUE(testManager.Initialize());
    conf.mProcessManagmentQueue = "invalid";
-   ProcessManager sendManager(conf, gProgramName);
-   EXPECT_FALSE(sendManager.Initialize());
-
-   testManager.DeInit();
-
-#endif
-}
-
-TEST_F(ProcessManagerTest, RunProcessFromAnotherObject) {
-#ifdef LR_DEBUG
-
-   MockConf conf;
-   std::stringstream testQueue;
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   ProcessManager testManager(conf, gProgramName);
-   ASSERT_TRUE(testManager.Initialize());
-   ProcessManager sendManager(conf, gProgramName);
-   ASSERT_TRUE(sendManager.Initialize());
-   std::string processName("/bin/ls");
-   std::string processArgs;
-   processArgs = "-l /bin/ls";
-   protoMsg::ProcessReply processReply = sendManager.RunProcess(processName, processArgs);
-   testManager.BlockForProcessFinished(60*60,processReply);
-   std::string result = processReply.result();
-   EXPECT_NE(std::string::npos, result.find("-rwxr-xr-x. 1 root root"));
-   EXPECT_NE(std::string::npos, result.find("/bin/ls"));
-   testManager.DeInit();
-   sendManager.DeInit();
-
-#endif
-}
-
-TEST_F(ProcessManagerTest, RunNonExistantProcessFromAnotherObject) {
-#ifdef LR_DEBUG
-
-   MockConf conf;
-   std::stringstream testQueue;
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   ProcessManager testManager(conf, gProgramName);
-   ASSERT_TRUE(testManager.Initialize());
-   ProcessManager sendManager(conf, gProgramName);
-   ASSERT_TRUE(sendManager.Initialize());
-   std::string processName("/bin/lsssss");
-   std::string processArgs;
-   processArgs = "-l /bin/ls";
-   protoMsg::ProcessReply processReply = sendManager.RunProcess(processName, processArgs);
-   sendManager.BlockForProcessFinished(60*60,processReply);
-   std::string result = processReply.result();
-   EXPECT_TRUE(result.empty());
-   testManager.DeInit();
-   sendManager.DeInit();
+   MockProcessManager sendManager(conf);
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+   ASSERT_DEATH(sendManager.Initialize(), "EXIT trigger caused by broken Contract");
 #endif
 }
 
@@ -419,10 +361,10 @@ TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
    std::stringstream testQueue;
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager testManager(conf, gProgramName);
+   MockProcessManager testManager(conf);
    testManager.mKillFails = true;
    ASSERT_TRUE(testManager.Initialize());
-   ProcessManager sendManager(conf, gProgramName);
+   MockProcessManager sendManager(conf);
    ASSERT_TRUE(sendManager.Initialize());
    std::string processName("/bin/sleep");
    std::string processArgs;
@@ -439,7 +381,7 @@ TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
 TEST_F(ProcessManagerTest, StartProcessBadExitCode) {
 #ifdef LR_DEBUG
    MockConf conf;
-   MockProcessManager mockProcessManager(conf, gProgramName);
+   MockProcessManager mockProcessManager(conf);
    protoMsg::ProcessRequest request;
    request.set_path("/bin/bash");
    request.set_realexecstring("resources/returnBadExit.sh");

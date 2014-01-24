@@ -32,12 +32,11 @@ public:
    using NetworkConfigCommand::AddPeerDns;
 
    NetworkConfigCommandTest(const protoMsg::CommandRequest& request,
-           ProcessManager* processManager, const std::string& programName) : mStatSuccess(true), NetworkConfigCommand(request, processManager, programName) {
+           ProcessManager& processManager) : mStatSuccess(true), NetworkConfigCommand(request, processManager) {
    }
    
 
-   virtual ~NetworkConfigCommandTest() {
-   }
+   virtual ~NetworkConfigCommandTest() {}
 
    void setStatFail() {
       mStatSuccess = false;

@@ -29,8 +29,8 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {      // name, de
    typedef std::tuple<std::string, std::string, Ranges> OneConfDefault;
    typedef std::vector<OneConfDefault> ManyConfDefaults;
 
-   MockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager, const std::string& programName)
-   : ConfigRequestCommand(request, processManager, programName), mMockExecuteRequest(false) {
+   MockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager)
+   : ConfigRequestCommand(request, processManager), mMockExecuteRequest(false) {
    }
 
    ManyConfDefaults HelperGetConfDefaults(protoMsg::ConfType::Type type) {
@@ -58,9 +58,9 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {      // name, de
    // It is basically just an exercise in moving values between protoMessages 
    // ConfigDefaultsRequest, ConfigDefaults, CommandReply and CommandRequest
 
-   protoMsg::CommandReply ExecuteRequest(const protoMsg::ConfigDefaultsRequest& request) LR_OVERRIDE {
+   protoMsg::CommandReply ExecuteRequest(const protoMsg::ConfigDefaultsRequest& request, const std::vector<std::string>& pcapLocations) LR_OVERRIDE {
       if (!mMockExecuteRequest) {
-         return ConfigRequestCommand::ExecuteRequest(request);
+         return ConfigRequestCommand::ExecuteRequest(request, pcapLocations);
       }
 
       protoMsg::CommandReply reply;
@@ -116,8 +116,8 @@ private:
 class GMockConfigRequestCommand : public MockConfigRequestCommand {
 public:
 
-   GMockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessManager* processManager, const std::string& programName) :
-   MockConfigRequestCommand(request, processManager, programName) {
+   GMockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager) :
+   MockConfigRequestCommand(request, processManager) {
    }
 
    virtual ~GMockConfigRequestCommand() = default;

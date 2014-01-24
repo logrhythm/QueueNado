@@ -1,19 +1,21 @@
 #include <stdio.h>
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
-#include "g2logworker.hpp"
-#include "g2log.hpp"
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+#include <g2logworker.hpp>
+#include <g2log.hpp>
 #include <stdlib.h>
 #include <time.h>
-#include "BaseConfMsg.pb.h"
 #include <thread>
 #include <google/protobuf/stubs/common.h>
+#include "BaseConfMsg.pb.h"
+#include "include/global.h"
 
 std::string gProgramName;
 
 int main(int argc, char *argv[])
 {
    gProgramName = argv[0];
+   global::SetProgramName(gProgramName);
    std::cout << gProgramName << std::endl;
    GOOGLE_PROTOBUF_VERIFY_VERSION;
 

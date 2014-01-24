@@ -5,24 +5,22 @@
 #include "CommandRequest.pb.h"
 #include "MockConf.h"
 
-extern std::string gProgramName;
 class DriveInfoCommandTest : public ::testing::Test {
 public:
 
-   DriveInfoCommandTest() {};
+   DriveInfoCommandTest() : autoManagedManager(conf){}
 
 protected:
    virtual void SetUp() {
-      autoManagedManager = new MockProcessManagerCommand(conf,gProgramName);
       cmd.set_type(protoMsg::CommandRequest_CommandType_DRIVEINFO);
    }
 
    virtual void TearDown() {}
    
    bool Compare(const DriveInfo& first, const DriveInfo& second);
-   MockProcessManagerCommand* autoManagedManager;
    protoMsg::CommandRequest cmd;
    MockConf conf;
+   MockProcessManagerCommand autoManagedManager;
 };
 
   
