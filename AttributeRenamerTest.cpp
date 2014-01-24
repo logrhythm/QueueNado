@@ -58,58 +58,6 @@ TEST_F(AttributeRenamerTest, CorruptYaml) {
    ASSERT_FALSE(attributeRenamer.Initialize("resources/remapping-corrupt.yaml"));
 }
 
-// This doesn't work, there are static fields that are exactly the names in dynamic.  We cannot rename static fields
-//TEST_F(AttributeRenamerTest, IsStaticField) {
-//   MockAttributeRenamer attributeRenamer;
-//   ASSERT_TRUE(attributeRenamer.Initialize("resources/remapping.yaml"));
-//   std::unordered_set<std::string> staticFields;
-//   staticFields.insert("session_id");
-//   staticFields.insert("mac_source");
-//   staticFields.insert("mac_dest");
-//   staticFields.insert("ip_source");
-//   staticFields.insert("ip_dest");
-//   staticFields.insert("pkt_path");
-//   staticFields.insert("flow_session_count");
-//   staticFields.insert("port_source");
-//   staticFields.insert("port_dest");
-//   staticFields.insert("flow_completed");
-//   staticFields.insert("delay");
-//   staticFields.insert("proto_id");
-//   staticFields.insert("packet_total");
-//   staticFields.insert("time_start");
-//   staticFields.insert("time_updated");
-//   staticFields.insert("bytes_dest");
-//   staticFields.insert("bytes_source");
-//   staticFields.insert("flow_type");
-//   staticFields.insert("packets_delta");
-//   staticFields.insert("time_delta");
-//   staticFields.insert("bytes_dest_delta");
-//   staticFields.insert("bytes_source_delta");
-//   staticFields.insert("custom_application");
-//   staticFields.insert("flow_state");
-//   staticFields.insert("captured");
-//   staticFields.insert("child_flow_number");
-//   staticFields.insert("bytes_total");
-//   staticFields.insert("bytes_total_delta");
-//   staticFields.insert("application");
-//   staticFields.insert("application_path");
-//   staticFields.insert("duration");
-//   staticFields.insert("message_size");
-//   staticFields.insert("thread_id");
-//   staticFields.insert("field_count");
-//   staticFields.insert("debug_message");
-//   staticFields.insert("application_id");
-//   staticFields.insert("latest_update");
-//   staticFields.insert("time_previous");
-//   staticFields.insert("written");
-//   staticFields.insert("capture_removed");
-//   for (const auto& field : staticFields) {
-//      EXPECT_TRUE(attributeRenamer.IsStaticField(field));
-//      EXPECT_EQ(field,attributeRenamer.GetNewName(field,"dontchangethis"));
-//   }
-//   EXPECT_FALSE(attributeRenamer.IsStaticField("notMe"));
-//   EXPECT_EQ("notMe",attributeRenamer.GetNewName("dontchangethisnotMe","dontchangethis"));
-//}
 #endif
 
 TEST_F(AttributeRenamerTest, Singleton) {
