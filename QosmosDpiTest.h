@@ -16,7 +16,7 @@
 class ExposedQosmosDPI : public QosmosDPI {
 public:
 
-   ExposedQosmosDPI(networkMonitor::ConfMaster& confMaster) :
+   ExposedQosmosDPI(ConfMaster& confMaster) :
    QosmosDPI(confMaster), mProcessResult(true), mHashResult(1), mFailInitUafc(false), mFailProtoEnableAll(false), mFailSetFtpMaxPayload(
    false), mFailEnableTCPReassembly(false), mFailSetSMBMinPayload(
    false), mFailAcquireDevice(false), mTimeSinceEpoch(0) {
@@ -132,7 +132,7 @@ public:
       //delete mDpiEngine;
    }
    static ExposedQosmosDPI *mDpiEngine;
-   static networkMonitor::MockConfMaster mConfMaster;
+   static MockConfMaster mConfMaster;
 protected:
 
    virtual void SetUp() {

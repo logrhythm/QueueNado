@@ -38,10 +38,10 @@ using namespace networkMonitor;
  * @param 
  */
 TEST_F(ConfProcessorTests, EmptySetGetActualConf) {
-   Conf conf = networkMonitor::ConfSlave::Instance().GetConf();
+   Conf conf = ConfSlave::Instance().GetConf();
    ASSERT_EQ(conf.getPath(), "conf/nm.yaml");
 
-   conf = networkMonitor::ConfMaster::Instance().GetConf();
+   conf = ConfMaster::Instance().GetConf();
    ASSERT_EQ(conf.getPath(), "conf/nm.yaml");
 }
 

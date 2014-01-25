@@ -20,7 +20,7 @@ TEST(TestProtoDefaults, GetConfDefaultsOK) {
 }
 
 TEST(TestProtoDefaults, GetRangeOK){
-   auto conf = networkMonitor::ConfSlave::Instance().GetConf();
+   auto conf = ConfSlave::Instance().GetConf();
    auto pcapLocations = conf.GetPcapCaptureLocations();
    ProtoDefaults getDefaults{pcapLocations};
    
@@ -47,7 +47,7 @@ TEST(TestProtoDefaults, GetRangeOK){
 }
 
 TEST(TestProtoDefaults, GetConfParamDefaultOK){
-   auto conf = networkMonitor::ConfSlave::Instance().GetConf();
+   auto conf = ConfSlave::Instance().GetConf();
    auto pcapLocations = conf.GetPcapCaptureLocations();
    ProtoDefaults getDefaults{pcapLocations};
    
@@ -60,7 +60,7 @@ TEST(TestProtoDefaults, GetConfParamDefaultOK){
 }
 
 TEST(TestProtoDefaults, GetConfParamOK){
-   auto conf = networkMonitor::ConfSlave::Instance().GetConf();
+   auto conf = ConfSlave::Instance().GetConf();
    auto pcapLocations = conf.GetPcapCaptureLocations();
    ProtoDefaults getDefaults{pcapLocations};
    

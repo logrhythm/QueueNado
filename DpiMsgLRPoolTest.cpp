@@ -181,7 +181,7 @@ TEST_F(DpiMsgLRPoolTest, ValidateAllMessagesInAThread) {
 TEST_F(DpiMsgLRPoolTest, DpiMsgSize) {
 
    MockDpiMsgLRPool testPool;
-   Conf conf = networkMonitor::ConfSlave::Instance().GetConf();
+   Conf conf =ConfSlave::Instance().GetConf();
    const auto threshold = conf.GetDpiRecycleTheshold();
    size_t msgBaseSize;
    networkMonitor::DpiMsgLR* testMsg = new networkMonitor::DpiMsgLR;

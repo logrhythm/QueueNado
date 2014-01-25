@@ -13,7 +13,7 @@
 class MockDiskCleanup : public DiskCleanup {
 public:
 
-   MockDiskCleanup(networkMonitor::ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
+   MockDiskCleanup(ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
    mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
            mIsShutdownResult(false), mDoPseudoGetUpdatedDiskInfo(false), mUseMockConf(false), 
@@ -254,7 +254,7 @@ using ::testing::SetArgReferee;
 class GMockDiskCleanup : public MockDiskCleanup {
 public:
 
-   GMockDiskCleanup(networkMonitor::ConfSlave& conf) : MockDiskCleanup(conf), mFileCount(0), mMarkResult(true),
+   GMockDiskCleanup(ConfSlave& conf) : MockDiskCleanup(conf), mFileCount(0), mMarkResult(true),
    mFileCountSuccess(true) {
    }
 

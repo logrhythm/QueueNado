@@ -7,7 +7,7 @@
 #include "ConfMaster.h"
 #include <memory>
 
-namespace networkMonitor {
+
 
    class MockConfMaster : public ConfMaster {
    public:
@@ -87,5 +87,5 @@ namespace networkMonitor {
       Conf mConf;
    };
 
-}
+
 

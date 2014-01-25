@@ -51,7 +51,7 @@ protected:
    size_t t_packetsIfDropped;
    size_t t_totalData;
    PCapInfo t_pcapInfo;
-   networkMonitor::MockConfMaster mConf;
+   MockConfMaster mConf;
    QosmosPacketAllocator& mPacketAllocator;
    pcap_pkthdr mBogusHeader;
    uint8_t mBogusPacket[100];
@@ -60,7 +60,7 @@ protected:
 class MockPacketCapturePCap : public PacketCapturePCap {
 public:
 
-   explicit MockPacketCapturePCap(std::string& sendToAddress, std::string& interface, networkMonitor::ConfProcessor& conf) : PacketCapturePCap(sendToAddress, interface, conf),
+   explicit MockPacketCapturePCap(std::string& sendToAddress, std::string& interface,ConfProcessor& conf) : PacketCapturePCap(sendToAddress, interface, conf),
    m_numberCaptured(0),
    m_numberToCapture(0),
    m_numberOfEmptyReadsToTolerate(0),
@@ -82,7 +82,7 @@ public:
    mDispatchCount(1) {
    }
 
-   explicit MockPacketCapturePCap(std::string& filename, networkMonitor::ConfProcessor& conf) : PacketCapturePCap(filename, conf),
+   explicit MockPacketCapturePCap(std::string& filename,ConfProcessor& conf) : PacketCapturePCap(filename, conf),
    m_numberCaptured(0),
    m_numberToCapture(0),
    m_numberOfEmptyReadsToTolerate(0),
@@ -104,7 +104,7 @@ public:
    mDispatchCount(1) {
    }
 
-   explicit MockPacketCapturePCap(const ReceivePacketZMQ* TransferQueue, std::string& interface, networkMonitor::ConfProcessor& conf) : PacketCapturePCap(TransferQueue, interface, conf),
+   explicit MockPacketCapturePCap(const ReceivePacketZMQ* TransferQueue, std::string& interface, ConfProcessor& conf) : PacketCapturePCap(TransferQueue, interface, conf),
    m_numberCaptured(0),
    m_numberToCapture(0),
    m_numberOfEmptyReadsToTolerate(0),

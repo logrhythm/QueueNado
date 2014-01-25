@@ -9,7 +9,7 @@
 class LuaFunctionsTest : public ::testing::Test {
 public:
 
-   LuaFunctionsTest() : conf(networkMonitor::ConfSlave::Instance()), masterConf(networkMonitor::ConfMaster::Instance()){
+   LuaFunctionsTest() : conf(ConfSlave::Instance()), masterConf(ConfMaster::Instance()){
 
       masterConf.SetPath("resources/test.yaml");
       masterConf.Start();
@@ -25,7 +25,7 @@ protected:
 
    virtual void TearDown() {
    }
-   networkMonitor::ConfMaster& masterConf;
-   networkMonitor::ConfSlave& conf;
+   ConfMaster& masterConf;
+   ConfSlave& conf;
 };
 

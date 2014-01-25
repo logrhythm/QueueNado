@@ -49,7 +49,7 @@ protected:
    };
 
    unsigned int mStatsIntervalSeconds;
-   networkMonitor::MockConfMaster mConfMaster;
+   MockConfMaster mConfMaster;
    Conf mConf;
 
 private:

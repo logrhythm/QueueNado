@@ -4,7 +4,7 @@
 using namespace std;
 
 bool QosmosDpiTest::gDpiInit(false);
-networkMonitor::MockConfMaster QosmosDpiTest::mConfMaster;
+MockConfMaster QosmosDpiTest::mConfMaster;
 ExposedQosmosDPI *QosmosDpiTest::mDpiEngine(NULL);
 QosmosPacketAllocator& QosmosDpiTest::mPacketAllocator(QosmosPacketAllocator::Instance());
 // Callback function called for each protocol. See ctl_proto_getlist.

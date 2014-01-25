@@ -9,7 +9,6 @@
 #include "g2log.hpp"
 #include "ShutdownMsg.pb.h"
 
-namespace networkMonitor {
 
    class MockConfSlave : public ConfSlave {
    public:
@@ -107,5 +106,5 @@ namespace networkMonitor {
       Conf mConf;
 #endif
    };
-}
+
 
