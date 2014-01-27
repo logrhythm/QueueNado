@@ -921,11 +921,11 @@ TEST_F(ElasticSearchTest, g2LogMemoryGrowTest) {
       LOG(DEBUG) << "Lets fill up memory !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
    }
 }
-
+#ifdef LR_DEBUG
 TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   FastMockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -976,7 +976,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRunQueryGetIds) {
 TEST_F(ElasticSearchTest, ValgrindTestSyncGetListOfIndexeNames) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   FastMockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -995,7 +995,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncGetListOfIndexeNames) {
 TEST_F(ElasticSearchTest, ValgrindTestSyncCreateIndex) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   FastMockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -1026,7 +1026,7 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncCreateIndex) {
 TEST_F(ElasticSearchTest, ValgrindTestSyncDeleteIndex) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   FastMockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -1057,7 +1057,7 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncDeleteIndex) {
 TEST_F(ElasticSearchTest, ValgrindTestSyncIndexClose) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   FastMockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -1088,7 +1088,7 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncIndexClose) {
 TEST_F(ElasticSearchTest, ValgrindTestSyncIndexOpen) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   FastMockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -1119,7 +1119,7 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncIndexOpen) {
 TEST_F(ElasticSearchTest, ValgrindTestSyncDeleteDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   FastMockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -1145,7 +1145,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncDeleteDoc) {
 TEST_F(ElasticSearchTest, ValgrindTestASyncDeleteDoc) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, true);
+   FastMockElasticSearch es(stick, true);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -1171,7 +1171,7 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncDeleteDoc) {
 TEST_F(ElasticSearchTest, ValgrindTestSyncRefreshDiskInfo) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   FastMockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -1197,7 +1197,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncRefreshDiskInfo) {
 TEST_F(ElasticSearchTest, ValgrindTestASyncRefreshDiskInfo) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, true);
+   FastMockElasticSearch es(stick, true);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -1219,7 +1219,7 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncRefreshDiskInfo) {
       EXPECT_FALSE(es.RefreshDiskInfo());
    }
 }
-
+#endif
 TEST_F(ElasticSearchTest, AsynchrnousCannotDoOtherStuff) {
    MockBoomStick transport("tcp://127.0.0.1:9700");
    ElasticSearch es(transport, true);
