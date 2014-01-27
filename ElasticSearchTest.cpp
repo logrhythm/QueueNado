@@ -15,17 +15,18 @@ TEST_F(ElasticSearchTest, NotFound) {
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-   
-   std::string goodReply ("200|OK|");
-   std::string notFound ("404|NOT_FOUND");
-   std::string dbUnavaliable ("503|SERVICE_UNAVAILABLE");
-   std::string zmqSocketTimetout ("999|timedout");
+
+   std::string goodReply("200|OK|");
+   std::string notFound("404|NOT_FOUND");
+   std::string dbUnavaliable("503|SERVICE_UNAVAILABLE");
+   std::string zmqSocketTimetout("999|timedout");
 
    EXPECT_TRUE(es.NotFound(notFound));
    EXPECT_FALSE(es.NotFound(goodReply));
    EXPECT_FALSE(es.NotFound(dbUnavaliable));
    EXPECT_FALSE(es.NotFound(zmqSocketTimetout));
 }
+
 TEST_F(ElasticSearchTest, ESUnavaliable) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
@@ -34,17 +35,18 @@ TEST_F(ElasticSearchTest, ESUnavaliable) {
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-   
-   std::string goodReply ("200|OK|");
-   std::string notFound ("404|NOT_FOUND");
-   std::string dbUnavaliable ("503|SERVICE_UNAVAILABLE");
-   std::string zmqSocketTimetout ("999|timedout");
-   
+
+   std::string goodReply("200|OK|");
+   std::string notFound("404|NOT_FOUND");
+   std::string dbUnavaliable("503|SERVICE_UNAVAILABLE");
+   std::string zmqSocketTimetout("999|timedout");
+
    EXPECT_FALSE(es.ESUnavaliable(notFound));
    EXPECT_FALSE(es.ESUnavaliable(goodReply));
    EXPECT_TRUE(es.ESUnavaliable(dbUnavaliable));
    EXPECT_FALSE(es.ESUnavaliable(zmqSocketTimetout));
 }
+
 TEST_F(ElasticSearchTest, IsZMQSocketTimeout) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
@@ -53,17 +55,18 @@ TEST_F(ElasticSearchTest, IsZMQSocketTimeout) {
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
    target.BeginListenAndRepeat();
-   
-   std::string goodReply ("200|OK|");
-   std::string notFound ("404|NOT_FOUND");
-   std::string dbUnavaliable ("503|SERVICE_UNAVAILABLE");
-   std::string zmqSocketTimetout ("999|timedout");
-   
+
+   std::string goodReply("200|OK|");
+   std::string notFound("404|NOT_FOUND");
+   std::string dbUnavaliable("503|SERVICE_UNAVAILABLE");
+   std::string zmqSocketTimetout("999|timedout");
+
    EXPECT_FALSE(es.IsZMQSocketTimeout(notFound));
    EXPECT_FALSE(es.IsZMQSocketTimeout(goodReply));
    EXPECT_FALSE(es.IsZMQSocketTimeout(dbUnavaliable));
    EXPECT_TRUE(es.IsZMQSocketTimeout(zmqSocketTimetout));
 }
+
 TEST_F(ElasticSearchTest, UpdateIgnoreTimeInternally) {
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
@@ -809,9 +812,10 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
 }
 
 TEST_F(ElasticSearchTest, ValgrindTestASyncAddDoc) {
+#ifdef LR_DEBUG
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, true);
+   FastMockElasticSearch es(stick, true);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -838,12 +842,14 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncAddDoc) {
    while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
+#endif
 }
 
 TEST_F(ElasticSearchTest, ValgrindTestSyncUpdateDoc) {
+#ifdef LR_DEBUG
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   FastMockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -871,12 +877,14 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncUpdateDoc) {
    while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
+#endif
 }
 
 TEST_F(ElasticSearchTest, ValgrindTestASyncUpdateDoc) {
+#ifdef LR_DEBUG
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, true);
+   FastMockElasticSearch es(stick, true);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -903,6 +911,7 @@ TEST_F(ElasticSearchTest, ValgrindTestASyncUpdateDoc) {
    while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_TRUE(es.UpdateDoc("test", "meta", "123456789012345678901234567890123456", mBigRecord));
    }
+#endif
 }
 
 TEST_F(ElasticSearchTest, g2LogMemoryGrowTest) {
