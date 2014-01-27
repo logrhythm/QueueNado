@@ -23,7 +23,7 @@
 
 // System test -- for now not disabled
 TEST_F(DiskPacketCaptureTest, SystemTest_VerifyGetCaptureFirstLocation) {
-   Conf conf;
+   MockConf conf;
    const auto& first = conf.GetFirstPcapCaptureLocation();
    ASSERT_TRUE((first == "/pcap0/" || first == "/usr/local/probe/pcap/")) 
            << "PCAP first storage location: " << first;

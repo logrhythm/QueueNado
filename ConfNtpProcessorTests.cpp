@@ -12,7 +12,6 @@
 #include <g2log.hpp>
 
 using namespace std;
-using namespace networkMonitor;
 
 TEST_F(ConfProcessorTests, ConfNtp_Initialize) {
    ConfNtp conf;

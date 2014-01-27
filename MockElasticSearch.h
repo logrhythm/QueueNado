@@ -9,6 +9,19 @@
 class BoomStick;
 #ifdef LR_DEBUG
 
+class FastMockElasticSearch : public ElasticSearch {
+public:
+
+   explicit FastMockElasticSearch(BoomStick& transport, const bool asynchronous, const size_t socketTimeoutMs = 30000) :
+   ElasticSearch::ElasticSearch(transport, asynchronous, socketTimeoutMs) {
+      delete std::get<1>(*mWorkerArgs);
+      std::get<1>(*mWorkerArgs) = new FastMockElasticSearchSocket(transport, asynchronous);
+   }
+   virtual ~FastMockElasticSearch() {}
+
+
+};
+
 class MockElasticSearch : public ElasticSearch {
 public:
 
@@ -80,34 +93,40 @@ public:
    virtual ~MockElasticSearch() {
 
    }
+
    bool NotFound(const std::string& reply) {
       return ElasticSearch::NotFound(reply);
    }
+
    bool ESUnavaliable(const std::string& reply) {
       return ElasticSearch::ESUnavaliable(reply);
    }
+
    bool IsZMQSocketTimeout(const std::string& reply) {
       return ElasticSearch::IsZMQSocketTimeout(reply);
    }
+
    void UpdateSessions(const std::set<std::string>& oldestSessionIds,
-                                                              const unsigned int maxPerQuery, const time_t& indexStartTime) {
-      ElasticSearch::UpdateSessions(oldestSessionIds, maxPerQuery,indexStartTime);
+           const unsigned int maxPerQuery, const time_t& indexStartTime) {
+      ElasticSearch::UpdateSessions(oldestSessionIds, maxPerQuery, indexStartTime);
    }
+
    LR_VIRTUAL bool IndexActuallyExists(const std::string& indexName) {
       return ElasticSearch::IndexActuallyExists(indexName);
    }
+
    LR_VIRTUAL std::string ConstructSearchHeaderWithTime(const time_t& timeSince) {
       return ElasticSearch::ConstructSearchHeaderWithTime(timeSince);
    }
+
    LR_VIRTUAL bool GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(time_t& ignoreTime) {
       return ElasticSearch::GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored(ignoreTime);
    }
-   
+
    void SetValidNames(const std::set<std::string>& names) {
       ElasticSearch::mKnownIndexNames = names;
       ElasticSearch::mLastIndexListUpdateTime = std::time(NULL);
    }
-   
 
    LR_VIRTUAL std::set<std::string> GetListOfIndexeNames() {
       if (mFakeIndexList) {
@@ -282,11 +301,11 @@ public:
    LR_VIRTUAL std::string GetIgnoreTimeAsString(const size_t& ignoreTime) {
       return ElasticSearch::GetIgnoreTimeAsString(ignoreTime);
    }
-   
+
    LR_VIRTUAL std::string GetListOfAllIndexesSince(time_t indexStartTime) {
       return ElasticSearch::GetListOfAllIndexesSince(indexStartTime);
    }
-   
+
    MockBoomStick mMyTransport;
    std::set<std::string> mMockListOfIndexes;
    bool mFakeIndexList;

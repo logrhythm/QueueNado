@@ -10,7 +10,8 @@
 #include "gtest/gtest.h"
 #include "SendStats.h"
 #include "Vampire.h"
-#include "ConfMaster.h"
+#include "MockConfMaster.h"
+#include "MockConf.h"
 #include <string>
 
 namespace networkMonitor {
@@ -50,7 +51,7 @@ protected:
 
    unsigned int mStatsIntervalSeconds;
    MockConfMaster mConfMaster;
-   Conf mConf;
+   MockConf mConf;
 
 private:
    std::string mStatsAccumulatorQueueName;

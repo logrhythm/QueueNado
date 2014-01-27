@@ -47,15 +47,48 @@ public:
    mValidateEthFailCount(0),
    mIgnoreConfValidate(true),
    mValidConfValidation(true),
-   mMaxIndividualPCap(1000), 
+   mMaxIndividualPCap(1000),
    mPcapCaptureMaxPackets(999999),
    mSyslogSendQueueSize(800),
    mSyslogRecvQueueSize(800),
-   mFlowReportInterval(10)
-   {
+   mFlowReportInterval(10) {
+   }
+   MockConf(const Conf& conf) : Conf::Conf(conf) {}
+   MockConf(const protoMsg::BaseConf& msg, const QosmosConf& qosmosMsg, const protoMsg::SyslogConf& sysMsg) : Conf::Conf(msg, qosmosMsg, sysMsg) {
+   }
+
+   explicit MockConf(const std::string& path) : Conf::Conf(path) {
+   }
+
+   MockConf(std::stringstream& stream, std::stringstream& qosmosStream, std::stringstream& syslogStream) : Conf::Conf(stream, qosmosStream, syslogStream) {
    }
 
    ~MockConf() {
+   }
+   void writeSyslogToFile() {
+      Conf::writeSyslogToFile();
+   }
+   bool sendConfigUpdate() {
+      return Conf::sendConfigUpdate();
+   }
+   void writeQosmosToStream(std::stringstream & stream) const {
+      Conf::writeQosmosToStream(stream);
+   }
+   void setPath(const std::string& newPath) {
+      Conf::setPath(newPath);
+   }
+   void updateFields(const protoMsg::BaseConf& msg) {
+      Conf::updateFields(msg);
+   }
+   bool InternallyRepairBaseConf() {
+      return Conf::InternallyRepairBaseConf();
+   }
+   void updateFields(const protoMsg::SyslogConf& msg) {
+      Conf::updateFields(msg);
+   }
+
+   void updateQosmos(const QosmosConf& msg) {
+      Conf::updateQosmos(msg);
    }
 
    std::string getSyslogAgentIP(void) LR_OVERRIDE {
@@ -89,7 +122,7 @@ public:
    bool getSyslogTcpEnabled(void) LR_OVERRIDE {
       return mSyslogProtocol;
    }
-   
+
    std::string getConfChangeQueue(void) LR_OVERRIDE {
       return mConfChangeQueue;
    }
@@ -126,15 +159,15 @@ public:
       return mQosmosExpirePerCallback;
    }
 
-   bool EnableTCPReassembly() LR_OVERRIDE {
+   bool getEnableTCPReassembly() LR_OVERRIDE {
       return mEnableTCPReAssembly;
    }
 
-   bool EnableIPDefragmentation() LR_OVERRIDE {
+   bool getEnableIPDefragmentation() LR_OVERRIDE {
       return mEnableIPDefragmentation;
    }
 
-   bool SiemLogging() LR_OVERRIDE {
+   bool getSiemLogging() LR_OVERRIDE {
       return mSiemLogging;
    }
 
@@ -223,14 +256,13 @@ public:
       return mProcessManagmentQueue;
    }
 
-   bool IntermediateFlowEnabled() LR_OVERRIDE {
+   bool getIntermediateFlowEnabled() LR_OVERRIDE {
       return mIntermediateFlowEnabled;
    }
 
-   bool PacketCaptureEnabled() LR_OVERRIDE {
+   bool getPacketCaptureEnabled() LR_OVERRIDE {
       return mUnknownCaptureEnabled;
    }
-   
 
    size_t GetPcapCaptureFileLimit() LR_OVERRIDE {
       return mPCapCaptureFileLimit;
@@ -245,31 +277,32 @@ public:
    }
 
    std::vector<std::string> GetPcapCaptureLocations() LR_OVERRIDE {
-      if(mOverrideGetPcapCaptureLocations) {
-         return mPCapCaptureLocations;         
+      if (mOverrideGetPcapCaptureLocations) {
+         return mPCapCaptureLocations;
       }
-      
+
       return Conf::GetPcapCaptureLocations();
    }
 
    std::string GetFirstPcapCaptureLocation() LR_OVERRIDE {
-      if(!mOverrideGetFirstCaptureLocation) {
+      if (!mOverrideGetFirstCaptureLocation) {
          return Conf::GetFirstPcapCaptureLocation();
       }
-      
-      if(mPCapCaptureLocations.empty()) {
-         return {};
+
+      if (mPCapCaptureLocations.empty()) {
+         return
+         {
+         };
       }
-      
+
       return mPCapCaptureLocations[0];
    }
-   
 
-   size_t GetFlowReportInterval() LR_OVERRIDE{
+   size_t GetFlowReportInterval() LR_OVERRIDE {
       return mFlowReportInterval;
-                                              
+
    }
-   
+
    bool SiemDebugLogging() {
       return mSiemDebug;
    }
@@ -305,17 +338,16 @@ public:
       mValidConfValidation = Conf::ValidateConfFieldValues(msg, type);
       return mValidConfValidation;
    }
-   
-   
 
    size_t GetPCapIndividualFileLimit() {
       return mMaxIndividualPCap;
    }
+
    size_t GetPcapCaptureMaxPackets() LR_OVERRIDE {
       return mPcapCaptureMaxPackets;
    }
-   
-    
+
+
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;

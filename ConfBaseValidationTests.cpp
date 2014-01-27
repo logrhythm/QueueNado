@@ -251,7 +251,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationAllFieldsSuccess) {
 
 TEST_F(ConfProcessorTests, BaseConfValidationInternalRepairBaseConf) {
    // using a real conf but without a real file so that it has bad values
-   Conf conf("/tmp/I/am/not/here/woo.ls");
+   MockConf conf("/tmp/I/am/not/here/woo.ls");
    auto check = conf.InternallyRepairBaseConf();
    EXPECT_EQ(check, true);
 }

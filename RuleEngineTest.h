@@ -21,7 +21,7 @@
 class RuleEngineTest : public ::testing::Test {
 public:
 
-   RuleEngineTest() : conf(ConfSlave::Instance()), masterConf(networkMonitor::
+   RuleEngineTest() : conf(ConfSlave::Instance()), masterConf(ConfMaster::Instance()) {
       masterConf.SetPath("resources/test.yaml");
       masterConf.Start();
 

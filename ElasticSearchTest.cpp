@@ -775,9 +775,10 @@ TEST_F(ElasticSearchTest, GetTotalReadBytes) {
 }
 
 TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
+#ifdef LR_DEBUG
    BoomStick stick{mAddress};
    MockSkelleton target{mAddress};
-   ElasticSearch es(stick, false);
+   FastMockElasticSearch es(stick, false);
    ASSERT_TRUE(target.Initialize());
    ASSERT_TRUE(stick.Initialize());
    ASSERT_TRUE(es.Initialize());
@@ -804,6 +805,7 @@ TEST_F(ElasticSearchTest, ValgrindTestSyncAddDoc) {
    while (count++ < targetIterations && !zctx_interrupted) {
       EXPECT_FALSE(es.AddDoc("test", "meta", "123456789012345678901234567890123456", "{something: true}"));
    }
+#endif
 }
 
 TEST_F(ElasticSearchTest, ValgrindTestASyncAddDoc) {

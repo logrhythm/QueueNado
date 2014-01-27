@@ -93,9 +93,9 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    sendManager.DeInit();
 #endif
 }
-
-TEST_F(ProcessManagerTest, RegisterDaemonFails) {
 #ifdef LR_DEBUG
+TEST_F(ProcessManagerTest, RegisterDaemonFails) {
+
 
    MockConf conf;
    std::stringstream testQueue;
@@ -123,11 +123,11 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
    EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
    testManager.DeInit();
    sendManager.DeInit();
-#endif
+
 }
 
 TEST_F(ProcessManagerTest, WriteAndDeletePid) {
-   Conf conf;
+   MockConf conf;
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    int pid = getpid();
@@ -137,7 +137,7 @@ TEST_F(ProcessManagerTest, WriteAndDeletePid) {
 }
 
 TEST_F(ProcessManagerTest, WritePidThenReclaimAndDelete) {
-   Conf conf;
+   MockConf conf;
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
@@ -153,7 +153,7 @@ TEST_F(ProcessManagerTest, WritePidThenReclaimAndDelete) {
 }
 
 TEST_F(ProcessManagerTest, ReclaimNonExistentPid) {
-   Conf conf;
+   MockConf conf;
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
@@ -166,7 +166,7 @@ TEST_F(ProcessManagerTest, ReclaimNonExistentPid) {
 }
 
 TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFiles) {
-   Conf conf;
+   MockConf conf;
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
@@ -182,7 +182,7 @@ TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFiles) {
 }
 
 TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFilesWithOtherPidsInDir) {
-   Conf conf;
+   MockConf conf;
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
@@ -214,7 +214,7 @@ TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFilesWithOtherPidsInDir) {
 }
 
 TEST_F(ProcessManagerTest, CheckPidTrue) {
-   Conf conf;
+   MockConf conf;
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    int pid = getpid();
@@ -222,14 +222,14 @@ TEST_F(ProcessManagerTest, CheckPidTrue) {
 }
 
 TEST_F(ProcessManagerTest, CheckPidFalse) {
-   Conf conf;
+   MockConf conf;
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    int maxPid = 32768;
    LOG(INFO) << "checking for pid that can't exist";
    EXPECT_FALSE(processManager.CheckPidExists(maxPid + 1));
 }
-
+#endif
 
 
 TEST_F(ProcessManagerTest, ConstructAndInitialize) {
