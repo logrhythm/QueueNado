@@ -488,7 +488,7 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageMasterServer) {
    ntp.clear_master_server();
    ASSERT_FALSE(ntp.has_master_server());
    ASSERT_FALSE(ntp.has_backup_server());
-   std::string str(256, "A");
+   std::string str(256, 'A');
    ntp.set_master_server(str);
    EXPECT_THROW(ntp.valid(), ConfInvalidException);
    ntp.clear_master_server();
