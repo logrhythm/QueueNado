@@ -25,7 +25,7 @@ public:
 class StatsAccumulatorTest : public ::testing::Test {
 public:
 
-   StatsAccumulatorTest() : mStatSender(0), mAccumulatedStatsRcvQ(0) {
+   StatsAccumulatorTest() : mStatSender(0), mAccumulatedStatsRcvQ(0), mConf(mConfMaster.GetConf()) {
    };
 
    ~StatsAccumulatorTest() {
@@ -51,7 +51,7 @@ protected:
 
    unsigned int mStatsIntervalSeconds;
    MockConfMaster mConfMaster;
-   MockConf mConf;
+   Conf mConf;
 
 private:
    std::string mStatsAccumulatorQueueName;
