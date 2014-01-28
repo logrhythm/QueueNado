@@ -469,3 +469,76 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageConditionalLogic) {
    ASSERT_FALSE(ntp.has_master_server());
    ASSERT_FALSE(ntp.has_backup_server());
 }
+
+TEST_F(NtpConfigCommandTest, ValidateNTPMessageMasterServer) {
+   Ntp ntp;
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Expect valid master server:
+   ntp.set_master_server("test.com");
+   EXPECT_NO_THROW(ntp.valid());
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Expect invalid master server from size <1 and >255:
+   ntp.set_master_server("");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   std::string str(256, "A");
+   ntp.set_master_server(str);
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Expect invalid master server with special chars: 
+   ntp.set_master_sever("test;test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_sever(";testtest");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_sever("testtest;");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_sever("test|test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_sever("test>test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_sever("test/test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_sever("test\test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   
+   ntp.set_master_sever("\");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_sever("/");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_sever("|");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_sever(";");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+}
