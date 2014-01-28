@@ -614,3 +614,40 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageBackupServer) {
    ntp.clear_backup_server();
    ASSERT_FALSE(ntp.has_backup_server());
 }
+
+TEST_F(NtpConfigCommandTest, ValidateNTPMessageThrowWhats) {
+   Ntp ntp;
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   std::string a{ "Ntp master server conf parameter is empty." };
+   std::string b{ "Ntp master server either uses invalid characters or is more than 255 characters long." };
+   std::string c{ "Ntp backup server either uses invalid characters or is more than 255 characters long." };
+   
+   //Check message for empty master server:
+   try {
+      ntp.valid();
+   } catch (const ConfInvalidException& e) {
+      EXPECT_EQUAL(a.compare(e.what()), 0);
+   };
+   
+   //Check message for invalid master server:
+   try {
+      ntp.set_master_server("test.com; /bin/evil");
+      ntp.valid();
+   } catch (const ConfInvalidException& e) {
+      EXPECT_EQUAL(b.compare(e.what()), 0);
+   }
+   ntp.clear_master_server();
+   
+   //Check message for invalid backup server:
+   try {
+      ntp.set_master_server("test.com");
+      ntp.set_backup_server("test2.com; /bin/evil");
+      ntp.valid();
+   } catch (const ConfInvalidException& e) {
+      EXPECT_EQUAL(c.compare(e.what()), 0);
+   }
+   
+   
+}
