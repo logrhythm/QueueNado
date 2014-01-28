@@ -421,7 +421,7 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageConditionalLogic) {
    
    //Check that a valid master server and empty backup server is valid:
    ntp.set_master_server("test.com");
-   EXPECT_NO_THROW(ntp.valid(), ConfInvalidException);
+   EXPECT_NO_THROW(ntp.valid());
    ntp.clear_master_server();
    ASSERT_FALSE(ntp.has_master_server());
    ASSERT_FALSE(ntp.has_backup_server());
@@ -429,7 +429,7 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageConditionalLogic) {
    //Check that a valid master server and valid backup server is valid:
    ntp.set_master_server("test.com");
    ntp.set_backup_server("test2.com")
-   EXPECT_NO_THROW(ntp.valid(), ConfInvalidException);
+   EXPECT_NO_THROW(ntp.valid());
    ntp.clear_master_server();
    ntp.clear_backup_server();
    ASSERT_FALSE(ntp.has_master_server());
