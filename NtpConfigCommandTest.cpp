@@ -628,7 +628,7 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageThrowWhats) {
    try {
       ntp.valid();
    } catch (const ConfInvalidException& e) {
-      EXPECT_EQUAL(a.compare(e.what()), 0);
+      EXPECT_TRUE(0 == a.compare(e.what()));
    };
    
    //Check message for invalid master server:
@@ -636,7 +636,7 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageThrowWhats) {
       ntp.set_master_server("test.com; /bin/evil");
       ntp.valid();
    } catch (const ConfInvalidException& e) {
-      EXPECT_EQUAL(b.compare(e.what()), 0);
+      EXPECT_TRUE(0 == b.compare(e.what()));
    }
    ntp.clear_master_server();
    
@@ -646,7 +646,7 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageThrowWhats) {
       ntp.set_backup_server("test2.com; /bin/evil");
       ntp.valid();
    } catch (const ConfInvalidException& e) {
-      EXPECT_EQUAL(c.compare(e.what()), 0);
+      EXPECT_TRUE(0 == c.compare(e.what()));
    }
    
    
