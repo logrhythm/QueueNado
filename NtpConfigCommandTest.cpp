@@ -542,3 +542,75 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageMasterServer) {
    ntp.clear_master_server();
    ASSERT_FALSE(ntp.has_master_server());
 }
+
+TEST_F(NtpConfigCommandTest, ValidateNTPMessageBackupServer) {
+   Ntp ntp;
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_master_server("test.com");
+   
+   //Expect valid backup server:
+   ntp.set_backup_server("test.com");
+   EXPECT_NO_THROW(ntp.valid());
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Expect invalid backup server from size <1 and >255:
+   ntp.set_backup_server("");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   std::string str(256, 'A');
+   ntp.set_backup_server(str);
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Expect invalid backup server with special chars: 
+   ntp.set_backup_server("test;test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server(";testtest");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("testtest;");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("test|test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("test>test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("test/test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("test\\test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   ntp.set_backup_server("\\");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("/");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("|");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server(";");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+}
