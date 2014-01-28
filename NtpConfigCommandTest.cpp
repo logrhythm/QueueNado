@@ -12,7 +12,7 @@
 #include <sys/prctl.h>
 #include <memory>
 #include <boost/lexical_cast.hpp>
-
+#include "ConfInvalidException.h"
 
 extern std::string gProgramName;
 TEST_F(NtpConfigCommandTest, DoesItCompileAndLink) {
@@ -383,4 +383,8 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
    raise(SIGTERM);
 }
 
-
+TEST_F(NtpConfigCommandTest, ValidateNTPMessage) {
+   protoMsg::Ntp ntp;
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+           
+}
