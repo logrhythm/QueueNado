@@ -520,12 +520,12 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageMasterServer) {
    EXPECT_THROW(ntp.valid(), ConfInvalidException);
    ntp.clear_master_server();
    ASSERT_FALSE(ntp.has_master_server());
-   ntp.set_master_sever("test\test");
+   ntp.set_master_sever("test\\test");
    EXPECT_THROW(ntp.valid(), ConfInvalidException);
    ntp.clear_master_server();
    ASSERT_FALSE(ntp.has_master_server());
    
-   ntp.set_master_sever("\");
+   ntp.set_master_sever("\\");
    EXPECT_THROW(ntp.valid(), ConfInvalidException);
    ntp.clear_master_server();
    ASSERT_FALSE(ntp.has_master_server());
