@@ -51,5 +51,7 @@ public:
    LR_VIRTUAL bool WaitForDataOnPipe(int pipe, const int waitInSeconds){
       return ForkerPipe::WaitForDataOnPipe(pipe, waitInSeconds);
    }
-
+   void InsertDummyCommand(const CommandId& id, const CommandState& stat) {
+      mRunningCommands[id] = stat;
+   }
 };

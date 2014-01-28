@@ -87,7 +87,6 @@ protected:
    size_t t_packetSize;
    timeval t_endTime;
    unsigned int t_totalTransactions;
-   MockConfSlave mConf;
    std::stringstream testDir;
    PathAndFileNames bogusFileList;
    IdsAndIndexes bogusIdsAndIndex;
