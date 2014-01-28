@@ -385,15 +385,15 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
 
    /*This test asserts the following conditional logic in validating NTP conf:
     * 
-    *                        BACKUP SERVER
-    *                  Empty     Valid     Invalid
-    * M             +---------+---------+---------+
-    * A    Empty    |  Throw  |  Throw  |  Throw  |
-    * S             +---------+---------+--------+
-    * T    Valid    | No Throw| No Throw|  Throw  |
-    * E             +---------+---------+---------+
-    * R    Invalid  |  Throw  |  Throw  |  Throw  |
-    *               +---------+---------+---------+
+    *                       BACKUP SERVER
+    *                 Empty     Valid     Invalid
+    *  M           +---------+---------+---------+
+    *  A     Empty |  Throw  |  Throw  |  Throw  |
+    *  S           +---------+---------+---------+
+    *  T     Valid | No Throw| No Throw|  Throw  |
+    *  E           +---------+---------+---------+
+    *  R   Invalid |  Throw  |  Throw  |  Throw  |
+    *              +---------+---------+---------+
     */
 TEST_F(NtpConfigCommandTest, ValidateNTPMessageConditionalLogic) {
    Ntp ntp;
