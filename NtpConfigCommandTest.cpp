@@ -383,8 +383,89 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
    raise(SIGTERM);
 }
 
-TEST_F(NtpConfigCommandTest, ValidateNTPMessage) {
+   /*This test asserts the following conditional logic in validating NTP conf:
+    * 
+    *                        BACKUP SERVER
+    *                  Empty     Valid     Invalid
+    * M             +---------+---------+---------+
+    * A    Empty    |  Throw  |  Throw  |  Throw  |
+    * S             +---------+---------+--------+
+    * T    Valid    | No Throw| No Throw|  Throw  |
+    * E             +---------+---------+---------+
+    * R    Invalid  |  Throw  |  Throw  |  Throw  |
+    *               +---------+---------+---------+
+    */
+TEST_F(NtpConfigCommandTest, ValidateNTPMessageConditionalLogic) {
    Ntp ntp;
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an empty master server and empty backup server is invalid:
    EXPECT_THROW(ntp.valid(), ConfInvalidException);
-           
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an empty master server and valid backup server is invalid:
+   ntp.set_backup_server("test.com");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an empty master server and invalid backup server is invalid:
+   ntp.set_backup_server("test.com; /bin/evil");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that a valid master server and empty backup server is valid:
+   ntp.set_master_server("test.com");
+   EXPECT_NO_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that a valid master server and valid backup server is valid:
+   ntp.set_master_server("test.com");
+   ntp.set_backup_server("test2.com")
+   EXPECT_NO_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that a valid master server and invalid backup server is invalid:
+   ntp.set_master_server("test.com");
+   ntp.set_backup_server("test2.com; /bin/evil")
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an invalid master server and empty backup server is invalid:
+   ntp.set_master_server("test.com; /bin/evil");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an invalid master server and valid backup server is invalid:
+   ntp.set_master_server("test.com; /bin/evil");
+   ntp.set_backup_server("test2.com")
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an invalid master server and invalid backup server is invalid:
+   ntp.set_master_server("test.com; /bin/evil");
+   ntp.set_backup_server("test2.com; /bin/evil")
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
 }
