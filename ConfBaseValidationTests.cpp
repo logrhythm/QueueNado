@@ -252,6 +252,9 @@ TEST_F(ConfProcessorTests, BaseConfValidationAllFieldsSuccess) {
 TEST_F(ConfProcessorTests, BaseConfValidationInternalRepairBaseConf) {
    // using a real conf but without a real file so that it has bad values
    MockConf conf("/tmp/I/am/not/here/woo.ls");
+   conf.mValidateEthFailCount = -1;
+   conf.mValidateEthFailCount = -1;
+   conf.mOverridegetPCapInterface = false;
    auto check = conf.InternallyRepairBaseConf();
    EXPECT_EQ(check, true);
 }

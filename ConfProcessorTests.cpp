@@ -600,9 +600,10 @@ TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mTestConf);
    confThread.Start();
-   MockConf conf(confThread.GetConf());
+   Conf conf(confThread.GetConf());
    MockConfSlave testSlave;
    testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   ASSERT_FALSE(testSlave.mBroadcastQueueName.empty());
    testSlave.Start();
    sleep(1);
 
@@ -636,9 +637,10 @@ TEST_F(ConfProcessorTests, DISABLED_ConfMessagePassedBetweenMasterAndSlave) {
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mWriteLocation);
    confThread.Start();
-   MockConf conf(confThread.GetConf());
+   Conf conf(confThread.GetConf());
    MockConfSlave testSlave;
    testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   ASSERT_FALSE(testSlave.mBroadcastQueueName.empty());
    testSlave.Start();
    sleep(1);
 
@@ -678,9 +680,10 @@ TEST_F(ConfProcessorTests, DISABLED_SyslogMessagePassedBetweenMasterAndSlave) {
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mWriteLocation);
    confThread.Start();
-   MockConf conf(confThread.GetConf());
+   Conf conf(confThread.GetConf());
    MockConfSlave testSlave;
    testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   ASSERT_FALSE(testSlave.mBroadcastQueueName.empty());
    testSlave.Start();
    sleep(1);
 
@@ -722,9 +725,10 @@ TEST_F(ConfProcessorTests, DISABLED_NetInterfaceMessagePassedBetweenMasterAndSla
    confThread.Stop();
    confThread.SetPath(mWriteLocation);
    confThread.Start();
-   MockConf conf(confThread.GetConf());
+   Conf conf(confThread.GetConf());
    MockConfSlave testSlave;
    testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   ASSERT_FALSE(testSlave.mBroadcastQueueName.empty());
    testSlave.Start();
    sleep(1);
 
@@ -1050,7 +1054,7 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    confThread.Start();
    //get empty conf
    confThread.SetPath(mWriteLocation);
-   MockConf conf = confThread.GetConf();
+   Conf conf = confThread.GetConf();
    int packetRecv = conf.GetPacketRecvQueueSize();
    int packetSend = conf.GetPacketSendQueueSize();
    int pcapBSize = conf.getPCAPBuffsize();
@@ -1087,7 +1091,7 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    confThread.Start();
    //runs from test/ directory.
    //   Conf conf = confThread.GetConf();
-   MockConf conf = confThread.GetConf(mTestConf);
+   Conf conf = confThread.GetConf(mTestConf);
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
    EXPECT_EQ(true, conf.getSyslogTcpEnabled());
    EXPECT_EQ("local4", conf.getSyslogFacility());
@@ -1131,7 +1135,7 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
 TEST_F(ConfProcessorTests, testGetConfFromString) {
    ConfMaster& confThread = ConfMaster::Instance();
    //runs from test/ directory.
-   MockConf conf = confThread.GetConf(mTestConf);
+   Conf conf = confThread.GetConf(mTestConf);
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
    EXPECT_EQ(true, conf.getSyslogTcpEnabled());
    EXPECT_EQ("local4", conf.getSyslogFacility());
@@ -1158,7 +1162,7 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    confThread.SetPath(mWriteLocation);
    confThread.Start();
    //runs from test/ directory.
-   MockConf conf = confThread.GetConf();
+   Conf conf = confThread.GetConf();
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile()); // default value
    EXPECT_EQ("", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort()); // default value
@@ -1204,7 +1208,7 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
    msg.set_sysloglogagentport("777");
    msg.set_syslogtcpenabled("false");
    EXPECT_EQ("false", msg.syslogtcpenabled());
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_TRUE(conf.getSyslogEnabled());
@@ -1226,7 +1230,7 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
 TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    protoMsg::SyslogConf msg;
 
-   MockConf conf("non-existent-yaml-file");
+   MockConfExposeUpdate conf("non-existent-yaml-file");
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_TRUE(conf.getSyslogEnabled());
@@ -1246,7 +1250,7 @@ TEST_F(ConfProcessorTests, testConfSyslogDisabled) {
    protoMsg::SyslogConf msg;
    std::string expSyslogEnabled("false");
    msg.set_syslogenabled(expSyslogEnabled);
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_FALSE(conf.getSyslogEnabled());
@@ -1256,7 +1260,7 @@ TEST_F(ConfProcessorTests, testConfQosmosDebugModeEnabled) {
    protoMsg::BaseConf msg;
    std::string qosmosDebugModeEnabled("true");
    msg.set_qosmosdebugmodeenabled(qosmosDebugModeEnabled);
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_TRUE(conf.getQosmosDebugModeEnabled());
@@ -1265,7 +1269,7 @@ TEST_F(ConfProcessorTests, testConfQosmosDebugModeEnabled) {
 TEST_F(ConfProcessorTests, testConfQosmos512BytePool) {
    protoMsg::BaseConf msg;
    msg.set_qosmos512bytepool("1234"); // Range{500000 , 8000000}
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_NE(1234, conf.getQosmos512BytePool());
@@ -1278,7 +1282,7 @@ TEST_F(ConfProcessorTests, testConfQosmos512BytePool) {
 TEST_F(ConfProcessorTests, testConfQosmos256BytePool) {
    protoMsg::BaseConf msg;
    msg.set_qosmos256bytepool("8000000"); // Range{500000, 8000000}
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_EQ(8000000, conf.getQosmos256BytePool());
@@ -1287,7 +1291,7 @@ TEST_F(ConfProcessorTests, testConfQosmos256BytePool) {
 TEST_F(ConfProcessorTests, testConfQosmos128BytePool) {
    protoMsg::BaseConf msg;
    msg.set_qosmos128bytepool("3000000"); // Range{3000000, 8000000}
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_EQ(3000000, conf.getQosmos128BytePool());
@@ -1296,7 +1300,7 @@ TEST_F(ConfProcessorTests, testConfQosmos128BytePool) {
 TEST_F(ConfProcessorTests, testConfQosmos64BytePool) {
    protoMsg::BaseConf msg;
    msg.set_qosmos64bytepool("1500000"); // Range{1500000,8000000}
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_EQ(1500000, conf.getQosmos64BytePool());
@@ -1305,7 +1309,7 @@ TEST_F(ConfProcessorTests, testConfQosmos64BytePool) {
 TEST_F(ConfProcessorTests, testQosmosExpirePerCallback) {
    protoMsg::BaseConf msg;
    msg.set_qosmosexpirepercallback("100"); // Range{1,100}
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_EQ(100, conf.getQosmosExpirePerCallback());
@@ -1314,7 +1318,7 @@ TEST_F(ConfProcessorTests, testQosmosExpirePerCallback) {
 TEST_F(ConfProcessorTests, testQosmosTCPReAssembly) {
    protoMsg::BaseConf msg;
    msg.set_qosmostcpreassemblyenabled("false");
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_FALSE(conf.getEnableTCPReassembly());
@@ -1323,7 +1327,7 @@ TEST_F(ConfProcessorTests, testQosmosTCPReAssembly) {
 TEST_F(ConfProcessorTests, testEnableIPDefragmentation) {
    protoMsg::BaseConf msg;
    msg.set_qosmosipdefragmentationenabled("false");
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_FALSE(conf.getEnableIPDefragmentation());
@@ -1332,7 +1336,7 @@ TEST_F(ConfProcessorTests, testEnableIPDefragmentation) {
 TEST_F(ConfProcessorTests, teststatsAccumulatorQueue) {
    protoMsg::BaseConf msg;
    msg.set_statsaccumulatorqueue("123456");// at least 6 characters
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_EQ("123456", conf.getStatsAccumulatorQueue());
@@ -1341,7 +1345,7 @@ TEST_F(ConfProcessorTests, teststatsAccumulatorQueue) {
 TEST_F(ConfProcessorTests, teststatsQueue) {
    protoMsg::BaseConf msg;
    msg.set_sendstatsqueue("123456");
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_EQ("123456", conf.getSendStatsQueue());
@@ -1350,7 +1354,7 @@ TEST_F(ConfProcessorTests, teststatsQueue) {
 TEST_F(ConfProcessorTests, testSiemLogging) {
    protoMsg::SyslogConf msg;
    msg.set_siemlogging("false");
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_FALSE(conf.getSiemLogging());
@@ -1363,7 +1367,7 @@ TEST_F(ConfProcessorTests, testSiemLogging) {
 TEST_F(ConfProcessorTests, testCommandQueue) {
    protoMsg::BaseConf msg;
    msg.set_commandqueue("this is false"); // minimum 6 characters
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_EQ("this is false", conf.getCommandQueue());
@@ -1375,7 +1379,7 @@ TEST_F(ConfProcessorTests, testCommandQueue) {
 TEST_F(ConfProcessorTests, testSiemDebugLogging) {
    protoMsg::SyslogConf msg;
    msg.set_debugsiemlogging("false");
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
    EXPECT_FALSE(conf.getSiemDebugLogging());
@@ -1405,7 +1409,7 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    msg.set_pcapinterface(pcapInterface);
    sysMsg.set_syslogmaxlinelength(syslogMaxLineLength);
    QosmosConf qmsg;
-   MockConf conf(msg, qmsg, sysMsg);
+   MockConfExposeUpdate conf(msg, qmsg, sysMsg);
 
    EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
    EXPECT_EQ(expAgentPort, conf.getSyslogAgentPort());
@@ -1423,7 +1427,7 @@ TEST_F(ConfProcessorTests, testIpOnlyProtoMessage) {
    std::string expAgentIP = "24.24.24.24";
    sysMsg.set_sysloglogagentip(expAgentIP);
    QosmosConf qmsg;
-   MockConf conf(msg, qmsg, sysMsg);
+   MockConfExposeUpdate conf(msg, qmsg, sysMsg);
    EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort()); // default
 }
@@ -1450,7 +1454,7 @@ TEST_F(ConfProcessorTests, testIpOnlyProtoMessage) {
 
 TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
    //runs from test/ directory.
-   MockConf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
    EXPECT_EQ("514", conf.getSyslogAgentPort());
 
@@ -1468,7 +1472,7 @@ TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
 
    conf.writeSyslogToFile();
 
-   MockConf newConf(mWriteLocation);
+   MockConfExposeUpdate newConf(mWriteLocation);
 
    EXPECT_EQ(expAgentIP, newConf.getSyslogAgentIP());
    EXPECT_EQ("514", newConf.getSyslogAgentPort());
@@ -1476,7 +1480,7 @@ TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
 }
 
 TEST_F(ConfProcessorTests, testPathWithDynamicConf) {
-   MockConf * conf = new MockConf("/path");
+   MockConfExposeUpdate * conf = new MockConfExposeUpdate("/path");
    std::string expPath = "/tmp/new_path";
    conf->setPath(expPath);
    EXPECT_EQ(expPath, conf->getPath());
@@ -1548,7 +1552,7 @@ TEST_F(ConfProcessorTests, testGetSyslogConfMsg) {
    ASSERT_TRUE(ctmRsp.direction() == protoMsg::ConfType_Direction_SENDING);
    ASSERT_TRUE(ctmRsp.type() == protoMsg::ConfType_Type_SYSLOG);
 
-   MockConf conf;
+   MockConfExposeUpdate conf;
    protoMsg::SyslogConf confUpdateMsg;
    EXPECT_TRUE(confUpdateMsg.ParseFromString(data[1]));
    conf.updateFields(confUpdateMsg);
@@ -1712,7 +1716,7 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    sleep(1);
    Conf masterConf = master.GetConf();
    Conf slaveConf = slave.GetConf();
-   MockConf normalConf = slave.GetConf(mTestConf);
+   MockConfExposeUpdate normalConf = slave.GetConf(mTestConf);
 
    master.RegisterConsumer((void *) &masterConf);
    slave.RegisterConsumer((void *) &slaveConf);

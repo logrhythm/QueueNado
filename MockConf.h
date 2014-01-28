@@ -51,9 +51,13 @@ public:
    mPcapCaptureMaxPackets(999999),
    mSyslogSendQueueSize(800),
    mSyslogRecvQueueSize(800),
-   mFlowReportInterval(10) {
+   mFlowReportInterval(10),
+   mOverridegetPCapInterface(true) {
    }
-   MockConf(const Conf& conf) : Conf::Conf(conf) {}
+
+   MockConf(const Conf& conf) : Conf::Conf(conf) {
+   }
+
    MockConf(const protoMsg::BaseConf& msg, const QosmosConf& qosmosMsg, const protoMsg::SyslogConf& sysMsg) : Conf::Conf(msg, qosmosMsg, sysMsg) {
    }
 
@@ -65,24 +69,31 @@ public:
 
    ~MockConf() {
    }
+
    void writeSyslogToFile() {
       Conf::writeSyslogToFile();
    }
+
    bool sendConfigUpdate() {
       return Conf::sendConfigUpdate();
    }
+
    void writeQosmosToStream(std::stringstream & stream) const {
       Conf::writeQosmosToStream(stream);
    }
+
    void setPath(const std::string& newPath) {
       Conf::setPath(newPath);
    }
+
    void updateFields(const protoMsg::BaseConf& msg) {
       Conf::updateFields(msg);
    }
+
    bool InternallyRepairBaseConf() {
       return Conf::InternallyRepairBaseConf();
    }
+
    void updateFields(const protoMsg::SyslogConf& msg) {
       Conf::updateFields(msg);
    }
@@ -208,7 +219,10 @@ public:
    }
 
    std::string getPCAPInterface() LR_OVERRIDE {
-      return mPCAPInterface;
+      if (mOverridegetPCapInterface) {
+         return mPCAPInterface;
+      }
+      return Conf::getPCAPInterface();
    }
 
    bool getQosmosDebugModeEnabled(void) LR_OVERRIDE {
@@ -404,4 +418,90 @@ public:
    int mSyslogSendQueueSize;
    int mSyslogRecvQueueSize;
    int mFlowReportInterval;
+   bool mOverridegetPCapInterface;
+};
+
+class MockConfNoMaster : public MockConf {
+public:
+
+   MockConfNoMaster(const Conf& conf) : MockConf::MockConf(conf) {
+   }
+
+   MockConfNoMaster(const protoMsg::BaseConf& msg, const QosmosConf& qosmosMsg, const protoMsg::SyslogConf& sysMsg) : MockConf::MockConf(msg, qosmosMsg, sysMsg) {
+   }
+
+   explicit MockConfNoMaster(const std::string& path) : MockConf::MockConf(path) {
+   }
+
+   MockConfNoMaster(std::stringstream& stream, std::stringstream& qosmosStream, std::stringstream& syslogStream) : MockConf::MockConf(stream, qosmosStream, syslogStream) {
+   }
+
+   ~MockConfNoMaster() {
+   }
+
+   bool UpdateConfigWithMaster(const protoMsg::SyslogConf& msg) {
+      updateFields(msg);
+      return true;
+   }
+
+   bool UpdateConfigWithMaster(const protoMsg::BaseConf& msg) {
+      updateFields(msg);
+      return true;
+   }
+
+   bool UpdateConfigWithMaster(const QosmosConf& msg) {
+      updateQosmos(msg);
+      return true;
+
+   }
+};
+
+class MockConfExposeUpdate : public Conf {
+public:
+
+   MockConfExposeUpdate() : Conf() {
+   }
+
+   MockConfExposeUpdate(const Conf& conf) : Conf::Conf(conf) {
+   }
+
+   MockConfExposeUpdate(const protoMsg::BaseConf& msg, const QosmosConf& qosmosMsg, const protoMsg::SyslogConf& sysMsg) : Conf::Conf(msg, qosmosMsg, sysMsg) {
+   }
+
+   explicit MockConfExposeUpdate(const std::string& path) : Conf::Conf(path) {
+   }
+
+   MockConfExposeUpdate(std::stringstream& stream, std::stringstream& qosmosStream, std::stringstream& syslogStream) : Conf::Conf(stream, qosmosStream, syslogStream) {
+   }
+
+   ~MockConfExposeUpdate() {
+   }
+
+   void updateFields(const protoMsg::BaseConf& msg) {
+      Conf::updateFields(msg);
+   }
+
+   bool InternallyRepairBaseConf() {
+      return Conf::InternallyRepairBaseConf();
+   }
+
+   void updateFields(const protoMsg::SyslogConf& msg) {
+      Conf::updateFields(msg);
+   }
+
+   void updateQosmos(const QosmosConf& msg) {
+      Conf::updateQosmos(msg);
+   }
+
+   void setPath(const std::string& newPath) {
+      Conf::setPath(newPath);
+   }
+
+   void writeSyslogToFile() {
+      Conf::writeSyslogToFile();
+   }
+
+   bool sendConfigUpdate() {
+      return Conf::sendConfigUpdate();
+   }
 };
