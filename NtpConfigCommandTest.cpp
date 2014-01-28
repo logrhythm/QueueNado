@@ -384,7 +384,7 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
 }
 
 TEST_F(NtpConfigCommandTest, ValidateNTPMessage) {
-   protoMsg::Ntp ntp;
+   Ntp ntp;
    EXPECT_THROW(ntp.valid(), ConfInvalidException);
            
 }
