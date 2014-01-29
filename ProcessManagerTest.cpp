@@ -6,6 +6,45 @@
 #include "g2log.hpp"
 #include "ProcessReply.pb.h"
 #include <unistd.h>
+TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
+#ifdef LR_DEBUG
+
+   MockConf conf;
+   std::stringstream testQueue;
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   MockProcessManager testManager(conf);
+   ASSERT_TRUE(testManager.Initialize());
+   conf.mProcessManagmentQueue = "invalid";
+   MockProcessManager sendManager(conf);
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+   ASSERT_DEATH(sendManager.Initialize(), "EXIT trigger caused by broken Contract");
+   testManager.DeInit();
+#endif
+}
+TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
+#ifdef LR_DEBUG
+
+   MockConf conf;
+   std::stringstream testQueue;
+   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
+   conf.mProcessManagmentQueue = testQueue.str();
+   MockProcessManager testManager(conf);
+   testManager.mKillFails = true;
+   ASSERT_TRUE(testManager.Initialize());
+   MockProcessManager sendManager(conf);
+   ASSERT_TRUE(sendManager.Initialize());
+   std::string processName("/bin/sleep");
+   std::string processArgs;
+   processArgs = "5";
+   pid_t pid;
+   EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs, "",pid));
+   std::this_thread::sleep_for(std::chrono::seconds(1));
+   EXPECT_FALSE(sendManager.UnRegisterProcess(processName));
+   testManager.DeInit();
+   sendManager.DeInit();
+#endif
+}
 
 TEST_F(ProcessManagerTest, StartedWithoutMotherForker) {
    #ifdef LR_DEBUG
@@ -186,7 +225,7 @@ TEST_F(ProcessManagerTest, WritePidThenGetPidsFromFilesWithOtherPidsInDir) {
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    protoMsg::ProcessRequest request;
-   request.set_realexecstring("lt-ProcessManagerTest");
+   request.set_realexecstring("ProcessManagerTest");
    request.set_keeprunning(true);
    request.set_path("/fake/path");
    int pid = getpid();
@@ -292,21 +331,7 @@ TEST_F(ProcessManagerTest, RunNonExistantProcess) {
 #endif
 }
 
-TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
-#ifdef LR_DEBUG
 
-   MockConf conf;
-   std::stringstream testQueue;
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager testManager(conf);
-   ASSERT_TRUE(testManager.Initialize());
-   conf.mProcessManagmentQueue = "invalid";
-   MockProcessManager sendManager(conf);
-   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
-   ASSERT_DEATH(sendManager.Initialize(), "EXIT trigger caused by broken Contract");
-#endif
-}
 
 //TEST_F(ProcessManagerTest, RegisterDaemon) {
 //#ifdef LR_DEBUG
@@ -354,29 +379,6 @@ TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
 
 
 
-TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
-#ifdef LR_DEBUG
-
-   MockConf conf;
-   std::stringstream testQueue;
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager testManager(conf);
-   testManager.mKillFails = true;
-   ASSERT_TRUE(testManager.Initialize());
-   MockProcessManager sendManager(conf);
-   ASSERT_TRUE(sendManager.Initialize());
-   std::string processName("/bin/sleep");
-   std::string processArgs;
-   processArgs = "5";
-   pid_t pid;
-   EXPECT_TRUE(sendManager.RegisterProcess(processName, processArgs, "",pid));
-   std::this_thread::sleep_for(std::chrono::seconds(1));
-   EXPECT_FALSE(sendManager.UnRegisterProcess(processName));
-   testManager.DeInit();
-   sendManager.DeInit();
-#endif
-}
 
 TEST_F(ProcessManagerTest, StartProcessBadExitCode) {
 #ifdef LR_DEBUG
