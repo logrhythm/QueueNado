@@ -6,7 +6,6 @@
 #include "MockConf.h"
 #include "MockElasticSearch.h"
 #include "MockSendStats.h"
-#include "ProcessManager.h"
 #include <future>
 #include <thread>
 #include <atomic>
@@ -14,11 +13,17 @@
 
 #ifdef LR_DEBUG
 static MockConfSlave mConf;
+
+TEST_F(DiskCleanupTest, SetupMockConfSlave) {
+   ProcessManager::InstanceWithConfSlave(mConf);
+}
 #else
 static ConfSlave& mConf(ConfSlave::Instance());
 #endif
 #ifdef LR_DEBUG
+
 TEST_F(DiskCleanupTest, LastIterationAmount) {
+
    MockDiskCleanup cleanup(mConf);
 
    EXPECT_TRUE(cleanup.LastIterationAmount(0));
@@ -40,6 +45,7 @@ TEST_F(DiskCleanupTest, LastIterationAmount) {
    EXPECT_TRUE(cleanup.LastIterationAmount(2));
    EXPECT_TRUE(cleanup.LastIterationAmount(1001));
 }
+
 TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
    MockDiskCleanup cleanup(mConf);
    cleanup.mRealFilesSystemAccess = true;
@@ -70,11 +76,12 @@ TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
 
 }
 #endif
+
 TEST_F(DiskCleanupTest, TooMuchPCap) {
-   
+
 #ifdef LR_DEBUG
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup1";
-   ProcessManager::InstanceWithConfSlave(mConf);
+
    if (geteuid() == 0) {
 
       MockElasticSearch es(false);
@@ -639,8 +646,6 @@ TEST_F(DiskCleanupTest, IterationTargetToRemove) {
    EXPECT_EQ(50100, cleanup.IterationTargetToRemove(stats));
 
 }
-
-
 
 TEST_F(DiskCleanupTest, CleanupMassiveOvershoot) {
    MockDiskCleanup cleanup(mConf);
