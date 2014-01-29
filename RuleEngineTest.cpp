@@ -209,20 +209,19 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
 
    expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticData, 0);
    expected += ",login=aLogin,domain=aDomain1234,dname=thisname1234,command=RUN|DOCMD|LONGLONGLONG|LAST,sender=test1_12345,recipient=test2_12,subject=test3_1234,version=4.0,url=this/url.htm,process=_CHAOSnet";
-   EXPECT_EQ(expected, messages[0]);
+   ASSERT_EQ(expected, messages[0]);
 
    expected.clear();
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, 1);
-   expected += ",applicationEnd=_CHAOSnet,applicationIdEnd=1234,login=aLogin,method=RUN|DOCMD|LONGLONGLONG|LAST,server=thisname1234,refererServer=notThisOne,uri=not/this/one,uriFull=this/url.htm,version=4.0,domain=aDomain1234,sender=test1_12345,receiver=test2_12,subject=test3_1234";
-   EXPECT_EQ(expected, messages[1]);
+   expected += ",application_end=_CHAOSnet,application_id_end=1234,login=aLogin,method=RUN|DOCMD|LONGLONGLONG|LAST,server=thisname1234,referer_server=notThisOne,uri=not/this/one,uri_full=this/url.htm,version=4.0,domain=aDomain1234,sender=test1_12345,receiver=test2_12,subject=test3_1234";
+   ASSERT_TRUE(messages.size() > 1);
+   ASSERT_EQ(expected, messages[1]);
 
+    
    messages.clear();
-   dm.SetMaxSize(167); // Number of chars in SIEM static data, plus first field ",login=aLogin"
+   dm.SetMaxSize(169);  // Number of chars in SIEM static data, plus first field ",login=aLogin"
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
-   //   for (int i = 0; i < messages.size(); i++) {
-   //      std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
-   //   }
-   ASSERT_EQ(37, messages.size());
+   ASSERT_EQ(35, messages.size());
    unsigned int index = 0;
 
    expected.clear();
@@ -240,10 +239,10 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    expected += ",command=RUN|DOCMD";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",command=LONGLONGLO";
+   expected += ",command=LONGLONGLONG";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
-   expected += ",command=NG|LAST";
+   expected += ",command=LAST";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
    expected += ",sender=test1_12345";
@@ -267,25 +266,25 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationEnd=_CH";
+   expected += ",application_end=_CHA";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationEnd=AOS";
+   expected += ",application_end=OSne";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationEnd=net";
+   expected += ",application_end=t";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationIdEnd=1";
+   expected += ",application_id_end=1";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationIdEnd=2";
+   expected += ",application_id_end=2";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationIdEnd=3";
+   expected += ",application_id_end=3";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",applicationIdEnd=4";
+   expected += ",application_id_end=4";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
    expected += ",login=aLogin";
@@ -294,34 +293,29 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    expected += ",method=RUN|DOCMD";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",method=LONGLONGLON";
+   expected += ",method=LONGLONGLONG";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",method=G|LAST";
+   expected += ",method=LAST";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",server=thisname123";
+   expected += ",server=thisname1234";
+   EXPECT_EQ(expected, messages[index++]);
+
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",referer_server=notTh";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",server=4";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",refererServer=notT";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",refererServer=hisO";
-   EXPECT_EQ(expected, messages[index++]);
-   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",refererServer=ne";
+   expected += ",referer_server=isOne";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
    expected += ",uri=not/this/one";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",uriFull=this/url.h";
+   expected += ",uri_full=this/url.ht";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
-   expected += ",uriFull=tm";
+   expected += ",uri_full=m";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
    expected += ",version=4.0";
@@ -337,7 +331,9 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
    expected += ",subject=test3_1234";
-   EXPECT_EQ(expected, messages[index++]);
+   EXPECT_EQ(expected, messages[index++]);   
+
+   EXPECT_EQ(messages.size(), index);
 
 #endif
 }
@@ -1132,16 +1128,16 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find(testUuidWithNumber));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,0/67890,0/12345,0/99,123,456,0/333"));
       EXPECT_EQ(std::string::npos, re.GetSyslogSent()[1].find("EndTime=456"));
-      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("applicationEnd=wrong|_3Com_Corp"));
-      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("applicationIdEnd=13"));
+      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("application_end=wrong|_3Com_Corp"));
+      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("applidation_id_end=13"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("login=aLogin"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("filenameEncoding=notitFile"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("method=TEST|COMMAND"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("filename=aFilename"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("server=thisname"));
-      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("refererServer=notitServer"));
+      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("referer_server=notitServer"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("uri=notitUrl"));
-      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("uriFull=this/url.htm"));
+      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("uri_full=this/url.htm"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("version=4.0"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("directory=aPath"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("domain=aDomain"));
@@ -1206,7 +1202,7 @@ TEST_F(RuleEngineTest, getSyslogMessages) {
            "EthSrc=0f:0e:0d:0c:0b:0a, EthDst=06:05:04:03:02:01, "
            "IpSrc=13.12.11.10, IpDst=4.3.2.1, Path=foo.bar, "
            "SourcePort=1234, DestPort=5678, filesize=1212, "
-           "filesize=12345678901234, attachFilename=this is a file",
+           "filesize=12345678901234, attach_filename=this is a file",
            syslogMessages[0]);
 #endif
 
@@ -1266,17 +1262,17 @@ TEST_F(RuleEngineTest, getSyslogMessagesSplitDataTest) {
    dataPairs[14] = std::make_pair("session", "300");
    dataPairs[15] = std::make_pair("dev", "eth0");
    dataPairs[16] = std::make_pair("declassified", "67");
-   dataPairs[17] = std::make_pair("applicationEnd", "tcp|http");
+   dataPairs[17] = std::make_pair("application_end", "tcp|http");
    dataPairs[18] = std::make_pair("familyEnd", "Network Service|Web");
-   dataPairs[19] = std::make_pair("applicationIdEnd", "67");
+   dataPairs[19] = std::make_pair("applidation_id_end", "67");
    dataPairs[20] = std::make_pair("sessionLen", "74256");
    dataPairs[21] = std::make_pair("server", "192.168.178.21");
    dataPairs[currentDynamicField++] = std::make_pair("referer", "http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/");
    dataPairs[currentDynamicField++] = std::make_pair("referer", "http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/");
-   dataPairs[currentDynamicField++] = std::make_pair("refererServer", "192.168.178.21");
+   dataPairs[currentDynamicField++] = std::make_pair("referer_server", "192.168.178.21");
    dataPairs[currentDynamicField++] = std::make_pair("uri", "/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel");
    dataPairs[currentDynamicField++] = std::make_pair("uri", "uri=/ha/status_json|/activity/query/");
-   dataPairs[currentDynamicField++] = std::make_pair("uriFull", "/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel");
+   dataPairs[currentDynamicField++] = std::make_pair("uri_full", "/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel");
    dataPairs[currentDynamicField++] = std::make_pair("userAgent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; MDDR)");
    dataPairs[currentDynamicField++] = std::make_pair("mime", "text/html");
    dataPairs[currentDynamicField++] = std::make_pair("method", "GET");
@@ -1306,9 +1302,9 @@ TEST_F(RuleEngineTest, getSyslogMessagesSplitDataTest) {
    //      std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
    //   }
    ASSERT_EQ(8, messages.size());
-   std::string expected = "EVT:999 UUID=57c4384a-15b7-44c0-9814-b2e95b23dd15, EthSrc=f0:f7:55:dc:a8:7f, EthDst=84:18:88:7b:db:04, IpSrc=10.128.24.59, IpDst=192.168.178.21, Path=base.eth.ip.tcp|base.eth.ip.tcp.http, DestPort=80, FlowCompleted=true, application=tcp|http, flowId=49649, family=Network Service|Web, applicationId=67, session=300, dev=eth0, declassified=67, applicationEnd=tcp|http, familyEnd=Network Service|Web, applicationIdEnd=67, sessionLen=74256, server=192.168.178.21";
+   std::string expected = "EVT:999 UUID=57c4384a-15b7-44c0-9814-b2e95b23dd15, EthSrc=f0:f7:55:dc:a8:7f, EthDst=84:18:88:7b:db:04, IpSrc=10.128.24.59, IpDst=192.168.178.21, Path=base.eth.ip.tcp|base.eth.ip.tcp.http, DestPort=80, FlowCompleted=true, application=tcp|http, flowId=49649, family=Network Service|Web, applicationId=67, session=300, dev=eth0, declassified=67, application_end=tcp|http, familyEnd=Network Service|Web, applidation_id_end=67, sessionLen=74256, server=192.168.178.21";
    EXPECT_EQ(expected, messages[0]);
-   expected = "EVT:999 UUID=57c4384a-15b7-44c0-9814-b2e95b23dd15, referer=http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/, referer=http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/, refererServer=192.168.178.21, uri=/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel, uri=uri=/ha/status_json|/activity/query/, uriFull=/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel";
+   expected = "EVT:999 UUID=57c4384a-15b7-44c0-9814-b2e95b23dd15, referer=http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/, referer=http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/, referer_server=192.168.178.21, uri=/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel, uri=uri=/ha/status_json|/activity/query/, uri_full=/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel";
    EXPECT_EQ(expected, messages[1]);
    expected = "EVT:999 UUID=57c4384a-15b7-44c0-9814-b2e95b23dd15, userAgent=Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; MDDR), mime=text/html, method=GET, version=1.1, serverAgent=Apache/2.2.14 (Ubuntu) mod_ssl/2.2.14 OpenSSL/0.9.8k mod_fastcgi/2.4.6";
    EXPECT_EQ(expected, messages[2]);
