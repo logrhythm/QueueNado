@@ -3,6 +3,7 @@
 #include "Conf.h"
 #include "ConfSlave.h"
 #include "MockConf.h"
+#include "MockConfMaster.h"
 #include "BaseConfMsg.pb.h"
 #include "ProtoDefaults.h"
 #include <g2log.hpp>
@@ -16,44 +17,47 @@ using namespace std;
 // Not set fields are NOT failure, they will just be ignored 
 
 TEST_F(ConfProcessorTests, BaseConfValidationBlankMsgWillSucceed) {
+   MockConfMaster master;
    MockConf conf;
-   conf.mIgnoreConfValidate = false;
+   master.mIgnoreConfValidate = false;
 
-   EXPECT_EQ(conf.mValidConfValidation, true);
+   EXPECT_EQ(master.mValidConfValidation, true);
    protoMsg::BaseConf blank;
    EXPECT_EQ(blank.has_dpithreads(), false);
-   conf.updateFields(blank); // trigger Mocked ValidateConfFieldValues
-   EXPECT_EQ(conf.mValidConfValidation, true);
+   EXPECT_TRUE(master.ValidateConfFieldValues(conf,blank,protoMsg::ConfType_Type_BASE));
 }
 
 // Erroneous fields WILL be cleared
 
 TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
+   MockConfMaster master;
    MockConf conf;
-   conf.mIgnoreConfValidate = false;
-   EXPECT_EQ(conf.mValidConfValidation, true);
+   master.mIgnoreConfValidate = false;
+   EXPECT_EQ(master.mValidConfValidation, true);
 
    protoMsg::BaseConf right;
    right.set_dpithreads("2");
-   conf.updateFields(right);
-   EXPECT_EQ(conf.mValidConfValidation, true);
+   EXPECT_TRUE(master.ValidateConfFieldValues(conf,right,protoMsg::ConfType_Type_BASE));
 
    // Verify that erroneous fields are cleared and ignored
    protoMsg::BaseConf wrong = conf.getProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
    wrong.set_dpithreads("Hello World!");
-   conf.mValidConfValidation = true;
-   conf.updateFields(wrong);
+   master.mValidConfValidation = true;
+   EXPECT_FALSE(master.ValidateConfFieldValues(conf,wrong,protoMsg::ConfType_Type_BASE));
+   std::string wrongString;
+   wrongString = wrong.SerializeAsString();
+   master.ProcessBaseConfigRequest(conf,wrongString);
    EXPECT_EQ(wrong.has_dpithreads(), true); // copies are not cleared
-   EXPECT_EQ(conf.mValidConfValidation, false);
 
    wrong = conf.getProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
 
    wrong.set_dpithreads("Hello World!");
-   EXPECT_EQ(wrong.has_dpithreads(), true);
-   conf.ValidateConfFieldValues(wrong, protoMsg::ConfType_Type_BASE); // this should clear the field
-   EXPECT_EQ(wrong.has_dpithreads(), false);
+   wrongString =wrong.SerializeAsString();
+   master.ProcessBaseConfigRequest(conf,wrongString);
+   EXPECT_EQ(wrong.has_dpithreads(), true); // copies are not cleared
+   EXPECT_FALSE(master.ValidateConfFieldValues(conf,wrong,protoMsg::ConfType_Type_BASE));
 }
 
 /**
@@ -68,9 +72,10 @@ namespace {
 
 void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    size_t index = 0;
+   MockConfMaster master;
    MockConf conf;
-   conf.mIgnoreConfValidate = false;
-   conf.mValidConfValidation = false;
+   master.mIgnoreConfValidate = false;
+   master.mValidConfValidation = false;
    //conf.GetValidateConf().GetChecker().mValidCheck = false;
 
    protoMsg::BaseConf msg;
@@ -125,22 +130,13 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    // Test sanity check. Total number of used fields are :  34
    EXPECT_EQ(index, gNumberOfFieldsLowerBound) << "\t\t\t\t\t: Expected number of fields are "
            << gNumberOfFieldsLowerBound << " unless you added more?";
-   conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsLowerBound) {
-      if (false == conf.mValidConfValidation) {
+      if (false == master.ValidateConfFieldValues(conf,msg,protoMsg::ConfType_Type_BASE)) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);
          return;
       }
       SUCCEED();
-      return;
-   }
-
-   // We can only reach this if 'shouldFail' was less than number of fields
-   // in this case me MUST have failed or else this test or Conf.cpp has changed
-   //  (or is corrupt)
-   if (true == conf.mValidConfValidation) {
-      FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
       return;
    }
 
@@ -149,9 +145,10 @@ void ValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
 
 void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    size_t index = 0;
+   MockConfMaster master;
    MockConf conf;
-   conf.mIgnoreConfValidate = false;
-   conf.mValidConfValidation = false;
+   master.mIgnoreConfValidate = false;
+   master.mValidConfValidation = false;
    conf.mOverrideGetPcapCaptureLocations = false;
 
    protoMsg::BaseConf msg;
@@ -213,22 +210,13 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    // Test sanity check. Total number of used fields are :  34
    EXPECT_EQ(index, gNumberOfFieldsUpperBound) << "\t\t\t\t\t: Expected number of fields are "
            << gNumberOfFieldsUpperBound << " unless you added more?";
-   conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsUpperBound) {
-      if (false == conf.mValidConfValidation) {
+      if (false == master.ValidateConfFieldValues(conf,msg,protoMsg::ConfType_Type_BASE)) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);
          return;
       }
       SUCCEED();
-      return;
-   }
-
-   // We can only reach this if 'shouldFail' was less than number of fields
-   // in this case me MUST have failed or else this test or Conf.cpp has changed
-   //  (or is corrupt)
-   if (true == conf.mValidConfValidation) {
-      FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
       return;
    }
 
@@ -251,11 +239,12 @@ TEST_F(ConfProcessorTests, BaseConfValidationAllFieldsSuccess) {
 
 TEST_F(ConfProcessorTests, BaseConfValidationInternalRepairBaseConf) {
    // using a real conf but without a real file so that it has bad values
+   MockConfMaster master;
    MockConf conf("/tmp/I/am/not/here/woo.ls");
-   conf.mValidateEthFailCount = -1;
-   conf.mValidateEthFailCount = -1;
+   master.mValidateEthFailCount = -1;
+   master.mValidateEthFailCount = -1;
    conf.mOverridegetPCapInterface = false;
-   auto check = conf.InternallyRepairBaseConf();
+   auto check = master.InternallyRepairBaseConf(conf);
    EXPECT_EQ(check, true);
 }
 

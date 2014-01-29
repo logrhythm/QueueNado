@@ -11,7 +11,12 @@
 class MockConfMaster : public ConfMaster {
 public:
 
-   MockConfMaster() : ConfMaster(), mConfLocation("resources/test.yaml"), mConf(mConfLocation) {
+   MockConfMaster() : ConfMaster(), mConfLocation("resources/test.yaml"), mConf(mConfLocation),
+   mOverrideInternalRepair(false),
+   mInternalRepair(true),
+   mValidateEthFailCount(0),
+   mIgnoreConfValidate(true),
+   mValidConfValidation(true) {
 
    }
 
@@ -21,6 +26,42 @@ public:
    Conf GetConf(void) {
       MockConf conf(mConfLocation);
       return std::move(conf);
+   }
+
+   bool InternallyRepairBaseConf(Conf& conf, EthInfo& ethInfo) LR_OVERRIDE {
+      if (mOverrideInternalRepair) {
+         return mInternalRepair;
+      }
+      return ConfMaster::InternallyRepairBaseConf(conf, ethInfo);
+   }
+
+   bool InternallyRepairBaseConf(Conf& conf) {
+      return ConfMaster::InternallyRepairBaseConf(conf);
+   }
+
+   void RepairEthConfFieldsWithDefaults(Conf& conf, EthInfo& ethInfo) LR_OVERRIDE {
+      if (mValidateEthFailCount > 0) {
+         mValidateEthFailCount--;
+      }
+      return ConfMaster::RepairEthConfFieldsWithDefaults(conf, ethInfo);
+   }
+
+   bool ValidateEthConfFields(Conf& conf, EthInfo& ethInfo) LR_OVERRIDE {
+      if (mValidateEthFailCount > 0) {
+         return false;
+      } else if (mValidateEthFailCount == 0) {
+         return true;
+      }
+      mValidateEthFailCount = -1;
+      return ConfMaster::ValidateEthConfFields(conf, ethInfo);
+   }
+
+   bool ValidateConfFieldValues(Conf& conf, ::google::protobuf::Message& msg, const protoMsg::ConfType_Type &type) LR_OVERRIDE {
+      if (mIgnoreConfValidate) {
+         return true;
+      }
+      mValidConfValidation = ConfMaster::ValidateConfFieldValues(conf, msg, type);
+      return mValidConfValidation;
    }
 
    std::vector<std::string> ParseRequest(const std::vector<std::string>& msgs, bool& gotNewConfig, bool& sendRestarts) {
@@ -82,6 +123,11 @@ public:
       mConf.setPath(path);
    }
    std::string mConfLocation;
+      bool mOverrideInternalRepair;
+   bool mInternalRepair;
+   int mValidateEthFailCount;
+   bool mIgnoreConfValidate;
+   bool mValidConfValidation;
 private:
 
    MockConf mConf;

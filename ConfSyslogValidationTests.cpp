@@ -2,6 +2,7 @@
 #include "ConfProcessorTests.h"
 #include "Conf.h"
 #include "MockConf.h"
+#include "MockConfMaster.h"
 #include "SyslogConfMsg.pb.h"
 #include <g2log.hpp>
 #include <functional>
@@ -13,9 +14,10 @@ using namespace std;
 // Not set fields are NOT failure, they will just be ignored 
 
 TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
+   MockConfMaster master;
    MockConf conf;
-   conf.mIgnoreConfValidate = false;
-   EXPECT_EQ(conf.mValidConfValidation, true);
+   master.mIgnoreConfValidate = false;
+   EXPECT_TRUE(master.mValidConfValidation);
    
    protoMsg::SyslogConf blank;
    EXPECT_EQ(blank.has_syslogenabled(), false);
@@ -27,8 +29,7 @@ TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
    EXPECT_EQ(blank.has_debugsiemlogging(), false);
    EXPECT_EQ(blank.has_scrubpasswords(), false);
 
-   conf.updateFields(blank); // trigger Mocked ValidateConfFieldValues
-   EXPECT_EQ(conf.mValidConfValidation, true);
+   EXPECT_TRUE(master.ValidateConfFieldValues(conf,blank,protoMsg::ConfType_Type_SYSLOG)); // trigger Mocked ValidateConfFieldValues
 }
 
 /**
@@ -43,9 +44,10 @@ namespace {
 
 void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    size_t index = 0;
+   MockConfMaster master;
    MockConf conf;
-   conf.mIgnoreConfValidate = false;
-   conf.mValidConfValidation = false;
+   master.mIgnoreConfValidate = false;
+   master.mValidConfValidation = false;
 
    protoMsg::SyslogConf msg;
 
@@ -67,22 +69,13 @@ void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    // Test sanity check. Total number of used fields are :  32
    EXPECT_EQ(index, gNumberOfFieldsLowerBound) << "\t\t\t\t\t: Expected number of fields are "
            << gNumberOfFieldsLowerBound << " unless you added more?";
-   conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsLowerBound) {
-      if (false == conf.mValidConfValidation) {
+      if (false == master.ValidateConfFieldValues(conf,msg,protoMsg::ConfType_Type_SYSLOG)) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);
          return;
       }
       SUCCEED();
-      return;
-   }
-
-   // We can only reach this if 'shouldFail' was less than number of fields
-   // in this case me MUST have failed or else this test or Conf.cpp has changed
-   //  (or is corrupt)
-   if (true == conf.mValidConfValidation) {
-      FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
       return;
    }
 
@@ -91,8 +84,9 @@ void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
 
 void SyslogValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    size_t index = 0;
+   MockConfMaster master;
    MockConf conf;
-   conf.mIgnoreConfValidate = false;
+   master.mIgnoreConfValidate = false;
 
    protoMsg::SyslogConf msg;
 
@@ -114,10 +108,9 @@ void SyslogValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    // Test sanity check. Total number of used fields are :  32
    EXPECT_EQ(index, gNumberOfFieldsUpperBound) << "\t\t\t\t\t: Expected number of fields are "
            << gNumberOfFieldsUpperBound << " unless you added more?";
-   conf.updateFields(msg);
 
    if (shouldFail > gNumberOfFieldsUpperBound) {
-      if (false == conf.mValidConfValidation) {
+      if (false == master.ValidateConfFieldValues(conf,msg,protoMsg::ConfType_Type_SYSLOG)) {
          FAIL() << "\t\t\t\t\t: No fields should be invalid, 'shouldFail was: " << std::to_string(shouldFail);
          return;
       }
@@ -125,13 +118,6 @@ void SyslogValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
       return;
    }
 
-   // We can only reach this if 'shouldFail' was less than number of fields
-   // in this case me MUST have failed or else this test or Conf.cpp has changed
-   //  (or is corrupt)
-   if (true == conf.mValidConfValidation) {
-      FAIL() << "\t\t\t\t\t: One field should be invalid. 'shouldFail was: " << std::to_string(shouldFail);
-      return;
-   }
 
    SUCCEED();
 }

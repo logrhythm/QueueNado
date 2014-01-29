@@ -42,11 +42,7 @@ public:
    mPacketRecvQueueSize(100),
    mSyslogMaxLineLength(2048),
    mStatsIntervalSeconds(5),
-   mOverrideInternalRepair(false),
-   mInternalRepair(true),
-   mValidateEthFailCount(0),
-   mIgnoreConfValidate(true),
-   mValidConfValidation(true),
+
    mMaxIndividualPCap(1000),
    mPcapCaptureMaxPackets(999999),
    mSyslogSendQueueSize(800),
@@ -88,10 +84,6 @@ public:
 
    void updateFields(const protoMsg::BaseConf& msg) {
       Conf::updateFields(msg);
-   }
-
-   bool InternallyRepairBaseConf() {
-      return Conf::InternallyRepairBaseConf();
    }
 
    void updateFields(const protoMsg::SyslogConf& msg) {
@@ -321,38 +313,6 @@ public:
       return mSiemDebug;
    }
 
-   bool InternallyRepairBaseConf(EthInfo& ethInfo) LR_OVERRIDE {
-      if (mOverrideInternalRepair) {
-         return mInternalRepair;
-      }
-      return Conf::InternallyRepairBaseConf(ethInfo);
-   }
-
-   void RepairEthConfFieldsWithDefaults(ConfMap& protoMap, EthInfo& ethInfo) LR_OVERRIDE {
-      if (mValidateEthFailCount > 0) {
-         mValidateEthFailCount--;
-      }
-      return Conf::RepairEthConfFieldsWithDefaults(protoMap, ethInfo);
-   }
-
-   bool ValidateEthConfFields(ConfMap& protoMap, EthInfo& ethInfo) LR_OVERRIDE {
-      if (mValidateEthFailCount > 0) {
-         return false;
-      } else if (mValidateEthFailCount == 0) {
-         return true;
-      }
-      mValidateEthFailCount = -1;
-      return Conf::ValidateEthConfFields(protoMap, ethInfo);
-   }
-
-   bool ValidateConfFieldValues(::google::protobuf::Message& msg, const protoMsg::ConfType_Type &type) LR_OVERRIDE {
-      if (mIgnoreConfValidate) {
-         return true;
-      }
-      mValidConfValidation = Conf::ValidateConfFieldValues(msg, type);
-      return mValidConfValidation;
-   }
-
    size_t GetPCapIndividualFileLimit() {
       return mMaxIndividualPCap;
    }
@@ -360,7 +320,9 @@ public:
    size_t GetPcapCaptureMaxPackets() LR_OVERRIDE {
       return mPcapCaptureMaxPackets;
    }
-
+   void ReadQosmosFromStringStream(std::stringstream& stream) {
+      return Conf::ReadQosmosFromStringStream(stream);
+   }
 
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
@@ -407,12 +369,6 @@ public:
    int mPacketRecvQueueSize;
    unsigned int mSyslogMaxLineLength;
    unsigned int mStatsIntervalSeconds;
-   bool mOverrideInternalRepair;
-   bool mInternalRepair;
-   int mValidateEthFailCount;
-   bool mIgnoreConfValidate;
-   bool mValidConfValidation;
-
    size_t mMaxIndividualPCap;
    size_t mPcapCaptureMaxPackets;
    int mSyslogSendQueueSize;
@@ -454,6 +410,10 @@ public:
       return true;
 
    }
+
+   void ReadQosmosFromStringStream(std::stringstream& stream) {
+      return Conf::ReadQosmosFromStringStream(stream);
+   }
 };
 
 class MockConfExposeUpdate : public Conf {
@@ -481,10 +441,6 @@ public:
       Conf::updateFields(msg);
    }
 
-   bool InternallyRepairBaseConf() {
-      return Conf::InternallyRepairBaseConf();
-   }
-
    void updateFields(const protoMsg::SyslogConf& msg) {
       Conf::updateFields(msg);
    }
@@ -503,5 +459,9 @@ public:
 
    bool sendConfigUpdate() {
       return Conf::sendConfigUpdate();
+   }
+
+   void ReadQosmosFromStringStream(std::stringstream& stream) {
+      return Conf::ReadQosmosFromStringStream(stream);
    }
 };
