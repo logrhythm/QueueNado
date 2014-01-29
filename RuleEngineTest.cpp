@@ -152,6 +152,214 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
 }
 
 
+// Test to make sure that RuleEngine::GetNonNormalizedSiemSyslogMessages does not 
+// hang for crazy cut off values
+TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest__NoHang) {
+#if defined(LR_DEBUG)
+   MockRuleEngine dm(conf, 0);
+   std::map<unsigned int, std::pair <std::string, std::string> > dataPairs;
+   std::vector<std::string> messages;
+
+   dm.mSiemMode = true;
+   dm.mSiemDebugMode = true;
+   tDpiMessage.set_session_id("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_mac_dest(123);
+   tDpiMessage.set_mac_source(124);
+   tDpiMessage.set_ip_dest(125);
+   tDpiMessage.set_ip_source(126);
+   tDpiMessage.set_port_source(127);
+   tDpiMessage.set_port_dest(128);
+   tDpiMessage.set_proto_id(129);
+   tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
+   tDpiMessage.set_application_id_endq_proto_base(1234);
+   tDpiMessage.set_bytes_dest(567);
+   tDpiMessage.set_bytes_dest_delta(567);
+   tDpiMessage.set_bytes_source(89);
+   tDpiMessage.set_bytes_source_delta(89);
+   tDpiMessage.set_packet_total(88);
+   tDpiMessage.set_packets_delta(88);
+   tDpiMessage.add_loginq_proto_aim("aLogin");
+   tDpiMessage.add_domainq_proto_smb("aDomain1234");
+   tDpiMessage.add_uri_fullq_proto_http("this/url.htm");
+   tDpiMessage.add_uriq_proto_http("not/this/one");
+   tDpiMessage.add_serverq_proto_http("thisname1234");
+   tDpiMessage.add_referer_serverq_proto_http("notThisOne");
+   // Notice the delimter character '|' placed before LAST.  This forces the
+   // application to split the string before the delimiter.
+   tDpiMessage.add_methodq_proto_ftp("RUN");
+   tDpiMessage.add_methodq_proto_ftp("DOCMD");
+   tDpiMessage.add_methodq_proto_ftp("LONGLONGLONG");
+   tDpiMessage.add_methodq_proto_ftp("LAST");
+   tDpiMessage.add_senderq_proto_smtp("test1_12345");
+   tDpiMessage.add_receiverq_proto_smtp("test2_12");
+   tDpiMessage.add_subjectq_proto_smtp("test3_1234");
+   tDpiMessage.add_versionq_proto_http("4.0");
+   tDpiMessage.set_time_start(123);
+   tDpiMessage.set_time_updated(456);
+   tDpiMessage.set_time_delta(333);
+   dm.SetMaxSize(512 + 8 + 36 + 4);
+   messages = dm.GetSiemSyslogMessage(tDpiMessage);
+   //   for (int i = 0; i < messages.size(); i++) {
+   //      std::cout << messages[i] << std::endl;
+   //   }
+   ASSERT_EQ(2, messages.size());
+   std::string expectedEvent1 = "EVT:001 550e8400-e29b-41d4-a716-446655440000:";
+   std::string expectedEvent2 = "EVT:002 550e8400-e29b-41d4-a716-446655440000:";
+   std::string expectedStaticData = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,26,89/89,567/567,88/88,123,456,333/333";
+   std::string expectedStaticZeroDeltas = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,26,0/89,0/567,0/88,123,456,0/333";
+   std::string expected;
+
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticData, 0);
+   expected += ",login=aLogin,domain=aDomain1234,dname=thisname1234,command=RUN|DOCMD|LONGLONGLONG|LAST,sender=test1_12345,recipient=test2_12,subject=test3_1234,version=4.0,url=this/url.htm,process=_CHAOSnet";
+   ASSERT_EQ(expected, messages[0]);
+
+   expected.clear();
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, 1);
+   expected += ",application_end=_CHAOSnet,application_id_end=1234,login=aLogin,method=RUN|DOCMD|LONGLONGLONG|LAST,server=thisname1234,referer_server=notThisOne,uri=not/this/one,uri_full=this/url.htm,version=4.0,domain=aDomain1234,sender=test1_12345,receiver=test2_12,subject=test3_1234";
+   ASSERT_TRUE(messages.size() > 1);
+   ASSERT_EQ(expected, messages[1]);
+
+    
+   messages.clear();
+   dm.SetMaxSize(167);  
+   messages = dm.GetSiemSyslogMessage(tDpiMessage);
+   ASSERT_EQ(36, messages.size());
+   unsigned int index = 0;
+   
+   expected.clear();
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticData, index);
+   expected += ",login=aLogin";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",domain=aDomain1234";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",dname=thisname1234";
+   EXPECT_EQ(expected, messages[index++]);
+
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",command=RUN|DOCMD";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",command=LONGLONGLO";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",command=NG|LAST";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",sender=test1_12345";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",recipient=test2_12";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",subject=test3_1234";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",version=4.0";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",url=this/url.htm";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent1, expectedStaticZeroDeltas, index);
+   expected += ",process=_CHAOSnet";
+   EXPECT_EQ(expected, messages[index++]);
+   
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",application_end=_C";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",application_end=HA";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",application_end=OS";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",application_end=ne";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",application_end=t";
+   EXPECT_EQ(expected, messages[index++]);
+ 
+   
+   // application_id_end is larger than allowed cut-off. 
+   // So for this test setting all application_id_end will be ignored
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   EXPECT_EQ(std::string::npos, (messages[index]).find("application_id_end"));
+   
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",login=aLogin";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",method=RUN|DOCMD";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",method=LONGLONGLON";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",method=G|LAST";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",server=thisname123";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",server=4";
+   EXPECT_EQ(expected, messages[index++]);
+   
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",referer_server=not";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",referer_server=Thi";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",referer_server=sOn";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",referer_server=e";
+   EXPECT_EQ(expected, messages[index++]);
+   
+   
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",uri=not/this/one";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",uri_full=this/url.";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",uri_full=htm";
+   EXPECT_EQ(expected, messages[index++]);
+
+   ASSERT_TRUE(index < messages.size());
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",version=4.0";
+   ASSERT_TRUE(index < messages.size());
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",domain=aDomain1234";
+   ASSERT_TRUE(index < messages.size());
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);// 36
+   expected += ",sender=test1_12345";
+   ASSERT_TRUE(index < messages.size());
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index); 
+   expected += ",receiver=test2_12";
+   ASSERT_TRUE(index < messages.size());
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent2, expectedStaticZeroDeltas, index);
+   expected += ",subject=test3_1234";
+   ASSERT_TRUE(index < messages.size());
+   EXPECT_EQ(expected, messages[index++]);
+
+#endif
+}
+
+
 TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
 #if defined(LR_DEBUG)
    MockRuleEngine dm(conf, 0);
