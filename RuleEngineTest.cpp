@@ -153,7 +153,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
 
 
 // Test to make sure that RuleEngine::GetNonNormalizedSiemSyslogMessages does not 
-// hang for crazy cut off values
+// hang for crazy cut off maximum size message
 TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest__NoHang) {
 #if defined(LR_DEBUG)
    MockRuleEngine dm(conf, 0);
