@@ -421,6 +421,9 @@ public:
    bool mOverridegetPCapInterface;
 };
 
+/**
+ * Allows you to use Update functions without a working ConfMaster
+ */
 class MockConfNoMaster : public MockConf {
 public:
 
@@ -456,6 +459,9 @@ public:
    }
 };
 
+/**
+ * A mock class that simply exposes protected methods 
+ */
 class MockConfExposeUpdate : public Conf {
 public:
 
