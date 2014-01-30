@@ -14,10 +14,10 @@ void StatsAccumulatorTest::SetupSendAndRcvQueues(std::string configFilename) {
    mConfMaster.SetPath(configFilename);
    mConf = mConfMaster.GetConf();
    mStatsAccumulatorQueueName.clear();
-   mStatsAccumulatorQueueName = mConf.getStatsAccumulatorQueue();
+   mStatsAccumulatorQueueName = mConf.GetStatsAccumulatorQueue();
    mSendStatsQueueName.clear();
-   mSendStatsQueueName = mConf.getSendStatsQueue();
-   mStatsIntervalSeconds = mConf.getStatsIntervalSeconds();
+   mSendStatsQueueName = mConf.GetSendStatsQueue();
+   mStatsIntervalSeconds = mConf.GetStatsIntervalSeconds();
 
    // Expect accumulated stats on the SendStatsQueue
    mAccumulatedStatsRcvQ = new Vampire(mSendStatsQueueName);

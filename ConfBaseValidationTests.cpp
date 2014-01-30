@@ -39,7 +39,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    EXPECT_EQ(conf.mValidConfValidation, true);
 
    // Verify that erroneous fields are cleared and ignored
-   protoMsg::BaseConf wrong = conf.getProtoMsg();
+   protoMsg::BaseConf wrong = conf.GetProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
    wrong.set_dpithreads("Hello World!");
    conf.mValidConfValidation = true;
@@ -47,7 +47,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    EXPECT_EQ(wrong.has_dpithreads(), true); // copies are not cleared
    EXPECT_EQ(conf.mValidConfValidation, false);
 
-   wrong = conf.getProtoMsg();
+   wrong = conf.GetProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
 
    wrong.set_dpithreads("Hello World!");

@@ -52,7 +52,7 @@ MockCommandProcessor* testProcessor;
 
       testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN, MockShutdownCommand::FatalAndDangerousConstruct);
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      Crowbar sender(conf.getCommandQueue());
+      Crowbar sender(conf.GetCommandQueue());
       ASSERT_TRUE(sender.Wield());
       protoMsg::CommandRequest requestMsg;
       requestMsg.set_type(protoMsg::CommandRequest_CommandType_SHUTDOWN);
@@ -80,7 +80,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) 
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
 
-   Crowbar sender(conf.getCommandQueue());
+   Crowbar sender(conf.GetCommandQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::CommandRequest requestMsg;
    unsigned int count(0);
@@ -118,7 +118,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
 
-   Crowbar sender(conf.getCommandQueue());
+   Crowbar sender(conf.GetCommandQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::CommandRequest requestMsg;
    unsigned int count(0);
@@ -229,7 +229,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandAlwaysFails::Construct);
 
-   Crowbar sender(conf.getCommandQueue());
+   Crowbar sender(conf.GetCommandQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::CommandRequest requestMsg;
    unsigned int count(0);
@@ -291,7 +291,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusExitApp) {
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommandRunsForever::Construct);
 
-   Crowbar sender(conf.getCommandQueue());
+   Crowbar sender(conf.GetCommandQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::CommandRequest requestMsg;
    unsigned int count(0);
@@ -316,7 +316,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_TEST, MockTestCommand::Construct);
 
-   Crowbar sender(conf.getCommandQueue());
+   Crowbar sender(conf.GetCommandQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::CommandRequest requestMsg;
    unsigned int count(0);
@@ -375,7 +375,7 @@ TEST_F(CommandProcessorTests, CommandStatusFailureTests) {
 
    MockCommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
-   Crowbar sender(conf.getCommandQueue());
+   Crowbar sender(conf.GetCommandQueue());
    ASSERT_TRUE(sender.Wield());
    std::string reply;
    protoMsg::CommandReply realReply;
@@ -450,7 +450,7 @@ TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
     CommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-   Crowbar sender(conf.getCommandQueue());
+   Crowbar sender(conf.GetCommandQueue());
    ASSERT_TRUE(sender.Wield());
    std::string requestMsg("ABC123");
    sender.Swing(requestMsg);
@@ -471,7 +471,7 @@ TEST_F(CommandProcessorTests, CommandSendReceive) {
    EXPECT_TRUE(testProcessor.Initialize());
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_UPGRADE, MockUpgradeCommand::Construct);
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-   Crowbar sender(conf.getCommandQueue());
+   Crowbar sender(conf.GetCommandQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::CommandRequest requestMsg;
    requestMsg.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);

@@ -126,7 +126,7 @@ TEST_F(ConfProcessorTests, DISABLED_NtpMessagePassedBetweenMasterAndSlave) {
    confThread.Start();
    Conf conf(confThread.GetConf());
    MockConfSlave testSlave;
-   testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   testSlave.mBroadcastQueueName = conf.GetBroadcastQueue();
    testSlave.Start();
    sleep(1);
 
@@ -140,7 +140,7 @@ TEST_F(ConfProcessorTests, DISABLED_NtpMessagePassedBetweenMasterAndSlave) {
 
    encodedMessage.push_back(updateType.SerializeAsString());
    encodedMessage.push_back(confMsg.SerializeAsString());
-   Crowbar confSender(conf.getConfChangeQueue());
+   Crowbar confSender(conf.GetConfChangeQueue());
    EXPECT_TRUE(confSender.Wield());
    EXPECT_TRUE(confSender.Flurry(encodedMessage));
    EXPECT_TRUE(confSender.BlockForKill(encodedMessage));

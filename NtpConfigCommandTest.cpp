@@ -365,7 +365,7 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
    
    testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_NTP_CONFIG, MockNtpConfigCommand::Construct);
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-   Crowbar sender(conf.getCommandQueue());
+   Crowbar sender(conf.GetCommandQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::CommandRequest requestMsg;
    requestMsg.set_type(protoMsg::CommandRequest_CommandType_NTP_CONFIG);   

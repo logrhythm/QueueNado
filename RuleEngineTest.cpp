@@ -2243,7 +2243,7 @@ TEST_F(RuleEngineTest, SyslogSendingQueue) {
    std::string testNoCrash("Call SendToSyslogReporter with uninitialized queue");
    re.SendToSyslogReporter(testNoCrash);
    EXPECT_TRUE(re.InitializeSyslogSendQueue());
-   std::string queueName = conf.GetConf().getSyslogQueue();
+   std::string queueName = conf.GetConf().GetSyslogQueue();
    Vampire rcvQueue(queueName);
    rcvQueue.SetHighWater(100);
    rcvQueue.SetIOThreads(1);
