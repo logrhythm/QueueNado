@@ -815,159 +815,70 @@ TEST_F(ConfProcessorTests, DISABLED_NetInterfaceMessagePassedBetweenMasterAndSla
 //#endif
 //}
 
-TEST_F(ConfProcessorTests, ProcessConfMsg) {
+TEST_F(ConfProcessorTests, ValidateBasicMessageSize) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
 
    protoMsg::BaseConf baseConfig;
    std::vector<std::string> shots;
-   MockConf conf;
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-
-
-   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots));
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots));
-
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots));
-
-   shots.clear();
-   baseConfig.set_qosmostcpreassemblyenabled("false");
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots));
-
-   shots.clear();
+   ASSERT_FALSE(testSlave.MessageHasPayload(shots));
    baseConfig.set_qosmosipdefragmentationenabled("false");
    shots.push_back(configTypeMessage.SerializeAsString());
+   ASSERT_FALSE(testSlave.MessageHasPayload(shots));
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots));
+   ASSERT_TRUE(testSlave.MessageHasPayload(shots));
 }
 #ifdef LR_DEBUG
-
+TEST_F(ConfProcessorTests, ProcessBaseMsg) {
+   MockConfSlave testSlave;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
+   ASSERT_TRUE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
+}
 TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
-
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
-
-   protoMsg::QosmosConf baseConfig;
-   std::vector<std::string> shots;
-   MockConf conf;
-   conf.InsertFakeQosmosProtocol("test");
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots));
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots));
-
-   shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_QOSMOS);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots));
-
-   shots.clear();
-   protoMsg::QosmosConf::Protocol* testProto = baseConfig.add_qosmosprotocol();
-   testProto->set_protocolenabled(true);
-   testProto->set_protocolname("test");
-   testProto->set_protocolfamily("Test");
-   testProto->set_protocollongname("This is for Testing");
-   ASSERT_EQ("test", baseConfig.qosmosprotocol(0).protocolname());
-   ASSERT_TRUE(baseConfig.qosmosprotocol(0).protocolenabled());
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessQosmosMsg(configTypeMessage, shots));
-   protoMsg::QosmosConf gotConf = conf.GetQosmosConfigInfo();
-
+   ASSERT_TRUE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
 }
-
 TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
-
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
-
-   protoMsg::SyslogConf baseConfig;
-   std::vector<std::string> shots;
-   MockConf conf;
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
-
-   shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
-
-   shots.clear();
-   baseConfig.set_siemlogging("true");
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
-
-   shots.clear();
-   baseConfig.set_siemlogging("false");
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
+   ASSERT_TRUE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
 }
-
 TEST_F(ConfProcessorTests, ProcessNetInterfaceMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
-
-   protoMsg::NetInterface NetInterfaceMsg;
-   std::vector<std::string> shots;
-   MockConf conf;
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(NetInterfaceMsg.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessNetInterfaceMsg(configTypeMessage, shots));
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(NetInterfaceMsg.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessNetInterfaceMsg(configTypeMessage, shots));
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(NetInterfaceMsg.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessNetInterfaceMsg(configTypeMessage, shots));
-
+   configTypeMessage.set_type(protoMsg::ConfType_Type_NETINTERFACE);
+   ASSERT_TRUE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
 }
-
+TEST_F(ConfProcessorTests, ProcessNTPMsg) {
+   MockConfSlave testSlave;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_NTP);
+   ASSERT_TRUE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
+}
+TEST_F(ConfProcessorTests, ProcessRestartMsg_MoreToDo) {
+   MockConfSlave testSlave;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
+   ASSERT_FALSE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
+}
+TEST_F(ConfProcessorTests, ProcessShutdownMsg_MoreToDo) {
+   MockConfSlave testSlave;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SHUTDOWN);
+   ASSERT_FALSE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
+}
 TEST_F(ConfProcessorTests, ProcessRestartMsg) {
 
    MockConfSlave testSlave;
@@ -994,6 +905,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
 
    shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
+   ASSERT_FALSE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(testSlave.mAppClosed);
@@ -1020,7 +932,9 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
 #endif
 
 TEST_F(ConfProcessorTests, testSingletonInstantiation) {
-   ConfMaster& confThread = ConfMaster::Instance();
+   ConfMaster& confMaster = ConfMaster::Instance();
+   ConfMaster& confMaster2 = ConfMaster::Instance();
+   EXPECT_EQ(&confMaster,&confMaster2);
    //   confThread.Stop();
 }
 
