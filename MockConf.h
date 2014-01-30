@@ -323,7 +323,12 @@ public:
    void ReadQosmosFromStringStream(std::stringstream& stream) {
       return Conf::ReadQosmosFromStringStream(stream);
    }
-
+   ConfMap GetProtoMap() {
+      return mConfMap;
+   }
+   void ClearProtoMap() {
+      mConfMap.clear();
+   }
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;
