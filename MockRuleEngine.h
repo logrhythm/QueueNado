@@ -157,6 +157,12 @@ namespace networkMonitor {
       bool InitializeSyslogSendQueue() {
          return RuleEngine::InitializeSyslogSendQueue();
       }
+      
+      bool ApplicationNameIsTooLarge(size_t cutOffLimit, const std::string& applicationName) LR_OVERRIDE {
+         return RuleEngine::ApplicationNameIsTooLarge(cutOffLimit, applicationName);
+      }
+      
+   
 
       bool mSiemMode;
       unsigned int mMaxLineLength;

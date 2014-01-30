@@ -152,6 +152,20 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
 }
 
 
+TEST_F(RuleEngineTest, ApplicationNameIsTooLarge) {
+#if defined(LR_DEBUG)
+   MockRuleEngine dm(conf, 0);
+   std::string tooLarge{"Hello"};
+   size_t cutOffSize = tooLarge.size();
+   EXPECT_FALSE(dm.ApplicationNameIsTooLarge(cutOffSize+2, tooLarge)); // not too large
+   EXPECT_TRUE(dm.ApplicationNameIsTooLarge(cutOffSize+1, tooLarge));
+   EXPECT_TRUE(dm.ApplicationNameIsTooLarge(cutOffSize, tooLarge));
+   EXPECT_TRUE(dm.ApplicationNameIsTooLarge(cutOffSize-1, tooLarge));
+   EXPECT_TRUE(dm.ApplicationNameIsTooLarge(cutOffSize-2, tooLarge));
+#endif
+}
+
+
 // Test to make sure that RuleEngine::GetNonNormalizedSiemSyslogMessages does not 
 // hang for crazy cut off maximum size message
 TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest__NoHang) {
