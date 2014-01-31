@@ -42,8 +42,8 @@ public:
    LR_VIRTUAL int RunExecVE(const char* command, char** arguments, char** environment){
       return ForkerPipe::RunExecVE(command, arguments, environment);
    }
-   LR_VIRTUAL bool IsChildLiving ( pid_t child ){
-      return ForkerPipe::IsChildLiving (child );
+   LR_VIRTUAL bool IsChildLiving ( pid_t child, int& returnCode ){
+      return ForkerPipe::IsChildLiving (child,returnCode );
    }
    LR_VIRTUAL std::string ReadFromReadyPipe(int pipe){
       return ForkerPipe::ReadFromReadyPipe(pipe);
