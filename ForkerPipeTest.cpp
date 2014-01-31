@@ -158,11 +158,12 @@ TEST_F(ForkerPipeTest, GetResultOfSentCommand) {
    , std::ref(serverPipe), std::ref(requestProto));
    
    int returnCode;
-   bool gotReply = clientPipe.SendCommand("testCommand", args, result, id,true,returnCode);
+   bool gotReply = clientPipe.SendCommand("testCommand", args, result, id,returnCode,true);
    serverThread.join();
    EXPECT_FALSE(gotReply);
    
    std::thread clientThread([](MockForkerPipe& clientPipe, std::string& id, std::string& result, bool& gotReply) {
+      int returnCode;
       while(!(gotReply=clientPipe.GetResultOfSentCommand(id,result,returnCode)));
    }
    , std::ref(clientPipe), std::ref(id), std::ref(result), std::ref(gotReply));
@@ -205,7 +206,7 @@ TEST_F(ForkerPipeTest, GetCommandSendCommand) {
    }
    , std::ref(serverPipe), std::ref(requestProto));
    int returnCode;
-   bool gotReply = clientPipe.SendCommand("testCommand", args, result, id, true,returnCode);
+   bool gotReply = clientPipe.SendCommand("testCommand", args, result, id,returnCode, true);
    while (!(gotReply=clientPipe.GetResultOfSentCommand(id,result,returnCode)));
    EXPECT_FALSE(id.empty());
    serverThread.join();
