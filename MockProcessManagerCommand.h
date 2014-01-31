@@ -57,7 +57,7 @@ public:
       mResult = result;
    }
 
-   protoMsg::ProcessReply RunProcess(const std::string& execPath, const std::string& args) {
+   protoMsg::ProcessReply RunProcess(const std::string& execPath, const std::string& args, bool expectResponse) LR_OVERRIDE {
       ++mCountNumberOfRuns;
       LOG(INFO) << "Executing: " << execPath << " " << args;
              
