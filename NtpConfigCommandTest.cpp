@@ -12,7 +12,7 @@
 #include <sys/prctl.h>
 #include <memory>
 #include <boost/lexical_cast.hpp>
-
+#include "ConfInvalidException.h"
 
 TEST_F(NtpConfigCommandTest, DoesItCompileAndLink) {
    MockNtpConfigCommand doIt(cmd, autoManagedManager);
@@ -382,4 +382,276 @@ TEST_F(NtpConfigCommandTest, DISABLED__REAL__NtpCommandSendReceive) {
    raise(SIGTERM);
 }
 
+   /*This test asserts the following conditional logic in validating NTP conf:
+    * 
+    *                       BACKUP SERVER
+    *                 Empty     Valid     Invalid
+    *  M           +---------+---------+---------+
+    *  A     Empty |  Throw  |  Throw  |  Throw  |
+    *  S           +---------+---------+---------+
+    *  T     Valid | No Throw| No Throw|  Throw  |
+    *  E           +---------+---------+---------+
+    *  R   Invalid |  Throw  |  Throw  |  Throw  |
+    *              +---------+---------+---------+
+    */
+TEST_F(NtpConfigCommandTest, ValidateNTPMessageConditionalLogic) {
+   Ntp ntp;
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an empty master server and empty backup server is invalid:
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an empty master server and valid backup server is invalid:
+   ntp.set_backup_server("test.com");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an empty master server and invalid backup server is invalid:
+   ntp.set_backup_server("test.com; /bin/evil");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that a valid master server and empty backup server is valid:
+   ntp.set_master_server("test.com");
+   EXPECT_NO_THROW(ntp.valid());
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that a valid master server and valid backup server is valid:
+   ntp.set_master_server("test.com");
+   ntp.set_backup_server("test2.com");
+   EXPECT_NO_THROW(ntp.valid());
+   ntp.clear_master_server();
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that a valid master server and invalid backup server is invalid:
+   ntp.set_master_server("test.com");
+   ntp.set_backup_server("test2.com; /bin/evil");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an invalid master server and empty backup server is invalid:
+   ntp.set_master_server("test.com; /bin/evil");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an invalid master server and valid backup server is invalid:
+   ntp.set_master_server("test.com; /bin/evil");
+   ntp.set_backup_server("test2.com");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Check that an invalid master server and invalid backup server is invalid:
+   ntp.set_master_server("test.com; /bin/evil");
+   ntp.set_backup_server("test2.com; /bin/evil");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+}
 
+TEST_F(NtpConfigCommandTest, ValidateNTPMessageMasterServer) {
+   Ntp ntp;
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Expect valid master server:
+   ntp.set_master_server("test.com");
+   EXPECT_NO_THROW(ntp.valid());
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Expect invalid master server from size <1 and >255:
+   ntp.set_master_server("");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   std::string str(256, 'A');
+   ntp.set_master_server(str);
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Expect invalid master server with special chars: 
+   ntp.set_master_server("test;test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_server(";testtest");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_server("testtest;");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_server("test|test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_server("test>test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_server("test/test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_server("test\\test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   
+   ntp.set_master_server("\\");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_server("/");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_server("|");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+   ntp.set_master_server(";");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_master_server();
+   ASSERT_FALSE(ntp.has_master_server());
+}
+
+TEST_F(NtpConfigCommandTest, ValidateNTPMessageBackupServer) {
+   Ntp ntp;
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_master_server("test.com");
+   
+   //Expect valid backup server:
+   ntp.set_backup_server("test.com");
+   EXPECT_NO_THROW(ntp.valid());
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Expect invalid backup server from size <1 and >255:
+   ntp.set_backup_server("");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   std::string str(256, 'A');
+   ntp.set_backup_server(str);
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   //Expect invalid backup server with special chars: 
+   ntp.set_backup_server("test;test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server(";testtest");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("testtest;");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("test|test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("test>test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("test/test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("test\\test");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   
+   ntp.set_backup_server("\\");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("/");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server("|");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+   ntp.set_backup_server(";");
+   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   ntp.clear_backup_server();
+   ASSERT_FALSE(ntp.has_backup_server());
+}
+
+TEST_F(NtpConfigCommandTest, ValidateNTPMessageThrowWhats) {
+   Ntp ntp;
+   ASSERT_FALSE(ntp.has_master_server());
+   ASSERT_FALSE(ntp.has_backup_server());
+   int counter = 0;
+   
+   std::string a{ "Ntp master server conf parameter is empty." };
+   std::string b{ "Ntp master server either uses invalid characters or is more than 255 characters long." };
+   std::string c{ "Ntp backup server either uses invalid characters or is more than 255 characters long." };
+   
+   //Check message for empty master server:
+   try {
+      ntp.valid();
+   } catch (const ConfInvalidException& e) {
+      EXPECT_EQ(a, e.what());
+      counter++;
+   };
+   
+   //Check message for invalid master server:
+   try {
+      ntp.set_master_server("test.com; /bin/evil");
+      ntp.valid();
+   } catch (const ConfInvalidException& e) {
+      EXPECT_EQ(b, e.what());
+      counter++;
+   }
+   ntp.clear_master_server();
+   
+   //Check message for invalid backup server:
+   try {
+      ntp.set_master_server("test.com");
+      ntp.set_backup_server("test2.com; /bin/evil");
+      ntp.valid();
+   } catch (const ConfInvalidException& e) {
+      EXPECT_EQ(c, e.what());
+      counter++;
+   } 
+   
+   EXPECT_EQ(3, counter);
+   
+}
