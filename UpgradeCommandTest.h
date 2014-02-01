@@ -23,4 +23,7 @@ public:
    : UpgradeCommand(request, processManager) {  }
    
    virtual ~UpgradeCommandTest() { }
+   void SetBadPassPhraseFilePath() {
+      mUploadDir = "/doesNot/Exist";
+   }
 };

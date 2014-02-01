@@ -546,7 +546,7 @@ TEST_F(CommandProcessorTests, DynamicUpgradeCommandExecSuccess) {
 #endif
 }
 
-TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeCreatePassPhrase) {
+TEST_F(CommandProcessorTests, UpgradeCommandFailCreatePassPhrase) {
 #ifdef LR_DEBUG
    const MockConf conf;
    MockProcessManagerCommand processManager{conf};
@@ -557,36 +557,17 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeCreatePassPhrase) {
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
    UpgradeCommandTest upg(cmd, processManager);
+   upg.SetBadPassPhraseFilePath();
    bool exception = false;
    try {
       upg.CreatePassPhraseFile();
-   } catch (CommandFailedException e) {
+   } catch (CommandFailedException& e) {
       exception = true;
    }
    ASSERT_TRUE(exception);
 #endif 
 }
 
-TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCreatePassPhrase) {
-#ifdef LR_DEBUG
-   const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
-   processManager.SetSuccess(false);
-   processManager.SetReturnCode(0);
-   processManager.SetResult("Failed!");
-   protoMsg::CommandRequest cmd;
-   cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
-   cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager);
-   bool exception = false;
-   try {
-      upg.CreatePassPhraseFile();
-   } catch (CommandFailedException e) {
-      exception = true;
-   }
-   ASSERT_TRUE(exception);
-#endif
-}
 
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeDecryptFile) {
 #ifdef LR_DEBUG
@@ -1322,7 +1303,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile)
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/cat", processManager.getRunCommand());
+   ASSERT_EQ("/bin/sh", processManager.getRunCommand());
    ASSERT_EQ("\"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
            processManager.getRunArgs());
@@ -1349,7 +1330,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/cat", processManager.getRunCommand());
+   ASSERT_EQ("/bin/sh", processManager.getRunCommand());
    ASSERT_EQ("\"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
            processManager.getRunArgs());
