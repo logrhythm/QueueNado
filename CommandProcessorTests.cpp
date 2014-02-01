@@ -1801,12 +1801,11 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
 
+      EXPECT_NE(std::string::npos, whatItWas.find("DNS1=192.168.1.10"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -1887,7 +1886,6 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
       std::string whatItWas(e.what());
 
       EXPECT_NE(std::string::npos, whatItWas.find("DNS1=192.168.1.10"));
-      EXPECT_NE(std::string::npos, whatItWas.find("DNS2=192.168.1.11"));
       EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
@@ -1915,7 +1913,6 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
       EXPECT_NE(std::string::npos, whatItWas.find("DNS1=192.168.1.10"));
-      EXPECT_NE(std::string::npos, whatItWas.find("DNS2=192.168.1.11"));
       EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
@@ -1944,7 +1941,6 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
 
-      EXPECT_NE(std::string::npos, whatItWas.find("DNS1=192.168.1.10"));
       EXPECT_NE(std::string::npos, whatItWas.find("DNS2=192.168.1.11"));
       EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
@@ -1974,7 +1970,6 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
 
-      EXPECT_NE(std::string::npos, whatItWas.find("DNS1=192.168.1.10"));
       EXPECT_NE(std::string::npos, whatItWas.find("DNS2=192.168.1.11"));
       EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
@@ -2247,13 +2242,12 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
       ncct.AddOnBoot();
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
-
+      EXPECT_NE(std::string::npos, whatItWas.find("ONBOOT=yes"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"ONBOOT=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
+
 
 }
 
@@ -2275,13 +2269,11 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
       ncct.AddOnBoot();
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
-
+      EXPECT_NE(std::string::npos, whatItWas.find("ONBOOT=yes"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"ONBOOT=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -2304,13 +2296,11 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled)
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
 
+      EXPECT_NE(std::string::npos, whatItWas.find("NM_CONTROLLED=no"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"NM_CONTROLLED=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
-
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
@@ -2332,12 +2322,11 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
 
+      EXPECT_NE(std::string::npos, whatItWas.find("NM_CONTROLLED=no"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"NM_CONTROLLED=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -2361,12 +2350,12 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
 
+
+      EXPECT_NE(std::string::npos, whatItWas.find("PEERDNS=no"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -2391,12 +2380,11 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDoma
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
 
+      EXPECT_NE(std::string::npos, whatItWas.find("PEERDNS=no"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -2421,13 +2409,11 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptySt
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
 
+      EXPECT_NE(std::string::npos, whatItWas.find("PEERDNS=no"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
-
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStrings) {
@@ -2452,12 +2438,11 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStri
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
 
+      EXPECT_NE(std::string::npos, whatItWas.find("PEERDNS=no"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"PEERDNS=no\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -2484,12 +2469,11 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
    } catch (CommandFailedException& e) {
       std::string whatItWas(e.what());
 
+      EXPECT_NE(std::string::npos, whatItWas.find("PEERDNS=yes"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"PEERDNS=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 #endif
 }
