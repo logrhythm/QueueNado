@@ -2237,6 +2237,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddOnBoot();
@@ -2264,6 +2265,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddOnBoot();
@@ -2290,6 +2292,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled)
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddNmControlled();
@@ -2316,6 +2319,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddNmControlled();
@@ -2344,6 +2348,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
    // No DNS Servers or Search Domains set, which causes PEERDNS=no on output
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddPeerDns();
@@ -2374,6 +2379,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDoma
    // DNS Server is empty string and no Search Domains set, which causes PEERDNS=no on output
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddPeerDns();
@@ -2403,6 +2409,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptySt
    // No DNS Server and Search Domains is empty string, which causes PEERDNS=no on output
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddPeerDns();
@@ -2432,6 +2439,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStri
    // DNS Server and Search Domains are both empty strings, which causes PEERDNS=no on output
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddPeerDns();
@@ -2463,6 +2471,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
    interfaceConfig.set_searchdomains("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddPeerDns();
