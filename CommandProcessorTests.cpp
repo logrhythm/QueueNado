@@ -39,7 +39,7 @@
 TEST_F(CommandProcessorTests, PseudoShutdown) {
 #ifdef LR_DEBUG
 
-MockCommandProcessor* testProcessor;
+   MockCommandProcessor* testProcessor;
    {
       MockConf conf;
       conf.mCommandQueue = "tcp://127.0.0.1:";
@@ -60,7 +60,7 @@ MockCommandProcessor* testProcessor;
       protoMsg::ShutdownMsg shutdown;
       shutdown.set_now(true);
       requestMsg.set_stringargone(shutdown.SerializeAsString());
-      
+
       sender.Swing(requestMsg.SerializeAsString());
       std::string reply;
       sender.BlockForKill(reply);
@@ -71,7 +71,7 @@ MockCommandProcessor* testProcessor;
       EXPECT_TRUE(MockShutdownCommand::wasShutdownCalled);
    }
 
-   
+
 #endif
 }
 
@@ -408,23 +408,10 @@ TEST_F(CommandProcessorTests, CommandStatusFailureTests) {
 }
 #endif
 
-TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
-#ifdef LR_DEBUG
-
-   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
-   ASSERT_DEATH({MockConf conf;
-      conf.mCommandQueue = "invalid";
-       CommandProcessor testProcessor(conf);
-      EXPECT_FALSE(testProcessor.Initialize());
-      std::this_thread::sleep_for(std::chrono::seconds(1));}, "Cannot start command reader listener queue");
-
-#endif
-}
-
 TEST_F(CommandProcessorTests, ConstructAndInitialize) {
 #ifdef LR_DEBUG
 
-    CommandProcessor testProcessor(conf);
+   CommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
 
 #endif
@@ -448,7 +435,7 @@ TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
 TEST_F(CommandProcessorTests, InvalidCommandSendReceive) {
 #ifdef LR_DEBUG
 
-    CommandProcessor testProcessor(conf);
+   CommandProcessor testProcessor(conf);
    EXPECT_TRUE(testProcessor.Initialize());
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
    Crowbar sender(conf.GetCommandQueue());
@@ -568,7 +555,6 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailCreatePassPhrase) {
    ASSERT_TRUE(exception);
 #endif 
 }
-
 
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeDecryptFile) {
 #ifdef LR_DEBUG
@@ -783,6 +769,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCleanUploadDir) {
 
 
 //REBOOT COMMANDS
+
 TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
@@ -831,8 +818,6 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
    ASSERT_FALSE(exception);
 #endif
 }
-
-
 
 TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
 #ifdef LR_DEBUG
@@ -915,7 +900,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_UDP) {
    bool exception = false;
    try {
       reboot.UpdateSyslog(conf);
-   } catch (CommandFailedException e) {
+   } catch (CommandFailedException& e) {
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -1017,7 +1002,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailSuccessRestart) {
    bool exception = false;
    try {
       reboot.Restart();
-   } catch (CommandFailedException e) {
+   } catch (CommandFailedException& e) {
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -1305,7 +1290,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile)
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ("/bin/sh", processManager.getRunCommand());
-   
+
    ASSERT_EQ("/bin/cat \"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
            FileIO::ReadAsciiFileContent(processManager.getRunArgs()).result);
@@ -1449,7 +1434,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
 
 }
 
-TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
+TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddBootProto) {
    const MockConf conf;
    MockProcessManagerCommand processManager{conf};
    processManager.SetSuccess(true);
@@ -1462,42 +1447,17 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddBootProto) {
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddBootProto("dhcp");
-   } catch (...) {
+   } catch (CommandFailedException& e) {
       exception = true;
+      std::string whatItWas(e.what());
+      EXPECT_NE(std::string::npos, whatItWas.find("BOOTPROTO=dhcp"));
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"BOOTPROTO=dhcp\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
-}
-
-TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddBootProto) {
-   const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
-   processManager.SetSuccess(false);
-   processManager.SetReturnCode(0);
-   processManager.SetResult("Failed!");
-   protoMsg::CommandRequest cmd;
-   cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
-   protoMsg::NetInterface interfaceConfig;
-   interfaceConfig.set_method(protoMsg::STATICIP);
-   interfaceConfig.set_interface("ethx");
-   cmd.set_stringargone(interfaceConfig.SerializeAsString());
-   NetworkConfigCommandTest ncct(cmd, processManager);
-   bool exception = false;
-   try {
-      ncct.AddBootProto("none");
-   } catch (...) {
-      exception = true;
-   }
-   ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"BOOTPROTO=none\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -1514,15 +1474,14 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddIpAddr();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("", processManager.getRunCommand());
-   ASSERT_EQ("", processManager.getRunArgs());
 
 }
 
@@ -1540,15 +1499,14 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
    interfaceConfig.set_ipaddress("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddIpAddr();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("", processManager.getRunCommand());
-   ASSERT_EQ("", processManager.getRunArgs());
 
 }
 
@@ -1566,17 +1524,18 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
    interfaceConfig.set_ipaddress("192.168.1.1");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddIpAddr();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
       exception = true;
+
+      std::string whatItWas(e.what());
+      EXPECT_NE(std::string::npos, whatItWas.find("IPADDR=192.168.1.1")) << whatItWas;
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()))<< whatItWas;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"IPADDR=192.168.1.1\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
-
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
@@ -1593,16 +1552,17 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
    interfaceConfig.set_ipaddress("192.168.1.1");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddIpAddr();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
       exception = true;
+      std::string whatItWas(e.what());
+
+      EXPECT_NE(std::string::npos, whatItWas.find("IPADDR=192.168.1.1"))<< whatItWas;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"IPADDR=192.168.1.1\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -1619,15 +1579,15 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddNetmask();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("", processManager.getRunCommand());
-   ASSERT_EQ("", processManager.getRunArgs());
 
 }
 
@@ -1645,15 +1605,15 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
    interfaceConfig.set_netmask("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddNetmask();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("", processManager.getRunCommand());
-   ASSERT_EQ("", processManager.getRunArgs());
 
 }
 
@@ -1671,17 +1631,17 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
    interfaceConfig.set_netmask("255.255.255.0");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddNetmask();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+      EXPECT_NE(std::string::npos, whatItWas.find("NETMASK=255.255.255.0"))<< whatItWas;
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()))<< whatItWas;
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"NETMASK=255.255.255.0\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
-
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
@@ -1698,17 +1658,17 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
    interfaceConfig.set_netmask("255.255.255.0");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddNetmask();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+      EXPECT_NE(std::string::npos, whatItWas.find("NETMASK=255.255.255.0"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"NETMASK=255.255.255.0\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
-
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
@@ -1724,15 +1684,15 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
    interfaceConfig.set_interface("ethx");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddGateway();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
       exception = true;
    }
    ASSERT_FALSE(exception);
-   ASSERT_EQ("", processManager.getRunCommand());
-   ASSERT_EQ("", processManager.getRunArgs());
 
 }
 
@@ -1750,17 +1710,18 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
    interfaceConfig.set_gateway("192.168.1.100");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddGateway();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+      EXPECT_NE(std::string::npos, whatItWas.find("GATEWAY=192.168.1.100"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
+
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"GATEWAY=192.168.1.100\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
-
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
@@ -1777,16 +1738,18 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
    interfaceConfig.set_gateway("192.168.1.100");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddGateway();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
+      EXPECT_NE(std::string::npos, whatItWas.find("GATEWAY=192.168.1.100"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"GATEWAY=192.168.1.100\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -1804,15 +1767,16 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
    interfaceConfig.set_gateway("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddGateway();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_FALSE(exception);
-   ASSERT_EQ("", processManager.getRunCommand());
-   ASSERT_EQ("", processManager.getRunArgs());
 
 }
 
@@ -1830,10 +1794,13 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
    interfaceConfig.set_dnsservers("192.168.1.10");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddDnsServers();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -1857,16 +1824,17 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddDnsServers();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+      EXPECT_NE(std::string::npos, whatItWas.find("DNS1=192.168.1.10"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -1884,15 +1852,16 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
    interfaceConfig.set_dnsservers("");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddDnsServers();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_FALSE(exception);
-   ASSERT_EQ("", processManager.getRunCommand());
-   ASSERT_EQ("", processManager.getRunArgs());
 
 }
 
@@ -1910,17 +1879,19 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddDns1();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
+      EXPECT_NE(std::string::npos, whatItWas.find("DNS1=192.168.1.10"));
+      EXPECT_NE(std::string::npos, whatItWas.find("DNS2=192.168.1.11"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
-
 }
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
@@ -1937,16 +1908,18 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
    interfaceConfig.set_dnsservers("192.168.1.10");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddDns1();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+      EXPECT_NE(std::string::npos, whatItWas.find("DNS1=192.168.1.10"));
+      EXPECT_NE(std::string::npos, whatItWas.find("DNS2=192.168.1.11"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"DNS1=192.168.1.10\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -1964,16 +1937,19 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddDns2();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
+      EXPECT_NE(std::string::npos, whatItWas.find("DNS1=192.168.1.10"));
+      EXPECT_NE(std::string::npos, whatItWas.find("DNS2=192.168.1.11"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"DNS2=192.168.1.11\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -1991,16 +1967,19 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
    interfaceConfig.set_dnsservers("192.168.1.10,192.168.1.11");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddDns2();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
+      EXPECT_NE(std::string::npos, whatItWas.find("DNS1=192.168.1.10"));
+      EXPECT_NE(std::string::npos, whatItWas.find("DNS2=192.168.1.11"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"DNS2=192.168.1.11\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -2018,16 +1997,18 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDomain) {
    interfaceConfig.set_searchdomains("schq.secious.com");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddDomain();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
+      EXPECT_NE(std::string::npos, whatItWas.find("DOMAIN=schq.secious.com"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"DOMAIN=schq.secious.com\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -2045,16 +2026,17 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
    interfaceConfig.set_searchdomains("schq.secious.com");
    cmd.set_stringargone(interfaceConfig.SerializeAsString());
    NetworkConfigCommandTest ncct(cmd, processManager);
+   ncct.ManglemIfcfgFile();
    bool exception = false;
    try {
       ncct.AddDomain();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+      EXPECT_NE(std::string::npos, whatItWas.find("DOMAIN=schq.secious.com"));
+      EXPECT_NE(std::string::npos, whatItWas.find(ncct.GetIfcfgFile()));
       exception = true;
    }
    ASSERT_TRUE(exception);
-   ASSERT_EQ("/bin/echo", processManager.getRunCommand());
-   ASSERT_EQ("\"DOMAIN=schq.secious.com\" >> /etc/sysconfig/network-scripts/ifcfg-ethx",
-           processManager.getRunArgs());
 
 }
 
@@ -2075,12 +2057,12 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDomainEmptyString) {
    bool exception = false;
    try {
       ncct.AddDomain();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_FALSE(exception);
-   ASSERT_EQ("", processManager.getRunCommand());
-   ASSERT_EQ("", processManager.getRunArgs());
 
 }
 
@@ -2100,7 +2082,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceDown)
    bool exception = false;
    try {
       ncct.InterfaceDown();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_FALSE(exception);
@@ -2125,7 +2109,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
    bool exception = false;
    try {
       ncct.InterfaceDown();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    EXPECT_EQ(processManager.mCountNumberOfRuns, 3); // 3x ifup
@@ -2151,7 +2137,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
    bool exception = false;
    try {
       ncct.InterfaceUp();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    EXPECT_EQ(processManager.mCountNumberOfRuns, 3); // 3x  ifup
@@ -2176,7 +2164,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
    bool exception = false;
    try {
       ncct.InterfaceUp();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    EXPECT_EQ(processManager.mCountNumberOfRuns, 3); // 3x ifup
@@ -2201,7 +2191,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandStaticNoExtraRetriesOnSuccessf
    bool exception = false;
    try {
       ncct.InterfaceUp();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    EXPECT_EQ(processManager.mCountNumberOfRuns, 1); // 1 ifup
@@ -2226,7 +2218,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDhcpNoExtraRetriesOnSuccessful
    bool exception = false;
    try {
       ncct.InterfaceUp();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    EXPECT_EQ(processManager.mCountNumberOfRuns, 1); // 1 ifup
@@ -2251,7 +2245,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
    bool exception = false;
    try {
       ncct.AddOnBoot();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -2277,7 +2273,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
    bool exception = false;
    try {
       ncct.AddOnBoot();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -2303,7 +2301,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled)
    bool exception = false;
    try {
       ncct.AddNmControlled();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -2329,7 +2329,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
    bool exception = false;
    try {
       ncct.AddNmControlled();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -2356,7 +2358,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
    bool exception = false;
    try {
       ncct.AddPeerDns();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -2384,7 +2388,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDoma
    bool exception = false;
    try {
       ncct.AddPeerDns();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -2412,7 +2418,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptySt
    bool exception = false;
    try {
       ncct.AddPeerDns();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -2441,7 +2449,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStri
    bool exception = false;
    try {
       ncct.AddPeerDns();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -2471,7 +2481,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
    bool exception = false;
    try {
       ncct.AddPeerDns();
-   } catch (...) {
+   } catch (CommandFailedException& e) {
+      std::string whatItWas(e.what());
+
       exception = true;
    }
    ASSERT_TRUE(exception);
@@ -2482,3 +2494,15 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
 #endif
 }
 
+TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
+#ifdef LR_DEBUG
+
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+   ASSERT_DEATH({MockConf conf;
+      conf.mCommandQueue = "invalid";
+      CommandProcessor testProcessor(conf);
+      EXPECT_FALSE(testProcessor.Initialize());
+      std::this_thread::sleep_for(std::chrono::seconds(1));}, "Cannot start command reader listener queue");
+
+#endif
+}

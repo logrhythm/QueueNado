@@ -41,7 +41,12 @@ public:
    void setStatFail() {
       mStatSuccess = false;
    }
-
+   void ManglemIfcfgFile() {
+      mIfcfgFile = "/thisPath/Does/Not/exist";
+   }
+   std::string GetIfcfgFile() {
+      return mIfcfgFile;
+   }
    int stat(const char *path, struct stat *buf) {
       if (mStatSuccess) {
          return 0;
