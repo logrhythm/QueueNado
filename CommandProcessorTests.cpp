@@ -9,7 +9,6 @@
 #include "libconf/Conf.h"
 #include "boost/lexical_cast.hpp"
 #include "CommandReply.pb.h"
-#include "MockCommandProcessor.h"
 #include "MockUpgradeCommand.h"
 #include "CommandRequest.pb.h"
 #include "MockProcessManagerCommand.h"
@@ -25,6 +24,7 @@
 #include "NetInterfaceMsg.pb.h"
 #include "ShutdownMsg.pb.h"
 #include "MockTestCommand.h"
+
 
 #ifdef LR_DEBUG
 //
@@ -74,6 +74,9 @@ MockCommandProcessor* testProcessor;
 #endif
 }
 
+
+// Starts an Async command, Gets its running status, kills the command
+// Tries to get the running status which will fail since the command is removed
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) {
 
    MockCommandProcessor testProcessor(conf);
@@ -85,7 +88,7 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) 
    protoMsg::CommandRequest requestMsg;
    unsigned int count(0);
    std::string reply;
-   protoMsg::CommandReply realReply;
+
    protoMsg::CommandReply replyMsg;
    requestMsg.set_type(protoMsg::CommandRequest_CommandType_TEST);
    requestMsg.set_async(true);
@@ -95,20 +98,39 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusDontGetStatus) 
 
    replyMsg.ParseFromString(reply);
    EXPECT_TRUE(replyMsg.success());
-   count = 0;
-
+   // Expecing UUID
+   const size_t sizeOfUUID = 36;
+   const std::string uuid = replyMsg.result();
+   EXPECT_NE(uuid, "Command running") << " : " << uuid;
+   EXPECT_EQ(uuid.size(), sizeOfUUID) << uuid;
+   
+   // Next request for STATUS should receive "Command running"
    requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
    requestMsg.set_async(false);
-   requestMsg.set_stringargone(replyMsg.result());
-   testProcessor.SetTimeout(0);
-   std::this_thread::sleep_for(std::chrono::milliseconds(2001));
+   requestMsg.set_stringargone(uuid);
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
    EXPECT_FALSE(reply.empty());
+   protoMsg::CommandReply intermediateReply;
+   intermediateReply.ParseFromString(reply);
+   EXPECT_FALSE(intermediateReply.success());
+   EXPECT_EQ(intermediateReply.result(), "Command running") << " : " << intermediateReply.result();
+
+   
+   // Trigger a "KillCommandsThatWillNeverFinish" before retrieving the command
+   testProcessor.SetTimeout(0);
+   WaitForKillCommandsThatWillNeverFinish(testProcessor);
+
+   requestMsg.set_type(::protoMsg::CommandRequest_CommandType_COMMAND_STATUS);
+   requestMsg.set_async(false);
+   requestMsg.set_stringargone(uuid);
+   sender.Swing(requestMsg.SerializeAsString());
+   sender.BlockForKill(reply);
+   EXPECT_FALSE(reply.empty());
+   protoMsg::CommandReply realReply;
    realReply.ParseFromString(reply);
    EXPECT_FALSE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Command Not Found") << " : " << realReply.result();
-
+   EXPECT_EQ(realReply.result(), "Command Not Found") << " : " << realReply.result();
 }
 
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
@@ -152,7 +174,11 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusForcedKill) {
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
    } while (!zctx_interrupted && count++ < 100);
+      
+   // Trigger a "KillCommandsThatWillNeverFinish" before retrieving the command
    testProcessor.SetTimeout(1);
+   WaitForKillCommandsThatWillNeverFinish(testProcessor);
+   
    std::this_thread::sleep_for(std::chrono::milliseconds(2001));
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
@@ -220,7 +246,7 @@ TEST_F(CommandProcessorTests, GetStatusTests) {
    EXPECT_TRUE(reply.success());
    EXPECT_TRUE(reply.has_completed());
    EXPECT_TRUE(reply.completed());
-   EXPECT_TRUE("Result Already Sent" == reply.result());
+   EXPECT_EQ("Result Already Sent", reply.result());
 }
 
 TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
@@ -261,26 +287,29 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatusAlwaysFails) {
          if (realReply.has_completed() && realReply.completed()) {
             break;
          } else {
-            EXPECT_TRUE(realReply.result() == "Command running");
+            EXPECT_EQ(realReply.result(), "Command running");
          }
          std::this_thread::sleep_for(std::chrono::milliseconds(1));
       } while (!zctx_interrupted && count++ < 100);
-      EXPECT_TRUE(realReply.result() == "TestCommandFails");
+      EXPECT_EQ(realReply.result(), "TestCommandFails");
       EXPECT_FALSE(realReply.success());
    }
+
+ 
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
    EXPECT_FALSE(reply.empty());
    realReply.ParseFromString(reply);
    EXPECT_TRUE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Result Already Sent");
-   std::this_thread::sleep_for(std::chrono::milliseconds(1001));
+   EXPECT_EQ(realReply.result(), "Result Already Sent");
+
+   WaitForKillCommandsThatWillNeverFinish(testProcessor);
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
    EXPECT_FALSE(reply.empty());
    realReply.ParseFromString(reply);
    EXPECT_FALSE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Command Not Found");
+   EXPECT_EQ(realReply.result(), "Command Not Found");
 
 }
 
@@ -348,26 +377,29 @@ TEST_F(CommandProcessorTests, StartAQuickAsyncCommandAndGetStatus) {
          if (realReply.has_completed() && realReply.completed()) {
             break;
          } else {
-            EXPECT_TRUE(realReply.result() == "Command running");
+            EXPECT_EQ(realReply.result(), "Command running");
          }
          std::this_thread::sleep_for(std::chrono::milliseconds(1));
       } while (!zctx_interrupted && count++ < 100);
-      EXPECT_TRUE(realReply.result() == "TestCommand");
+      EXPECT_EQ(realReply.result(), "TestCommand");
       EXPECT_TRUE(realReply.success());
    }
+
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
    EXPECT_FALSE(reply.empty());
    realReply.ParseFromString(reply);
    EXPECT_TRUE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Result Already Sent");
-   std::this_thread::sleep_for(std::chrono::milliseconds(1001));
+   auto result = realReply.result();
+   EXPECT_TRUE(result == "Result Already Sent"); 
+   
+   WaitForKillCommandsThatWillNeverFinish(testProcessor);
    sender.Swing(requestMsg.SerializeAsString());
    sender.BlockForKill(reply);
    EXPECT_FALSE(reply.empty());
    realReply.ParseFromString(reply);
    EXPECT_FALSE(realReply.success());
-   EXPECT_TRUE(realReply.result() == "Command Not Found");
+   EXPECT_EQ(realReply.result(), "Command Not Found");
 
 }
 
