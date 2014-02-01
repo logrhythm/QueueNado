@@ -25,6 +25,7 @@
 #include "NetInterfaceMsg.pb.h"
 #include "ShutdownMsg.pb.h"
 #include "MockTestCommand.h"
+#include "FileIO.h"
 
 #ifdef LR_DEBUG
 //
@@ -1304,9 +1305,10 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile)
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ("/bin/sh", processManager.getRunCommand());
-   ASSERT_EQ("\"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
+   
+   ASSERT_EQ("/bin/cat \"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
-           processManager.getRunArgs());
+           FileIO::ReadAsciiFileContent(processManager.getRunArgs()).result);
 
 }
 
@@ -1331,9 +1333,9 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
    }
    ASSERT_TRUE(exception);
    ASSERT_EQ("/bin/sh", processManager.getRunCommand());
-   ASSERT_EQ("\"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
+   ASSERT_EQ("/bin/cat \"/etc/sysconfig/network-scripts/ifcfg-NoIface\" > "
            "\"/etc/sysconfig/network-scripts/bkup-ifcfg-NoIface\"",
-           processManager.getRunArgs());
+           FileIO::ReadAsciiFileContent(processManager.getRunArgs()).result);
 
 }
 
