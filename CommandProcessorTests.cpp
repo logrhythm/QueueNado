@@ -863,7 +863,8 @@ TEST_F(CommandProcessorTests, RebootCommandFailSuccessDoTheUpgrade) {
 
 TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess) {
 #ifdef LR_DEBUG
-   const MockConf conf;
+   MockConf conf;
+   conf.mSyslogConfName = "/tmp/test.nm.rsyslog.conf"; 
    MockProcessManagerCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
@@ -875,11 +876,13 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess) {
    try {
       protoMsg::CommandReply reply = reboot.Execute(conf);
       LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
-      ASSERT_TRUE(reply.success());
+      EXPECT_TRUE(reply.success());
    } catch (...) {
       exception = true;
    }
+   unlink(conf.mSyslogConfName.c_str());
    ASSERT_FALSE(exception);
+   
 
 #endif
 }
@@ -887,7 +890,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess) {
 TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_UDP) {
 #ifdef LR_DEBUG
    MockConf conf;
-   conf.mSyslogConfName = "/tmp/test.nm.rsyslog.conf"; // dummy file. won't be created
+   conf.mSyslogConfName = "/ThisFileDoesNotExisttmp/test.nm.rsyslog.conf"; // dummy file. won't be created
    conf.mSyslogProtocol = false; // udp
    conf.mSyslogAgentIp = "123.123.123";
    MockProcessManagerCommand processManager{conf};
@@ -904,19 +907,13 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_UDP) {
       exception = true;
    }
    ASSERT_TRUE(exception);
-   auto cmdArgs = processManager.getRunArgs();
-
-   std::string expected = {"-e \"\n\n\\$SystemLogRateLimitInterval 1 \n"};
-   expected.append("\\$SystemLogRateLimitBurst 20000 \n\n");
-   expected.append("local4.* @123.123.123:1234\" > /tmp/test.nm.rsyslog.conf");
-   EXPECT_TRUE(cmdArgs == expected) << "\ncmdArgs:\t" << cmdArgs << "\nexpected:\t" << expected;
 #endif
 }
 
 TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_TCP) {
 #ifdef LR_DEBUG
    MockConf conf;
-   conf.mSyslogConfName = "/tmp/test.nm.rsyslog.conf"; // dummy file. won't be created
+   conf.mSyslogConfName = "/ThisFileDoesNotExisttmp/test.nm.rsyslog.conf"; // dummy file. won't be created
    conf.mSyslogProtocol = true; // "TCP";
    conf.mSyslogAgentIp = "123.123.123";
    MockProcessManagerCommand processManager{conf};
@@ -933,17 +930,6 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_TCP) {
       exception = true;
    }
    ASSERT_TRUE(exception);
-   auto cmdArgs = processManager.getRunArgs();
-   std::string expected = {"-e \"\n\n\\$SystemLogRateLimitInterval 1 \n"};
-   expected.append("\\$SystemLogRateLimitBurst 20000 \n\n");
-   expected.append("\\$WorkDirectory /var/lib/rsyslog # where to place spool files\n");
-   expected.append("\\$ActionQueueType LinkedList   # use asynchronous processing\n");
-   expected.append("\\$ActionQueueFileName LR_SIEM  # unique name prefix for spool files\n");
-   expected.append("\\$ActionResumeRetryCount -1    # infinite retries if host is down\n");
-   expected.append("\\$ActionQueueMaxDiskSpace 1g   # 1gb space limit (use as much as possible)\n");
-   expected.append("\\$ActionQueueSaveOnShutdown on # save messages to disk on shutdown\n");
-   expected.append("local4.* @@123.123.123:1234\" > /tmp/test.nm.rsyslog.conf");
-   EXPECT_TRUE(cmdArgs == expected) << "\ncmdArgs:\t" << cmdArgs << "\nexpected:\t" << expected;
 #endif
 }
 

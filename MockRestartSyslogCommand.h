@@ -35,6 +35,9 @@ struct MockRestartSyslogCommand : public RestartSyslogCommand {
       return conf;
    }
 
+   bool ShouldGetFreshConf() {
+      return false;
+   }
    static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
       std::shared_ptr<Command> command(new MockRestartSyslogCommand(request));
       return command;
