@@ -47,98 +47,142 @@ public:
    mValidateEthFailCount(0),
    mIgnoreConfValidate(true),
    mValidConfValidation(true),
-   mMaxIndividualPCap(1000), 
+   mMaxIndividualPCap(1000),
    mPcapCaptureMaxPackets(999999),
    mSyslogSendQueueSize(800),
    mSyslogRecvQueueSize(800),
-   mFlowReportInterval(10)
-   {
+   mFlowReportInterval(10),
+   mOverridegetPCapInterface(true) {
+   }
+
+   MockConf(const Conf& conf) : Conf::Conf(conf) {
+   }
+
+   MockConf(const protoMsg::BaseConf& msg, const QosmosConf& qosmosMsg, const protoMsg::SyslogConf& sysMsg) : Conf::Conf(msg, qosmosMsg, sysMsg) {
+   }
+
+   explicit MockConf(const std::string& path) : Conf::Conf(path) {
+   }
+
+   MockConf(std::stringstream& stream, std::stringstream& qosmosStream, std::stringstream& syslogStream) : Conf::Conf(stream, qosmosStream, syslogStream) {
    }
 
    ~MockConf() {
    }
 
-   std::string getSyslogAgentIP(void) LR_OVERRIDE {
+   void writeSyslogToFile() {
+      Conf::writeSyslogToFile();
+   }
+
+   bool sendConfigUpdate() {
+      return Conf::sendConfigUpdate();
+   }
+
+   void writeQosmosToStream(std::stringstream & stream) const {
+      Conf::writeQosmosToStream(stream);
+   }
+
+   void setPath(const std::string& newPath) {
+      Conf::setPath(newPath);
+   }
+
+   void updateFields(const protoMsg::BaseConf& msg) {
+      Conf::updateFields(msg);
+   }
+
+   bool InternallyRepairBaseConf() {
+      return Conf::InternallyRepairBaseConf();
+   }
+
+   void updateFields(const protoMsg::SyslogConf& msg) {
+      Conf::updateFields(msg);
+   }
+
+   void updateQosmos(const QosmosConf& msg) {
+      Conf::updateQosmos(msg);
+   }
+
+   std::string GetSyslogAgentIP(void) const LR_OVERRIDE {
       return mSyslogAgentIp;
    }
 
-   bool getSyslogEnabled(void) LR_OVERRIDE {
+   bool GetSyslogEnabled(void) LR_OVERRIDE {
       return mSyslogEnabled;
    }
 
-   std::string getLogDir() const LR_OVERRIDE {
+   std::string GetLogDir() const LR_OVERRIDE {
       return mLogDir;
    }
 
-   std::string getSyslogAgentPort(void) LR_OVERRIDE {
+   std::string GetSyslogAgentPort(void) const LR_OVERRIDE {
       return mSyslogAgentPort;
    }
 
-   std::string getSyslogFacility(void) LR_OVERRIDE {
+   std::string GetSyslogFacility(void) const LR_OVERRIDE {
       return mSyslogFacility;
    }
 
-   std::string getSyslogLogName(void) LR_OVERRIDE {
+   std::string GetSyslogLogName(void) const LR_OVERRIDE {
       return mSyslogName;
    }
 
-   std::string getSyslogConfigFile(void) LR_OVERRIDE {
+   std::string GetSyslogConfigFile(void) const LR_OVERRIDE {
       return mSyslogConfName;
    }
 
-   bool getSyslogTcpEnabled(void) LR_OVERRIDE {
+   bool GetSyslogTcpEnabled(void) const LR_OVERRIDE {
       return mSyslogProtocol;
    }
-   
-   std::string getConfChangeQueue(void) LR_OVERRIDE {
+
+   std::string GetConfChangeQueue(void) const LR_OVERRIDE {
       return mConfChangeQueue;
    }
 
-   std::string getDpiRcvrQueue(void) LR_OVERRIDE {
+   std::string GetDpiRcvrQueue(void) LR_OVERRIDE {
       return mDpiRcvrQueue;
    }
 
-   std::string getBroadcastQueue(void) LR_OVERRIDE {
+   std::string GetBroadcastQueue(void) LR_OVERRIDE {
       return mBroadcastQueue;
    }
 
-   std::string getStatsAccumulatorQueue(void) const LR_OVERRIDE {
+   std::string GetStatsAccumulatorQueue(void) const LR_OVERRIDE {
       return mStatsAccumulatorQueue;
    }
 
-   std::string getSendStatsQueue(void) LR_OVERRIDE {
+   std::string GetSendStatsQueue(void) LR_OVERRIDE {
       return mSendStatsQueue;
    }
 
-   std::string getPath(void) LR_OVERRIDE {
+   std::string GetPath(void) LR_OVERRIDE {
       return mPath;
    }
 
-   unsigned int getDpiThreads() LR_OVERRIDE {
+   unsigned int GetDpiThreads() LR_OVERRIDE {
       return mDpiThreads;
    }
 
-   unsigned int getPCAPETimeOut() LR_OVERRIDE {
+   unsigned int GetPCAPETimeOut() LR_OVERRIDE {
       return mPCAPETimeOut;
    }
 
-   unsigned int getQosmosExpirePerCallback() LR_OVERRIDE {
+   unsigned int GetQosmosExpirePerCallback() LR_OVERRIDE {
       return mQosmosExpirePerCallback;
    }
 
-   bool EnableTCPReassembly() LR_OVERRIDE {
+   bool GetEnableTCPReassembly() LR_OVERRIDE {
       return mEnableTCPReAssembly;
    }
 
-   bool EnableIPDefragmentation() LR_OVERRIDE {
+   bool GetEnableIPDefragmentation() LR_OVERRIDE {
       return mEnableIPDefragmentation;
    }
 
-   bool SiemLogging() LR_OVERRIDE {
+   bool GetSiemLogging() LR_OVERRIDE {
       return mSiemLogging;
    }
 
-   int getPCAPBuffsize() LR_OVERRIDE {
+   int GetPCAPBuffsize() LR_OVERRIDE {
       return mPCAPBuffsize;
    }
 
@@ -150,7 +194,7 @@ public:
       return mPacketRecvQueueSize;
    }
 
-   unsigned int getSyslogMaxLineLength() LR_OVERRIDE {
+   unsigned int GetSyslogMaxLineLength() LR_OVERRIDE {
       return mSyslogMaxLineLength;
    }
 
@@ -162,7 +206,7 @@ public:
       return mSyslogSendQueueSize;
    }
 
-   unsigned int getStatsIntervalSeconds() LR_OVERRIDE {
+   unsigned int GetStatsIntervalSeconds() LR_OVERRIDE {
       return mStatsIntervalSeconds;
    }
 
@@ -174,31 +218,34 @@ public:
       return mSyslogRecvQueueSize;
    }
 
-   std::string getPCAPInterface() LR_OVERRIDE {
-      return mPCAPInterface;
+   std::string GetPCAPInterface() LR_OVERRIDE {
+      if (mOverridegetPCapInterface) {
+         return mPCAPInterface;
+      }
+      return Conf::GetPCAPInterface();
    }
 
-   bool getQosmosDebugModeEnabled(void) LR_OVERRIDE {
+   bool GetQosmosDebugModeEnabled(void) LR_OVERRIDE {
       return mQosmosDebug;
    }
 
-   unsigned int getDpiHalfSessions() LR_OVERRIDE {
+   unsigned int GetDpiHalfSessions() LR_OVERRIDE {
       return mDpiHalfSessions;
    }
 
-   unsigned int getQosmos64BytePool() LR_OVERRIDE {
+   unsigned int GetQosmos64BytePool() LR_OVERRIDE {
       return mQosmos64;
    }
 
-   unsigned int getQosmos128BytePool() LR_OVERRIDE {
+   unsigned int GetQosmos128BytePool() LR_OVERRIDE {
       return mQosmos128;
    }
 
-   unsigned int getQosmos256BytePool() LR_OVERRIDE {
+   unsigned int GetQosmos256BytePool() LR_OVERRIDE {
       return mQosmos256;
    }
 
-   unsigned int getQosmos512BytePool() LR_OVERRIDE {
+   unsigned int GetQosmos512BytePool() LR_OVERRIDE {
       return mQosmos512;
    }
 
@@ -209,28 +256,27 @@ public:
       mQosmosProtoFamiles[name] = name;
    }
 
-   std::string getCommandQueue() const LR_OVERRIDE {
+   std::string GetCommandQueue() const LR_OVERRIDE {
       if (mCommandQueue.empty()) {
-         return Conf::getCommandQueue();
+         return Conf::GetCommandQueue();
       }
       return mCommandQueue;
    }
 
-   std::string getProccessManagementQueue() const LR_OVERRIDE {
+   std::string GetProccessManagementQueue() const LR_OVERRIDE {
       if (mProcessManagmentQueue.empty()) {
-         return Conf::getProccessManagementQueue();
+         return Conf::GetProccessManagementQueue();
       }
       return mProcessManagmentQueue;
    }
 
-   bool IntermediateFlowEnabled() LR_OVERRIDE {
+   bool GetIntermediateFlowEnabled() LR_OVERRIDE {
       return mIntermediateFlowEnabled;
    }
 
-   bool PacketCaptureEnabled() LR_OVERRIDE {
+   bool GetPacketCaptureEnabled() LR_OVERRIDE {
       return mUnknownCaptureEnabled;
    }
-   
 
    size_t GetPcapCaptureFileLimit() LR_OVERRIDE {
       return mPCapCaptureFileLimit;
@@ -245,31 +291,32 @@ public:
    }
 
    std::vector<std::string> GetPcapCaptureLocations() LR_OVERRIDE {
-      if(mOverrideGetPcapCaptureLocations) {
-         return mPCapCaptureLocations;         
+      if (mOverrideGetPcapCaptureLocations) {
+         return mPCapCaptureLocations;
       }
-      
+
       return Conf::GetPcapCaptureLocations();
    }
 
    std::string GetFirstPcapCaptureLocation() LR_OVERRIDE {
-      if(!mOverrideGetFirstCaptureLocation) {
+      if (!mOverrideGetFirstCaptureLocation) {
          return Conf::GetFirstPcapCaptureLocation();
       }
-      
-      if(mPCapCaptureLocations.empty()) {
-         return {};
+
+      if (mPCapCaptureLocations.empty()) {
+         return
+         {
+         };
       }
-      
+
       return mPCapCaptureLocations[0];
    }
-   
 
-   size_t GetFlowReportInterval() LR_OVERRIDE{
+   size_t GetFlowReportInterval() LR_OVERRIDE {
       return mFlowReportInterval;
-                                              
+
    }
-   
+
    bool SiemDebugLogging() {
       return mSiemDebug;
    }
@@ -305,17 +352,16 @@ public:
       mValidConfValidation = Conf::ValidateConfFieldValues(msg, type);
       return mValidConfValidation;
    }
-   
-   
 
    size_t GetPCapIndividualFileLimit() {
       return mMaxIndividualPCap;
    }
+
    size_t GetPcapCaptureMaxPackets() LR_OVERRIDE {
       return mPcapCaptureMaxPackets;
    }
-   
-    
+
+
    std::string mSyslogAgentPort;
    std::string mSyslogFacility;
    std::string mSyslogName;
@@ -372,4 +418,96 @@ public:
    int mSyslogSendQueueSize;
    int mSyslogRecvQueueSize;
    int mFlowReportInterval;
+   bool mOverridegetPCapInterface;
+};
+
+/**
+ * Allows you to use Update functions without a working ConfMaster
+ */
+class MockConfNoMaster : public MockConf {
+public:
+
+   MockConfNoMaster(const Conf& conf) : MockConf::MockConf(conf) {
+   }
+
+   MockConfNoMaster(const protoMsg::BaseConf& msg, const QosmosConf& qosmosMsg, const protoMsg::SyslogConf& sysMsg) : MockConf::MockConf(msg, qosmosMsg, sysMsg) {
+   }
+
+   explicit MockConfNoMaster(const std::string& path) : MockConf::MockConf(path) {
+   }
+
+   MockConfNoMaster(std::stringstream& stream, std::stringstream& qosmosStream, std::stringstream& syslogStream) : MockConf::MockConf(stream, qosmosStream, syslogStream) {
+   }
+
+   ~MockConfNoMaster() {
+   }
+
+   bool UpdateConfigWithMaster(const protoMsg::SyslogConf& msg) {
+      updateFields(msg);
+      return true;
+   }
+
+   bool UpdateConfigWithMaster(const protoMsg::BaseConf& msg) {
+      updateFields(msg);
+      return true;
+   }
+
+   bool UpdateConfigWithMaster(const QosmosConf& msg) {
+      updateQosmos(msg);
+      return true;
+
+   }
+};
+
+/**
+ * A mock class that simply exposes protected methods 
+ */
+class MockConfExposeUpdate : public Conf {
+public:
+
+   MockConfExposeUpdate() : Conf() {
+   }
+
+   MockConfExposeUpdate(const Conf& conf) : Conf::Conf(conf) {
+   }
+
+   MockConfExposeUpdate(const protoMsg::BaseConf& msg, const QosmosConf& qosmosMsg, const protoMsg::SyslogConf& sysMsg) : Conf::Conf(msg, qosmosMsg, sysMsg) {
+   }
+
+   explicit MockConfExposeUpdate(const std::string& path) : Conf::Conf(path) {
+   }
+
+   MockConfExposeUpdate(std::stringstream& stream, std::stringstream& qosmosStream, std::stringstream& syslogStream) : Conf::Conf(stream, qosmosStream, syslogStream) {
+   }
+
+   ~MockConfExposeUpdate() {
+   }
+
+   void updateFields(const protoMsg::BaseConf& msg) {
+      Conf::updateFields(msg);
+   }
+
+   bool InternallyRepairBaseConf() {
+      return Conf::InternallyRepairBaseConf();
+   }
+
+   void updateFields(const protoMsg::SyslogConf& msg) {
+      Conf::updateFields(msg);
+   }
+
+   void updateQosmos(const QosmosConf& msg) {
+      Conf::updateQosmos(msg);
+   }
+
+   void setPath(const std::string& newPath) {
+      Conf::setPath(newPath);
+   }
+
+   void writeSyslogToFile() {
+      Conf::writeSyslogToFile();
+   }
+
+   bool sendConfigUpdate() {
+      return Conf::sendConfigUpdate();
+   }
 };

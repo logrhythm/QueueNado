@@ -25,7 +25,6 @@
 #include "QosmosProtocolCapture.h"
 #include <stdio.h>
 using namespace std;
-using namespace networkMonitor;
 
 #ifdef LR_DEBUG
 #include "MockConf.h"
@@ -38,11 +37,11 @@ using namespace networkMonitor;
  * @param 
  */
 TEST_F(ConfProcessorTests, EmptySetGetActualConf) {
-   Conf conf = networkMonitor::ConfSlave::Instance().GetConf();
-   ASSERT_EQ(conf.getPath(), "conf/nm.yaml");
+   Conf conf = ConfSlave::Instance().GetConf();
+   ASSERT_EQ(conf.GetPath(), "conf/nm.yaml");
 
-   conf = networkMonitor::ConfMaster::Instance().GetConf();
-   ASSERT_EQ(conf.getPath(), "conf/nm.yaml");
+   conf = ConfMaster::Instance().GetConf();
+   ASSERT_EQ(conf.GetPath(), "conf/nm.yaml");
 }
 
 TEST_F(ConfProcessorTests, EthConfValidate) {
@@ -412,7 +411,7 @@ TEST_F(ConfProcessorTests, TestIsShutdownRequest) {
 TEST_F(ConfProcessorTests, TestUpdateBaseCachedMessages) {
 #ifdef LR_DEBUG
    MockConfMaster master;
-   Conf conf(master.GetConf());
+   MockConf conf(master.GetConf());
    master.UpdateCachedMessages(conf);
    sleep(5);
    protoMsg::ConfType configTypeMessage;
@@ -440,7 +439,7 @@ TEST_F(ConfProcessorTests, TestUpdateBaseCachedMessages) {
 TEST_F(ConfProcessorTests, TestUpdateQosmosCachedMessages) {
 #ifdef LR_DEBUG
    MockConfMaster master;
-   Conf conf(master.GetConf());
+   MockConf conf(master.GetConf());
    master.UpdateCachedMessages(conf);
    protoMsg::ConfType configTypeMessage;
    std::string serializedConf;
@@ -460,7 +459,7 @@ TEST_F(ConfProcessorTests, TestUpdateQosmosCachedMessages) {
 TEST_F(ConfProcessorTests, TestUpdateSyslogCachedMessages) {
 #ifdef LR_DEBUG
    MockConfMaster master;
-   Conf conf(master.GetConf());
+   MockConf conf(master.GetConf());
    master.UpdateCachedMessages(conf);
    protoMsg::ConfType configTypeMessage;
    std::string serializedConf;
@@ -482,7 +481,7 @@ TEST_F(ConfProcessorTests, TestUpdateSyslogCachedMessages) {
 TEST_F(ConfProcessorTests, TestSerializeCachedConfig) {
 #ifdef LR_DEBUG
    MockConfMaster master;
-   Conf conf(master.GetConf());
+   MockConf conf(master.GetConf());
    master.UpdateCachedMessages(conf);
    protoMsg::ConfType configTypeMessage;
    std::string serializedConf;
@@ -524,7 +523,7 @@ TEST_F(ConfProcessorTests, TestSerializeCachedConfig) {
 TEST_F(ConfProcessorTests, TestReconcileNewConf) {
 #ifdef LR_DEBUG
    MockConfMaster master;
-   Conf conf(master.GetConf());
+   MockConf conf(master.GetConf());
    protoMsg::ConfType configTypeMessage;
    master.UpdateCachedMessages(conf);
    std::string serializedConf = master.SerializeCachedConfig(configTypeMessage);
@@ -537,7 +536,7 @@ TEST_F(ConfProcessorTests, TestReconcileNewConf) {
    master.Start();
 
    master.SetConfLocation("/tmp/dummyWriteLocationCommandProcessorTests");
-   Conf conf2(master.GetConf());
+   MockConf conf2(master.GetConf());
    protoMsg::BaseConf baseConf;
    EXPECT_TRUE(baseConf.ParseFromString(serializedConf));
    conf2.updateFields(baseConf);
@@ -603,7 +602,8 @@ TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
    confThread.Start();
    Conf conf(confThread.GetConf());
    MockConfSlave testSlave;
-   testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   testSlave.mBroadcastQueueName = conf.GetBroadcastQueue();
+   ASSERT_FALSE(testSlave.mBroadcastQueueName.empty());
    testSlave.Start();
    sleep(1);
 
@@ -617,7 +617,7 @@ TEST_F(ConfProcessorTests, RestartMessagePassedBetweenMasterAndSlave) {
    std::vector<std::string> encodedMessage;
    encodedMessage.push_back(updateType.SerializeAsString());
    encodedMessage.push_back(restartMsg.SerializeAsString());
-   Crowbar confSender(conf.getConfChangeQueue());
+   Crowbar confSender(conf.GetConfChangeQueue());
    ASSERT_TRUE(confSender.Wield());
    ASSERT_TRUE(confSender.Flurry(encodedMessage));
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
@@ -639,7 +639,8 @@ TEST_F(ConfProcessorTests, DISABLED_ConfMessagePassedBetweenMasterAndSlave) {
    confThread.Start();
    Conf conf(confThread.GetConf());
    MockConfSlave testSlave;
-   testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   testSlave.mBroadcastQueueName = conf.GetBroadcastQueue();
+   ASSERT_FALSE(testSlave.mBroadcastQueueName.empty());
    testSlave.Start();
    sleep(1);
 
@@ -652,7 +653,7 @@ TEST_F(ConfProcessorTests, DISABLED_ConfMessagePassedBetweenMasterAndSlave) {
 
    encodedMessage.push_back(updateType.SerializeAsString());
    encodedMessage.push_back(confMsg.SerializeAsString());
-   Crowbar confSender(conf.getConfChangeQueue());
+   Crowbar confSender(conf.GetConfChangeQueue());
    EXPECT_TRUE(confSender.Wield());
    EXPECT_TRUE(confSender.Flurry(encodedMessage));
    EXPECT_TRUE(confSender.BlockForKill(encodedMessage));
@@ -681,7 +682,8 @@ TEST_F(ConfProcessorTests, DISABLED_SyslogMessagePassedBetweenMasterAndSlave) {
    confThread.Start();
    Conf conf(confThread.GetConf());
    MockConfSlave testSlave;
-   testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   testSlave.mBroadcastQueueName = conf.GetBroadcastQueue();
+   ASSERT_FALSE(testSlave.mBroadcastQueueName.empty());
    testSlave.Start();
    sleep(1);
 
@@ -694,7 +696,7 @@ TEST_F(ConfProcessorTests, DISABLED_SyslogMessagePassedBetweenMasterAndSlave) {
 
    encodedMessage.push_back(updateType.SerializeAsString());
    encodedMessage.push_back(confMsg.SerializeAsString());
-   Crowbar confSender(conf.getConfChangeQueue());
+   Crowbar confSender(conf.GetConfChangeQueue());
    ASSERT_TRUE(confSender.Wield());
    ASSERT_TRUE(confSender.Flurry(encodedMessage));
    ASSERT_TRUE(confSender.BlockForKill(encodedMessage));
@@ -725,7 +727,8 @@ TEST_F(ConfProcessorTests, DISABLED_NetInterfaceMessagePassedBetweenMasterAndSla
    confThread.Start();
    Conf conf(confThread.GetConf());
    MockConfSlave testSlave;
-   testSlave.mBroadcastQueueName = conf.getBroadcastQueue();
+   testSlave.mBroadcastQueueName = conf.GetBroadcastQueue();
+   ASSERT_FALSE(testSlave.mBroadcastQueueName.empty());
    testSlave.Start();
    sleep(1);
 
@@ -744,7 +747,7 @@ TEST_F(ConfProcessorTests, DISABLED_NetInterfaceMessagePassedBetweenMasterAndSla
 
    encodedMessage.push_back(updateType.SerializeAsString());
    encodedMessage.push_back(confMsg.SerializeAsString());
-   Crowbar confSender(conf.getConfChangeQueue());
+   Crowbar confSender(conf.GetConfChangeQueue());
    EXPECT_TRUE(confSender.Wield());
    EXPECT_TRUE(confSender.Flurry(encodedMessage));
    EXPECT_TRUE(confSender.BlockForKill(encodedMessage));
@@ -812,159 +815,70 @@ TEST_F(ConfProcessorTests, DISABLED_NetInterfaceMessagePassedBetweenMasterAndSla
 //#endif
 //}
 
-TEST_F(ConfProcessorTests, ProcessConfMsg) {
+TEST_F(ConfProcessorTests, ValidateBasicMessageSize) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
 
    protoMsg::BaseConf baseConfig;
    std::vector<std::string> shots;
-   Conf conf;
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-
-
-   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots));
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots));
-
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(testSlave.ProcessConfMsg(configTypeMessage, shots));
-
-   shots.clear();
-   baseConfig.set_qosmostcpreassemblyenabled("false");
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots));
-
-   shots.clear();
+   ASSERT_FALSE(testSlave.MessageHasPayload(shots));
    baseConfig.set_qosmosipdefragmentationenabled("false");
    shots.push_back(configTypeMessage.SerializeAsString());
+   ASSERT_FALSE(testSlave.MessageHasPayload(shots));
    shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessConfMsg(configTypeMessage, shots));
+   ASSERT_TRUE(testSlave.MessageHasPayload(shots));
 }
 #ifdef LR_DEBUG
-
+TEST_F(ConfProcessorTests, ProcessBaseMsg) {
+   MockConfSlave testSlave;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_BASE);
+   ASSERT_TRUE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
+}
 TEST_F(ConfProcessorTests, ProcessQosmosMsg) {
-
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
-
-   protoMsg::QosmosConf baseConfig;
-   std::vector<std::string> shots;
-   MockConf conf;
-   conf.InsertFakeQosmosProtocol("test");
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots));
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots));
-
-   shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_QOSMOS);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_FALSE(testSlave.ProcessQosmosMsg(configTypeMessage, shots));
-
-   shots.clear();
-   protoMsg::QosmosConf::Protocol* testProto = baseConfig.add_qosmosprotocol();
-   testProto->set_protocolenabled(true);
-   testProto->set_protocolname("test");
-   testProto->set_protocolfamily("Test");
-   testProto->set_protocollongname("This is for Testing");
-   ASSERT_EQ("test", baseConfig.qosmosprotocol(0).protocolname());
-   ASSERT_TRUE(baseConfig.qosmosprotocol(0).protocolenabled());
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessQosmosMsg(configTypeMessage, shots));
-   protoMsg::QosmosConf gotConf = conf.getQosmosConfigInfo();
-
+   ASSERT_TRUE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
 }
-
 TEST_F(ConfProcessorTests, ProcessSyslogMsg) {
-
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
-
-   protoMsg::SyslogConf baseConfig;
-   std::vector<std::string> shots;
-   Conf conf;
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
-
-   shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
-
-   shots.clear();
-   baseConfig.set_siemlogging("true");
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
-
-   shots.clear();
-   baseConfig.set_siemlogging("false");
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(baseConfig.SerializeAsString());
-   ASSERT_TRUE(testSlave.ProcessSyslogMsg(configTypeMessage, shots));
+   ASSERT_TRUE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
 }
-
 TEST_F(ConfProcessorTests, ProcessNetInterfaceMsg) {
    MockConfSlave testSlave;
    protoMsg::ConfType configTypeMessage;
    configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
-
-   protoMsg::NetInterface NetInterfaceMsg;
-   std::vector<std::string> shots;
-   Conf conf;
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(NetInterfaceMsg.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessNetInterfaceMsg(configTypeMessage, shots));
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_APP_VERSION);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(NetInterfaceMsg.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessNetInterfaceMsg(configTypeMessage, shots));
-
-   shots.clear();
-   configTypeMessage.set_type(protoMsg::ConfType_Type_SYSLOG);
-   shots.push_back(configTypeMessage.SerializeAsString());
-   shots.push_back(NetInterfaceMsg.SerializeAsString());
-
-   ASSERT_FALSE(testSlave.ProcessNetInterfaceMsg(configTypeMessage, shots));
-
+   configTypeMessage.set_type(protoMsg::ConfType_Type_NETINTERFACE);
+   ASSERT_TRUE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
 }
-
+TEST_F(ConfProcessorTests, ProcessNTPMsg) {
+   MockConfSlave testSlave;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_NTP);
+   ASSERT_TRUE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
+}
+TEST_F(ConfProcessorTests, ProcessRestartMsg_MoreToDo) {
+   MockConfSlave testSlave;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
+   ASSERT_FALSE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
+}
+TEST_F(ConfProcessorTests, ProcessShutdownMsg_MoreToDo) {
+   MockConfSlave testSlave;
+   protoMsg::ConfType configTypeMessage;
+   configTypeMessage.set_direction(protoMsg::ConfType_Direction_SENDING);
+   configTypeMessage.set_type(protoMsg::ConfType_Type_SHUTDOWN);
+   ASSERT_FALSE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
+}
 TEST_F(ConfProcessorTests, ProcessRestartMsg) {
 
    MockConfSlave testSlave;
@@ -973,7 +887,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
 
    protoMsg::RestartMsg baseConfig;
    std::vector<std::string> shots;
-   Conf conf;
+   MockConf conf;
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
 
@@ -991,6 +905,7 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
 
    shots.clear();
    configTypeMessage.set_type(protoMsg::ConfType_Type_RESTART);
+   ASSERT_FALSE(testSlave.MessageRequiresNoFurtherAction(configTypeMessage.type()));
    shots.push_back(configTypeMessage.SerializeAsString());
    shots.push_back(baseConfig.SerializeAsString());
    ASSERT_FALSE(testSlave.mAppClosed);
@@ -1017,7 +932,9 @@ TEST_F(ConfProcessorTests, ProcessRestartMsg) {
 #endif
 
 TEST_F(ConfProcessorTests, testSingletonInstantiation) {
-   ConfMaster& confThread = ConfMaster::Instance();
+   ConfMaster& confMaster = ConfMaster::Instance();
+   ConfMaster& confMaster2 = ConfMaster::Instance();
+   EXPECT_EQ(&confMaster,&confMaster2);
    //   confThread.Stop();
 }
 
@@ -1033,7 +950,7 @@ TEST_F(ConfProcessorTests, testNewConfConstructionUpdateMsg) {
    protoMsg::BaseConf msg;
    QosmosConf qmsg;
    protoMsg::SyslogConf sysMsg;
-   Conf * conf = new Conf(msg, qmsg, sysMsg);
+   MockConf * conf = new MockConf(msg, qmsg, sysMsg);
    delete conf;
 }
 
@@ -1041,8 +958,8 @@ TEST_F(ConfProcessorTests, getScrubPasswordEnabled) {
    ConfMaster& confThread = ConfMaster::Instance();
    confThread.SetPath(mTestConf);
    //get empty conf
-   Conf conf = confThread.GetConf();
-   EXPECT_TRUE(conf.getScrubPasswordsEnabled());
+   MockConf conf = confThread.GetConf();
+   EXPECT_TRUE(conf.GetScrubPasswordsEnabled());
 
 }
 
@@ -1054,7 +971,7 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    Conf conf = confThread.GetConf();
    int packetRecv = conf.GetPacketRecvQueueSize();
    int packetSend = conf.GetPacketSendQueueSize();
-   int pcapBSize = conf.getPCAPBuffsize();
+   int pcapBSize = conf.GetPCAPBuffsize();
    int dpiSend = conf.GetDPIMsgSendQueueSize();
    int dpiRecv = conf.GetDPIMsgRecvQueueSize();
    int syslogSend = conf.GetSyslogSendQueueSize();
@@ -1067,18 +984,18 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    EXPECT_EQ(DPI_MSG_RECV_QUEUE_SIZE, dpiRecv);
    EXPECT_EQ(SYSLOG_SEND_QUEUE_SIZE, syslogSend);
    EXPECT_EQ(SYSLOG_RECV_QUEUE_SIZE, syslogRecv);
-   EXPECT_EQ(MAX_SYSLOG_LINE_RFC_5426, conf.getSyslogMaxLineLength());
-   EXPECT_FALSE(conf.getQosmosDebugModeEnabled());
-   EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.getDpiHalfSessions());
-   EXPECT_TRUE(conf.EnableIPDefragmentation());
-   EXPECT_TRUE(conf.EnableTCPReassembly());
-   EXPECT_FALSE(conf.SiemLogging());
-   EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * 5, conf.getQosmos64BytePool());
-   EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * 2.5, conf.getQosmos128BytePool());
-   EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.getQosmos256BytePool());
-   EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * .75, conf.getQosmos512BytePool());
-   EXPECT_EQ(DEFAULT_SESSION_EXPIRE_PER_PROCESS, conf.getQosmosExpirePerCallback());
-   EXPECT_FALSE(conf.SiemDebugLogging());
+   EXPECT_EQ(MAX_SYSLOG_LINE_RFC_5426, conf.GetSyslogMaxLineLength());
+   EXPECT_FALSE(conf.GetQosmosDebugModeEnabled());
+   EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.GetDpiHalfSessions());
+   EXPECT_TRUE(conf.GetEnableIPDefragmentation());
+   EXPECT_TRUE(conf.GetEnableTCPReassembly());
+   EXPECT_FALSE(conf.GetSiemLogging());
+   EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * 5, conf.GetQosmos64BytePool());
+   EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * 2.5, conf.GetQosmos128BytePool());
+   EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.GetQosmos256BytePool());
+   EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * .75, conf.GetQosmos512BytePool());
+   EXPECT_EQ(DEFAULT_SESSION_EXPIRE_PER_PROCESS, conf.GetQosmosExpirePerCallback());
+   EXPECT_FALSE(conf.GetSiemDebugLogging());
    confThread.Stop();
 }
 
@@ -1089,42 +1006,42 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    //runs from test/ directory.
    //   Conf conf = confThread.GetConf();
    Conf conf = confThread.GetConf(mTestConf);
-   EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   EXPECT_EQ(true, conf.getSyslogTcpEnabled());
-   EXPECT_EQ("local4", conf.getSyslogFacility());
-   EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
-   EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
-   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
-   EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
-   EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
-   EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
-   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
-   EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
-   EXPECT_TRUE(8 == conf.getDpiThreads());
-   EXPECT_EQ(30, conf.getPCAPETimeOut());
-   EXPECT_EQ(13, conf.getPCAPBuffsize());
+   EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.GetSyslogConfigFile());
+   EXPECT_EQ(true, conf.GetSyslogTcpEnabled());
+   EXPECT_EQ("local4", conf.GetSyslogFacility());
+   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
+   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.GetDpiRcvrQueue());
+   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.GetSyslogQueue());
+   EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.GetStatsAccumulatorQueue());
+   EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.GetSendStatsQueue());
+   EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.GetConfChangeQueue());
+   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.GetCommandQueue());
+   EXPECT_EQ("/usr/local/nm/logs", conf.GetLogDir());
+   EXPECT_TRUE(8 == conf.GetDpiThreads());
+   EXPECT_EQ(30, conf.GetPCAPETimeOut());
+   EXPECT_EQ(13, conf.GetPCAPBuffsize());
    //   EXPECT_EQ("eth0", conf.getPCAPInterface()); this is now internally validated
-   EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
-   EXPECT_EQ(250000, conf.getDpiHalfSessions());
-   EXPECT_FALSE(conf.EnableIPDefragmentation());
-   EXPECT_FALSE(conf.EnableTCPReassembly());
+   EXPECT_TRUE(conf.GetSyslogEnabled());
+   EXPECT_EQ(2047, conf.GetSyslogMaxLineLength());
+   EXPECT_EQ(250000, conf.GetDpiHalfSessions());
+   EXPECT_FALSE(conf.GetEnableIPDefragmentation());
+   EXPECT_FALSE(conf.GetEnableTCPReassembly());
    EXPECT_EQ(50, conf.GetPacketRecvQueueSize());
    EXPECT_EQ(100, conf.GetPacketSendQueueSize());
    EXPECT_EQ(15000, conf.GetDPIMsgRecvQueueSize());
    EXPECT_EQ(30000, conf.GetDPIMsgSendQueueSize());
    EXPECT_EQ(800, conf.GetSyslogRecvQueueSize());
    EXPECT_EQ(500, conf.GetSyslogSendQueueSize());
-   EXPECT_EQ(1, conf.getStatsIntervalSeconds());
-   EXPECT_TRUE(conf.getQosmosDebugModeEnabled());
-   EXPECT_TRUE(conf.SiemLogging());
-   EXPECT_TRUE(conf.SiemDebugLogging());
-   EXPECT_EQ(64, conf.getQosmos64BytePool());
-   EXPECT_EQ(128, conf.getQosmos128BytePool());
-   EXPECT_EQ(256, conf.getQosmos256BytePool());
-   EXPECT_EQ(512, conf.getQosmos512BytePool());
-   EXPECT_EQ(123, conf.getQosmosExpirePerCallback());
+   EXPECT_EQ(1, conf.GetStatsIntervalSeconds());
+   EXPECT_TRUE(conf.GetQosmosDebugModeEnabled());
+   EXPECT_TRUE(conf.GetSiemLogging());
+   EXPECT_TRUE(conf.GetSiemDebugLogging());
+   EXPECT_EQ(64, conf.GetQosmos64BytePool());
+   EXPECT_EQ(128, conf.GetQosmos128BytePool());
+   EXPECT_EQ(256, conf.GetQosmos256BytePool());
+   EXPECT_EQ(512, conf.GetQosmos512BytePool());
+   EXPECT_EQ(123, conf.GetQosmosExpirePerCallback());
    confThread.Stop();
 
 }
@@ -1133,25 +1050,25 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    ConfMaster& confThread = ConfMaster::Instance();
    //runs from test/ directory.
    Conf conf = confThread.GetConf(mTestConf);
-   EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   EXPECT_EQ(true, conf.getSyslogTcpEnabled());
-   EXPECT_EQ("local4", conf.getSyslogFacility());
-   EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
-   EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
-   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
-   EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
-   EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
-   EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
-   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
-   EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
-   EXPECT_TRUE(8 == conf.getDpiThreads());
-   EXPECT_EQ(30, conf.getPCAPETimeOut());
-   EXPECT_EQ(13, conf.getPCAPBuffsize());
+   EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.GetSyslogConfigFile());
+   EXPECT_EQ(true, conf.GetSyslogTcpEnabled());
+   EXPECT_EQ("local4", conf.GetSyslogFacility());
+   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
+   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.GetDpiRcvrQueue());
+   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.GetSyslogQueue());
+   EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.GetStatsAccumulatorQueue());
+   EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.GetSendStatsQueue());
+   EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.GetConfChangeQueue());
+   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.GetCommandQueue());
+   EXPECT_EQ("/usr/local/nm/logs", conf.GetLogDir());
+   EXPECT_TRUE(8 == conf.GetDpiThreads());
+   EXPECT_EQ(30, conf.GetPCAPETimeOut());
+   EXPECT_EQ(13, conf.GetPCAPBuffsize());
    //   EXPECT_EQ("eth0", conf.getPCAPInterface());  this is now internally validated
-   EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
-   EXPECT_EQ(1, conf.getStatsIntervalSeconds());
+   EXPECT_TRUE(conf.GetSyslogEnabled());
+   EXPECT_EQ(2047, conf.GetSyslogMaxLineLength());
+   EXPECT_EQ(1, conf.GetStatsIntervalSeconds());
 }
 
 TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
@@ -1160,30 +1077,30 @@ TEST_F(ConfProcessorTests, testGetConfInvalidFile) {
    confThread.Start();
    //runs from test/ directory.
    Conf conf = confThread.GetConf();
-   EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile()); // default value
-   EXPECT_EQ("", conf.getSyslogAgentIP());
-   EXPECT_EQ("514", conf.getSyslogAgentPort()); // default value
-   EXPECT_FALSE(conf.getSyslogTcpEnabled()); // default value
-   EXPECT_EQ("local4", conf.getSyslogFacility()); // default value
+   EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.GetSyslogConfigFile()); // default value
+   EXPECT_EQ("", conf.GetSyslogAgentIP());
+   EXPECT_EQ("514", conf.GetSyslogAgentPort()); // default value
+   EXPECT_FALSE(conf.GetSyslogTcpEnabled()); // default value
+   EXPECT_EQ("local4", conf.GetSyslogFacility()); // default value
    
-   EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
-   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
-   EXPECT_EQ("ipc:///tmp/broadcast.ipc", conf.getBroadcastQueue());
-   EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
-   EXPECT_EQ("ipc:///tmp/statsmsg.ipc", conf.getSendStatsQueue());
-   EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
-   EXPECT_EQ("tcp://127.0.0.1:5556", conf.getCommandQueue());
+   EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.GetDpiRcvrQueue());
+   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.GetSyslogQueue());
+   EXPECT_EQ("ipc:///tmp/broadcast.ipc", conf.GetBroadcastQueue());
+   EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.GetStatsAccumulatorQueue());
+   EXPECT_EQ("ipc:///tmp/statsmsg.ipc", conf.GetSendStatsQueue());
+   EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.GetConfChangeQueue());
+   EXPECT_EQ("tcp://127.0.0.1:5556", conf.GetCommandQueue());
    std::string expectedDir = INSTALL_PREFIX;
    expectedDir += "/logs";
-   EXPECT_EQ(expectedDir, conf.getLogDir());
-   EXPECT_EQ(NUMBER_OF_QOSMOS_THREADS, conf.getDpiThreads());
-   EXPECT_EQ(PCAP_ETIMEDOUT, conf.getPCAPETimeOut());
-   EXPECT_EQ(PCAP_BUFFER_SIZE, conf.getPCAPBuffsize());
+   EXPECT_EQ(expectedDir, conf.GetLogDir());
+   EXPECT_EQ(NUMBER_OF_QOSMOS_THREADS, conf.GetDpiThreads());
+   EXPECT_EQ(PCAP_ETIMEDOUT, conf.GetPCAPETimeOut());
+   EXPECT_EQ(PCAP_BUFFER_SIZE, conf.GetPCAPBuffsize());
    //   EXPECT_EQ("", conf.getPCAPInterface());  internally validated
-   EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_EQ(MAX_SYSLOG_LINE_RFC_5426, conf.getSyslogMaxLineLength());
-   EXPECT_EQ(DEFAULT_STATS_INTERVAL_SEC, conf.getStatsIntervalSeconds());
-   EXPECT_EQ("scripts", conf.getScriptsDir());
+   EXPECT_TRUE(conf.GetSyslogEnabled());
+   EXPECT_EQ(MAX_SYSLOG_LINE_RFC_5426, conf.GetSyslogMaxLineLength());
+   EXPECT_EQ(DEFAULT_STATS_INTERVAL_SEC, conf.GetStatsIntervalSeconds());
+   EXPECT_EQ("scripts", conf.GetScriptsDir());
    confThread.Stop();
 
 }
@@ -1192,10 +1109,10 @@ TEST_F(ConfProcessorTests, testConfSyslogEnabled) {
    protoMsg::SyslogConf msg;
    std::string expSyslogEnabled("false");
    msg.set_syslogenabled(expSyslogEnabled);
-   Conf conf(mTestConf);
+   MockConf conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_FALSE(conf.getSyslogEnabled());
+   EXPECT_FALSE(conf.GetSyslogEnabled());
 }
 
 TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
@@ -1205,39 +1122,39 @@ TEST_F(ConfProcessorTests, testConfSyslogSpecified) {
    msg.set_sysloglogagentport("777");
    msg.set_syslogtcpenabled("false");
    EXPECT_EQ("false", msg.syslogtcpenabled());
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_FALSE(conf.getSyslogTcpEnabled());
+   EXPECT_TRUE(conf.GetSyslogEnabled());
+   EXPECT_FALSE(conf.GetSyslogTcpEnabled());
 
 
-   EXPECT_EQ("123.123.123", conf.getSyslogAgentIP());
-   EXPECT_EQ("777", conf.getSyslogAgentPort());
-   EXPECT_EQ("local4", conf.getSyslogFacility());
-   EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
+   EXPECT_EQ("123.123.123", conf.GetSyslogAgentIP());
+   EXPECT_EQ("777", conf.GetSyslogAgentPort());
+   EXPECT_EQ("local4", conf.GetSyslogFacility());
+   EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.GetSyslogConfigFile());
    
    
    msg.set_syslogtcpenabled("true");
    conf.updateFields(msg);
-   EXPECT_TRUE(conf.getSyslogTcpEnabled());
+   EXPECT_TRUE(conf.GetSyslogTcpEnabled());
    
 }
 
 TEST_F(ConfProcessorTests, testConfSyslogDefaults) {
    protoMsg::SyslogConf msg;
 
-   Conf conf("non-existent-yaml-file");
+   MockConfExposeUpdate conf("non-existent-yaml-file");
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_EQ("", conf.getSyslogAgentIP());
-   EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("local4", conf.getSyslogFacility());
-   EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.getSyslogConfigFile());
-   EXPECT_FALSE(conf.getSyslogTcpEnabled());  // default is UDP
+   EXPECT_TRUE(conf.GetSyslogEnabled());
+   EXPECT_EQ("", conf.GetSyslogAgentIP());
+   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("local4", conf.GetSyslogFacility());
+   EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.GetSyslogConfigFile());
+   EXPECT_FALSE(conf.GetSyslogTcpEnabled());  // default is UDP
 
-   EXPECT_TRUE(conf.getScrubPasswordsEnabled());
+   EXPECT_TRUE(conf.GetScrubPasswordsEnabled());
 }
 
 
@@ -1247,142 +1164,142 @@ TEST_F(ConfProcessorTests, testConfSyslogDisabled) {
    protoMsg::SyslogConf msg;
    std::string expSyslogEnabled("false");
    msg.set_syslogenabled(expSyslogEnabled);
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_FALSE(conf.getSyslogEnabled());
+   EXPECT_FALSE(conf.GetSyslogEnabled());
 }
 
 TEST_F(ConfProcessorTests, testConfQosmosDebugModeEnabled) {
    protoMsg::BaseConf msg;
    std::string qosmosDebugModeEnabled("true");
    msg.set_qosmosdebugmodeenabled(qosmosDebugModeEnabled);
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_TRUE(conf.getQosmosDebugModeEnabled());
+   EXPECT_TRUE(conf.GetQosmosDebugModeEnabled());
 }
 
 TEST_F(ConfProcessorTests, testConfQosmos512BytePool) {
    protoMsg::BaseConf msg;
    msg.set_qosmos512bytepool("1234"); // Range{500000 , 8000000}
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_NE(1234, conf.getQosmos512BytePool());
+   EXPECT_NE(1234, conf.GetQosmos512BytePool());
 
    msg.set_qosmos512bytepool("500001");
    conf.updateFields(msg);
-   EXPECT_EQ(500001, conf.getQosmos512BytePool());
+   EXPECT_EQ(500001, conf.GetQosmos512BytePool());
 }
 
 TEST_F(ConfProcessorTests, testConfQosmos256BytePool) {
    protoMsg::BaseConf msg;
    msg.set_qosmos256bytepool("8000000"); // Range{500000, 8000000}
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ(8000000, conf.getQosmos256BytePool());
+   EXPECT_EQ(8000000, conf.GetQosmos256BytePool());
 }
 
 TEST_F(ConfProcessorTests, testConfQosmos128BytePool) {
    protoMsg::BaseConf msg;
    msg.set_qosmos128bytepool("3000000"); // Range{3000000, 8000000}
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ(3000000, conf.getQosmos128BytePool());
+   EXPECT_EQ(3000000, conf.GetQosmos128BytePool());
 }
 
 TEST_F(ConfProcessorTests, testConfQosmos64BytePool) {
    protoMsg::BaseConf msg;
    msg.set_qosmos64bytepool("1500000"); // Range{1500000,8000000}
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ(1500000, conf.getQosmos64BytePool());
+   EXPECT_EQ(1500000, conf.GetQosmos64BytePool());
 }
 
 TEST_F(ConfProcessorTests, testQosmosExpirePerCallback) {
    protoMsg::BaseConf msg;
    msg.set_qosmosexpirepercallback("100"); // Range{1,100}
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ(100, conf.getQosmosExpirePerCallback());
+   EXPECT_EQ(100, conf.GetQosmosExpirePerCallback());
 }
 
 TEST_F(ConfProcessorTests, testQosmosTCPReAssembly) {
    protoMsg::BaseConf msg;
    msg.set_qosmostcpreassemblyenabled("false");
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_FALSE(conf.EnableTCPReassembly());
+   EXPECT_FALSE(conf.GetEnableTCPReassembly());
 }
 
 TEST_F(ConfProcessorTests, testEnableIPDefragmentation) {
    protoMsg::BaseConf msg;
    msg.set_qosmosipdefragmentationenabled("false");
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_FALSE(conf.EnableIPDefragmentation());
+   EXPECT_FALSE(conf.GetEnableIPDefragmentation());
 }
 
 TEST_F(ConfProcessorTests, teststatsAccumulatorQueue) {
    protoMsg::BaseConf msg;
    msg.set_statsaccumulatorqueue("123456");// at least 6 characters
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ("123456", conf.getStatsAccumulatorQueue());
+   EXPECT_EQ("123456", conf.GetStatsAccumulatorQueue());
 }
 
 TEST_F(ConfProcessorTests, teststatsQueue) {
    protoMsg::BaseConf msg;
    msg.set_sendstatsqueue("123456");
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ("123456", conf.getSendStatsQueue());
+   EXPECT_EQ("123456", conf.GetSendStatsQueue());
 }
 
 TEST_F(ConfProcessorTests, testSiemLogging) {
    protoMsg::SyslogConf msg;
    msg.set_siemlogging("false");
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_FALSE(conf.SiemLogging());
+   EXPECT_FALSE(conf.GetSiemLogging());
    msg.set_siemlogging("true");
    conf.updateFields(msg);
-   EXPECT_TRUE(conf.SiemLogging());
+   EXPECT_TRUE(conf.GetSiemLogging());
 
 }
 
 TEST_F(ConfProcessorTests, testCommandQueue) {
    protoMsg::BaseConf msg;
    msg.set_commandqueue("this is false"); // minimum 6 characters
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_EQ("this is false", conf.getCommandQueue());
+   EXPECT_EQ("this is false", conf.GetCommandQueue());
    msg.set_commandqueue("now it is true");
    conf.updateFields(msg);
-   EXPECT_EQ("now it is true", conf.getCommandQueue());
+   EXPECT_EQ("now it is true", conf.GetCommandQueue());
 }
 
 TEST_F(ConfProcessorTests, testSiemDebugLogging) {
    protoMsg::SyslogConf msg;
    msg.set_debugsiemlogging("false");
-   Conf conf(mTestConf);
+   MockConfExposeUpdate conf(mTestConf);
    conf.setPath(mWriteLocation);
    conf.updateFields(msg);
-   EXPECT_FALSE(conf.SiemDebugLogging());
+   EXPECT_FALSE(conf.GetSiemDebugLogging());
    msg.set_debugsiemlogging("true");
    conf.updateFields(msg);
-   EXPECT_TRUE(conf.SiemDebugLogging());
+   EXPECT_TRUE(conf.GetSiemDebugLogging());
 
 }
 
@@ -1406,16 +1323,16 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    msg.set_pcapinterface(pcapInterface);
    sysMsg.set_syslogmaxlinelength(syslogMaxLineLength);
    QosmosConf qmsg;
-   Conf conf(msg, qmsg, sysMsg);
+   MockConfExposeUpdate conf(msg, qmsg, sysMsg);
 
-   EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
-   EXPECT_EQ(expAgentPort, conf.getSyslogAgentPort());
-   EXPECT_EQ(boost::lexical_cast<unsigned int>(dpiThreads), conf.getDpiThreads());
-   EXPECT_EQ(boost::lexical_cast<unsigned int>(pcapTimeout), conf.getPCAPETimeOut());
-   EXPECT_EQ(boost::lexical_cast<unsigned int>(pcapBufferSize), conf.getPCAPBuffsize());
-   EXPECT_EQ(pcapInterface, conf.getPCAPInterface());
-   EXPECT_EQ(boost::lexical_cast<unsigned int>(syslogMaxLineLength), conf.getSyslogMaxLineLength());
-   EXPECT_TRUE(conf.SiemDebugLogging());
+   EXPECT_EQ(expAgentIP, conf.GetSyslogAgentIP());
+   EXPECT_EQ(expAgentPort, conf.GetSyslogAgentPort());
+   EXPECT_EQ(boost::lexical_cast<unsigned int>(dpiThreads), conf.GetDpiThreads());
+   EXPECT_EQ(boost::lexical_cast<unsigned int>(pcapTimeout), conf.GetPCAPETimeOut());
+   EXPECT_EQ(boost::lexical_cast<unsigned int>(pcapBufferSize), conf.GetPCAPBuffsize());
+   EXPECT_EQ(pcapInterface, conf.GetPCAPInterface());
+   EXPECT_EQ(boost::lexical_cast<unsigned int>(syslogMaxLineLength), conf.GetSyslogMaxLineLength());
+   EXPECT_TRUE(conf.GetSiemDebugLogging());
 }
 
 TEST_F(ConfProcessorTests, testIpOnlyProtoMessage) {
@@ -1424,9 +1341,9 @@ TEST_F(ConfProcessorTests, testIpOnlyProtoMessage) {
    std::string expAgentIP = "24.24.24.24";
    sysMsg.set_sysloglogagentip(expAgentIP);
    QosmosConf qmsg;
-   Conf conf(msg, qmsg, sysMsg);
-   EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
-   EXPECT_EQ("514", conf.getSyslogAgentPort()); // default
+   MockConfExposeUpdate conf(msg, qmsg, sysMsg);
+   EXPECT_EQ(expAgentIP, conf.GetSyslogAgentIP());
+   EXPECT_EQ("514", conf.GetSyslogAgentPort()); // default
 }
 
 //TEST_F(ConfProcessorTests, testWriteToFile) {
@@ -1451,12 +1368,12 @@ TEST_F(ConfProcessorTests, testIpOnlyProtoMessage) {
 
 TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
    //runs from test/ directory.
-   Conf conf(mTestConf);
-   EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
-   EXPECT_EQ("514", conf.getSyslogAgentPort());
+   MockConfExposeUpdate conf(mTestConf);
+   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
+   EXPECT_EQ("514", conf.GetSyslogAgentPort());
 
    conf.setPath(mWriteLocation);
-   ASSERT_EQ(mWriteLocation, conf.getPath());
+   ASSERT_EQ(mWriteLocation, conf.GetPath());
    protoMsg::BaseConf msg;
    protoMsg::SyslogConf sysMsg;
    std::string expAgentIP = "24.24.24.24";
@@ -1464,23 +1381,23 @@ TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
    sysMsg.set_sysloglogagentip(expAgentIP);
    conf.updateFields(sysMsg);
 
-   EXPECT_EQ(expAgentIP, conf.getSyslogAgentIP());
-   EXPECT_EQ("514", conf.getSyslogAgentPort());
+   EXPECT_EQ(expAgentIP, conf.GetSyslogAgentIP());
+   EXPECT_EQ("514", conf.GetSyslogAgentPort());
 
    conf.writeSyslogToFile();
 
-   Conf newConf(mWriteLocation);
+   MockConfExposeUpdate newConf(mWriteLocation);
 
-   EXPECT_EQ(expAgentIP, newConf.getSyslogAgentIP());
-   EXPECT_EQ("514", newConf.getSyslogAgentPort());
+   EXPECT_EQ(expAgentIP, newConf.GetSyslogAgentIP());
+   EXPECT_EQ("514", newConf.GetSyslogAgentPort());
 
 }
 
 TEST_F(ConfProcessorTests, testPathWithDynamicConf) {
-   Conf * conf = new Conf("/path");
+   MockConfExposeUpdate * conf = new MockConfExposeUpdate("/path");
    std::string expPath = "/tmp/new_path";
    conf->setPath(expPath);
-   EXPECT_EQ(expPath, conf->getPath());
+   EXPECT_EQ(expPath, conf->GetPath());
    delete conf;
 }
 
@@ -1490,7 +1407,7 @@ TEST_F(ConfProcessorTests, testGetBaseConfMsg) {
    confThread.SetPath(mTestConf);
    confThread.Start();
    Conf currentConf = confThread.GetConf();
-   Crowbar confChangeQ(currentConf.getConfChangeQueue());
+   Crowbar confChangeQ(currentConf.GetConfChangeQueue());
    ASSERT_TRUE(confChangeQ.Wield());
 
    protoMsg::ConfType ctm;
@@ -1512,11 +1429,11 @@ TEST_F(ConfProcessorTests, testGetBaseConfMsg) {
    ASSERT_TRUE(ctmRsp.direction() == protoMsg::ConfType_Direction_SENDING);
    ASSERT_TRUE(ctmRsp.type() == protoMsg::ConfType_Type_BASE);
 
-   Conf conf;
+   MockConf conf;
    protoMsg::BaseConf confUpdateMsg;
    confUpdateMsg.ParseFromString(data[1]);
    conf.updateFields(confUpdateMsg);
-   EXPECT_EQ(5, conf.getStatsIntervalSeconds());
+   EXPECT_EQ(5, conf.GetStatsIntervalSeconds());
 
    confThread.Stop();
 }
@@ -1527,7 +1444,7 @@ TEST_F(ConfProcessorTests, testGetSyslogConfMsg) {
    confThread.SetPath(mTestConf);
    confThread.Start();
    Conf currentConf = confThread.GetConf();
-   Crowbar confChangeQ(currentConf.getConfChangeQueue());
+   Crowbar confChangeQ(currentConf.GetConfChangeQueue());
    ASSERT_TRUE(confChangeQ.Wield());
 
    protoMsg::ConfType ctm;
@@ -1549,12 +1466,12 @@ TEST_F(ConfProcessorTests, testGetSyslogConfMsg) {
    ASSERT_TRUE(ctmRsp.direction() == protoMsg::ConfType_Direction_SENDING);
    ASSERT_TRUE(ctmRsp.type() == protoMsg::ConfType_Type_SYSLOG);
 
-   Conf conf;
+   MockConfExposeUpdate conf;
    protoMsg::SyslogConf confUpdateMsg;
    EXPECT_TRUE(confUpdateMsg.ParseFromString(data[1]));
    conf.updateFields(confUpdateMsg);
-   EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
-   EXPECT_EQ("514", conf.getSyslogAgentPort());
+   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
+   EXPECT_EQ("514", conf.GetSyslogAgentPort());
 
    confThread.Stop();
 }
@@ -1566,7 +1483,7 @@ TEST_F(ConfProcessorTests, testSendGarbageZmqMsgs) {
    confThread.SetPath(mTestConf);
    confThread.Start();
    Conf currentConf = confThread.GetConf();
-   Crowbar confChangeQ(currentConf.getConfChangeQueue());
+   Crowbar confChangeQ(currentConf.GetConfChangeQueue());
    ASSERT_TRUE(confChangeQ.Wield());
    std::string msg("adasdfasdf");
    std::vector<std::string> messages;
@@ -1611,18 +1528,18 @@ TEST_F(ConfProcessorTests, testPolledConsumerRcvAfterReg) {
 
    EXPECT_TRUE(confThread.ReceiveConf((void *) &conf, conf));
 
-   EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
-   EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
-   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
-   EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.getStatsAccumulatorQueue());
-   EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.getSendStatsQueue());
-   EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
-   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
-   EXPECT_TRUE(8 == conf.getDpiThreads());
-   EXPECT_EQ(1, conf.getStatsIntervalSeconds());
-   EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_EQ("../scripts", conf.getScriptsDir());
+   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
+   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.GetDpiRcvrQueue());
+   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.GetSyslogQueue());
+   EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.GetStatsAccumulatorQueue());
+   EXPECT_EQ("ipc:///tmp/sendStatsQ.ipc", conf.GetSendStatsQueue());
+   EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.GetConfChangeQueue());
+   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.GetCommandQueue());
+   EXPECT_TRUE(8 == conf.GetDpiThreads());
+   EXPECT_EQ(1, conf.GetStatsIntervalSeconds());
+   EXPECT_TRUE(conf.GetSyslogEnabled());
+   EXPECT_EQ("../scripts", conf.GetScriptsDir());
 
    EXPECT_FALSE(confThread.ReceiveConf((void *) &conf, conf));
    confThread.UnregisterConsumer((void *) &conf);
@@ -1648,7 +1565,7 @@ TEST_F(ConfProcessorTests, testPolledConsumerRcvAfterNotify) {
    Conf conf = confThread.GetConf();
    confThread.RegisterConsumer((void *) &conf);
 
-   Crowbar confChangeQ(conf.getConfChangeQueue());
+   Crowbar confChangeQ(conf.GetConfChangeQueue());
    //std::cout << conf.getConfChangeQueue() << " sender" << std::endl;
    ASSERT_TRUE(confChangeQ.Wield());
 
@@ -1683,19 +1600,19 @@ TEST_F(ConfProcessorTests, testConfSlaveBasic) {
    slave.SetPath(mTestConf);
    slave.Start();
    Conf conf = slave.GetConf();
-   EXPECT_EQ("10.1.1.67", conf.getSyslogAgentIP());
-   EXPECT_EQ("514", conf.getSyslogAgentPort());
-   EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.getDpiRcvrQueue());
-   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.getSyslogQueue());
-   EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.getConfChangeQueue());
-   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.getCommandQueue());
-   EXPECT_EQ("/usr/local/nm/logs", conf.getLogDir());
-   EXPECT_EQ(8, conf.getDpiThreads());
-   EXPECT_EQ(30, conf.getPCAPETimeOut());
-   EXPECT_EQ(13, conf.getPCAPBuffsize());
+   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
+   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.GetDpiRcvrQueue());
+   EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.GetSyslogQueue());
+   EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.GetConfChangeQueue());
+   EXPECT_EQ("ipc:///tmp/commandQueue.ipc", conf.GetCommandQueue());
+   EXPECT_EQ("/usr/local/nm/logs", conf.GetLogDir());
+   EXPECT_EQ(8, conf.GetDpiThreads());
+   EXPECT_EQ(30, conf.GetPCAPETimeOut());
+   EXPECT_EQ(13, conf.GetPCAPBuffsize());
    //   EXPECT_EQ("eth0", conf.getPCAPInterface());  internally validated
-   EXPECT_TRUE(conf.getSyslogEnabled());
-   EXPECT_EQ(2047, conf.getSyslogMaxLineLength());
+   EXPECT_TRUE(conf.GetSyslogEnabled());
+   EXPECT_EQ(2047, conf.GetSyslogMaxLineLength());
    slave.Stop();
 }
 
@@ -1713,7 +1630,7 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    sleep(1);
    Conf masterConf = master.GetConf();
    Conf slaveConf = slave.GetConf();
-   Conf normalConf = slave.GetConf(mTestConf);
+   MockConfExposeUpdate normalConf = slave.GetConf(mTestConf);
 
    master.RegisterConsumer((void *) &masterConf);
    slave.RegisterConsumer((void *) &slaveConf);
@@ -1746,29 +1663,29 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    }
 
    //test results equal normal conf
-   EXPECT_EQ(normalConf.getSyslogAgentIP(), slaveConf.getSyslogAgentIP());
-   EXPECT_EQ(normalConf.getSyslogAgentPort(), slaveConf.getSyslogAgentPort());
-   EXPECT_EQ(normalConf.getDpiRcvrQueue(), slaveConf.getDpiRcvrQueue());
-   EXPECT_EQ(normalConf.getSyslogQueue(), slaveConf.getSyslogQueue());
-   EXPECT_EQ(normalConf.getConfChangeQueue(), slaveConf.getConfChangeQueue());
-   EXPECT_EQ(normalConf.getCommandQueue(), slaveConf.getCommandQueue());
-   EXPECT_EQ(normalConf.getDpiThreads(), slaveConf.getDpiThreads());
-   EXPECT_EQ(normalConf.getPCAPETimeOut(), slaveConf.getPCAPETimeOut());
-   EXPECT_EQ(normalConf.getPCAPBuffsize(), slaveConf.getPCAPBuffsize());
-   EXPECT_EQ(normalConf.getPCAPInterface(), slaveConf.getPCAPInterface());
-   EXPECT_EQ(normalConf.getSyslogEnabled(), slaveConf.getSyslogEnabled());
+   EXPECT_EQ(normalConf.GetSyslogAgentIP(), slaveConf.GetSyslogAgentIP());
+   EXPECT_EQ(normalConf.GetSyslogAgentPort(), slaveConf.GetSyslogAgentPort());
+   EXPECT_EQ(normalConf.GetDpiRcvrQueue(), slaveConf.GetDpiRcvrQueue());
+   EXPECT_EQ(normalConf.GetSyslogQueue(), slaveConf.GetSyslogQueue());
+   EXPECT_EQ(normalConf.GetConfChangeQueue(), slaveConf.GetConfChangeQueue());
+   EXPECT_EQ(normalConf.GetCommandQueue(), slaveConf.GetCommandQueue());
+   EXPECT_EQ(normalConf.GetDpiThreads(), slaveConf.GetDpiThreads());
+   EXPECT_EQ(normalConf.GetPCAPETimeOut(), slaveConf.GetPCAPETimeOut());
+   EXPECT_EQ(normalConf.GetPCAPBuffsize(), slaveConf.GetPCAPBuffsize());
+   EXPECT_EQ(normalConf.GetPCAPInterface(), slaveConf.GetPCAPInterface());
+   EXPECT_EQ(normalConf.GetSyslogEnabled(), slaveConf.GetSyslogEnabled());
 
-   EXPECT_EQ(normalConf.getSyslogAgentIP(), masterConf.getSyslogAgentIP());
-   EXPECT_EQ(normalConf.getSyslogAgentPort(), masterConf.getSyslogAgentPort());
-   EXPECT_EQ(normalConf.getDpiRcvrQueue(), masterConf.getDpiRcvrQueue());
-   EXPECT_EQ(normalConf.getSyslogQueue(), masterConf.getSyslogQueue());
-   EXPECT_EQ(normalConf.getConfChangeQueue(), masterConf.getConfChangeQueue());
-   EXPECT_EQ(normalConf.getCommandQueue(), masterConf.getCommandQueue());
-   EXPECT_EQ(normalConf.getDpiThreads(), masterConf.getDpiThreads());
-   EXPECT_EQ(normalConf.getPCAPETimeOut(), masterConf.getPCAPETimeOut());
-   EXPECT_EQ(normalConf.getPCAPBuffsize(), masterConf.getPCAPBuffsize());
-   EXPECT_EQ(normalConf.getPCAPInterface(), masterConf.getPCAPInterface());
-   EXPECT_EQ(normalConf.getSyslogEnabled(), masterConf.getSyslogEnabled());
+   EXPECT_EQ(normalConf.GetSyslogAgentIP(), masterConf.GetSyslogAgentIP());
+   EXPECT_EQ(normalConf.GetSyslogAgentPort(), masterConf.GetSyslogAgentPort());
+   EXPECT_EQ(normalConf.GetDpiRcvrQueue(), masterConf.GetDpiRcvrQueue());
+   EXPECT_EQ(normalConf.GetSyslogQueue(), masterConf.GetSyslogQueue());
+   EXPECT_EQ(normalConf.GetConfChangeQueue(), masterConf.GetConfChangeQueue());
+   EXPECT_EQ(normalConf.GetCommandQueue(), masterConf.GetCommandQueue());
+   EXPECT_EQ(normalConf.GetDpiThreads(), masterConf.GetDpiThreads());
+   EXPECT_EQ(normalConf.GetPCAPETimeOut(), masterConf.GetPCAPETimeOut());
+   EXPECT_EQ(normalConf.GetPCAPBuffsize(), masterConf.GetPCAPBuffsize());
+   EXPECT_EQ(normalConf.GetPCAPInterface(), masterConf.GetPCAPInterface());
+   EXPECT_EQ(normalConf.GetSyslogEnabled(), masterConf.GetSyslogEnabled());
 
    master.UnregisterConsumer((void *) &masterConf);
    slave.UnregisterConsumer((void *) &slaveConf);
@@ -1802,8 +1719,8 @@ TEST_F(ConfProcessorTests, testConfSlaveShutdown) {
 }
 
 TEST_F(ConfProcessorTests, testSetandGetQosmosConfig) {
-   Conf conf("/tmp/path/that/doesnt/exist/woo.ls");
-   QosmosConf qConf = conf.getQosmosConfigInfo();
+   MockConf conf("/tmp/path/that/doesnt/exist/woo.ls");
+   QosmosConf qConf = conf.GetQosmosConfigInfo();
    ASSERT_EQ(0, qConf.qosmosprotocol_size());
 
    std::string fakeProto = "amazon";
@@ -1818,7 +1735,7 @@ TEST_F(ConfProcessorTests, testSetandGetQosmosConfig) {
    ASSERT_TRUE(qConf.ReconcileWithMaps(familyInfo, enabledInfo));
    ASSERT_EQ(2, qConf.qosmosprotocol_size());
    conf.updateQosmos(qConf);
-   QosmosConf pConf = conf.getQosmosConfigInfo();
+   QosmosConf pConf = conf.GetQosmosConfigInfo();
    for (int i = 0; i < pConf.qosmosprotocol_size(); i++) {
       const protoMsg::QosmosConf::Protocol& existingProtocol = pConf.qosmosprotocol(i);
 
@@ -1831,8 +1748,8 @@ TEST_F(ConfProcessorTests, testSetandGetQosmosConfig) {
 }
 
 TEST_F(ConfProcessorTests, testWriteQosmosToFile) {
-   Conf conf("/tmp/path/that/doesnt/exist/woo.ls");
-   QosmosConf qConf = conf.getQosmosConfigInfo();
+   MockConf conf("/tmp/path/that/doesnt/exist/woo.ls");
+   QosmosConf qConf = conf.GetQosmosConfigInfo();
    ASSERT_EQ(0, qConf.qosmosprotocol_size());
 
    std::string fakeProto = "amazon";
@@ -1849,9 +1766,9 @@ TEST_F(ConfProcessorTests, testWriteQosmosToFile) {
 
    std::stringstream stream;
    conf.writeQosmosToStream(stream);
-   Conf newconf;
+   MockConf newconf;
    newconf.ReadQosmosFromStringStream(stream);
-   QosmosConf pConf = conf.getQosmosConfigInfo();
+   QosmosConf pConf = conf.GetQosmosConfigInfo();
    for (int i = 0; i < pConf.qosmosprotocol_size(); i++) {
       const protoMsg::QosmosConf::Protocol& existingProtocol = pConf.qosmosprotocol(i);
 

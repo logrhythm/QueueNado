@@ -8,11 +8,12 @@
 #include <sstream>
 #include <sys/time.h>
 #include <g2log.hpp>
-
+#include "ProcessManager.h"
 class DiskCleanupTest : public ::testing::Test {
 public:
 
    DiskCleanupTest() : bogusTime(123456), totalHits(0) {
+
    };
 protected:
 
@@ -87,7 +88,6 @@ protected:
    size_t t_packetSize;
    timeval t_endTime;
    unsigned int t_totalTransactions;
-   networkMonitor::MockConfSlave mConf;
    std::stringstream testDir;
    PathAndFileNames bogusFileList;
    IdsAndIndexes bogusIdsAndIndex;

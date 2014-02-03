@@ -821,9 +821,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
       protoMsg::BaseConf confMsg;
       protoMsg::SyslogConf sysMsg;
       sysMsg.set_siemlogging("true");
-      Conf myConf = conf.GetConf();
-      myConf.updateFields(sysMsg);
-      myConf.sendConfigUpdate();
+      MockConfNoMaster myConf = conf.GetConf();
+      myConf.UpdateConfigWithMaster(sysMsg);
       boost::this_thread::sleep(boost::posix_time::seconds(1));
       MockRuleEngine re(myConfSlave, 0);
       re.mSiemMode = true;
@@ -953,9 +952,8 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       protoMsg::BaseConf confMsg;
       protoMsg::SyslogConf sysMsg;
       sysMsg.set_siemlogging("true");
-      Conf myConf = conf.GetConf();
-      myConf.updateFields(sysMsg);
-      myConf.sendConfigUpdate();
+      MockConfNoMaster myConf = conf.GetConf();
+      myConf.UpdateConfigWithMaster(sysMsg);
       boost::this_thread::sleep(boost::posix_time::seconds(1));
       MockRuleEngine re(myConfSlave, 0);
       re.mSiemMode = true;
@@ -1097,9 +1095,8 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
       protoMsg::BaseConf confMsg;
       protoMsg::SyslogConf sysMsg;
       sysMsg.set_siemlogging("true");
-      Conf myConf = conf.GetConf();
-      myConf.updateFields(sysMsg);
-      myConf.sendConfigUpdate();
+      MockConfNoMaster myConf = conf.GetConf();
+      myConf.UpdateConfigWithMaster(sysMsg);
       boost::this_thread::sleep(boost::posix_time::seconds(1));
       MockRuleEngine re(myConfSlave, 0);
       re.mSiemMode = true;
@@ -1222,9 +1219,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       protoMsg::BaseConf confMsg;
       protoMsg::SyslogConf sysMsg;
       sysMsg.set_siemlogging("true");
-      Conf myConf = conf.GetConf();
-      myConf.updateFields(sysMsg);
-      myConf.sendConfigUpdate();
+      MockConfNoMaster myConf = conf.GetConf();
+      myConf.UpdateConfigWithMaster(sysMsg);
       boost::this_thread::sleep(boost::posix_time::seconds(1));
       MockRuleEngine re(myConfSlave, 0);
       re.mSiemMode = true;
@@ -2247,7 +2243,7 @@ TEST_F(RuleEngineTest, SyslogSendingQueue) {
    std::string testNoCrash("Call SendToSyslogReporter with uninitialized queue");
    re.SendToSyslogReporter(testNoCrash);
    EXPECT_TRUE(re.InitializeSyslogSendQueue());
-   std::string queueName = conf.GetConf().getSyslogQueue();
+   std::string queueName = conf.GetConf().GetSyslogQueue();
    Vampire rcvQueue(queueName);
    rcvQueue.SetHighWater(100);
    rcvQueue.SetIOThreads(1);

@@ -22,5 +22,10 @@ public:
    virtual ~RestartSyslogCommandTest() {
    }
 
-
+   Conf GetFreshConf(const Conf& conf) {
+      return conf;
+   }
+   bool ShouldGetFreshConf() {
+      return false;
+   }
 };

@@ -10,7 +10,8 @@
 #include "gtest/gtest.h"
 #include "SendStats.h"
 #include "Vampire.h"
-#include "ConfMaster.h"
+#include "MockConfMaster.h"
+#include "MockConf.h"
 #include <string>
 
 namespace networkMonitor {
@@ -24,7 +25,7 @@ public:
 class StatsAccumulatorTest : public ::testing::Test {
 public:
 
-   StatsAccumulatorTest() : mStatSender(0), mAccumulatedStatsRcvQ(0) {
+   StatsAccumulatorTest() : mStatSender(0), mAccumulatedStatsRcvQ(0), mConf(mConfMaster.GetConf()) {
    };
 
    ~StatsAccumulatorTest() {
@@ -49,7 +50,7 @@ protected:
    };
 
    unsigned int mStatsIntervalSeconds;
-   networkMonitor::MockConfMaster mConfMaster;
+   MockConfMaster mConfMaster;
    Conf mConf;
 
 private:

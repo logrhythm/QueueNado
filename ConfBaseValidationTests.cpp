@@ -39,7 +39,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    EXPECT_EQ(conf.mValidConfValidation, true);
 
    // Verify that erroneous fields are cleared and ignored
-   protoMsg::BaseConf wrong = conf.getProtoMsg();
+   protoMsg::BaseConf wrong = conf.GetProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
    wrong.set_dpithreads("Hello World!");
    conf.mValidConfValidation = true;
@@ -47,7 +47,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    EXPECT_EQ(wrong.has_dpithreads(), true); // copies are not cleared
    EXPECT_EQ(conf.mValidConfValidation, false);
 
-   wrong = conf.getProtoMsg();
+   wrong = conf.GetProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
 
    wrong.set_dpithreads("Hello World!");
@@ -251,7 +251,10 @@ TEST_F(ConfProcessorTests, BaseConfValidationAllFieldsSuccess) {
 
 TEST_F(ConfProcessorTests, BaseConfValidationInternalRepairBaseConf) {
    // using a real conf but without a real file so that it has bad values
-   Conf conf("/tmp/I/am/not/here/woo.ls");
+   MockConf conf("/tmp/I/am/not/here/woo.ls");
+   conf.mValidateEthFailCount = -1;
+   conf.mValidateEthFailCount = -1;
+   conf.mOverridegetPCapInterface = false;
    auto check = conf.InternallyRepairBaseConf();
    EXPECT_EQ(check, true);
 }

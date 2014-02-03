@@ -20,15 +20,24 @@ struct MockRestartSyslogCommand : public RestartSyslogCommand {
    MockRestartSyslogCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager)
    : RestartSyslogCommand(request, processManager) {
 
-       MockRestartSyslogCommand::mSyslogMsg.ParseFromString(request.stringargone());
+      MockRestartSyslogCommand::mSyslogMsg.ParseFromString(request.stringargone());
    }
+
    MockRestartSyslogCommand(const protoMsg::CommandRequest& request) : RestartSyslogCommand(request) {
 
-       MockRestartSyslogCommand::mSyslogMsg.ParseFromString(request.stringargone());
+      MockRestartSyslogCommand::mSyslogMsg.ParseFromString(request.stringargone());
    }
+
    virtual ~MockRestartSyslogCommand() {
    }
 
+   Conf GetFreshConf(const Conf& conf) {
+      return conf;
+   }
+
+   bool ShouldGetFreshConf() {
+      return false;
+   }
    static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
       std::shared_ptr<Command> command(new MockRestartSyslogCommand(request));
       return command;

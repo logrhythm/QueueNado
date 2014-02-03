@@ -21,8 +21,7 @@
 class RuleEngineTest : public ::testing::Test {
 public:
 
-   RuleEngineTest() : conf(networkMonitor::ConfSlave::Instance()), masterConf(networkMonitor::ConfMaster::Instance()) {
-      //std::cout << "Pre" << std::endl;
+   RuleEngineTest() : conf(ConfSlave::Instance()), masterConf(ConfMaster::Instance()) {
       masterConf.SetPath("resources/test.yaml");
       masterConf.Start();
 
@@ -58,8 +57,8 @@ protected:
    virtual void TearDown() {
    };
 
-   networkMonitor::ConfSlave& conf;
-   networkMonitor::ConfMaster& masterConf;
+   ConfSlave& conf;
+   ConfMaster& masterConf;
 #ifdef LR_DEBUG
    networkMonitor::MockDpiMsgLR tDpiMessage;
 #else

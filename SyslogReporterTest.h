@@ -37,8 +37,8 @@ void closelog(void);
 class SyslogReporterTest : public ::testing::Test {
 public:
 
-   SyslogReporterTest() : mConfSlave(networkMonitor::ConfSlave::Instance()),
-                          mMasterConf(networkMonitor::ConfMaster::Instance()) {
+   SyslogReporterTest() : mConfSlave(ConfSlave::Instance()),
+                          mMasterConf(ConfMaster::Instance()) {
       mMasterConf.SetPath("resources/test.yaml");
       mMasterConf.Start();
 
@@ -55,8 +55,8 @@ public:
    void ShootZeroCopySyslogThread(int numberOfMessages, std::string& location, 
          std::string& exampleData);
 protected:
-   networkMonitor::ConfSlave& mConfSlave;
-   networkMonitor::ConfMaster& mMasterConf;
+   ConfSlave& mConfSlave;
+   ConfMaster& mMasterConf;
 
    virtual void SetUp() {
       //std::cout << "setup" << std::endl;

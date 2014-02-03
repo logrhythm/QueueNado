@@ -22,6 +22,7 @@ TEST_F(ForkerPipeTest, Constructors) {
    EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.serverToClient.fifo"));
 }
 #ifdef LR_DEBUG
+
 TEST_F(ForkerPipeTest, CommandWithoutUUID) {
    MockForkerPipe serverPipe("ForkerPipeTest", false);
    MockForkerPipe clientPipe("ForkerPipeTest");
@@ -115,6 +116,25 @@ TEST_F(ForkerPipeTest, ParseCommandProto) {
    EXPECT_EQ("arg2",args[1]);
    
 }
+
+TEST_F(ForkerPipeTest, CommandWithNoOutputExpected) {
+   MockForkerPipe clientPipe("ForkerPipeTest");
+   protoMsg::ForkerRequest requestProto;
+   requestProto.set_expectreply(false);
+   CommandState foo;
+   foo.expectReply = false;
+   foo.commandFinished = false;
+   clientPipe.InsertDummyCommand("NoReply",foo);
+   foo.expectReply = true;
+   clientPipe.InsertDummyCommand("Reply",foo); 
+   bool commandFinished(false);
+   clientPipe.UpdateCommandResult("Reply", commandFinished);
+   EXPECT_FALSE(commandFinished);
+   clientPipe.UpdateCommandResult("NoReply", commandFinished);
+   EXPECT_TRUE(commandFinished);
+   
+}
+
 TEST_F(ForkerPipeTest, GetResultOfSentCommand) {
    MockForkerPipe serverPipe("ForkerPipeTest", false);
    MockForkerPipe clientPipe("ForkerPipeTest");
@@ -137,12 +157,14 @@ TEST_F(ForkerPipeTest, GetResultOfSentCommand) {
    }
    , std::ref(serverPipe), std::ref(requestProto));
    
-   bool gotReply = clientPipe.SendCommand("testCommand", args, result, id);
+   int returnCode;
+   bool gotReply = clientPipe.SendCommand("testCommand", args, result, id,returnCode,true);
    serverThread.join();
    EXPECT_FALSE(gotReply);
    
    std::thread clientThread([](MockForkerPipe& clientPipe, std::string& id, std::string& result, bool& gotReply) {
-      while(!(gotReply=clientPipe.GetResultOfSentCommand(id,result)));
+      int returnCode;
+      while(!(gotReply=clientPipe.GetResultOfSentCommand(id,result,returnCode)));
    }
    , std::ref(clientPipe), std::ref(id), std::ref(result), std::ref(gotReply));
    
@@ -158,6 +180,7 @@ TEST_F(ForkerPipeTest, GetResultOfSentCommand) {
    EXPECT_EQ(requestProto.uuid(), id);
    EXPECT_EQ("success", result);
 }
+
 TEST_F(ForkerPipeTest, GetCommandSendCommand) {
    MockForkerPipe serverPipe("ForkerPipeTest", false);
    MockForkerPipe clientPipe("ForkerPipeTest");
@@ -182,9 +205,9 @@ TEST_F(ForkerPipeTest, GetCommandSendCommand) {
 
    }
    , std::ref(serverPipe), std::ref(requestProto));
-   
-   bool gotReply = clientPipe.SendCommand("testCommand", args, result, id);
-   while (!(gotReply=clientPipe.GetResultOfSentCommand(id,result)));
+   int returnCode;
+   bool gotReply = clientPipe.SendCommand("testCommand", args, result, id,returnCode, true);
+   while (!(gotReply=clientPipe.GetResultOfSentCommand(id,result,returnCode)));
    EXPECT_FALSE(id.empty());
    serverThread.join();
    EXPECT_EQ(requestProto.uuid(), id);
