@@ -94,87 +94,87 @@ public:
       Conf::updateQosmos(msg);
    }
 
-   std::string getSyslogAgentIP(void) LR_OVERRIDE {
+   std::string GetSyslogAgentIP(void) const LR_OVERRIDE {
       return mSyslogAgentIp;
    }
 
-   bool getSyslogEnabled(void) LR_OVERRIDE {
+   bool GetSyslogEnabled(void) LR_OVERRIDE {
       return mSyslogEnabled;
    }
 
-   std::string getLogDir() const LR_OVERRIDE {
+   std::string GetLogDir() const LR_OVERRIDE {
       return mLogDir;
    }
 
-   std::string getSyslogAgentPort(void) LR_OVERRIDE {
+   std::string GetSyslogAgentPort(void) const LR_OVERRIDE {
       return mSyslogAgentPort;
    }
 
-   std::string getSyslogFacility(void) LR_OVERRIDE {
+   std::string GetSyslogFacility(void) const LR_OVERRIDE {
       return mSyslogFacility;
    }
 
-   std::string getSyslogLogName(void) LR_OVERRIDE {
+   std::string GetSyslogLogName(void) const LR_OVERRIDE {
       return mSyslogName;
    }
 
-   std::string getSyslogConfigFile(void) LR_OVERRIDE {
+   std::string GetSyslogConfigFile(void) const LR_OVERRIDE {
       return mSyslogConfName;
    }
 
-   bool getSyslogTcpEnabled(void) LR_OVERRIDE {
+   bool GetSyslogTcpEnabled(void) const LR_OVERRIDE {
       return mSyslogProtocol;
    }
 
-   std::string getConfChangeQueue(void) LR_OVERRIDE {
+   std::string GetConfChangeQueue(void) const LR_OVERRIDE {
       return mConfChangeQueue;
    }
 
-   std::string getDpiRcvrQueue(void) LR_OVERRIDE {
+   std::string GetDpiRcvrQueue(void) LR_OVERRIDE {
       return mDpiRcvrQueue;
    }
 
-   std::string getBroadcastQueue(void) LR_OVERRIDE {
+   std::string GetBroadcastQueue(void) LR_OVERRIDE {
       return mBroadcastQueue;
    }
 
-   std::string getStatsAccumulatorQueue(void) const LR_OVERRIDE {
+   std::string GetStatsAccumulatorQueue(void) const LR_OVERRIDE {
       return mStatsAccumulatorQueue;
    }
 
-   std::string getSendStatsQueue(void) LR_OVERRIDE {
+   std::string GetSendStatsQueue(void) LR_OVERRIDE {
       return mSendStatsQueue;
    }
 
-   std::string getPath(void) LR_OVERRIDE {
+   std::string GetPath(void) LR_OVERRIDE {
       return mPath;
    }
 
-   unsigned int getDpiThreads() LR_OVERRIDE {
+   unsigned int GetDpiThreads() LR_OVERRIDE {
       return mDpiThreads;
    }
 
-   unsigned int getPCAPETimeOut() LR_OVERRIDE {
+   unsigned int GetPCAPETimeOut() LR_OVERRIDE {
       return mPCAPETimeOut;
    }
 
-   unsigned int getQosmosExpirePerCallback() LR_OVERRIDE {
+   unsigned int GetQosmosExpirePerCallback() LR_OVERRIDE {
       return mQosmosExpirePerCallback;
    }
 
-   bool getEnableTCPReassembly() LR_OVERRIDE {
+   bool GetEnableTCPReassembly() LR_OVERRIDE {
       return mEnableTCPReAssembly;
    }
 
-   bool getEnableIPDefragmentation() LR_OVERRIDE {
+   bool GetEnableIPDefragmentation() LR_OVERRIDE {
       return mEnableIPDefragmentation;
    }
 
-   bool getSiemLogging() LR_OVERRIDE {
+   bool GetSiemLogging() LR_OVERRIDE {
       return mSiemLogging;
    }
 
-   int getPCAPBuffsize() LR_OVERRIDE {
+   int GetPCAPBuffsize() LR_OVERRIDE {
       return mPCAPBuffsize;
    }
 
@@ -186,7 +186,7 @@ public:
       return mPacketRecvQueueSize;
    }
 
-   unsigned int getSyslogMaxLineLength() LR_OVERRIDE {
+   unsigned int GetSyslogMaxLineLength() LR_OVERRIDE {
       return mSyslogMaxLineLength;
    }
 
@@ -198,7 +198,7 @@ public:
       return mSyslogSendQueueSize;
    }
 
-   unsigned int getStatsIntervalSeconds() LR_OVERRIDE {
+   unsigned int GetStatsIntervalSeconds() LR_OVERRIDE {
       return mStatsIntervalSeconds;
    }
 
@@ -210,34 +210,34 @@ public:
       return mSyslogRecvQueueSize;
    }
 
-   std::string getPCAPInterface() LR_OVERRIDE {
+   std::string GetPCAPInterface() LR_OVERRIDE {
       if (mOverridegetPCapInterface) {
          return mPCAPInterface;
       }
-      return Conf::getPCAPInterface();
+      return Conf::GetPCAPInterface();
    }
 
-   bool getQosmosDebugModeEnabled(void) LR_OVERRIDE {
+   bool GetQosmosDebugModeEnabled(void) LR_OVERRIDE {
       return mQosmosDebug;
    }
 
-   unsigned int getDpiHalfSessions() LR_OVERRIDE {
+   unsigned int GetDpiHalfSessions() LR_OVERRIDE {
       return mDpiHalfSessions;
    }
 
-   unsigned int getQosmos64BytePool() LR_OVERRIDE {
+   unsigned int GetQosmos64BytePool() LR_OVERRIDE {
       return mQosmos64;
    }
 
-   unsigned int getQosmos128BytePool() LR_OVERRIDE {
+   unsigned int GetQosmos128BytePool() LR_OVERRIDE {
       return mQosmos128;
    }
 
-   unsigned int getQosmos256BytePool() LR_OVERRIDE {
+   unsigned int GetQosmos256BytePool() LR_OVERRIDE {
       return mQosmos256;
    }
 
-   unsigned int getQosmos512BytePool() LR_OVERRIDE {
+   unsigned int GetQosmos512BytePool() LR_OVERRIDE {
       return mQosmos512;
    }
 
@@ -248,25 +248,25 @@ public:
       mQosmosProtoFamiles[name] = name;
    }
 
-   std::string getCommandQueue() const LR_OVERRIDE {
+   std::string GetCommandQueue() const LR_OVERRIDE {
       if (mCommandQueue.empty()) {
-         return Conf::getCommandQueue();
+         return Conf::GetCommandQueue();
       }
       return mCommandQueue;
    }
 
-   std::string getProccessManagementQueue() const LR_OVERRIDE {
+   std::string GetProccessManagementQueue() const LR_OVERRIDE {
       if (mProcessManagmentQueue.empty()) {
-         return Conf::getProccessManagementQueue();
+         return Conf::GetProccessManagementQueue();
       }
       return mProcessManagmentQueue;
    }
 
-   bool getIntermediateFlowEnabled() LR_OVERRIDE {
+   bool GetIntermediateFlowEnabled() LR_OVERRIDE {
       return mIntermediateFlowEnabled;
    }
 
-   bool getPacketCaptureEnabled() LR_OVERRIDE {
+   bool GetPacketCaptureEnabled() LR_OVERRIDE {
       return mUnknownCaptureEnabled;
    }
 
@@ -382,6 +382,9 @@ public:
    bool mOverridegetPCapInterface;
 };
 
+/**
+ * Allows you to use Update functions without a working ConfMaster
+ */
 class MockConfNoMaster : public MockConf {
 public:
 
@@ -421,6 +424,9 @@ public:
    }
 };
 
+/**
+ * A mock class that simply exposes protected methods 
+ */
 class MockConfExposeUpdate : public Conf {
 public:
 

@@ -374,6 +374,11 @@ TEST_F(DpiMsgLRTests, GetStaticFieldPairs) {
    EXPECT_EQ("FlowCompleted", results[10].first);
 }
 
+// Some of the fields will be camelcase and some of the fields will be 
+// lowercase-underscore separated
+//
+// See DpiMsgLR.h/cpp to see which ones are hard coded. The hard coded
+// are CamelCase and the others will be with underscore_separation
 TEST_F(DpiMsgLRTests, GetDynamicFieldPairs) {
    std::map<unsigned int, std::pair<std::string, std::string> > results;
    std::map<string, string> expecteds;
@@ -383,7 +388,7 @@ TEST_F(DpiMsgLRTests, GetDynamicFieldPairs) {
    int chunk = 1234;
    string chunks = std::to_string(chunk);
    tDpiMessage.set_file_chunk_data_offsetq_proto_bittorrent(chunk);
-   expecteds["fileChunkDataOffset"] = chunks;
+   expecteds["file_chunk_data_offset"] = chunks;
 
    int filesize = 7890;
    string filesizes = std::to_string(filesize);
@@ -393,16 +398,22 @@ TEST_F(DpiMsgLRTests, GetDynamicFieldPairs) {
    string filename = "this is a file";
    tDpiMessage.add_attach_filenameq_proto_facebook_mail(filename);
    tDpiMessage.GetDynamicFieldPairs(results);
-   expecteds["attachFilename"] = filename;
+   expecteds["attach_filename"] = filename;
 
    ASSERT_EQ(3, results.size());
    for (auto i = results.begin(); i != results.end(); ++i) {
       string fieldName = i->second.first;
       string fieldValue = i->second.second;
-      EXPECT_EQ(expecteds[fieldName], fieldValue);
+      EXPECT_EQ(expecteds[fieldName], fieldValue) << "name/value: [" << fieldName << "]/[" << fieldValue << "]";
    }
 }
 
+
+// Some of the fields will be camelcase and some of the fields will be 
+// lowercase-underscore separated
+//
+// See DpiMsgLR.h/cpp to see which ones are hard coded. The hard coded
+// are CamelCase and the others will be with underscore_separation
 TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
 #ifdef LR_DEBUG
    map<unsigned int, pair<string, string> > results;
@@ -444,7 +455,7 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    int chunk = 1234;
    string chunks = std::to_string(chunk);
    dm.set_file_chunk_data_offsetq_proto_bittorrent(chunk);
-   expecteds["fileChunkDataOffset"] = chunks;
+   expecteds["file_chunk_data_offset"] = chunks;
 
    int filesize = 7890;
    string filesizes = std::to_string(filesize);
@@ -453,7 +464,7 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
 
    string filename = "this is a file";
    dm.add_attach_filenameq_proto_facebook_mail(filename);
-   expecteds["attachFilename"] = filename;
+   expecteds["attach_filename"] = filename;
 
    results = dm.GetAllFieldsAsStrings();
    ASSERT_EQ(11, results.size());
@@ -461,7 +472,7 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    for (auto i = results.begin(); i != results.end(); ++i) {
       string fieldName = i->second.first;
       string fieldValue = i->second.second;
-      EXPECT_EQ(expecteds[fieldName], fieldValue);
+      EXPECT_EQ(expecteds[fieldName], fieldValue) << "name/value: [" << fieldName << "]/[" << fieldValue << "]";    
    }
 #endif
 }

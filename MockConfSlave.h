@@ -38,23 +38,13 @@ public:
       return ConfSlave::ProcessMessage(shots);
    }
 
-   bool ProcessConfMsg(const protoMsg::ConfType& configTypeMessage,
-           const std::vector<std::string>& shots) {
-      return mNewConfSeen = ConfSlave::ProcessConfMsg(configTypeMessage, shots);
+   bool MessageHasPayload(const std::vector<std::string>& shots) {
+      return ConfSlave::MessageHasPayload(shots);
    }
-
-   bool ProcessQosmosMsg(const protoMsg::ConfType& configTypeMessage,
-           const std::vector<std::string>& shots) {
-      LOG(DEBUG) << "MockProcessQosmosMsg";
-      return mNewQosmosSeen = ConfSlave::ProcessQosmosMsg(configTypeMessage, shots);
+   bool MessageRequiresNoFurtherAction(const protoMsg::ConfType_Type& type) {
+      return ConfSlave::MessageRequiresNoFurtherAction(type);
    }
-
-   bool ProcessSyslogMsg(const protoMsg::ConfType& configTypeMessage,
-           const std::vector<std::string>& shots) {
-      LOG(DEBUG) << "MockProcessSyslogMsg";
-      return mNewSyslogSeen = ConfSlave::ProcessSyslogMsg(configTypeMessage, shots);
-   }
-
+   
    bool ProcessRestartMsg(const protoMsg::ConfType& configTypeMessage,
            const std::vector<std::string>& shots) {
       LOG(DEBUG) << "MockProcessRestartMsg";
@@ -76,17 +66,7 @@ public:
       return mShutDownConfReceived;
    }
 
-   virtual bool ProcessNetInterfaceMsg(const protoMsg::ConfType& configTypeMessage,
-           const std::vector<std::string>& shots) {
-      LOG(DEBUG) << "MockProcessInterfaceMsg";
-      return mNewNetInterfaceMsg = ConfSlave::ProcessNetInterfaceMsg(configTypeMessage, shots);
-   }
-
-   virtual bool ProcessNtpMsg(const protoMsg::ConfType& configTypeMessage,
-           const std::vector<std::string>& shots) {
-      LOG(DEBUG) << "MockProcessNtpMsg";
-      return mNewNtpMsg = ConfSlave::ProcessNtpMsg(configTypeMessage, shots);
-   }
+  
 
    bool mShutDownConfReceived;
    bool mShutDownConfValue;

@@ -10,7 +10,7 @@ public:
    FastMockElasticSearchSocket(BoomStick& transport, const bool asynchronous) : ElasticSearchSocket::ElasticSearchSocket(transport, asynchronous) {
    }
 
-   int GetSocketWaitTime(const std::map<std::string, std::string>& inFlightCommands) const LR_OVERRIDE {
+   int GetSocketWaitTimeInMs(const std::map<std::string, std::string>& inFlightCommands) const LR_OVERRIDE {
       return 0;
    }
 protected:

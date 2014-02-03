@@ -71,7 +71,7 @@ TEST_F(SyslogReporterTest, SendMsgToSyslogReporter) {
    boost::thread* srThread = syslogReporter.Start();
    boost::this_thread::sleep(boost::posix_time::milliseconds(500));
 
-   std::string queueName = mConfSlave.GetConf().getSyslogQueue();
+   std::string queueName = mConfSlave.GetConf().GetSyslogQueue();
 
    int numSyslogSenders = 100;
    int numSyslogMsgs = 10000;
@@ -111,7 +111,7 @@ TEST_F(SyslogReporterTest, SendMsgToSyslogReporterSyslogDisabled) {
    boost::this_thread::sleep(boost::posix_time::milliseconds(500));
    EXPECT_NE(syslogReporter.GetThreadId(), 0);
 
-   std::string queueName = mConfSlave.GetConf().getSyslogQueue();
+   std::string queueName = mConfSlave.GetConf().GetSyslogQueue();
 
    int numSyslogSenders = 1;
    int numSyslogMsgs = 10;
@@ -148,7 +148,7 @@ TEST_F(SyslogReporterTest, SyslogSendStat) {
    boost::this_thread::sleep(boost::posix_time::milliseconds(500));
    EXPECT_NE(syslogReporter.GetThreadId(), 0);
 
-   std::string queueName = mConfSlave.GetConf().getSyslogQueue();
+   std::string queueName = mConfSlave.GetConf().GetSyslogQueue();
    int numSyslogMsgs = 10;
 
    Rifle rifle(queueName);
