@@ -38,7 +38,7 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    protoMsg::BaseConf right;
    right.set_dpithreads("2");
    EXPECT_TRUE(master.ValidateConfFieldValues(conf,right,protoMsg::ConfType_Type_BASE));
-
+   conf.updateFields(right);
    // Verify that erroneous fields are cleared and ignored
    protoMsg::BaseConf wrong = conf.GetProtoMsg();
    EXPECT_EQ(wrong.dpithreads(), "2");
@@ -48,10 +48,10 @@ TEST_F(ConfProcessorTests, BaseConfValidationErrorFieldsWillBeCleared) {
    std::string wrongString;
    wrongString = wrong.SerializeAsString();
    master.ProcessBaseConfigRequest(conf,wrongString);
-   EXPECT_EQ(wrong.has_dpithreads(), true); // copies are not cleared
+   EXPECT_FALSE(wrong.has_dpithreads()); // invalid data IS cleared
 
    wrong = conf.GetProtoMsg();
-   EXPECT_EQ(wrong.dpithreads(), "2");
+   EXPECT_EQ(wrong.dpithreads(), "2"); // Still has the old value
 
    wrong.set_dpithreads("Hello World!");
    wrongString =wrong.SerializeAsString();

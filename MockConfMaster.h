@@ -17,7 +17,7 @@ public:
    mValidateEthFailCount(0),
    mIgnoreConfValidate(true),
    mValidConfValidation(true) {
-
+      mEthInfo.Initialize();
    }
 
    void RepairConf(Conf& conf) {
