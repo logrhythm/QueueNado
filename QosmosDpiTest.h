@@ -167,7 +167,7 @@ protected:
 #ifdef LR_DEBUG
    MockConf mConf;
 #else
-   Conf mConf;
+   MockConfExposeUpdate mConf;
 #endif
 };
 
