@@ -129,7 +129,7 @@ TEST_F(ForkerPipeTest, CommandWithNoOutputExpected) {
    clientPipe.InsertDummyCommand("Reply",foo); 
    bool commandFinished(false);
    clientPipe.UpdateCommandResult("Reply", commandFinished);
-   EXPECT_FALSE(commandFinished);
+   EXPECT_TRUE(commandFinished);
    clientPipe.UpdateCommandResult("NoReply", commandFinished);
    EXPECT_TRUE(commandFinished);
    
