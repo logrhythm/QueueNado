@@ -6,22 +6,7 @@
 #include "g2log.hpp"
 #include "ProcessReply.pb.h"
 #include <unistd.h>
-TEST_F(ProcessManagerTest, FailInitializationFromAnotherObject) {
-#ifdef LR_DEBUG
 
-   MockConf conf;
-   std::stringstream testQueue;
-   testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
-   conf.mProcessManagmentQueue = testQueue.str();
-   MockProcessManager testManager(conf);
-   ASSERT_TRUE(testManager.Initialize());
-   conf.mProcessManagmentQueue = "invalid";
-   MockProcessManager sendManager(conf);
-   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
-   ASSERT_DEATH(sendManager.Initialize(), "EXIT trigger caused by broken Contract");
-   testManager.DeInit();
-#endif
-}
 TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
 #ifdef LR_DEBUG
 
@@ -52,6 +37,7 @@ TEST_F(ProcessManagerTest, StartedWithoutMotherForker) {
    MockProcessManagerNoMotherForker testManager(conf);
    ::testing::FLAGS_gtest_death_test_style = "threadsafe";
    ASSERT_DEATH(testManager.Initialize(),"EXIT trigger caused by broken Contract");
+   testManager.DeInit();
 #endif
 }
 
