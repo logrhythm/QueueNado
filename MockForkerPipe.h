@@ -3,7 +3,7 @@
 class MockForkerPipe : public ForkerPipe {
 public:
 
-   MockForkerPipe(std::string programName, bool client = true) : ForkerPipe(programName, client) {
+   MockForkerPipe(std::string programName, bool client = true) : ForkerPipe(programName, client), mFakeChildFinished(false) {
    }
    LR_VIRTUAL int GetReplyTimeout() { return 1;}
    LR_VIRTUAL int GetSendReplyTimeout(){ return 1;}
@@ -43,6 +43,9 @@ public:
       return ForkerPipe::RunExecVE(command, arguments, environment);
    }
    LR_VIRTUAL bool IsChildLiving ( pid_t child, int& returnCode ){
+      if (mFakeChildFinished) {
+         return false;
+      }
       return ForkerPipe::IsChildLiving (child,returnCode );
    }
    LR_VIRTUAL std::string ReadFromReadyPipe(int pipe){
@@ -54,4 +57,5 @@ public:
    void InsertDummyCommand(const CommandId& id, const CommandState& stat) {
       mRunningCommands[id] = stat;
    }
+   bool mFakeChildFinished;
 };

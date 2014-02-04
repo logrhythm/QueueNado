@@ -197,8 +197,8 @@ TEST_F(ConfProcessorTests, ReadConfFilesPerformance) {
    unsigned int iterations(50);
    StartTimedSection(.7, iterations);
    for (unsigned int i = 0; i < iterations; i++) {
-      Conf conf;
-      EXPECT_TRUE((conf.getDpiThreads() >= 1));    
+      MockConfExposeUpdate conf;
+      EXPECT_TRUE((conf.GetDpiThreads() >= 1));    
    }
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
@@ -213,8 +213,8 @@ TEST_F(ConfProcessorTests, DISABLED_ReadConfFilesPerformance_future) {
    unsigned int iterations(1000);
    StartTimedSection(.05, iterations);
    for (unsigned int i = 0; i < iterations; i++) {
-      Conf conf;
-      EXPECT_TRUE((conf.getDpiThreads() >= 1));    
+      MockConfExposeUpdate conf;
+      EXPECT_TRUE((conf.GetDpiThreads() >= 1));    
    }
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
@@ -224,7 +224,7 @@ TEST_F(ConfProcessorTests, ReadPerformanceBenchmark_BASE) {
    ConfMaster& master = ConfMaster::Instance();
    master.Start();
    Conf conf(master.GetConf());
-   Crowbar sender(conf.getConfChangeQueue());
+   Crowbar sender(conf.GetConfChangeQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::ConfType typeMsg;
 
@@ -255,7 +255,7 @@ TEST_F(ConfProcessorTests, WritePerformanceBenchmark_BASE) {
    ConfMaster& master = ConfMaster::Instance();
    master.Start();
    Conf conf(master.GetConf());
-   Crowbar sender(conf.getConfChangeQueue());
+   Crowbar sender(conf.GetConfChangeQueue());
    ASSERT_TRUE(sender.Wield());
    protoMsg::ConfType typeMsg;
 
