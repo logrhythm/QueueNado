@@ -123,6 +123,7 @@ bool Crowbar::Swing(const std::string& hit) {
 
 bool Crowbar::Flurry(std::vector<std::string>& hits) {
    if (! mTip) {
+      LOG(WARNING) << "Cannot send, not Wielded";
       return false;
    }
    zmsg_t* message = zmsg_new();
@@ -133,6 +134,7 @@ bool Crowbar::Flurry(std::vector<std::string>& hits) {
    bool success = true;
    //std::cout << "Sending message with " << zmsg_size(message) << " " << hits.size() << std::endl;
    if (zmsg_send(&message, mTip) != 0) {
+      LOG(WARNING) << "zmsg_send returned non-zero exit";
       success = false;
    }
    if (message) {
