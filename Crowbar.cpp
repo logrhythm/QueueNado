@@ -133,8 +133,7 @@ bool Crowbar::Flurry(std::vector<std::string>& hits) {
    }
    bool success = true;
    //std::cout << "Sending message with " << zmsg_size(message) << " " << hits.size() << std::endl;
-   int returnVal;
-   if ((returnVal=zmsg_send(&message, mTip)) != 0) {
+   if (zmsg_send(&message, mTip) != 0) {
       LOG(WARNING) << "zmsg_send returned non-zero exit " << zmq_strerror(zmq_errno());
       success = false;
    }
