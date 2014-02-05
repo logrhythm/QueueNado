@@ -291,7 +291,13 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    checkRealReply(realReply, "enablePacketCapture", protoMsg::ConfType::BASE, "true", "false", "true", it++);
    checkRealReply(realReply, "captureFileLimit", protoMsg::ConfType::BASE, "1000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
    
-   checkRealReply(realReply, "captureSizeLimit", protoMsg::ConfType::BASE, "80000", "1000", "1000000", it++);
+   
+   
+   ProtoDefaults getDefaults{mockConf.GetPcapCaptureLocations()};
+   auto confDefaults = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
+   auto rangePtr = getDefaults.GetRange(confDefaults, "captureSizeLimit"); // int  
+   
+   checkRealReply(realReply, "captureSizeLimit", protoMsg::ConfType::BASE, "80000", "1000", rangePtr->StringifyMax(), it++);
    checkRealReply(realReply, "captureMemoryLimit", protoMsg::ConfType::BASE, "1500", "1000", "16000", it++);
    checkRealReply(realReply, "captureMaxPackets", protoMsg::ConfType::BASE, "2000000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
    checkRealReply(realReply, "captureIndividualFileLimit", protoMsg::ConfType::BASE, "2000", "1", "2000000", it++);
