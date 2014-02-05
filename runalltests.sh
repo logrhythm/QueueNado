@@ -23,7 +23,7 @@ export LUA_CPATH=/usr/local/probe/lib/lua/5.1/\?.so\;/usr/local/probe/libLua/\?.
 ../source/MotherForker ./RifleVampireTests --gtest_output=xml:../RifleVampireTests.junit.xml
 ../source/MotherForker ./RuleEngineTest --gtest_output=xml:../RuleEngineTest.junit.xml
 ../source/MotherForker ./TestTCPIPDirectionlessHash --gtest_output=xml:../TestTCPIPDirectionlessHash.junit.xml
-../source/MotherForker ./CommandProcessorTests --gtest_output=xml:../CommandProcessorTests.junit.xml
+../source/MotherForker ./CommandProcessorTests --gtest_output=xml:../CommandProcessorTests.junit.xml  --gtest_filter=-*StartAQuickAsyncCommand*
 ../source/MotherForker ./ProcessManagerTest --gtest_output=xml:../ProcessManagerTest.junit.xml
 ../source/MotherForker ./LuaExecuterTest --gtest_output=xml:../LuaExecuterTest.junit.xml
 ../source/MotherForker ./ThreadContainerTest --gtest_output=xml:../ThreadContainerTest.junit.xml
