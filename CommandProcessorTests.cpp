@@ -205,7 +205,8 @@ TEST_F(CommandProcessorTests, ExecuteForkTests) {
 
    unsigned int count(0);
    std::weak_ptr<Command> weakCommand(holdMe);
-   Command::ExecuteFork(holdMe, conf, threadRefSet);
+   pthread_t threadID; 
+   Command::ExecuteFork(holdMe, conf, threadID, threadRefSet);
 
    while (!*threadRefSet && !zctx_interrupted && count++ < 1000) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
