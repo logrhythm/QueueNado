@@ -10,6 +10,7 @@
 #include <thread>
 #include <chrono>
 #include <boost/lexical_cast.hpp>
+#include "g2log.hpp"
 
 class CommandProcessorTests : public ::testing::Test {
 public:
@@ -23,11 +24,17 @@ protected:
    virtual void SetUp() {
       conf.mCommandQueue = "tcp://127.0.0.1:";
       conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
+      mDeathReceived = false;
+      mDeathMessage = "No Death";
    };
 
    virtual void TearDown() {  }
 
-   
+   // Ref the Death test: ConstructAndInitializeFail. 
+   static void DeathReceiver(g2::internal::FatalMessage death) {
+      mDeathReceived = true;
+      mDeathMessage = death.message_;      
+   }
    
    // The "KillCommandsThatWillNeverFinish" will be called
    // periodically in the CommandProcessor. This function
@@ -70,10 +77,7 @@ protected:
 
 
    MockConf conf;
+   static bool mDeathReceived;
+   static std::string mDeathMessage;
 private:
-
-
-
-
 };
-

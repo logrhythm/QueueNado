@@ -27,6 +27,9 @@
 #include "FileIO.h"
 
 
+bool CommandProcessorTests::mDeathReceived = false;
+std::string CommandProcessorTests::mDeathMessage = {};
+
 #ifdef LR_DEBUG
 //
 //  The Mock Shutdown sets a flag if the DoTheShutdown gets triggered. 
@@ -2505,15 +2508,24 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
 #endif
 }
 
-TEST_F(CommandProcessorTests, ConstructAndInitializeFail) {
+// THIS DEATH TEST SHOULD BE LAST of all the tests in CommandProcessorTests since it will effectively CHANGE 
+// How G2log will deal with CHECK and LOG(FATAL)
+TEST_F(CommandProcessorTests, DEATH_TEST__ConstructAndInitializeFail) {
 #ifdef LR_DEBUG
 
-   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
-   ASSERT_DEATH({MockConf conf;
+   g2::internal::changeFatalInitHandlerForUnitTesting(CommandProcessorTests::DeathReceiver);
+   EXPECT_FALSE(CommandProcessorTests::mDeathReceived);
+   EXPECT_TRUE(CommandProcessorTests::mDeathMessage.find("Cannot start command reader listener queue") == std::string::npos);
+   { // explicit scope for thread cleanup
+      MockConf conf;
       conf.mCommandQueue = "invalid";
       CommandProcessor testProcessor(conf);
-      EXPECT_FALSE(testProcessor.Initialize());
-      std::this_thread::sleep_for(std::chrono::seconds(1));}, "Cannot start command reader listener queue");
+      ASSERT_NO_THROW(testProcessor.Initialize()) << "Test assert should be caught by the Unit test Fatal handler";
+      std::this_thread::sleep_for(std::chrono::seconds(2));
+   } // scope exit will make sure that the thread was executed and cleaned up
 
+
+   EXPECT_TRUE(CommandProcessorTests::mDeathReceived);
+   EXPECT_TRUE(CommandProcessorTests::mDeathMessage.find("Cannot start command reader listener queue") != std::string::npos);
 #endif
 }
