@@ -7,7 +7,8 @@
 #include "ConfSlave.h"
 #include "Conf.h"
 #include "ProtoDefaults.h"
-
+#include "MockProtoDefaults.h"
+#include "PcapDiskUsage.h"
 
 TEST(TestProtoDefaults, GetConfDefaultsOK) {
    ProtoDefaults getDefaults{{}};
@@ -78,4 +79,45 @@ TEST(TestProtoDefaults, GetConfParamOK){
    EXPECT_TRUE((std::get<ProtoDefaults::indexDefault>(getDefaults.GetConfParam(confDefaults, str))).compare("4") == 0);
    EXPECT_TRUE((*std::get<ProtoDefaults::indexRange>(getDefaults.GetConfParam(confDefaults, str))).Validate("4")); //Int
    EXPECT_FALSE((*std::get<ProtoDefaults::indexRange>(getDefaults.GetConfParam(confDefaults, str))).Validate("f")); //Int
+}
+
+
+
+TEST(TestProtoDefaults, VerifyPcapStorageSizeLimit__Default){
+   MockProtoDefaults failedDefault{{"dont_exist"}}; // Failed pcap disk reading will trigger the default
+   EXPECT_FALSE(failedDefault.WasPcapDiskReadSuccessful());
+   
+   auto baseDefaults = failedDefault.GetConfDefaults(protoMsg::ConfType_Type_BASE);
+   EXPECT_FALSE(failedDefault.WasPcapDiskReadSuccessful());
+
+   auto pcapSizeLimitDefault = failedDefault.GetConfParam(baseDefaults, "captureSizeLimit");
+   std::string defaultValue = std::get<ProtoDefaults::indexDefault>(pcapSizeLimitDefault);
+   EXPECT_EQ(defaultValue, "80000");
+   
+   auto  rangePtr = std::get<ProtoDefaults::indexRange>(pcapSizeLimitDefault);
+   EXPECT_EQ(rangePtr->StringifyMin(), "1000");
+   EXPECT_EQ(rangePtr->StringifyMax(), "1000000");
+   
+   std::string pcapSizeLimitType = std::get<ProtoDefaults::indexType>(pcapSizeLimitDefault);
+   EXPECT_EQ(pcapSizeLimitType, "num_int");   
+}
+
+
+TEST(TestProtoDefaults, FailedReadingWillTriggerNewReading){
+   MockProtoDefaults successfulDefault{{"/usr/local/probe"}}; // Any directory would work really
+   
+   auto baseDefaults = successfulDefault.GetConfDefaults(protoMsg::ConfType_Type_BASE);
+   EXPECT_TRUE(successfulDefault.WasPcapDiskReadSuccessful());
+
+   auto pcapSizeLimitDefault = successfulDefault.GetConfParam(baseDefaults, "captureSizeLimit");
+   
+   auto  rangePtr = std::get<ProtoDefaults::indexRange>(pcapSizeLimitDefault);
+   EXPECT_EQ(rangePtr->StringifyMin(), "1000");
+   EXPECT_NE(rangePtr->StringifyMax(), "1000000");
+   
+   PcapDiskUsage pcapDisk {{"/usr/local/probe"}};
+   auto totalUsage = pcapDisk.GetTotalDiskUsage(MemorySize::MB);
+   const int64_t pcapLimitInPercentUnits{80};
+   auto maxPcapStorageLimit = (pcapLimitInPercentUnits * totalUsage.total) / 100;
+   EXPECT_EQ(rangePtr->StringifyMax(), std::to_string(maxPcapStorageLimit));
 }
