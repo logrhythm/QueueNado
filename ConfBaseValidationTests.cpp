@@ -5,7 +5,7 @@
 #include "MockConf.h"
 #include "MockConfMaster.h"
 #include "BaseConfMsg.pb.h"
-#include "ProtoDefaults.h"
+#include "MockProtoDefaults.h"
 #include <g2log.hpp>
 #include <functional>
 #include <limits>
@@ -190,10 +190,16 @@ void ValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
 
    (index++ == shouldFail) ? msg.set_capturefilelimit("2147483648") : msg.set_capturefilelimit("2147483647");
 
-   ProtoDefaults getDefaults{conf.GetPcapCaptureLocations()};
+   // Force it to NOT update the cache, and thus will NOT call PcapDiskStorage
+   MockProtoDefaults::SetPcapDiskReadSuccess(true); 
+   //At ScopeExit MockProtoDefaults will set ProtoDefaults::gPcapDiskReadSuccess to false to force a re-read
+   // for any following tests
+   MockProtoDefaults getDefaults{conf.GetPcapCaptureLocations()};
    auto confDefaults = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
    auto rangePtr = getDefaults.GetRange(confDefaults, "captureSizeLimit"); // int
-   auto captureSizeLimitTooMuch = std::to_string(1+ std::stoul(rangePtr->StringifyMax()));  
+   std::string pcapDiskMax = rangePtr->StringifyMax();
+   EXPECT_EQ(pcapDiskMax, "1000000");
+   auto captureSizeLimitTooMuch = std::to_string(1+ std::stoul(pcapDiskMax));  
    (index++ == shouldFail) ? msg.set_capturesizelimit(captureSizeLimitTooMuch) : msg.set_capturesizelimit(rangePtr->StringifyMax());
    
    (index++ == shouldFail) ? msg.set_capturememorylimit("16001") : msg.set_capturememorylimit("16000");

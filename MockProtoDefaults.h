@@ -15,10 +15,10 @@
 
 class MockProtoDefaults : public ProtoDefaults {
 public:
-
+   
    explicit MockProtoDefaults(const std::vector<std::string>& pcapLocations)
-   : ProtoDefaults(pcapLocations) {
-
+   : ProtoDefaults(pcapLocations)
+   {
       ProtoDefaults::gPcapDiskReadSuccess = false; // trigger a new read
    }
 
@@ -34,6 +34,10 @@ public:
 
    bool WasPcapDiskReadSuccessful() {
       return  ProtoDefaults::gPcapDiskReadSuccess;
+   }
+   
+   static bool SetPcapDiskReadSuccess(bool overridePrevious) {
+      ProtoDefaults::gPcapDiskReadSuccess = overridePrevious; 
    }
 };
 

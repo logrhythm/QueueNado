@@ -170,8 +170,7 @@ ConfProcessorTests_SOURCES=main.cpp \
 	QosmosConfTest.cpp \
 	ConfNtpProcessorTests.cpp \
 	ConfBaseValidationTests.cpp \
-	ConfSyslogValidationTests.cpp \
-        TestProtoDefaultsMethods.cpp
+	ConfSyslogValidationTests.cpp 
 ConfProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 CommandProcessorTests_LDADD=${DYNAMIC_LIBS}
@@ -183,17 +182,19 @@ CommandProcessorTests_SOURCES=main.cpp \
         ShutdownCommandTest.cpp  \
         DriveInfoCommandTest.cpp  \
         NetworkConfigCommandTest.h  \
+        TestProtoDefaultsMethods.cpp \
+        MockProtoDefaults.h \
         NtpConfigCommandTest.cpp \
         NtpConfigCommandTest.h \
         MockNtpConfigCommand.h \
         MockRestartSyslogCommand.h \
         MockConfNtpToReadFile.h \
         MockConfNtp.h \
-		MockProcessManagerCommand.h \
-		MockDriveInfo.h \
-		ConfigRequestCommandTest.cpp \
-		ConfigRequestCommandTest.h \
-		MockConfigRequestCommand.h
+        MockProcessManagerCommand.h \
+	MockDriveInfo.h \
+	ConfigRequestCommandTest.cpp \
+	ConfigRequestCommandTest.h \
+	MockConfigRequestCommand.h
 CommandProcessorTests_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBULID_VERSION=\"@PROBE_BUILD_VERSION@\" ${INCLUDES}  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 
