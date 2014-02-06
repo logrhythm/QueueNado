@@ -29,7 +29,7 @@ struct MockConfigRequestCommand : public ConfigRequestCommand {      // name, de
    typedef std::tuple<std::string, std::string, Ranges> OneConfDefault;
    typedef std::vector<OneConfDefault> ManyConfDefaults;
 
-   MockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager)
+   MockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessClient& processManager)
    : ConfigRequestCommand(request, processManager), mMockExecuteRequest(false) {
    }
 
@@ -116,7 +116,7 @@ private:
 class GMockConfigRequestCommand : public MockConfigRequestCommand {
 public:
 
-   GMockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager) :
+   GMockConfigRequestCommand(const protoMsg::CommandRequest& request, ProcessClient& processManager) :
    MockConfigRequestCommand(request, processManager) {
    }
 

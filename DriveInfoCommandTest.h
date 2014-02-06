@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gtest/gtest.h"
-#include "MockProcessManagerCommand.h"
+#include "MockProcessClientCommand.h"
 #include "CommandRequest.pb.h"
 #include "MockConf.h"
 
@@ -20,7 +20,7 @@ protected:
    bool Compare(const DriveInfo& first, const DriveInfo& second);
    protoMsg::CommandRequest cmd;
    MockConf conf;
-   MockProcessManagerCommand autoManagedManager;
+   MockProcessClientCommand autoManagedManager;
 };
 
   

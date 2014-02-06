@@ -7,10 +7,8 @@
 #include <string>
 class MockDriveInfoCommand : public DriveInfoCommand {
 public:
-   explicit MockDriveInfoCommand(const protoMsg::CommandRequest& request) : DriveInfoCommand(request) {
-      
-   }
-   MockDriveInfoCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager)
+
+   MockDriveInfoCommand(const protoMsg::CommandRequest& request, ProcessClient& processManager)
    : DriveInfoCommand(request,processManager) {
       
    }

@@ -11,7 +11,7 @@
 #include "CommandReply.pb.h"
 #include "MockUpgradeCommand.h"
 #include "CommandRequest.pb.h"
-#include "MockProcessManagerCommand.h"
+#include "MockProcessClientCommand.h"
 #include "CommandFailedException.h"
 #include "QosmosDpiTest.h"
 #include "RebootCommand.h"

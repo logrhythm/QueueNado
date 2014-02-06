@@ -43,6 +43,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libconf/ \
           -Wl,-R${abs_top_srcdir}/source/libcapture/ \
           -Wl,-R${abs_top_srcdir}/source/libcommand/ \
+          -Wl,-R${abs_top_srcdir}/source/libprocessclient/ \
           -Wl,-R${abs_top_srcdir}/source/libprocess/ \
           -Wl,-R${abs_top_srcdir}/source/libelasticsearch/ \
           -Wl,-R${abs_top_srcdir}/source/libtools/ \
@@ -60,6 +61,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libconf/ \
           -L${abs_top_srcdir}/source/libcapture/ \
           -L${abs_top_srcdir}/source/libcommand/ \
+          -L${abs_top_srcdir}/source/libprocessclient/ \
           -L${abs_top_srcdir}/source/libprocess/ \
           -L${abs_top_srcdir}/source/liblua/ \
           -L${abs_top_srcdir}/source/libelasticsearch/ \
@@ -82,6 +84,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libconf \
          -I${abs_top_srcdir}/source/libcapture \
          -I${abs_top_srcdir}/source/libcommand \
+         -I${abs_top_srcdir}/source/libprocessclient \
          -I${abs_top_srcdir}/source/libprocess \
          -I${abs_top_srcdir}/source/liblua \
          -I${abs_top_srcdir}/source/libelasticsearch \
@@ -94,7 +97,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
 
 DYNAMIC_LIBS=-ltcmalloc \
              -llib_g2log \
-             -lsyslog -lZMQ -llrdpi -lstats -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
+             -lsyslog -lZMQ -llrdpi -lstats -lprocessclient -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf \
              -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal -lfork -lremap

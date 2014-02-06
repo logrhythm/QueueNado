@@ -3,7 +3,7 @@
 #include "NtpConfigCommand.h"
 #include "CommandReply.pb.h"
 #include "ProcessManager.h"
-#include "MockProcessManagerCommand.h"
+#include "MockProcessClientCommand.h"
 #include "MockCommandProcessor.h"
 #include "MockConf.h"
 #include "NtpMsg.pb.h"

@@ -1,16 +1,16 @@
 #pragma once
-#include "ProcessManager.h"
+#include "ProcessClient.h"
 #include "Conf.h"
 #include <g2log.hpp>
 #include <string>
 #include <vector>
 #include "include/global.h"
 
-class MockProcessManagerCommand : public ProcessManager {
+class MockProcessClientCommand : public ProcessClient {
 public:
 
-   MockProcessManagerCommand(const Conf& conf) 
-   : ProcessManager(conf, global::GetProgramName()),
+   MockProcessClientCommand(const Conf& conf) 
+   : ProcessClient(conf),
    mReturnCode(0),
    mInit(true),
    mSuccess(true),
@@ -75,7 +75,7 @@ public:
       return reply;
    }
 
-   virtual ~MockProcessManagerCommand() {
+   virtual ~MockProcessClientCommand() {
    }
 
 

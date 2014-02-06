@@ -11,19 +11,14 @@
 #include "CommandReply.pb.h"
 #include "CommandRequest.pb.h"
 #include "SyslogConfMsg.pb.h"
-#include "ProcessManager.h"
+#include "ProcessClient.h"
 #include "MockRestartSyslogCommand.h"
 #include <string>
 
 struct MockRestartSyslogCommand : public RestartSyslogCommand {
 
-   MockRestartSyslogCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager)
+   MockRestartSyslogCommand(const protoMsg::CommandRequest& request, ProcessClient& processManager)
    : RestartSyslogCommand(request, processManager) {
-
-      MockRestartSyslogCommand::mSyslogMsg.ParseFromString(request.stringargone());
-   }
-
-   MockRestartSyslogCommand(const protoMsg::CommandRequest& request) : RestartSyslogCommand(request) {
 
       MockRestartSyslogCommand::mSyslogMsg.ParseFromString(request.stringargone());
    }
@@ -39,7 +34,8 @@ struct MockRestartSyslogCommand : public RestartSyslogCommand {
       return false;
    }
    static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
-      std::shared_ptr<Command> command(new MockRestartSyslogCommand(request));
+      static ProcessClient processClient(ConfSlave::Instance().GetConf());
+      std::shared_ptr<Command> command(new MockRestartSyslogCommand(request,processClient));
       return command;
    }
 

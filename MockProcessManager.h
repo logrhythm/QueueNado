@@ -17,7 +17,7 @@ public:
    virtual ~MockProcessManager() {
    }
 
-   virtual bool Initialize() {
+   virtual bool Initialize() LR_OVERRIDE {
       if (mRealInit) {
          return ProcessManager::Initialize();
       } else {
@@ -27,7 +27,7 @@ public:
    using ProcessManager::StartDaemon;
    using ProcessManager::StopProcess;
 
-   bool KillPid(pid_t pid) override {
+   bool KillPid(pid_t pid) override  {
       if (mKillFails) {
          return false;
       }
@@ -58,7 +58,7 @@ public:
       ProcessManager::SetPidDir(pidDir);
    }
 
-   LR_VIRTUAL pid_t GetParentPid() {
+   LR_VIRTUAL pid_t GetParentPid() LR_OVERRIDE {
       if(mOverrideParentPid) {
          return mParentPid;
       }
@@ -90,7 +90,7 @@ public:
    MockProcessManagerNoMotherForker(const Conf& conf) : MockProcessManager(conf) {
    }
 
-   pid_t GetParentPid() {
+   pid_t GetParentPid() LR_OVERRIDE {
       return 1;
    }
 

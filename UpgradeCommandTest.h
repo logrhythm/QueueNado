@@ -19,7 +19,7 @@ public:
    using UpgradeCommand::RunUpgradeScript;
    using UpgradeCommand::CleanUploadDir;
 
-   UpgradeCommandTest(const protoMsg::CommandRequest& request, ProcessManager& processManager) 
+   UpgradeCommandTest(const protoMsg::CommandRequest& request, ProcessClient& processManager) 
    : UpgradeCommand(request, processManager) {  }
    
    virtual ~UpgradeCommandTest() { }

@@ -4,8 +4,8 @@
 #include <gtest/gtest.h>
 #include <czmq.h>
 
-#include "MockProcessManagerCommand.h"
-#include "ProcessManager.h"
+#include "MockProcessClientCommand.h"
+#include "ProcessClient.h"
 #include "MockConf.h"
 #include "CommandRequest.pb.h"
 
@@ -23,7 +23,7 @@ protected:
    virtual void TearDown() {}
 
    MockConf mockConf;
-   MockProcessManagerCommand autoManagedManager;
+   MockProcessClientCommand autoManagedManager;
    protoMsg::CommandRequest cmd;
 };
 

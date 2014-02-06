@@ -2,11 +2,13 @@
 
 #include "UpgradeCommand.h"
 #include <memory>
+#include "MockProcessClientCommand.h"
 
 class MockUpgradeCommand : public UpgradeCommand {
 public:
    static std::shared_ptr<Command> Construct(const protoMsg::CommandRequest& request) {
-      std::shared_ptr<MockUpgradeCommand> command(new MockUpgradeCommand(request));
+      static MockProcessClientCommand processClient(ConfSlave::Instance().GetConf());
+      std::shared_ptr<MockUpgradeCommand> command(new MockUpgradeCommand(request,processClient));
       command->SetUploadDir("/tmp/");
       return command;
    }
@@ -19,7 +21,7 @@ protected:
    void SetUploadDir(const std::string& dir) {
       mUploadDir = dir;
    }
-   MockUpgradeCommand(const protoMsg::CommandRequest& request) : UpgradeCommand(request) {}
+   MockUpgradeCommand(const protoMsg::CommandRequest& request, ProcessClient& processClient) : UpgradeCommand(request,processClient) {}
    MockUpgradeCommand() = delete;
    MockUpgradeCommand(const MockUpgradeCommand& ) = delete;
 };

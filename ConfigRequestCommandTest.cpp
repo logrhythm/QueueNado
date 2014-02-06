@@ -12,8 +12,9 @@
 TEST_F(ConfigRequestCommandTest, DoesItCompileAndLink) {
 #ifdef LR_DEBUG
    protoMsg::CommandRequest request;
-   MockConfigRequestCommand mockDummy(request, ProcessManager::Instance());
-   GMockConfigRequestCommand gmockDummy(request, ProcessManager::Instance());
+   ProcessClient processClient(mockConf);
+   MockConfigRequestCommand mockDummy(request, processClient);
+   GMockConfigRequestCommand gmockDummy(request, processClient);
    SUCCEED();
 #endif
 }
@@ -22,7 +23,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfOneSetOfValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessManagerCommand testProcessor(mockConf);
+   MockProcessClientCommand testProcessor(mockConf);
    EXPECT_TRUE(testProcessor.Initialize());
 
    // Pretend UI. Ask for config for the dpiThreads
@@ -72,7 +73,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessManagerCommand testProcessor(mockConf);
+   MockProcessClientCommand testProcessor(mockConf);
    EXPECT_TRUE(testProcessor.Initialize());
 
    protoMsg::ConfigDefaultsRequest request;
@@ -135,7 +136,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfExecuteUsingRealDefaultValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessManagerCommand testProcessor(mockConf);
+   MockProcessClientCommand testProcessor(mockConf);
    EXPECT_TRUE(testProcessor.Initialize());
 
    protoMsg::ConfigDefaultsRequest request;
@@ -208,7 +209,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessManagerCommand testProcessor(mockConf);
+   MockProcessClientCommand testProcessor(mockConf);
    EXPECT_TRUE(testProcessor.Initialize());
 
    protoMsg::ConfigDefaultsRequest request;
@@ -307,7 +308,7 @@ TEST_F(ConfigRequestCommandTest, SyslogConfAllValues) {
 #ifdef LR_DEBUG
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessManagerCommand testProcessor(mockConf);
+   MockProcessClientCommand testProcessor(mockConf);
    EXPECT_TRUE(testProcessor.Initialize());
 
    protoMsg::ConfigDefaultsRequest request;

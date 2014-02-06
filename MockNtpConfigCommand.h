@@ -8,12 +8,12 @@
 #pragma once
 #include "NtpConfigCommand.h"
 #include "CommandReply.pb.h"
-#include "ProcessManager.h"
+#include "ProcessClient.h"
 #include <string>
 
 struct MockNtpConfigCommand : public NtpConfigCommand {
 
-   MockNtpConfigCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager)
+   MockNtpConfigCommand(const protoMsg::CommandRequest& request, ProcessClient& processManager)
    : NtpConfigCommand(request, processManager), throwCounter(0), willFakeThrow(false) {
    }
 

@@ -28,9 +28,10 @@ public:
 
    static std::shared_ptr<Command> FatalAndDangerousConstruct(const protoMsg::CommandRequest& request) {
       const MockConf conf;
+      ProcessClient processClient(conf);
       std::shared_ptr<Command> command;
       if (callRealShutdownCommand) {
-         command.reset(new MockShutdownCommand(request, ProcessManager::Instance()));
+         command.reset(new MockShutdownCommand(request, processClient));
       } else {
 
          command.reset(new MockShutdownCommand(request, mockProcessManagerNoInit));

@@ -32,7 +32,7 @@ public:
    using NetworkConfigCommand::AddPeerDns;
 
    NetworkConfigCommandTest(const protoMsg::CommandRequest& request,
-           ProcessManager& processManager) : mStatSuccess(true), NetworkConfigCommand(request, processManager) {
+           ProcessClient& processManager) : mStatSuccess(true), NetworkConfigCommand(request, processManager) {
    }
    
 

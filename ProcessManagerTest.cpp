@@ -15,15 +15,17 @@ TEST_F(ProcessManagerTest, RegisterDaemonKillFails) {
    testQueue << "ipc:///tmp/ProcessManagerTest." << getpid();
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager testManager(conf);
+   ProcessClient processClient(conf);
+   ASSERT_TRUE(processClient.Initialize());
    testManager.mKillFails = true;
    ASSERT_TRUE(testManager.Initialize());
    std::string processName("/bin/sleep");
    std::string processArgs;
    processArgs = "5";
    pid_t pid;
-   EXPECT_TRUE(testManager.RegisterProcess(processName, processArgs, "",pid));
+   EXPECT_TRUE(processClient.RegisterProcess(processName, processArgs, "",pid));
    std::this_thread::sleep_for(std::chrono::seconds(1));
-   EXPECT_FALSE(testManager.UnRegisterProcess(processName));
+   EXPECT_FALSE(processClient.UnRegisterProcess(processName));
    testManager.DeInit();
 #endif
 }
@@ -32,6 +34,7 @@ TEST_F(ProcessManagerTest, StartedWithoutMotherForker) {
    #ifdef LR_DEBUG
    MockConf conf;
    MockProcessManagerNoMotherForker testManager(conf);
+   
    ::testing::FLAGS_gtest_death_test_style = "threadsafe";
    ASSERT_DEATH(testManager.Initialize(),"EXIT trigger caused by broken Contract");
    testManager.DeInit();
@@ -47,6 +50,8 @@ TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager testManager{conf};
    ASSERT_TRUE(testManager.Initialize());
+   ProcessClient processClient(conf);
+   ASSERT_TRUE(processClient.Initialize());   
    
    std::string processName("/bin/sh");
    std::string processArgs;
@@ -54,14 +59,14 @@ TEST_F(ProcessManagerTest, RegisterDaemonWithEnv) {
    env["a"] = "b";
    processArgs = "resources/sleepIfA.sh";
    pid_t pid;
-   EXPECT_TRUE(testManager.RegisterProcessWithEnvironment(processName, processArgs, env, "",pid));
+   EXPECT_TRUE(processClient.RegisterProcessWithEnvironment(processName, processArgs, env, "",pid));
    processName = "/bin/ps";
    processArgs = "-ef |grep -v grep | grep \"/bin/sh\" | grep ";
 
    std::stringstream ss;
    ss << pid;
    processArgs += ss.str();
-   protoMsg::ProcessReply processReply = testManager.RunProcess(processName, processArgs);
+   protoMsg::ProcessReply processReply = processClient.RunProcess(processName, processArgs);
    std::string result = processReply.result();
 
    LOG(DEBUG) << result;
@@ -81,19 +86,22 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    MockProcessManager testManager(conf);
    testManager.mRealInit = true;
    ASSERT_TRUE(testManager.Initialize());
+   ProcessClient processClient(conf);
+   ASSERT_TRUE(processClient.Initialize()); 
+   
    std::string processName("/bin/sleep");
    std::string processArgs;
    processArgs = "5";
    pid_t pid;
-   EXPECT_TRUE(testManager.RegisterProcess(processName, processArgs, "",pid));
+   EXPECT_TRUE(processClient.RegisterProcess(processName, processArgs, "",pid));
    processName = "/bin/ps";
    processArgs = "-ef | grep \"/bin/sleep\" | grep -v grep | grep ";
    std::stringstream ss;
    ss << pid;
    processArgs += ss.str();
 
-   protoMsg::ProcessReply processReply = testManager.RunProcess(processName, processArgs);
-   testManager.BlockForProcessFinished(60*60,processReply);
+   protoMsg::ProcessReply processReply = processClient.RunProcess(processName, processArgs);
+   processClient.BlockForProcessFinished(60*60,processReply);
    std::string result = processReply.result();
    LOG(DEBUG) << result;
    EXPECT_NE(std::string::npos, result.find("/bin/sleep"));
@@ -101,8 +109,8 @@ TEST_F(ProcessManagerTest, RegisterDaemonCleanup) {
    LOG(DEBUG) << "Trying to re-initialize";
    zctx_interrupted = false;
    ASSERT_TRUE(testManager.Initialize());
-   processReply = testManager.RunProcess(processName, processArgs);
-   testManager.BlockForProcessFinished(60*60,processReply);
+   processReply = processClient.RunProcess(processName, processArgs);
+   processClient.BlockForProcessFinished(60*60,processReply);
    result = processReply.result();
    LOG(DEBUG) << result;
    EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
@@ -120,18 +128,21 @@ TEST_F(ProcessManagerTest, RegisterDaemonFails) {
    MockProcessManager testManager(conf);
    testManager.mExecFails = true;
    ASSERT_TRUE(testManager.Initialize());
+   
+   ProcessClient processClient(conf);
+   ASSERT_TRUE(processClient.Initialize()); 
    std::string processName("/bin/broken");
    std::string processArgs;
    processArgs = "0";
    pid_t pid;
-   EXPECT_FALSE(testManager.RegisterProcess(processName, processArgs, "",pid));
+   EXPECT_FALSE(processClient.RegisterProcess(processName, processArgs, "",pid));
    processName = "/bin/ps";
    processArgs = "-ef | grep \"/bin/sleep\" | grep -v grep | grep ";
    std::stringstream ss;
    ss << pid;
    processArgs += ss.str();
-   protoMsg::ProcessReply processReply = testManager.RunProcess(processName, processArgs);
-   testManager.BlockForProcessFinished(60*60,processReply);
+   protoMsg::ProcessReply processReply = processClient.RunProcess(processName, processArgs);
+   processClient.BlockForProcessFinished(60*60,processReply);
    std::string result = processReply.result();
    LOG(DEBUG) << result;
    EXPECT_EQ(std::string::npos, result.find("/bin/sleep"));
@@ -271,11 +282,14 @@ TEST_F(ProcessManagerTest, RunProcess) {
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager testManager(conf);
    ASSERT_TRUE(testManager.Initialize());
+   
+   ProcessClient processClient(conf);
+   ASSERT_TRUE(processClient.Initialize()); 
    std::string processName("/bin/ls");
    std::string processArgs;
    processArgs = "-l /bin/ls";
-   protoMsg::ProcessReply processReply = testManager.RunProcess(processName, processArgs);
-   testManager.BlockForProcessFinished(60*60,processReply);
+   protoMsg::ProcessReply processReply = processClient.RunProcess(processName, processArgs);
+   processClient.BlockForProcessFinished(60*60,processReply);
    std::string result = processReply.result();
    EXPECT_NE(std::string::npos, result.find("-rwxr-xr-x. 1 root root"));
    EXPECT_NE(std::string::npos, result.find("/bin/ls"));
@@ -293,11 +307,14 @@ TEST_F(ProcessManagerTest, RunNonExistantProcess) {
    conf.mProcessManagmentQueue = testQueue.str();
    MockProcessManager testManager(conf);
    ASSERT_TRUE(testManager.Initialize());
+   
+   ProcessClient processClient(conf);
+   ASSERT_TRUE(processClient.Initialize()); 
    std::string processName("/bin/lsssss");
    std::string processArgs;
    processArgs = "-l /bin/ls";
-   protoMsg::ProcessReply processReply = testManager.RunProcess(processName, processArgs);
-   testManager.BlockForProcessFinished(60*60,processReply);
+   protoMsg::ProcessReply processReply = processClient.RunProcess(processName, processArgs);
+   processClient.BlockForProcessFinished(60*60,processReply);
    std::string result = processReply.result();
    EXPECT_TRUE(result.empty());
    testManager.DeInit();
