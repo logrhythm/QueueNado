@@ -20,6 +20,7 @@
 #include "VersionMsg.pb.h"
 #include "ShutdownMsg.pb.h"
 #include "SyslogConfMsg.pb.h"
+#include "ProtoDefaults.h"
 #include "Shotgun.h"
 #include "g2log.hpp"
 #include "QosmosProtocolCapture.h"
@@ -1693,6 +1694,26 @@ TEST_F(ConfProcessorTests, testConfSlaveUpdate) {
    LOG(DEBUG) << "testConfSlaveUpdate stop";
 }
 
+// ConfMaster will call ProtoDefaults,. verify that it gets a real
+// disk read of maximum pcap disk usage
+TEST_F(ConfProcessorTests, SYSTEM_ConfMasterVerifyPcapDiskLimit) {
+   ConfMaster& master = ConfMaster::Instance();
+   master.Start();
+   Conf conf = master.GetConf();
+   master.Stop();
+
+   ProtoDefaults protoDefaults{conf.GetPcapCaptureLocations()};
+   auto baseDefaults = protoDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
+   auto pcapSizeLimit = protoDefaults.GetConfParam(baseDefaults, "captureSizeLimit");
+   auto  rangePtr = std::get<ProtoDefaults::indexRange>(pcapSizeLimit);
+   
+   const size_t rangeMax = std::stoul(rangePtr->StringifyMax());
+   EXPECT_EQ(conf.GetPcapCaptureSizeLimit(), rangeMax);
+   EXPECT_NE(conf.GetPcapCaptureSizeLimit(), 80000); // Ref Conf.cpp : Default if no reading
+   EXPECT_NE(conf.GetPcapCaptureSizeLimit(), 1000000); // Ref ProtoDefaults.cpp: Hard coded max (not default) if failed Reding
+   
+}
+
 TEST_F(ConfProcessorTests, testConfMasterShutdown) {
    ConfMaster& master = ConfMaster::Instance();
    master.SetPath(mTestConf);
@@ -1716,6 +1737,10 @@ TEST_F(ConfProcessorTests, testConfSlaveShutdown) {
    slave.Stop();
    slave.Stop();
 }
+
+
+
+
 
 TEST_F(ConfProcessorTests, testSetandGetQosmosConfig) {
    MockConf conf("/tmp/path/that/doesnt/exist/woo.ls");
