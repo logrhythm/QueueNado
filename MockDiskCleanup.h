@@ -13,11 +13,11 @@
 class MockDiskCleanup : public DiskCleanup {
 public:
 
-   MockDiskCleanup(ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
+   MockDiskCleanup(ConfSlave& conf, ProcessClient& processClient) : DiskCleanup(conf,processClient), mFailRemoveSearch(false),
    mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
    mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
            mIsShutdownResult(false), mDoPseudoGetUpdatedDiskInfo(false), mUseMockConf(false), 
-           mMockPcapDiskUsage(DiskCleanup::GetConf().GetPcapCaptureLocations()) {
+           mMockPcapDiskUsage(DiskCleanup::GetConf().GetPcapCaptureLocations(),processClient) {
       mFleSystemInfo.f_bfree = 1;
       mFleSystemInfo.f_frsize = 1;
       mFleSystemInfo.f_blocks = 1;
@@ -254,7 +254,7 @@ using ::testing::SetArgReferee;
 class GMockDiskCleanup : public MockDiskCleanup {
 public:
 
-   GMockDiskCleanup(ConfSlave& conf) : MockDiskCleanup(conf), mFileCount(0), mMarkResult(true),
+   GMockDiskCleanup(ConfSlave& conf, ProcessClient& processClient) : MockDiskCleanup(conf,processClient), mFileCount(0), mMarkResult(true),
    mFileCountSuccess(true) {
    }
 

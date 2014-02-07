@@ -23,8 +23,8 @@ using ::testing::Return;
 class MockPcapDiskUsage : public PcapDiskUsage {
 public:
 
-   MockPcapDiskUsage(const std::vector<std::string>& locations)
-   : PcapDiskUsage(locations), mLocations(locations) {
+   MockPcapDiskUsage(const std::vector<std::string>& locations, ProcessClient& processClient)
+   : PcapDiskUsage(locations,processClient), mLocations(locations) {
    }
 
    PcapStorage DoCalculateMountPoints(const std::vector<std::string>& locations) LR_OVERRIDE {
@@ -44,8 +44,8 @@ public:
 class GMockPcapDiskUsage : public MockPcapDiskUsage {
 public:
 
-   GMockPcapDiskUsage(const std::vector<std::string>& locations)
-   : MockPcapDiskUsage(locations) {
+   GMockPcapDiskUsage(const std::vector<std::string>& locations, ProcessClient& processClient)
+   : MockPcapDiskUsage(locations,processClient) {
    }
 
    MOCK_METHOD1(DoCalculateMountPoints, PcapStorage(const std::vector<std::string>&));

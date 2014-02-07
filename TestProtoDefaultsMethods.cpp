@@ -6,10 +6,13 @@
 #include "include/global.h"
 #include "ConfSlave.h"
 #include "Conf.h"
+#include "MockConf.h"
 #include "ProtoDefaults.h"
 #include "MockProtoDefaults.h"
 #include "PcapDiskUsage.h"
+#include "MockProcessClientCommand.h"
 
+#ifdef LR_DEBUG
 TEST(TestProtoDefaults, GetConfDefaultsOK) {
    ProtoDefaults getDefaults{{}};
    auto defaults1 = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
@@ -114,10 +117,13 @@ TEST(TestProtoDefaults, FailedReadingWillTriggerNewReading){
    auto  rangePtr = std::get<ProtoDefaults::indexRange>(pcapSizeLimitDefault);
    EXPECT_EQ(rangePtr->StringifyMin(), "1000");
    EXPECT_NE(rangePtr->StringifyMax(), "1000000");
-   
-   PcapDiskUsage pcapDisk {{"/usr/local/probe"}};
+   MockConf conf;
+   MockProcessClientCommand processClient(conf);
+   ASSERT_TRUE(processClient.Initialize());
+   PcapDiskUsage pcapDisk ({"/usr/local/probe"},processClient);
    auto totalUsage = pcapDisk.GetTotalDiskUsage(MemorySize::MB);
    const int64_t pcapLimitInPercentUnits{80};
    auto maxPcapStorageLimit = (pcapLimitInPercentUnits * totalUsage.total) / 100;
    EXPECT_EQ(rangePtr->StringifyMax(), std::to_string(maxPcapStorageLimit));
 }
+#endif
