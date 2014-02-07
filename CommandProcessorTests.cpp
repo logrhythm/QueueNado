@@ -515,7 +515,7 @@ TEST_F(CommandProcessorTests, CommandSendReceive) {
 TEST_F(CommandProcessorTests, UpgradeCommandInit) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
@@ -526,7 +526,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandInit) {
 TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("Success!");
@@ -549,7 +549,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
 TEST_F(CommandProcessorTests, DynamicUpgradeCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("Success!");
@@ -573,7 +573,7 @@ TEST_F(CommandProcessorTests, DynamicUpgradeCommandExecSuccess) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailCreatePassPhrase) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -595,7 +595,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailCreatePassPhrase) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeDecryptFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -616,7 +616,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeDecryptFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessDecryptFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -637,7 +637,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessDecryptFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeRenameDecryptedFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -658,7 +658,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeRenameDecryptedFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRenameDecryptedFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -679,7 +679,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRenameDecryptedFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeUntarFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -700,7 +700,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCodeUntarFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessUntarFile) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -721,7 +721,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessUntarFile) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnRunUpgradeScript) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -742,7 +742,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnRunUpgradeScript) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRunUpgradeScript) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -763,7 +763,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessRunUpgradeScript) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCleanUploadDir) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -784,7 +784,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailReturnCleanUploadDir) {
 TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCleanUploadDir) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -809,7 +809,7 @@ TEST_F(CommandProcessorTests, UpgradeCommandFailSuccessCleanUploadDir) {
 TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("Success!");
@@ -833,7 +833,7 @@ TEST_F(CommandProcessorTests, RebootCommandExecSuccess) {
 TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("Success!");
@@ -858,7 +858,7 @@ TEST_F(CommandProcessorTests, ShutdownCommandExecSuccess) {
 TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Success!");
@@ -878,7 +878,7 @@ TEST_F(CommandProcessorTests, RebootCommandFailReturnDoTheUpgrade) {
 TEST_F(CommandProcessorTests, RebootCommandFailSuccessDoTheUpgrade) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -901,7 +901,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess) {
 #ifdef LR_DEBUG
    MockConf conf;
    conf.mSyslogConfName = "/tmp/test.nm.rsyslog.conf"; 
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("Success!");
@@ -929,7 +929,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_UDP) {
    conf.mSyslogConfName = "/ThisFileDoesNotExisttmp/test.nm.rsyslog.conf"; // dummy file. won't be created
    conf.mSyslogProtocol = false; // udp
    conf.mSyslogAgentIp = "123.123.123";
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Success!");
@@ -952,7 +952,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_TCP) {
    conf.mSyslogConfName = "/ThisFileDoesNotExisttmp/test.nm.rsyslog.conf"; // dummy file. won't be created
    conf.mSyslogProtocol = true; // "TCP";
    conf.mSyslogAgentIp = "123.123.123";
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Success!");
@@ -972,7 +972,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandExecSuccess_TCP) {
 TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailedUpdate) {
 #ifdef LR_DEBUG
    MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Success!");
@@ -993,7 +993,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailedUpdate) {
 TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailRestart) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Success!");
@@ -1014,7 +1014,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailRestart) {
 TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailSuccessRestart) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1037,7 +1037,7 @@ TEST_F(CommandProcessorTests, RestartSyslogCommandTestFailSuccessRestart) {
 TEST_F(CommandProcessorTests, NetworkConfigCommandInit) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_NETWORK_CONFIG);
    NetworkConfigCommandTest ncct(cmd, processManager);
@@ -1048,7 +1048,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandInit) {
 TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("Success!");
@@ -1074,7 +1074,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandExecSuccess) {
 TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
 #ifdef LR_DEBUG
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("Success!");
@@ -1101,7 +1101,7 @@ TEST_F(CommandProcessorTests, DynamicNetworkConfigCommandExecSuccess) {
 TEST_F(CommandProcessorTests, NetworkConfigCommandBadInterfaceMsg) {
 
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("Success!");
@@ -1124,7 +1124,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandBadInterfaceMsg) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailInterfaceMethodNotSet) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("Success!");
@@ -1147,7 +1147,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailInterfaceMethodNotSet) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("Success!");
@@ -1173,7 +1173,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandSetStaticIpSuccess) {
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth1) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1197,7 +1197,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth1) {
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm2) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1221,7 +1221,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm2) {
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth2) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1245,7 +1245,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEth2) {
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm3) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1269,7 +1269,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgInterfaceAllowedEm3) {
 
 TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgFileExists) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1293,7 +1293,7 @@ TEST_F(CommandProcessorTests, NetworkConfigFailIfcfgFileExists) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1321,7 +1321,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeBackupIfcfgFile)
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1348,7 +1348,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessBackupIfcfgFile) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeRestoreIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1375,7 +1375,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeRestoreIfcfgFile
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessRestoreIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1402,7 +1402,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessRestoreIfcfgFile) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1430,7 +1430,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeResetIfcfgFile) 
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1458,7 +1458,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessResetIfcfgFile) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddBootProto) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1485,7 +1485,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddBootProto) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1509,7 +1509,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrNotDefined) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1534,7 +1534,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddIpAddrEmptyString) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1562,7 +1562,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddIpAddr) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1590,7 +1590,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddIpAddr) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1615,7 +1615,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskNotDefined) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1641,7 +1641,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddNetmaskEmptyString) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1668,7 +1668,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNetmask) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1695,7 +1695,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNetmask) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1720,7 +1720,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailAddGatewayNotDefined) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1748,7 +1748,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddGateway) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1777,7 +1777,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddGateway) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1804,7 +1804,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddGatewayEmptyString) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1833,7 +1833,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDnsServers) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1861,7 +1861,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDnsServers) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1888,7 +1888,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDnsServersEmptyString) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1916,7 +1916,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns1) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -1944,7 +1944,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns1) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -1973,7 +1973,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDns2) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -2002,7 +2002,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDns2) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDomain) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -2031,7 +2031,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddDomain) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -2059,7 +2059,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddDomain) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandAddDomainEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -2085,7 +2085,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandAddDomainEmptyString) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceDown) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -2112,7 +2112,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceDown)
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -2140,7 +2140,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceDown) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -2167,7 +2167,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreReturnCodeInterfaceUp) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -2194,7 +2194,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandIgnoreSuccessInterfaceUp) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandStaticNoExtraRetriesOnSuccessfulInterfaceUp) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("");
@@ -2221,7 +2221,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandStaticNoExtraRetriesOnSuccessf
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDhcpNoExtraRetriesOnSuccessfulInterfaceUp) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(0);
    processManager.SetResult("");
@@ -2248,7 +2248,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDhcpNoExtraRetriesOnSuccessful
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -2276,7 +2276,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddOnBoot) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -2303,7 +2303,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddOnBoot) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -2330,7 +2330,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddNmControlled)
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");
@@ -2358,7 +2358,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddNmControlled) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -2388,7 +2388,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandFailReturnCodeAddPeerDns) {
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDomainNo) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -2418,7 +2418,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerEmptyStringSearchDoma
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptyString) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -2447,7 +2447,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerNoSearchDomainEmptySt
 
 TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStrings) {
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(true);
    processManager.SetReturnCode(1);
    processManager.SetResult("Failed!");
@@ -2479,7 +2479,7 @@ TEST_F(CommandProcessorTests, NetworkConfigCommandDnsServerSearchDomainEmptyStri
 TEST_F(CommandProcessorTests, NetworkConfigCommandFailSuccessAddPeerDns) {
 
    const MockConf conf;
-   MockProcessManagerCommand processManager{conf};
+   MockProcessClientCommand processManager{conf};
    processManager.SetSuccess(false);
    processManager.SetReturnCode(0);
    processManager.SetResult("Failed!");

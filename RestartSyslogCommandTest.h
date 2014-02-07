@@ -15,7 +15,7 @@ public:
    using RestartSyslogCommand::Restart;
    using RestartSyslogCommand::UpdateSyslog;
 
-   RestartSyslogCommandTest(const protoMsg::CommandRequest& request, ProcessManager& processManager)
+   RestartSyslogCommandTest(const protoMsg::CommandRequest& request, ProcessClient& processManager)
    : RestartSyslogCommand(request, processManager) {
    }
 

@@ -4,7 +4,7 @@
 
 #include "ShutdownCommand.h"
 #include "Command.h"
-#include "MockProcessManager.h"
+#include "MockProcessClientCommand.h"
 #include <g2log.hpp>
 
 class MockShutdownCommand : public ShutdownCommand {
@@ -13,9 +13,9 @@ public:
    static bool wasShutdownCalled;
    static bool callRealShutdownCommand;
    static const MockConf mockConf;
-   static MockProcessManagerNoInit mockProcessManagerNoInit;
+   static MockProcessClientCommand mockProcessClientNoInit;
 
-   MockShutdownCommand(const protoMsg::CommandRequest& request, ProcessManager& processManager)
+   MockShutdownCommand(const protoMsg::CommandRequest& request, ProcessClient& processManager)
    : ShutdownCommand(request, processManager) {
    }
 
@@ -23,7 +23,7 @@ public:
    }
 
    // NEVER, use this function unless you are absolutely sure what will happen. It will
-   // create the REAL ProcessManager which WILL execute the command if 
+   // create the REAL ProcessClient which WILL execute the command if 
    // 'callRealShutdownCommand' is set to true. If it is then your PC will shut off.
 
    static std::shared_ptr<Command> FatalAndDangerousConstruct(const protoMsg::CommandRequest& request) {
@@ -34,7 +34,7 @@ public:
          command.reset(new MockShutdownCommand(request, processClient));
       } else {
 
-         command.reset(new MockShutdownCommand(request, mockProcessManagerNoInit));
+         command.reset(new MockShutdownCommand(request, mockProcessClientNoInit));
       }
       return command;
    }
@@ -53,4 +53,4 @@ public:
 bool MockShutdownCommand::wasShutdownCalled = false;
 bool MockShutdownCommand::callRealShutdownCommand = false;
 const MockConf MockShutdownCommand::mockConf{};
-MockProcessManagerNoInit MockShutdownCommand::mockProcessManagerNoInit{MockShutdownCommand::mockConf};
+MockProcessClientCommand MockShutdownCommand::mockProcessClientNoInit{MockShutdownCommand::mockConf};
