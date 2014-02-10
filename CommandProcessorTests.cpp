@@ -25,7 +25,7 @@
 #include "ShutdownMsg.pb.h"
 #include "MockTestCommand.h"
 #include "FileIO.h"
-#include <exception>
+
 
 bool CommandProcessorTests::mDeathReceived = false;
 std::string CommandProcessorTests::mDeathMessage = {};
@@ -533,15 +533,13 @@ TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest upg(cmd, processManager);
+   bool ignoreAnyFileCreateExceptions = true;
+   UpgradeCommandTest upg(cmd, processManager, ignoreAnyFileCreateExceptions);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = upg.Execute(conf);
       LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
-      ASSERT_TRUE(reply.success()) << "Success: " << reply.success() << " result: " << reply.result();
-   } catch (std::exception& e) {
-      exception = true;
-      LOG(WARNING) << "Unexpected exception: " << e.what();
+      ASSERT_TRUE(reply.success()) << reply.success() << " result: " << reply.result();
    } catch (...) {
       exception = true;
    }
@@ -559,15 +557,13 @@ TEST_F(CommandProcessorTests, DynamicUpgradeCommandExecSuccess) {
    protoMsg::CommandRequest cmd;
    cmd.set_type(protoMsg::CommandRequest_CommandType_UPGRADE);
    cmd.set_stringargone("filename");
-   UpgradeCommandTest* upg = new UpgradeCommandTest(cmd, processManager);
+   bool noThrowForFileWriteError = true;
+   UpgradeCommandTest* upg = new UpgradeCommandTest(cmd, processManager, noThrowForFileWriteError);
    bool exception = false;
    try {
       protoMsg::CommandReply reply = upg->Execute(conf);
       LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
-      ASSERT_TRUE(reply.success());
-   } catch (std::exception& e) {
-      exception = true;
-      LOG(WARNING) << "Unexpected exception: " << e.what();
+      ASSERT_TRUE(reply.success()) << reply.success() << " result: " << reply.result();
    } catch (...) {
       exception = true;
    }
