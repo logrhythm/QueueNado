@@ -4,6 +4,7 @@
 #include "tempFileCreate.h"
 #include "SendStats.h"
 #include "MockConf.h"
+#include "MockConfMaster.h"
 #include "MockElasticSearch.h"
 #include "MockSendStats.h"
 #include <future>
@@ -12,10 +13,11 @@
 #include <tuple>
 
 #ifdef LR_DEBUG
+static MockConfMaster mConfMaster;
 static MockConfSlave mConf;
 
 TEST_F(DiskCleanupTest, SetupMockConfSlave) {
-   ProcessManager::InstanceWithConfSlave(mConf);
+   ProcessManager::InstanceWithConfMaster(mConfMaster);
 }
 #else
 static ConfSlave& mConf(ConfSlave::Instance());

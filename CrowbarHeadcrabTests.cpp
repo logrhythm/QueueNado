@@ -3,15 +3,14 @@
 #include <czmq.h>
 #include <boost/thread.hpp>
 
-TEST_F(CrowbarHeadcrabTests, CrowbarWithNoHeadCrab) {
+TEST_F(CrowbarHeadcrabTests, CrowbarBrokenSocket) {
    Crowbar firstCrowbar(mTarget);
    
    EXPECT_FALSE(firstCrowbar.Swing("foo"));
    ASSERT_TRUE(firstCrowbar.Wield());
    EXPECT_TRUE(firstCrowbar.Swing("foo"));
-   Headcrab firstCrab(mTarget);
-   ASSERT_TRUE(firstCrab.ComeToLife());
-   EXPECT_TRUE(firstCrowbar.Swing("foo"));
+   EXPECT_FALSE(firstCrowbar.Swing("foo"));
+
 }
 TEST_F(CrowbarHeadcrabTests, SimpleConstructAndWieldCrowbar) {
 
