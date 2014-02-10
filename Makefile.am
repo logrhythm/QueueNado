@@ -264,6 +264,7 @@ ToolsTest_LDFLAGS=${BASE_LIBS}
 ToolsTest_SOURCES=main.cpp \
 ToolsTestMakeUnique.cpp \
 ToolsTestStringFix.cpp \
+ToolsTestStopWatch.cpp \
 ToolsTestFileIO.cpp \
 EthInfoTest.cpp \
 WorkerThreadTest.cpp \
@@ -335,6 +336,7 @@ nmTest_SOURCES=main.cpp \
  DriveInfoCommandTest.cpp \
  ToolsTestMakeUnique.cpp \
  ToolsTestStringFix.cpp \
+ ToolsTestStopWatch.cpp \
  TestProtoDefaultsMethods.cpp
 #	SysLoggerTest.cpp \  conflicts with Rule Engine
 
