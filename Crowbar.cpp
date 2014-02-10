@@ -135,13 +135,8 @@ bool Crowbar::PollForListener() {
    int returnVal = zmq_poll(&item,1,0);
    if (returnVal < 0) {
       LOG(WARNING) << "Socket error: " << zmq_strerror(zmq_errno());
-   } else if ( returnVal == 0 ) {
-      LOG(WARNING) << "Socket Broken, attempting to repair";
-      std::vector<std::string> guts;
-      if (WaitForKill(guts, 0)) {
-         returnVal = zmq_poll(&item,1,0);
-      }
-   }
+   } 
+   
    return (returnVal >= 1);
 }
 /**
