@@ -32,7 +32,7 @@ public:
    static int GetHighWater();
    zctx_t* GetContext();
 private:
-
+   bool PollForListener();
    Crowbar(const Crowbar& that) : mContext(NULL), mTip(NULL) {
    }
 

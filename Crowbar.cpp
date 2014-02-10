@@ -121,9 +121,41 @@ bool Crowbar::Swing(const std::string& hit) {
    return Flurry(hits);
 }
 
+/**
+ * Poll to see if the other side of the socket is ready
+ * @return 
+ */
+bool Crowbar::PollForListener() {
+   zmq_pollitem_t item;
+   if(!mTip) {
+      return false;
+   }
+   item.socket = mTip;
+   item.events = ZMQ_POLLOUT;
+   int returnVal = zmq_poll(&item,1,0);
+   if (returnVal < 0) {
+      LOG(WARNING) << "Socket error: " << zmq_strerror(zmq_errno());
+   } else if ( returnVal == 0 ) {
+      LOG(WARNING) << "Socket Broken, attempting to repair";
+      std::vector<std::string> guts;
+      if (WaitForKill(guts, 0)) {
+         returnVal = zmq_poll(&item,1,0);
+      }
+   }
+   return (returnVal >= 1);
+}
+/**
+ * Send a bunch of strings to a socket
+ * @param hits
+ * @return 
+ */
 bool Crowbar::Flurry(std::vector<std::string>& hits) {
    if (! mTip) {
       LOG(WARNING) << "Cannot send, not Wielded";
+      return false;
+   }
+   if (!PollForListener()) {
+      LOG(WARNING) << "Cannot send, no listener ready";
       return false;
    }
    zmsg_t* message = zmsg_new();
