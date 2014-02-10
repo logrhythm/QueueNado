@@ -25,7 +25,7 @@
 #include "ShutdownMsg.pb.h"
 #include "MockTestCommand.h"
 #include "FileIO.h"
-
+#include <exception>
 
 bool CommandProcessorTests::mDeathReceived = false;
 std::string CommandProcessorTests::mDeathMessage = {};
@@ -538,7 +538,10 @@ TEST_F(CommandProcessorTests, UpgradeCommandExecSuccess) {
    try {
       protoMsg::CommandReply reply = upg.Execute(conf);
       LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
-      ASSERT_TRUE(reply.success());
+      ASSERT_TRUE(reply.success()) << "Success: " << reply.success() << " result: " << reply.result();
+   } catch (std::exception& e) {
+      exception = true;
+      LOG(WARNING) << "Unexpected exception: " << e.what();
    } catch (...) {
       exception = true;
    }
@@ -562,6 +565,9 @@ TEST_F(CommandProcessorTests, DynamicUpgradeCommandExecSuccess) {
       protoMsg::CommandReply reply = upg->Execute(conf);
       LOG(DEBUG) << "Success: " << reply.success() << " result: " << reply.result();
       ASSERT_TRUE(reply.success());
+   } catch (std::exception& e) {
+      exception = true;
+      LOG(WARNING) << "Unexpected exception: " << e.what();
    } catch (...) {
       exception = true;
    }
