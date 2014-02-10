@@ -13,8 +13,8 @@
 class MockDiskCleanup : public DiskCleanup {
 public:
 
-   MockDiskCleanup(ConfSlave& conf) : DiskCleanup(conf), mFailRemoveSearch(false),
-   mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
+   MockDiskCleanup(ConfSlave& conf) : DiskCleanup(conf), 
+   mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), 
    mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
            mIsShutdownResult(false), mDoPseudoGetUpdatedDiskInfo(false), mUseMockConf(false), 
            mMockPcapDiskUsage(DiskCleanup::GetConf().GetPcapCaptureLocations()) {
@@ -67,24 +67,9 @@ public:
       DiskCleanup::CleanupOldPcapFiles(es, stats);
    }
 
-   bool TooMuchSearch(const size_t& fsFreeGigs, const size_t& fsTotalGigs) {
-      return DiskCleanup::TooMuchSearch(fsFreeGigs, fsTotalGigs);
-   }
 
    void ResetConf() {
       DiskCleanup::ResetConf();
-   }
-
-   bool RemoveOldestSearchIndex(ElasticSearch& es) {
-      if (mSucceedRemoveSearch) {
-         return true;
-      }
-      if (!mFailRemoveSearch) {
-         return DiskCleanup::RemoveOldestSearchIndex(es);
-      }
-
-
-      return false;
    }
 
    LR_VIRTUAL void GetPcapStoreUsage(DiskCleanup::StatInfo& stats,
@@ -137,14 +122,6 @@ public:
          stats.probeDiskInGB.Free = stats.probeDiskInGB.Total;
       }
       return;
-   }
-
-   void CleanupSearch(ElasticSearch& es, DiskCleanup::StatInfo& stats) LR_OVERRIDE {
-      DiskCleanup::CleanupSearch(es, stats);
-   }
-
-   std::string GetOldestIndex(ElasticSearch& es) {
-      return DiskCleanup::GetOldestIndex(es);
    }
 
    Conf& GetConf() LR_OVERRIDE {
@@ -227,10 +204,8 @@ public:
       DiskCleanup::RemoveDuplicateUpdatesFromLastUpdate(esFilesToRemove);
    }
 
-   bool mFailRemoveSearch;
    bool mFailFileSystemInfo;
    int mFileSystemInfoCountdown;
-   bool mSucceedRemoveSearch;
    struct statvfs mFleSystemInfo;
    bool mRealFilesSystemAccess;
    bool mFakeRemove;

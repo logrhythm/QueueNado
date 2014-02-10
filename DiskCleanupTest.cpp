@@ -1237,75 +1237,6 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
    }
 }
 
-TEST_F(DiskCleanupTest, TooMuchSearch) {
-
-   MockDiskCleanup diskCleanup(mConf);
-
-   EXPECT_FALSE(diskCleanup.TooMuchSearch(0, 0));
-   EXPECT_TRUE(diskCleanup.TooMuchSearch(0, 100));
-   EXPECT_TRUE(diskCleanup.TooMuchSearch(14, 100));
-   EXPECT_FALSE(diskCleanup.TooMuchSearch(15, 100));
-   EXPECT_FALSE(diskCleanup.TooMuchSearch(100, 100));
-   EXPECT_FALSE(diskCleanup.TooMuchSearch(1000, 100));
-}
-
-TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
-
-
-   MockDiskCleanup diskCleanup(mConf);
-   diskCleanup.mFailRemoveSearch = true;
-   diskCleanup.mFailFileSystemInfo = true;
-   std::promise<bool> promisedFinished;
-   auto futureResult = promisedFinished.get_future();
-   std::thread([](std::promise<bool> finished, MockDiskCleanup & diskCleanup) {
-      DiskCleanup::StatInfo stats;
-      size_t fsTotalGigs(100);
-              MockElasticSearch es(false);
-              stats.canSendStats = false;
-              diskCleanup.CleanupSearch(std::ref(es), stats);
-              finished.set_value(true);
-   }, std::move(promisedFinished), std::ref(diskCleanup)).detach();
-
-   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
-
-}
-
-TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
-   MockDiskCleanup diskCleanup(mConf);
-
-   diskCleanup.mFileSystemInfoCountdown = 3;
-   diskCleanup.mFailFileSystemInfo = true;
-   diskCleanup.mSucceedRemoveSearch = true;
-
-   std::promise<bool> promisedFinished;
-   auto futureResult = promisedFinished.get_future();
-   std::thread([](std::promise<bool> finished, MockDiskCleanup & diskCleanup) {
-      DiskCleanup::StatInfo stats;
-      size_t fsTotalGigs(100);
-              MockElasticSearch es(false);
-              stats.canSendStats = false;
-              diskCleanup.CleanupSearch(std::ref(es), stats);
-
-      if (stats.probeDiskInGB.Free != stats.probeDiskInGB.Total) {
-         FAIL() << "Not equal as expected: Free = "
-                 << stats.probeDiskInGB.Free << ", Total = " << stats.probeDiskInGB.Total;
-      }
-      finished.set_value(true);
-   }, std::move(promisedFinished), std::ref(diskCleanup)).detach();
-
-   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
-}
-
-TEST_F(DiskCleanupTest, RemoveGetsTheOldestMatch) {
-   MockDiskCleanup diskCleanup(mConf);
-   MockElasticSearch es(false);
-
-   es.mFakeIndexList = true;
-
-   EXPECT_EQ("network_1999_01_01", diskCleanup.GetOldestIndex(es));
-
-}
-
 TEST_F(DiskCleanupTest, FSMath) {
    MockDiskCleanup diskCleanup(mConf);
    diskCleanup.mFleSystemInfo.f_bfree = 100 << B_TO_MB_SHIFT;
@@ -1323,21 +1254,6 @@ TEST_F(DiskCleanupTest, FSMath) {
    diskCleanup.GetPcapStoreUsage(stats, MemorySize::GB);
    EXPECT_NE(0, stats.pcapDiskInGB.Free);
    EXPECT_NE(0, stats.pcapDiskInGB.Total);
-}
-
-TEST_F(DiskCleanupTest, DontDeleteTheLastIndex) {
-   MockDiskCleanup diskCleanup(mConf);
-   MockElasticSearch es(false);
-   es.mMockListOfIndexes.clear();
-   es.mFakeIndexList = true;
-   std::string oldestIndex = diskCleanup.GetOldestIndex(es);
-   EXPECT_EQ("", oldestIndex);
-   es.mMockListOfIndexes.insert("network_12345");
-   oldestIndex = diskCleanup.GetOldestIndex(es);
-   EXPECT_EQ("", oldestIndex);
-   es.mMockListOfIndexes.insert("network_12346");
-   oldestIndex = diskCleanup.GetOldestIndex(es);
-   EXPECT_EQ("network_12345", oldestIndex);
 }
 
 TEST_F(DiskCleanupTest, SendStats) {
