@@ -11,6 +11,7 @@
 #include "ConfProcessor.h"
 #include "boost/lexical_cast.hpp"
 #include <csignal>
+#include "ProcessManager.h"
 class ConfProcessorTests : public ::testing::Test {
 public:
 
@@ -25,6 +26,7 @@ protected:
     std::string mTestSyslogConf;
 
     virtual void SetUp() {
+        ProcessManager::Instance();
         int pid = getpid();
         std::string pidString = boost::lexical_cast<std::string > (pid);
         mWriteLocation = "/tmp/test.yaml." + pidString;

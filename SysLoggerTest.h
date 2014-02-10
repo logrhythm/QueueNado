@@ -5,6 +5,7 @@
 #include <string.h>
 #include <cstdarg>
 
+#include "ProcessManager.h"
 // Mock syslog data and routines to use in testing
 static std::string sysLogOpenIdent;
 static int sysLogOpenOption;

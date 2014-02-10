@@ -1,6 +1,18 @@
 #include "CrowbarHeadcrabTests.h"
+#include "QosmosFileCallbacks.h"
 #include <czmq.h>
 #include <boost/thread.hpp>
+
+TEST_F(CrowbarHeadcrabTests, CrowbarWithNoHeadCrab) {
+   Crowbar firstCrowbar(mTarget);
+   
+   EXPECT_FALSE(firstCrowbar.Swing("foo"));
+   ASSERT_TRUE(firstCrowbar.Wield());
+   EXPECT_TRUE(firstCrowbar.Swing("foo"));
+   Headcrab firstCrab(mTarget);
+   ASSERT_TRUE(firstCrab.ComeToLife());
+   EXPECT_TRUE(firstCrowbar.Swing("foo"));
+}
 TEST_F(CrowbarHeadcrabTests, SimpleConstructAndWieldCrowbar) {
 
    Crowbar firstStack(mTarget);

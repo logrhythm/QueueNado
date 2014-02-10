@@ -11,6 +11,7 @@
 #include "DpiMsgLR.h"
 #include "luajit-2.0/lua.hpp"
 #include "Vampire.h"
+#include "ProcessManager.h"
 
 using namespace networkMonitor;
 

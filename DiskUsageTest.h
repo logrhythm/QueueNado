@@ -10,6 +10,7 @@
 #include <sstream>
 #include <cstdio>
 #include <cstdlib>
+#include "ProcessManager.h"
 
 class RaIIFolderUsage : public ::testing::Test {
 public:
@@ -19,7 +20,7 @@ public:
 protected:
 
    virtual void SetUp() {
-      
+      ProcessManager::Instance();
       testDir << "/tmp/TestSize";
 
       std::string makeADir;

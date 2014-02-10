@@ -11,7 +11,7 @@
 #include <chrono>
 #include <boost/lexical_cast.hpp>
 #include "g2log.hpp"
-
+#include "ProcessManager.h"
 class CommandProcessorTests : public ::testing::Test {
 public:
 
@@ -22,6 +22,7 @@ public:
 protected:
 
    virtual void SetUp() {
+      ProcessManager::Instance();
       conf.mCommandQueue = "tcp://127.0.0.1:";
       conf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
       mDeathReceived = false;

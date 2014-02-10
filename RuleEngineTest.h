@@ -16,12 +16,13 @@
 #include "ConfMaster.h"
 #include <memory>
 #include "boost/lexical_cast.hpp"
-
+#include "ProcessManager.h"
 
 class RuleEngineTest : public ::testing::Test {
 public:
 
    RuleEngineTest() : conf(ConfSlave::Instance()), masterConf(ConfMaster::Instance()) {
+      ProcessManager::Instance();
       masterConf.SetPath("resources/test.yaml");
       masterConf.Start();
 

@@ -3,6 +3,7 @@
 
 #include "gtest/gtest.h"
 #include <sys/time.h>
+#include "ProcessManager.h"
 
 class LuaExecuterTest : public ::testing::Test {
 public:
@@ -18,7 +19,6 @@ public:
 protected:
 
    virtual void SetUp() {
-
    };
 
    virtual void TearDown() {

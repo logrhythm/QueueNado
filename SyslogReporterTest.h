@@ -14,7 +14,7 @@
 #include <ctime>
 #include <string>
 #include <vector>
-
+#include "ProcessManager.h"
 static int syslogOption = LOG_ODELAY | LOG_PERROR | LOG_PID;
 static int syslogFacility = LOG_LOCAL4;
 static int syslogPriority = LOG_DEBUG;
@@ -59,6 +59,7 @@ protected:
    ConfMaster& mMasterConf;
 
    virtual void SetUp() {
+      ProcessManager::Instance();
       //std::cout << "setup" << std::endl;
       syslogOpenIdent.clear();
       syslogOpenOption = 0;

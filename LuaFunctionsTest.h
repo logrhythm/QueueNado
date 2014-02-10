@@ -5,12 +5,12 @@
 #include "MockLuaFunctions.h"
 #include "ConfMaster.h"
 #include "ConfSlave.h"
+#include "ProcessManager.h"
 
 class LuaFunctionsTest : public ::testing::Test {
 public:
 
    LuaFunctionsTest() : conf(ConfSlave::Instance()), masterConf(ConfMaster::Instance()){
-
       masterConf.SetPath("resources/test.yaml");
       masterConf.Start();
 
@@ -21,6 +21,7 @@ public:
 protected:
 
    virtual void SetUp() {
+      
    }
 
    virtual void TearDown() {
