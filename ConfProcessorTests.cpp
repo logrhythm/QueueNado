@@ -1013,8 +1013,8 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.GetSyslogConfigFile());
    EXPECT_EQ(true, conf.GetSyslogTcpEnabled());
    EXPECT_EQ("local4", conf.GetSyslogFacility());
-   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
-   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("1.2.1.2", conf.GetSyslogAgentIP());
+   EXPECT_EQ("123", conf.GetSyslogAgentPort());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.GetDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.GetSyslogQueue());
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.GetStatsAccumulatorQueue());
@@ -1057,8 +1057,8 @@ TEST_F(ConfProcessorTests, testGetConfFromString) {
    EXPECT_EQ("/etc/rsyslog.d/nm.rsyslog.conf", conf.GetSyslogConfigFile());
    EXPECT_EQ(true, conf.GetSyslogTcpEnabled());
    EXPECT_EQ("local4", conf.GetSyslogFacility());
-   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
-   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("1.2.1.2", conf.GetSyslogAgentIP());
+   EXPECT_EQ("123", conf.GetSyslogAgentPort());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.GetDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.GetSyslogQueue());
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.GetStatsAccumulatorQueue());
@@ -1369,8 +1369,8 @@ TEST_F(ConfProcessorTests, testIpOnlyProtoMessage) {
 TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
    //runs from test/ directory.
    MockConfExposeUpdate conf(mTestConf);
-   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
-   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("1.2.1.2", conf.GetSyslogAgentIP());
+   EXPECT_EQ("123", conf.GetSyslogAgentPort());
 
    conf.setPath(mWriteLocation);
    ASSERT_EQ(mWriteLocation, conf.GetPath());
@@ -1382,14 +1382,14 @@ TEST_F(ConfProcessorTests, testRealChangeAndWriteToDisk) {
    conf.updateFields(sysMsg);
 
    EXPECT_EQ(expAgentIP, conf.GetSyslogAgentIP());
-   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("123", conf.GetSyslogAgentPort());
 
    conf.writeSyslogToFile();
 
    MockConfExposeUpdate newConf(mWriteLocation);
 
    EXPECT_EQ(expAgentIP, newConf.GetSyslogAgentIP());
-   EXPECT_EQ("514", newConf.GetSyslogAgentPort());
+   EXPECT_EQ("123", newConf.GetSyslogAgentPort());
 
 }
 
@@ -1470,8 +1470,8 @@ TEST_F(ConfProcessorTests, testGetSyslogConfMsg) {
    protoMsg::SyslogConf confUpdateMsg;
    EXPECT_TRUE(confUpdateMsg.ParseFromString(data[1]));
    conf.updateFields(confUpdateMsg);
-   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
-   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("1.2.1.2", conf.GetSyslogAgentIP());
+   EXPECT_EQ("123", conf.GetSyslogAgentPort());
 
    confThread.Stop();
 }
@@ -1528,8 +1528,8 @@ TEST_F(ConfProcessorTests, testPolledConsumerRcvAfterReg) {
 
    EXPECT_TRUE(confThread.ReceiveConf((void *) &conf, conf));
 
-   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
-   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("1.2.1.2", conf.GetSyslogAgentIP());
+   EXPECT_EQ("123", conf.GetSyslogAgentPort());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.GetDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.GetSyslogQueue());
    EXPECT_EQ("ipc:///tmp/statsAccumulatorQ.ipc", conf.GetStatsAccumulatorQueue());
@@ -1600,8 +1600,8 @@ TEST_F(ConfProcessorTests, testConfSlaveBasic) {
    slave.SetPath(mTestConf);
    slave.Start();
    Conf conf = slave.GetConf();
-   EXPECT_EQ("10.1.1.67", conf.GetSyslogAgentIP());
-   EXPECT_EQ("514", conf.GetSyslogAgentPort());
+   EXPECT_EQ("1.2.1.2", conf.GetSyslogAgentIP());
+   EXPECT_EQ("123", conf.GetSyslogAgentPort());
    EXPECT_EQ("ipc:///tmp/dpilrmsg.ipc", conf.GetDpiRcvrQueue());
    EXPECT_EQ("ipc:///tmp/syslogQ.ipc", conf.GetSyslogQueue());
    EXPECT_EQ("ipc:///tmp/confChangeQ.ipc", conf.GetConfChangeQueue());
