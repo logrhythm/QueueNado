@@ -10,6 +10,7 @@
 #include <thread>
 #include <atomic>
 #include <tuple>
+#include <algorithm>
 
 #ifdef LR_DEBUG
 static MockConfSlave mConf;
@@ -67,7 +68,14 @@ TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
 
    // Same partition. For "free" and "total" used memory should be the same for 
    //  GetTotal..., GetProbe... and getPcap
-   EXPECT_EQ(stats.pcapDiskInGB.Free, stats.probeDiskInGB.Free);
+   //  However... in a Jenkins/test environment we see frequently that possible temporary
+   //  files are created that make this test fail. For this reason we allow a 1% diff.
+   auto maxFree = std::max(stats.pcapDiskInGB.Free, stats.probeDiskInGB.Free);
+   auto maxFreeDiffAllowed = maxFree/100;
+   EXPECT_NE(maxFreeDiffAllowed, 0);
+   EXPECT_NEAR(stats.pcapDiskInGB.Free, stats.probeDiskInGB.Free, maxFreeDiffAllowed);
+
+
    EXPECT_EQ(stats.pcapDiskInGB.Total, stats.probeDiskInGB.Total);
    EXPECT_NE(stats.pcapDiskInGB.Used, stats.probeDiskInGB.Used); // pcap is the folder, probe is the partition
    EXPECT_EQ(stats.pcapDiskInGB.Used, 4); // folder takes up space
