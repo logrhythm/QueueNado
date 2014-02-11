@@ -11,6 +11,7 @@
 #include <thread>
 #include <atomic>
 #include <tuple>
+#include <algorithm>
 
 #ifdef LR_DEBUG
 static MockConfMaster mConfMaster;
@@ -73,7 +74,13 @@ TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
 
    // Same partition. For "free" and "total" used memory should be the same for 
    //  GetTotal..., GetProbe... and getPcap
-   EXPECT_NEAR(stats.pcapDiskInGB.Free, stats.probeDiskInGB.Free,4096);
+   //  However... in a Jenkins/test environment we see frequently that possible temporary
+   //  files are created that make this test fail. For this reason we allow a 1% diff.
+   auto maxFree = std::max(stats.pcapDiskInGB.Free, stats.probeDiskInGB.Free);
+   auto maxFreeDiffAllowed = maxFree/100;
+   EXPECT_NE(maxFreeDiffAllowed, 0);
+   EXPECT_NEAR(stats.pcapDiskInGB.Free, stats.probeDiskInGB.Free, maxFreeDiffAllowed);
+
    EXPECT_EQ(stats.pcapDiskInGB.Total, stats.probeDiskInGB.Total);
    EXPECT_NE(stats.pcapDiskInGB.Used, stats.probeDiskInGB.Used); // pcap is the folder, probe is the partition
    EXPECT_EQ(stats.pcapDiskInGB.Used, 4); // folder takes up space
@@ -1305,82 +1312,6 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
    }
 }
 
-TEST_F(DiskCleanupTest, TooMuchSearch) {
-
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskCleanup cleanup(mConf, processClient);
-
-   EXPECT_FALSE(cleanup.TooMuchSearch(0, 0));
-   EXPECT_TRUE(cleanup.TooMuchSearch(0, 100));
-   EXPECT_TRUE(cleanup.TooMuchSearch(14, 100));
-   EXPECT_FALSE(cleanup.TooMuchSearch(15, 100));
-   EXPECT_FALSE(cleanup.TooMuchSearch(100, 100));
-   EXPECT_FALSE(cleanup.TooMuchSearch(1000, 100));
-}
-
-TEST_F(DiskCleanupTest, RemoveOldestSearchFailureDoesntCrash) {
-
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskCleanup cleanup(mConf, processClient);
-   cleanup.mFailRemoveSearch = true;
-   cleanup.mFailFileSystemInfo = true;
-   std::promise<bool> promisedFinished;
-   auto futureResult = promisedFinished.get_future();
-   std::thread([](std::promise<bool> finished, MockDiskCleanup & cleanup) {
-      DiskCleanup::StatInfo stats;
-      size_t fsTotalGigs(100);
-              MockElasticSearch es(false);
-              stats.canSendStats = false;
-              cleanup.CleanupSearch(std::ref(es), stats);
-              finished.set_value(true);
-   }, std::move(promisedFinished), std::ref(cleanup)).detach();
-
-   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
-
-}
-
-TEST_F(DiskCleanupTest, CleanupContinuouslyChecksSizes) {
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskCleanup cleanup(mConf, processClient);
-
-   cleanup.mFileSystemInfoCountdown = 3;
-   cleanup.mFailFileSystemInfo = true;
-   cleanup.mSucceedRemoveSearch = true;
-
-   std::promise<bool> promisedFinished;
-   auto futureResult = promisedFinished.get_future();
-   std::thread([](std::promise<bool> finished, MockDiskCleanup & cleanup) {
-      DiskCleanup::StatInfo stats;
-      size_t fsTotalGigs(100);
-              MockElasticSearch es(false);
-              stats.canSendStats = false;
-              cleanup.CleanupSearch(std::ref(es), stats);
-
-      if (stats.probeDiskInGB.Free != stats.probeDiskInGB.Total) {
-         FAIL() << "Not equal as expected: Free = "
-                 << stats.probeDiskInGB.Free << ", Total = " << stats.probeDiskInGB.Total;
-      }
-      finished.set_value(true);
-   }, std::move(promisedFinished), std::ref(cleanup)).detach();
-
-   EXPECT_TRUE(futureResult.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
-}
-
-TEST_F(DiskCleanupTest, RemoveGetsTheOldestMatch) {
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskCleanup cleanup(mConf, processClient);
-   MockElasticSearch es(false);
-
-   es.mFakeIndexList = true;
-
-   EXPECT_EQ("network_1999_01_01", cleanup.GetOldestIndex(es));
-
-}
-
 TEST_F(DiskCleanupTest, FSMath) {
    ProcessClient processClient(mConf.GetConf());
    ASSERT_TRUE(processClient.Initialize());
@@ -1400,23 +1331,6 @@ TEST_F(DiskCleanupTest, FSMath) {
    cleanup.GetPcapStoreUsage(stats, MemorySize::GB);
    EXPECT_NE(0, stats.pcapDiskInGB.Free);
    EXPECT_NE(0, stats.pcapDiskInGB.Total);
-}
-
-TEST_F(DiskCleanupTest, DontDeleteTheLastIndex) {
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskCleanup cleanup(mConf, processClient);
-   MockElasticSearch es(false);
-   es.mMockListOfIndexes.clear();
-   es.mFakeIndexList = true;
-   std::string oldestIndex = cleanup.GetOldestIndex(es);
-   EXPECT_EQ("", oldestIndex);
-   es.mMockListOfIndexes.insert("network_12345");
-   oldestIndex = cleanup.GetOldestIndex(es);
-   EXPECT_EQ("", oldestIndex);
-   es.mMockListOfIndexes.insert("network_12346");
-   oldestIndex = cleanup.GetOldestIndex(es);
-   EXPECT_EQ("network_12345", oldestIndex);
 }
 
 TEST_F(DiskCleanupTest, SendStats) {
