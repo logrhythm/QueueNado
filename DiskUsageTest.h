@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include "ProcessManager.h"
+#include "MockConfMaster.h"
 
 class RaIIFolderUsage : public ::testing::Test {
 public:
@@ -41,6 +42,7 @@ protected:
    };
 
    std::stringstream testDir;
+   MockConfMaster mConf;
 private:
 
 };

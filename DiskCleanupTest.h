@@ -18,6 +18,7 @@ public:
 protected:
 
    virtual void SetUp() {
+      ProcessManager::Instance();
       memset(reinterpret_cast<void*>(&stats),0,sizeof(stats));
       stats.currentTime = std::time(NULL);
       bogusFileList.insert(std::make_tuple<std::string, std::string>("/path/id0", "id0"));

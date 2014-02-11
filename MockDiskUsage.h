@@ -12,8 +12,8 @@
 #include <g2log.hpp>
 
 struct MockDiskUsage : public DiskUsage {
-   MockDiskUsage(const struct statvfs& mockStatvs) 
-   : DiskUsage("/usr/local/probe/pcap")
+   MockDiskUsage(const struct statvfs& mockStatvs, ProcessClient& processClient) 
+   : DiskUsage("/usr/local/probe/pcap",processClient)
    , mstatvs(mockStatvs)
    {
       Update();
