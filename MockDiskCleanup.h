@@ -14,7 +14,7 @@ class MockDiskCleanup : public DiskCleanup {
 public:
 
    MockDiskCleanup(ConfSlave& conf, ProcessClient& processClient) : DiskCleanup(conf,processClient), 
-   mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), mSucceedRemoveSearch(false),
+   mFailFileSystemInfo(false), mFileSystemInfoCountdown(0), 
    mRealFilesSystemAccess(false), mFakeRemove(false), mRemoveResult(true),mFakeIsShutdown(false),
            mIsShutdownResult(false), mDoPseudoGetUpdatedDiskInfo(false), mUseMockConf(false), 
            mMockPcapDiskUsage(DiskCleanup::GetConf().GetPcapCaptureLocations(),processClient) {
