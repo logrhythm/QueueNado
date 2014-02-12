@@ -24,7 +24,98 @@ TEST_F(DiskCleanupTest, SetupMockConfSlave) {
 static ConfSlave& mConf(ConfSlave::Instance());
 #endif
 #ifdef LR_DEBUG
+TEST_F(DiskCleanupTest, MarkFileAsRemovedInES) {
+   ProcessClient processClient(mConf.GetConf());
+   ASSERT_TRUE(processClient.Initialize());
+   MockDiskCleanup cleanup(mConf, processClient);
+   MockBoomStick transport("ipc://tmp/foo.ipc");
+   MockElasticSearch es(transport, false);
+   IdsAndIndexes recordsToUpdate;
+   networkMonitor::DpiMsgLR updateMsg;
+   EXPECT_FALSE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, updateMsg, es));
+   recordsToUpdate.emplace_back("123456789012345678901234567890123456", "foo");
+   es.mFakeBulkUpdate = true;
+   es.mBulkUpdateResult = false;
+   EXPECT_FALSE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, updateMsg, es));
+   es.mBulkUpdateResult = true;
+   EXPECT_TRUE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, updateMsg, es));
+}
+// Could also be DISABLED since it used two partitions for verifying that the actual
+// partition calculation is OK. On our test system (Jenkins?) all is on the
+// same partition so in this case we do not run this test
+//
+// There is no point in mocking this and using folders on the same partition
+// since the test is for verifying how it works on partitions
 
+TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
+   ProcessClient processClient(mConf.GetConf());
+   ASSERT_TRUE(processClient.Initialize());
+   DiskUsage home("/home/tmp/TooMuchPcap", processClient);
+   DiskUsage root("/tmp/TooMuchPcap", processClient);
+   if (home.FileSystemID() != root.FileSystemID()) {
+      mConf.mConfLocation += ""; // ensuring that the Conf returned is the MockConf
+      ProcessClient processClient(mConf.GetConf());
+      ASSERT_TRUE(processClient.Initialize());
+      MockDiskCleanup cleanup(mConf, processClient);
+      cleanup.mUseMockConf = true;
+      cleanup.mRealFilesSystemAccess = true;
+      cleanup.mMockedConf.mOverrideGetPcapCaptureLocations = true;
+
+      tempFileCreate scopedHome(cleanup.mMockedConf, "/home/tmp/TooMuchPcap");
+      tempFileCreate scopedRoot(cleanup.mMockedConf, "/tmp/TooMuchPcap");
+
+      ASSERT_TRUE(scopedHome.Init());
+      ASSERT_TRUE(scopedRoot.Init());
+
+      // explicit writing mConf.mConf to make it clear what MockConf we are using
+      cleanup.mMockedConf.mPCapCaptureLocations.clear();
+      cleanup.mMockedConf.mPCapCaptureLocations.push_back(scopedHome.mTestDir.str());
+      cleanup.mMockedConf.mPCapCaptureLocations.push_back(scopedRoot.mTestDir.str());
+
+
+      ASSERT_EQ(cleanup.mMockedConf.GetPcapCaptureLocations().size(), 2);
+      ASSERT_EQ(cleanup.mMockedConf.GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
+      ASSERT_EQ(cleanup.mMockedConf.GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
+      EXPECT_EQ(cleanup.mMockedConf.GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
+
+      // This is what happens in DiskClean for Pcap calculations
+      ASSERT_EQ(cleanup.GetConf().GetPcapCaptureLocations().size(), 2);
+      ASSERT_EQ(cleanup.GetConf().GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
+      ASSERT_EQ(cleanup.GetConf().GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
+      ASSERT_EQ(cleanup.GetConf().GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
+      ASSERT_EQ(cleanup.GetConf().GetProbeLocation(), "/usr/local/probe/");
+
+      // Using 2 different partitions for pcaps
+      auto size = MemorySize::MB;
+      cleanup.GetPcapStoreUsage(stats, size); // high granularity in case something changes on the system
+      DiskUsage atRoot{scopedRoot.mTestDir.str(), processClient};
+      DiskUsage atHome{scopedHome.mTestDir.str(), processClient};
+
+      auto isFree = atRoot.DiskFree(size) + atHome.DiskFree(size);
+      EXPECT_NEAR(stats.pcapDiskInGB.Free, isFree, 50) << ". home: " << atHome.DiskFree(size) << ". root:" << atRoot.DiskFree(size);
+
+
+      auto isUsed1 = atRoot.RecursiveFolderDiskUsed(scopedRoot.mTestDir.str(), size);
+      auto isUsed2 = atHome.RecursiveFolderDiskUsed(scopedHome.mTestDir.str(), size);
+      auto isUsed = isUsed1 + isUsed2;
+      EXPECT_EQ(stats.pcapDiskInGB.Used, isUsed) << ". home: " << isUsed2 << ". root:" << isUsed1;
+
+      auto isTotal = atRoot.DiskTotal(size) + atHome.DiskTotal(size);
+      EXPECT_EQ(stats.pcapDiskInGB.Total, isTotal) << ". home: " << atHome.DiskTotal(size) << ". root:" << atRoot.DiskTotal(size);
+
+
+      // Sanity check. Add a 10MFile and see that increments happen
+      std::string make1MFileFile = "dd bs=1024 count=10240 if=/dev/zero of=";
+      make1MFileFile += scopedHome.mTestDir.str();
+      make1MFileFile += "/10MFile";
+      EXPECT_EQ(0, system(make1MFileFile.c_str()));
+      DiskUsage atHome2(scopedHome.mTestDir.str(), processClient);
+      size_t usedMByte = atHome2.RecursiveFolderDiskUsed(scopedHome.mTestDir.str(), size);
+      cleanup.GetPcapStoreUsage(stats, size);
+      EXPECT_EQ(stats.pcapDiskInGB.Used, isUsed + 10);
+      EXPECT_EQ(stats.pcapDiskInGB.Used, usedMByte + atRoot.RecursiveFolderDiskUsed(scopedRoot.mTestDir.str(), size));
+   }
+}
 TEST_F(DiskCleanupTest, LastIterationAmount) {
 
    ProcessClient processClient(mConf.GetConf());
@@ -498,23 +589,6 @@ TEST_F(DiskCleanupTest, RemoveOldestPCapFilesInESOddIterations) {
    EXPECT_EQ(3, cleanup.mRecordsMarked.size());
 }
 
-TEST_F(DiskCleanupTest, MarkFileAsRemovedInES) {
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   GMockDiskCleanup cleanup(mConf, processClient);
-   MockBoomStick transport("ipc://tmp/foo.ipc");
-   MockElasticSearch es(transport, false);
-   IdsAndIndexes recordsToUpdate;
-   networkMonitor::DpiMsgLR updateMsg;
-   EXPECT_FALSE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, updateMsg, es));
-   recordsToUpdate.emplace_back("123456789012345678901234567890123456", "foo");
-   es.mFakeBulkUpdate = true;
-   es.mBulkUpdateResult = false;
-   EXPECT_FALSE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, updateMsg, es));
-   es.mBulkUpdateResult = true;
-   EXPECT_TRUE(cleanup.MarkFilesAsRemovedInES(recordsToUpdate, updateMsg, es));
-}
-
 TEST_F(DiskCleanupTest, RemoveFile) {
    ProcessClient processClient(mConf.GetConf());
    ASSERT_TRUE(processClient.Initialize());
@@ -838,97 +912,6 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageSamePartition) {
    cleanup.GetPcapStoreUsage(stats, MemorySize::KByte);
    EXPECT_EQ(stats.pcapDiskInGB.Used, 1024 + spaceToCreateADirectory);
 }
-#endif
-
-#ifdef LR_DEBUG
-// Could also be DISABLED since it used two partitions for verifying that the actual
-// partition calculation is OK. On our test system (Jenkins?) all is on the
-// same partition so in this case we do not run this test
-//
-// There is no point in mocking this and using folders on the same partition
-// since the test is for verifying how it works on partitions
-
-TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageManyLocations) {
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   DiskUsage home("/home/tmp/TooMuchPcap", processClient);
-   DiskUsage root("/tmp/TooMuchPcap", processClient);
-   if (home.FileSystemID() != root.FileSystemID()) {
-      mConf.mConfLocation += ""; // ensuring that the Conf returned is the MockConf
-      ProcessClient processClient(mConf.GetConf());
-      ASSERT_TRUE(processClient.Initialize());
-      MockDiskCleanup cleanup(mConf, processClient);
-      cleanup.mUseMockConf = true;
-      cleanup.mRealFilesSystemAccess = true;
-      cleanup.mMockedConf.mOverrideGetPcapCaptureLocations = true;
-
-      tempFileCreate scopedHome(cleanup.mMockedConf, "/home/tmp/TooMuchPcap");
-      tempFileCreate scopedRoot(cleanup.mMockedConf, "/tmp/TooMuchPcap");
-
-      ASSERT_TRUE(scopedHome.Init());
-      ASSERT_TRUE(scopedRoot.Init());
-
-      // explicit writing mConf.mConf to make it clear what MockConf we are using
-      cleanup.mMockedConf.mPCapCaptureLocations.clear();
-      cleanup.mMockedConf.mPCapCaptureLocations.push_back(scopedHome.mTestDir.str());
-      cleanup.mMockedConf.mPCapCaptureLocations.push_back(scopedRoot.mTestDir.str());
-
-
-      ASSERT_EQ(cleanup.mMockedConf.GetPcapCaptureLocations().size(), 2);
-      ASSERT_EQ(cleanup.mMockedConf.GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
-      ASSERT_EQ(cleanup.mMockedConf.GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
-      EXPECT_EQ(cleanup.mMockedConf.GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
-
-      // This is what happens in DiskClean for Pcap calculations
-      ASSERT_EQ(cleanup.GetConf().GetPcapCaptureLocations().size(), 2);
-      ASSERT_EQ(cleanup.GetConf().GetFirstPcapCaptureLocation(), scopedHome.mTestDir.str());
-      ASSERT_EQ(cleanup.GetConf().GetPcapCaptureLocations()[0], scopedHome.mTestDir.str());
-      ASSERT_EQ(cleanup.GetConf().GetPcapCaptureLocations()[1], scopedRoot.mTestDir.str());
-      ASSERT_EQ(cleanup.GetConf().GetProbeLocation(), "/usr/local/probe/");
-
-      // Using 2 different partitions for pcaps
-      auto size = MemorySize::MB;
-      cleanup.GetPcapStoreUsage(stats, size); // high granularity in case something changes on the system
-      DiskUsage atRoot{scopedRoot.mTestDir.str(), processClient};
-      DiskUsage atHome{scopedHome.mTestDir.str(), processClient};
-
-      auto isFree = atRoot.DiskFree(size) + atHome.DiskFree(size);
-      EXPECT_EQ(stats.pcapDiskInGB.Free, isFree) << ". home: " << atHome.DiskFree(size) << ". root:" << atRoot.DiskFree(size);
-
-
-      auto isUsed1 = atRoot.RecursiveFolderDiskUsed(scopedRoot.mTestDir.str(), size);
-      auto isUsed2 = atHome.RecursiveFolderDiskUsed(scopedHome.mTestDir.str(), size);
-      auto isUsed = isUsed1 + isUsed2;
-      EXPECT_EQ(stats.pcapDiskInGB.Used, isUsed) << ". home: " << isUsed2 << ". root:" << isUsed1;
-
-      auto isTotal = atRoot.DiskTotal(size) + atHome.DiskTotal(size);
-      EXPECT_EQ(stats.pcapDiskInGB.Total, isTotal) << ". home: " << atHome.DiskTotal(size) << ". root:" << atRoot.DiskTotal(size);
-
-
-      // Sanity check. Add a 10MFile and see that increments happen
-      std::string make1MFileFile = "dd bs=1024 count=10240 if=/dev/zero of=";
-      make1MFileFile += scopedHome.mTestDir.str();
-      make1MFileFile += "/10MFile";
-      EXPECT_EQ(0, system(make1MFileFile.c_str()));
-      DiskUsage atHome2(scopedHome.mTestDir.str(), processClient);
-      size_t usedMByte = atHome2.RecursiveFolderDiskUsed(scopedHome.mTestDir.str(), size);
-      cleanup.GetPcapStoreUsage(stats, size);
-      EXPECT_EQ(stats.pcapDiskInGB.Used, isUsed + 10);
-      EXPECT_EQ(stats.pcapDiskInGB.Used, usedMByte + atRoot.RecursiveFolderDiskUsed(scopedRoot.mTestDir.str(), size));
-   }
-}
-#endif
-
-
-
-
-
-#ifdef LR_DEBUG
-
-
-#endif
-
-#ifdef LR_DEBUG
 
 TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
    ProcessClient processClient(mConf.GetConf());
