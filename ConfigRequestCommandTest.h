@@ -18,10 +18,11 @@ public:
 protected:
  void SetUp() {
       cmd.set_type(protoMsg::CommandRequest_CommandType_CONFIG_REQUEST);
+      mockConf = mConfMaster.GetConf()
    };
 
    virtual void TearDown() {}
-
+   MockConfMaster mConfMaster;
    MockConf mockConf;
    MockProcessClientCommand autoManagedManager;
    protoMsg::CommandRequest cmd;

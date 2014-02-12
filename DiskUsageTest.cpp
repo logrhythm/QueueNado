@@ -298,8 +298,8 @@ TEST(PcapDiskUsage, DoCalculateARealMountPoint) {
       {"/"},
       {"/boot"}
    };
-   MockConf conf;
-   MockProcessClientCommand processClient(conf);
+   MockConfMaster confMaster;
+   MockProcessClientCommand processClient(confMaster.GetConf());
    ASSERT_TRUE(processClient.Initialize());
    MockPcapDiskUsage usage(locations, processClient);
 
@@ -370,8 +370,8 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDuplicateFolderUsage__ExpectingO
 }
 
 TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDiskUsage__ExpectingOnlyDisk) {
-   MockConf conf;
-   MockProcessClientCommand processClient(conf);
+   MockConfMaster confMaster;
+   MockProcessClientCommand processClient(confMaster.GetConf());
    ASSERT_TRUE(processClient.Initialize());
    GMockPcapDiskUsage pcapUsage{
       {"/"}, processClient
@@ -405,8 +405,8 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateREALFolderUsage) {
    second_1MFileFile += testDir.str();
    second_1MFileFile += "/cccdddddddddddddddddddddddddddddd1M";
    EXPECT_EQ(0, system(second_1MFileFile.c_str()));
-   MockConf conf;
-   MockProcessClientCommand processClient(conf);
+   MockConfMaster confMaster;
+   MockProcessClientCommand processClient(confMaster.GetConf());
    ASSERT_TRUE(processClient.Initialize());
    GMockPcapDiskUsage pcapUsage{
       {testDir.str()}, processClient

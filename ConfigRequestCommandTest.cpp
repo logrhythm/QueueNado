@@ -134,6 +134,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
 
 TEST_F(ConfigRequestCommandTest, BaseConfExecuteUsingRealDefaultValues) {
 #ifdef LR_DEBUG
+
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
    MockProcessClientCommand testProcessor(mockConf);
