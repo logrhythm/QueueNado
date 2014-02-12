@@ -43,7 +43,7 @@ TEST(PcapDiskUsage, DoCalculateARealMountPoint) {
    };
    MockConfMaster confMaster;
    ProcessManager::InstanceWithConfMaster(confMaster);
-   MockProcessClientCommand processClient(confMaster.GetConf());
+   ProcessClient processClient(confMaster.GetConf());
    ASSERT_TRUE(processClient.Initialize());
    MockPcapDiskUsage usage(locations, processClient);
 
