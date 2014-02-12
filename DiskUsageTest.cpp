@@ -373,7 +373,8 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDuplicateFolderUsage__ExpectingO
 
 TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDiskUsage__ExpectingOnlyDisk) {
    MockConfMaster confMaster;
-   MockProcessClientCommand processClient(confMaster.GetConf());
+   ProcessManager::InstanceWithConfMaster(confMaster);
+   ProcessClient processClient(confMaster.GetConf());
    ASSERT_TRUE(processClient.Initialize());
    GMockPcapDiskUsage pcapUsage{
       {"/"}, processClient
@@ -397,7 +398,10 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDiskUsage__ExpectingOnlyDisk) {
 }
 
 TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateREALFolderUsage) {
-
+   MockConfMaster confMaster;
+   ProcessManager::InstanceWithConfMaster(confMaster);
+   ProcessClient processClient(confMaster.GetConf());
+   ASSERT_TRUE(processClient.Initialize());
    std::string first_1MFileFile = {"dd bs=1024 count=1024 if=/dev/zero of="};
    first_1MFileFile += testDir.str();
    first_1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
@@ -407,9 +411,7 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateREALFolderUsage) {
    second_1MFileFile += testDir.str();
    second_1MFileFile += "/cccdddddddddddddddddddddddddddddd1M";
    EXPECT_EQ(0, system(second_1MFileFile.c_str()));
-   MockConfMaster confMaster;
-   MockProcessClientCommand processClient(confMaster.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
+
    GMockPcapDiskUsage pcapUsage{
       {testDir.str()}, processClient
    };
