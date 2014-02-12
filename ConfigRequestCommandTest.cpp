@@ -7,6 +7,7 @@
 #include "ConfSlave.h"
 #include "PcapDiskUsage.h"
 #include "ConfTypeMsg.pb.h"
+#include "ProcessManager.h"
 #include <boost/lexical_cast.hpp>
 
 TEST_F(ConfigRequestCommandTest, DoesItCompileAndLink) {
@@ -137,7 +138,9 @@ TEST_F(ConfigRequestCommandTest, BaseConfExecuteUsingRealDefaultValues) {
 
    mockConf.mCommandQueue = "tcp://127.0.0.1:";
    mockConf.mCommandQueue += boost::lexical_cast<std::string>(rand() % 1000 + 20000);
-   MockProcessClientCommand testProcessor(mockConf);
+   MockConfMaster confMaster;
+   ProcessManager::InstanceWithConfMaster(confMaster);
+   MockProcessClientCommand testProcessor(confMaster.GetConf());
    EXPECT_TRUE(testProcessor.Initialize());
 
    protoMsg::ConfigDefaultsRequest request;

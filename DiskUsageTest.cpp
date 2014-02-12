@@ -34,7 +34,32 @@ namespace {
       return toMock;
    }
 }
+#ifdef LR_DEBUG
+TEST(PcapDiskUsage, DoCalculateARealMountPoint) {
 
+   std::vector<std::string> locations{
+      {"/"},
+      {"/boot"}
+   };
+   MockConfMaster confMaster;
+   ProcessManager::InstanceWithConfMaster(confMaster);
+   MockProcessClientCommand processClient(confMaster.GetConf());
+   ASSERT_TRUE(processClient.Initialize());
+   MockPcapDiskUsage usage(locations, processClient);
+
+   auto storage1 = usage.DoCalculateMountPoints(locations);
+   EXPECT_EQ(storage1.size(), 2);
+   for (auto& l : storage1) {
+      LOG(DEBUG) << l.first << "\tIs a mount point: : " << l.second << std::endl;
+   }
+   ASSERT_TRUE(storage1.end() != storage1.find("/"));
+   ASSERT_TRUE(storage1.end() != storage1.find("/boot/"));
+   EXPECT_EQ(true, storage1["/"]);
+   // keeping this commented out on purpose. /boot is not necessarily
+   // a separate partition
+   //  EXPECT_EQ(true, storage1["/boot/"]); 
+}
+#endif
 TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_MB) {
    std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
    make1MFileFile += testDir.str();
@@ -292,29 +317,6 @@ TEST(PcapDiskUsage, DoCalculateEmptyMountPoint) {
    EXPECT_EQ(storage1.size(), 0);
 }
 
-TEST(PcapDiskUsage, DoCalculateARealMountPoint) {
-
-   std::vector<std::string> locations{
-      {"/"},
-      {"/boot"}
-   };
-   MockConfMaster confMaster;
-   MockProcessClientCommand processClient(confMaster.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockPcapDiskUsage usage(locations, processClient);
-
-   auto storage1 = usage.DoCalculateMountPoints(locations);
-   EXPECT_EQ(storage1.size(), 2);
-   for (auto& l : storage1) {
-      LOG(DEBUG) << l.first << "\tIs a mount point: : " << l.second << std::endl;
-   }
-   ASSERT_TRUE(storage1.end() != storage1.find("/"));
-   ASSERT_TRUE(storage1.end() != storage1.find("/boot/"));
-   EXPECT_EQ(true, storage1["/"]);
-   // keeping this commented out on purpose. /boot is not necessarily
-   // a separate partition
-   //  EXPECT_EQ(true, storage1["/boot/"]); 
-}
 
 TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateFolderUsage__ExpectingOnlyONEFolder) {
    MockConf conf;

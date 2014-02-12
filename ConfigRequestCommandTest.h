@@ -8,6 +8,7 @@
 #include "ProcessClient.h"
 #include "MockConf.h"
 #include "CommandRequest.pb.h"
+#include "MockConfMaster.h"
 
 class ConfigRequestCommandTest : public ::testing::Test {
 public:
@@ -18,7 +19,7 @@ public:
 protected:
  void SetUp() {
       cmd.set_type(protoMsg::CommandRequest_CommandType_CONFIG_REQUEST);
-      mockConf = mConfMaster.GetConf()
+      mockConf = mConfMaster.GetConf();
    };
 
    virtual void TearDown() {}
