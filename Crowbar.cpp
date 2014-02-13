@@ -125,7 +125,7 @@ bool Crowbar::Swing(const std::string& hit) {
  * Poll to see if the other side of the socket is ready
  * @return 
  */
-bool Crowbar::PollForListener() {
+bool Crowbar::PollForReady() {
    zmq_pollitem_t item;
    if(!mTip) {
       return false;
@@ -149,7 +149,7 @@ bool Crowbar::Flurry(std::vector<std::string>& hits) {
       LOG(WARNING) << "Cannot send, not Wielded";
       return false;
    }
-   if (!PollForListener()) {
+   if (!PollForReady()) {
       LOG(WARNING) << "Cannot send, no listener ready";
       return false;
    }
