@@ -17,86 +17,88 @@ namespace {
 
 TEST_F(RESTParserTest, GetIdsFromSearchForRecordsWithStaleInfo) {
    RESTParser parser;
-   
+
    std::string resultString = "{\"took\":113,\"timed_out\":false,\"_shards\":"
            "{\"total\":69,\"successful\":66,\"failed\":3,\"failures\":"
            "[{\"index\":\"kibana-int\",\"shard\":1,\"status\":400,\"reason\":"
            "\"foo\"},";
- //          "\"SearchParseException[[kibana-int][1]: from[-1],size[-1]: Parse Failure [Failed to parse source [\n{\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"capture_removed\" : true}},{ \"term\" : {\"latest_update\" : true}},{ \"numeric_range\" : {\"flowSessionCount\" : { \"gt\" : \"1\" }}}]}}},\"_cache\":false,\"from\": 0,\"size\":1,\"fields\": [\"session_id\", \"time_updated\", \"time_start\"]}}]]]; nested: QueryParsingException[[kibana-int] failed to find mapping for field [flowSessionCount]]; \"},"
-   resultString+="{\"index\":\"kibana-int\",\"shard\":0,\"status\":400,\"reason\":"
-            "\"foo\"},";
-//          "\"SearchParseException[[kibana-int][0]: from[-1],size[-1]: Parse Failure [Failed to parse source [\n{\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"capture_removed\" : true}},{ \"term\" : {\"latest_update\" : true}},{ \"numeric_range\" : {\"flowSessionCount\" : { \"gt\" : \"1\" }}}]}}},\"_cache\":false,\"from\": 0,\"size\":1,\"fields\": [\"session_id\", \"time_updated\", \"time_start\"]}}]]]; nested: QueryParsingException[[kibana-int] failed to find mapping for field [flowSessionCount]]; \"},"
-   resultString+="{\"index\":\"upgrade\",\"shard\":0,\"status\":400,\"reason\":"
-            "\"foo\"}]},";
-//          "\"SearchParseException[[upgrade][0]: from[-1],size[-1]: Parse Failure [Failed to parse source [\n{\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"capture_removed\" : true}},{ \"term\" : {\"latest_update\" : true}},{ \"numeric_range\" : {\"flowSessionCount\" : { \"gt\" : \"1\" }}}]}}},\"_cache\":false,\"from\": 0,\"size\":1,\"fields\": [\"session_id\", \"time_updated\", \"time_start\"]}}]]]; nested: QueryParsingException[[upgrade] failed to find mapping for field [flowSessionCount]]; \"}]},"
-   resultString+="\"hits\":{\"total\":279,\"max_score\":null,\"hits\":"
+   //          "\"SearchParseException[[kibana-int][1]: from[-1],size[-1]: Parse Failure [Failed to parse source [\n{\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"capture_removed\" : true}},{ \"term\" : {\"latest_update\" : true}},{ \"numeric_range\" : {\"flowSessionCount\" : { \"gt\" : \"1\" }}}]}}},\"_cache\":false,\"from\": 0,\"size\":1,\"fields\": [\"session_id\", \"time_updated\", \"time_start\"]}}]]]; nested: QueryParsingException[[kibana-int] failed to find mapping for field [flowSessionCount]]; \"},"
+   resultString += "{\"index\":\"kibana-int\",\"shard\":0,\"status\":400,\"reason\":"
+           "\"foo\"},";
+   //          "\"SearchParseException[[kibana-int][0]: from[-1],size[-1]: Parse Failure [Failed to parse source [\n{\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"capture_removed\" : true}},{ \"term\" : {\"latest_update\" : true}},{ \"numeric_range\" : {\"flowSessionCount\" : { \"gt\" : \"1\" }}}]}}},\"_cache\":false,\"from\": 0,\"size\":1,\"fields\": [\"session_id\", \"time_updated\", \"time_start\"]}}]]]; nested: QueryParsingException[[kibana-int] failed to find mapping for field [flowSessionCount]]; \"},"
+   resultString += "{\"index\":\"upgrade\",\"shard\":0,\"status\":400,\"reason\":"
+           "\"foo\"}]},";
+   //          "\"SearchParseException[[upgrade][0]: from[-1],size[-1]: Parse Failure [Failed to parse source [\n{\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"capture_removed\" : true}},{ \"term\" : {\"latest_update\" : true}},{ \"numeric_range\" : {\"flowSessionCount\" : { \"gt\" : \"1\" }}}]}}},\"_cache\":false,\"from\": 0,\"size\":1,\"fields\": [\"session_id\", \"time_updated\", \"time_start\"]}}]]]; nested: QueryParsingException[[upgrade] failed to find mapping for field [flowSessionCount]]; \"}]},"
+   resultString += "\"hits\":{\"total\":279,\"max_score\":null,\"hits\":"
            "[{\"_index\":\"network_2013_11_11\",\"_type\":\"meta\",\"_id\":\"4fc48be8-b1ee-4b58-b9d6-4f58722ec6d8_14\","
            "\"_score\":null,\"fields\":{\"session_id\":\"4fc48be8-b1ee-4b58-b9d6-4f58722ec6d8\",\"time_updated\":\"2013/11/11 16:56:33\","
            "\"time_start\":\"2013/11/11 14:31:01\"},\"sort\":[1384188993000]}]}}";
-   
+
    auto oldestSessionIds = parser.GetSessionIds(resultString);
    ASSERT_FALSE(oldestSessionIds.empty());
-   EXPECT_TRUE("4fc48be8-b1ee-4b58-b9d6-4f58722ec6d8"==*oldestSessionIds.begin());
-   
+   EXPECT_TRUE("4fc48be8-b1ee-4b58-b9d6-4f58722ec6d8" == *oldestSessionIds.begin());
+
 }
+
 TEST_F(RESTParserTest, GetOldesttime_start) {
    RESTParser parser;
-   
-   std::string resultString = 
+
+   std::string resultString =
            "200|ok|"
            "{\"took\":55,\"timed_out\":false,\"_shards\":"
-              "{\"total\":2,\"successful\":2,\"failed\":0},"
-              "\"hits\":{\"total\":5653,\"max_score\":null,\"hits\":";
-   resultString += 
-              "["
-                 "{\"_index\":\"network_2013_11_05\",\"_type\":\"meta\",\"_id\":"
-                 "\"57fe41e4-c34d-47a8-90bb-1c77f1f15ffa_8\",\"_score\":null,\"fields\":"
-                    "{\"session_id\":\"57fe41e4-c34d-47a8-90bb-1c77f1f15ffa\",\"time_updated\":"
-                    "\"2013/11/05 20:06:37\",\"time_start\":\"2009/02/13 23:31:30\"},"
-                 "\"sort\":[1383681997000]}";
-   resultString += 
-                 ",{\"_index\":\"network_2013_11_05\",\"_type\":\"meta\",\"_id\":"
-                 "\"f922b594-df00-4470-ab6b-0add450af6a0_8\",\"_score\":null,\"fields\":"
-                    "{\"session_id\":\"f922b594-df00-4470-ab6b-0add450af6a0\",\"time_updated\":"
-                    "\"2013/11/05 20:06:37\",\"time_start\":\"2009/02/13 23:31:31\"},"
-                 "\"sort\":[1383681997000]}";
-   resultString += 
-              "]"
+           "{\"total\":2,\"successful\":2,\"failed\":0},"
+           "\"hits\":{\"total\":5653,\"max_score\":null,\"hits\":";
+   resultString +=
+           "["
+           "{\"_index\":\"network_2013_11_05\",\"_type\":\"meta\",\"_id\":"
+           "\"57fe41e4-c34d-47a8-90bb-1c77f1f15ffa_8\",\"_score\":null,\"fields\":"
+           "{\"session_id\":\"57fe41e4-c34d-47a8-90bb-1c77f1f15ffa\",\"time_updated\":"
+           "\"2013/11/05 20:06:37\",\"time_start\":\"2009/02/13 23:31:30\"},"
+           "\"sort\":[1383681997000]}";
+   resultString +=
+           ",{\"_index\":\"network_2013_11_05\",\"_type\":\"meta\",\"_id\":"
+           "\"f922b594-df00-4470-ab6b-0add450af6a0_8\",\"_score\":null,\"fields\":"
+           "{\"session_id\":\"f922b594-df00-4470-ab6b-0add450af6a0\",\"time_updated\":"
+           "\"2013/11/05 20:06:37\",\"time_start\":\"2009/02/13 23:31:31\"},"
+           "\"sort\":[1383681997000]}";
+   resultString +=
+           "]"
            "}"
            "}";
-   EXPECT_EQ(1234567890L,parser.GetOldestTimeField(resultString,"time_start"));
-   
-                      
-   
+   EXPECT_EQ(1234567890L, parser.GetOldestTimeField(resultString, "time_start"));
+
+
+
 }
+
 TEST_F(RESTParserTest, ParseESTimestamp) {
    RESTParser parser;
-   
+
    EXPECT_EQ(0, parser.ParseESTimestamp("no/timestamp/here you:foo:!"));
    EXPECT_EQ(0, parser.ParseESTimestamp("1970/01/01 00:00:00"));
    EXPECT_EQ(0, parser.ParseESTimestamp("1000/01/01 00:00:00"));
    EXPECT_EQ(1234567890L, parser.ParseESTimestamp("2009/02/13 23:31:30"));
-   
+
 }
 
 TEST_F(RESTParserTest, GetOldestTimeField) {
    RESTParser parser;
    std::string testReply = "200|ok|{\"took\":4359,\"timed_out\":false,\"_shards\":{\"total\":84,\"successful\":84,\"failed\":0},\"hits\":{\"total\":13992297,\"atotal\":123,\"totalb\":345,\"hits\":[{\"_index\":\"network_2013_10_28\",\"_type\":\"meta\",\"_id\":\"226890cf-a90a-42ea-b7d9-5e3492b488a6\",\"_score\":null,\"fields\":{\"time_updated\":\"2009/02/13 23:31:30\",\"timeAgain\":\"2009/02/13 23:31:31\"},\"sort\":[1382976468000]}]}}";
-   EXPECT_EQ(1234567890L,parser.GetOldestTimeField(testReply,"time_updated"));
-   EXPECT_EQ(1234567891L,parser.GetOldestTimeField(testReply,"timeAgain"));
-   EXPECT_EQ(0,parser.GetOldestTimeField(testReply,"notHere"));
+   EXPECT_EQ(1234567890L, parser.GetOldestTimeField(testReply, "time_updated"));
+   EXPECT_EQ(1234567891L, parser.GetOldestTimeField(testReply, "timeAgain"));
+   EXPECT_EQ(0, parser.GetOldestTimeField(testReply, "notHere"));
    testReply = "200|ok|{\"took\":1759,\"timed_out\":false,\"_shards\":{\"total\":1,\"successful\":1,"
            "\"failed\":0},\"hits\":{\"total\":2,\"max_score\":null,"
            "\"hits\":[{\"_index\":\"upgrade\",\"_type\":\"info\",\"_id\":\"1383325709\","
            "\"_score\":null, \"_source\" : {\"upgradeDate\":\"2009/02/13 23:31:30\","
            "\"ignorePreviousData\":true,\"upgradingToVersion\":\"1235\"},\"sort\":[1383325709000]}]}}";
-   EXPECT_EQ(1234567890L,parser.GetOldestTimeField(testReply,"upgradeDate"));
+   EXPECT_EQ(1234567890L, parser.GetOldestTimeField(testReply, "upgradeDate"));
    testReply = "200|ok|{\"_shards\":{\"total\":84,\"successful\":84,\"failed\":0},\"hits\":{\"total\":13992297,\"atotal\":123,\"totalb\":345}}";
-   EXPECT_EQ(0,parser.GetOldestTimeField(testReply,"time_updated"));
-   EXPECT_EQ(0,parser.GetOldestTimeField(testReply,"timeAgain"));
-   EXPECT_EQ(0,parser.GetOldestTimeField(testReply,"notHere"));
+   EXPECT_EQ(0, parser.GetOldestTimeField(testReply, "time_updated"));
+   EXPECT_EQ(0, parser.GetOldestTimeField(testReply, "timeAgain"));
+   EXPECT_EQ(0, parser.GetOldestTimeField(testReply, "notHere"));
    testReply = "";
-   EXPECT_EQ(0,parser.GetOldestTimeField(testReply,"time_updated"));
+   EXPECT_EQ(0, parser.GetOldestTimeField(testReply, "time_updated"));
 }
 
 TEST_F(RESTParserTest, GetTotalHits) {
@@ -265,11 +267,48 @@ TEST_F(RESTParserTest, ParseForSessionIds) {
    EXPECT_TRUE(StringContains(ids[8], "648e4bfc-6198-4170-abb9-840e761381cf"));
    EXPECT_TRUE(StringContains(ids[9], "99d603f6-25e9-4d40-8808-364f4cbcb229"));
 
-
-
-
 }
 
+TEST_F(RESTParserTest, NotFound) {
+   RESTParser sender;
+   std::string goodReply("200|OK|");
+   std::string notFound("404|NOT_FOUND");
+   std::string dbUnavaliable("503|SERVICE_UNAVAILABLE");
+   std::string zmqSocketTimetout("999|timedout");
+
+   EXPECT_TRUE(sender.NotFound(notFound));
+   EXPECT_FALSE(sender.NotFound(goodReply));
+   EXPECT_FALSE(sender.NotFound(dbUnavaliable));
+   EXPECT_FALSE(sender.NotFound(zmqSocketTimetout));
+}
+
+TEST_F(RESTParserTest, ESUnavaliable) {
+   RESTParser sender;
+
+   std::string goodReply("200|OK|");
+   std::string notFound("404|NOT_FOUND");
+   std::string dbUnavaliable("503|SERVICE_UNAVAILABLE");
+   std::string zmqSocketTimetout("999|timedout");
+
+   EXPECT_FALSE(sender.ESUnavaliable(notFound));
+   EXPECT_FALSE(sender.ESUnavaliable(goodReply));
+   EXPECT_TRUE(sender.ESUnavaliable(dbUnavaliable));
+   EXPECT_FALSE(sender.ESUnavaliable(zmqSocketTimetout));
+}
+
+TEST_F(RESTParserTest, IsZMQSocketTimeout) {
+   RESTParser sender;
+
+   std::string goodReply("200|OK|");
+   std::string notFound("404|NOT_FOUND");
+   std::string dbUnavaliable("503|SERVICE_UNAVAILABLE");
+   std::string zmqSocketTimetout("999|timedout");
+
+   EXPECT_FALSE(sender.IsZMQSocketTimeout(notFound));
+   EXPECT_FALSE(sender.IsZMQSocketTimeout(goodReply));
+   EXPECT_FALSE(sender.IsZMQSocketTimeout(dbUnavaliable));
+   EXPECT_TRUE(sender.IsZMQSocketTimeout(zmqSocketTimetout));
+}
 #else
 
 TEST_F(RESTParserTest, emptyTest) {

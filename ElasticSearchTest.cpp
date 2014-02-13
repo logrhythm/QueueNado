@@ -6,66 +6,13 @@
 
 #include "MockSkelleton.h"
 #ifdef LR_DEBUG
-
-TEST_F(ElasticSearchTest, NotFound) {
-   BoomStick stick{mAddress};
-   MockSkelleton target{mAddress};
-   GMockElasticSearch es(stick, false);
-   ASSERT_TRUE(target.Initialize());
-   ASSERT_TRUE(stick.Initialize());
-   ASSERT_TRUE(es.Initialize());
-   target.BeginListenAndRepeat();
-
-   std::string goodReply("200|OK|");
-   std::string notFound("404|NOT_FOUND");
-   std::string dbUnavaliable("503|SERVICE_UNAVAILABLE");
-   std::string zmqSocketTimetout("999|timedout");
-
-   EXPECT_TRUE(es.NotFound(notFound));
-   EXPECT_FALSE(es.NotFound(goodReply));
-   EXPECT_FALSE(es.NotFound(dbUnavaliable));
-   EXPECT_FALSE(es.NotFound(zmqSocketTimetout));
+TEST_F(ElasticSearchTest, FailedToFindMappingForField) {
+// In the case we are querying for a new field in an old index.  In this case the expectation
+// is that we ignore the error and move on for UpdateAllStaleCaptureRecords
 }
 
-TEST_F(ElasticSearchTest, ESUnavaliable) {
-   BoomStick stick{mAddress};
-   MockSkelleton target{mAddress};
-   GMockElasticSearch es(stick, false);
-   ASSERT_TRUE(target.Initialize());
-   ASSERT_TRUE(stick.Initialize());
-   ASSERT_TRUE(es.Initialize());
-   target.BeginListenAndRepeat();
 
-   std::string goodReply("200|OK|");
-   std::string notFound("404|NOT_FOUND");
-   std::string dbUnavaliable("503|SERVICE_UNAVAILABLE");
-   std::string zmqSocketTimetout("999|timedout");
 
-   EXPECT_FALSE(es.ESUnavaliable(notFound));
-   EXPECT_FALSE(es.ESUnavaliable(goodReply));
-   EXPECT_TRUE(es.ESUnavaliable(dbUnavaliable));
-   EXPECT_FALSE(es.ESUnavaliable(zmqSocketTimetout));
-}
-
-TEST_F(ElasticSearchTest, IsZMQSocketTimeout) {
-   BoomStick stick{mAddress};
-   MockSkelleton target{mAddress};
-   GMockElasticSearch es(stick, false);
-   ASSERT_TRUE(target.Initialize());
-   ASSERT_TRUE(stick.Initialize());
-   ASSERT_TRUE(es.Initialize());
-   target.BeginListenAndRepeat();
-
-   std::string goodReply("200|OK|");
-   std::string notFound("404|NOT_FOUND");
-   std::string dbUnavaliable("503|SERVICE_UNAVAILABLE");
-   std::string zmqSocketTimetout("999|timedout");
-
-   EXPECT_FALSE(es.IsZMQSocketTimeout(notFound));
-   EXPECT_FALSE(es.IsZMQSocketTimeout(goodReply));
-   EXPECT_FALSE(es.IsZMQSocketTimeout(dbUnavaliable));
-   EXPECT_TRUE(es.IsZMQSocketTimeout(zmqSocketTimetout));
-}
 
 TEST_F(ElasticSearchTest, UpdateIgnoreTimeInternally) {
    BoomStick stick{mAddress};
@@ -163,20 +110,7 @@ TEST_F(ElasticSearchTest, GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored) {
 
 }
 
-TEST_F(ElasticSearchTest, GetIgnoreTimeAsString) {
-   BoomStick stick{mAddress};
-   MockSkelleton target{mAddress};
-   GMockElasticSearch es(stick, false);
-   ASSERT_TRUE(target.Initialize());
-   ASSERT_TRUE(stick.Initialize());
-   ASSERT_TRUE(es.Initialize());
-   target.BeginListenAndRepeat();
 
-   std::string expectedResult("1970/01/01||+0s");
-   EXPECT_EQ(expectedResult, es.GetIgnoreTimeAsString(0));
-   expectedResult = "1970/01/01||+123456s";
-   EXPECT_EQ(expectedResult, es.GetIgnoreTimeAsString(123456));
-}
 
 TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    BoomStick stick{mAddress};

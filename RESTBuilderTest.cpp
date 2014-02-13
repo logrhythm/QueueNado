@@ -62,13 +62,13 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
    std::vector<std::pair<std::string, bool> >  terms;
    std::vector<std::tuple<std::string, std::string, std::string> > ranges;
    
-   std::string query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   std::string query = builder.GetRangedBoolQueryForOldestNDocuments("_all",terms,ranges,999,false);
    std::string expectedReply = "";
    EXPECT_EQ(expectedReply,query);
    
    terms.push_back(std::make_pair("foo",false));
    terms.push_back(std::make_pair("bar",true));
-   query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   query = builder.GetRangedBoolQueryForOldestNDocuments("_all",terms,ranges,999,false);
    expectedReply = "POST|/_all/meta/_search|"
            "{"
            "\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
@@ -96,7 +96,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
    terms.clear();
    ranges.push_back(std::make_tuple("foo","gt","1"));
    ranges.push_back(std::make_tuple("bar","lt","10"));
-   query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   query = builder.GetRangedBoolQueryForOldestNDocuments("_all",terms,ranges,999,false);
    expectedReply = "POST|/_all/meta/_search|"
            "{"
            "\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
@@ -107,8 +107,8 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
            "\"bool\" :"
            "{"
            "\"must\": ["
-           "{ \"numeric_range\" : {\"foo\" : { \"gt\" : \"1\" }}},"
-           "{ \"numeric_range\" : {\"bar\" : { \"lt\" : \"10\" }}}"
+           "{ \"range\" : {\"foo\" : { \"gt\" : \"1\" }}},"
+           "{ \"range\" : {\"bar\" : { \"lt\" : \"10\" }}}"
            "]"
            "}"
            "}"
@@ -123,7 +123,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
    
    terms.push_back(std::make_pair("foo",false));
    terms.push_back(std::make_pair("bar",true));
-   query = builder.GetRangedBoolQueryForOldestNDocuments(terms,ranges,999,false);
+   query = builder.GetRangedBoolQueryForOldestNDocuments("_all",terms,ranges,999,false);
    expectedReply = "POST|/_all/meta/_search|"
            "{"
            "\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
@@ -136,8 +136,8 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
            "\"must\": ["
            "{ \"term\" : {\"foo\" : false}},"
            "{ \"term\" : {\"bar\" : true}},"
-           "{ \"numeric_range\" : {\"foo\" : { \"gt\" : \"1\" }}},"
-           "{ \"numeric_range\" : {\"bar\" : { \"lt\" : \"10\" }}}"
+           "{ \"range\" : {\"foo\" : { \"gt\" : \"1\" }}},"
+           "{ \"range\" : {\"bar\" : { \"lt\" : \"10\" }}}"
            "]"
            "}"
            "}"
@@ -151,7 +151,15 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
    EXPECT_EQ(expectedReply,query);
 }
 
+TEST_F(RESTBuilderTest, GetIgnoreTimeAsString) {
 
+   RESTBuilder builder;
+
+   std::string expectedResult("1970/01/01||+0s");
+   EXPECT_EQ(expectedResult, builder.GetIgnoreTimeAsString(0));
+   expectedResult = "1970/01/01||+123456s";
+   EXPECT_EQ(expectedResult, builder.GetIgnoreTimeAsString(123456));
+}
 TEST_F(RESTBuilderTest, GetQueryForLatestUpgradeWhereIndexesShouldBeIgnored) {
    RESTBuilder builder;
    
