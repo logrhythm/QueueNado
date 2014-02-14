@@ -100,7 +100,7 @@ DYNAMIC_LIBS=-ltcmalloc \
              -lsyslog -lZMQ -llrdpi -lstats -lprocessclient -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -lconfmaster \
-             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal -lfork -lremap
+             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal -lfork -lforkmother -lremap
 
 ForkerPipeTest_LDADD=${DYNAMIC_LIBS} -lfork
 ForkerPipeTest_LDFLAGS=${BASE_LIBS}
