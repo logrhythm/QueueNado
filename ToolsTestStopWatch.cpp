@@ -1,5 +1,6 @@
 #include "ToolsTestStopWatch.h"
 #include "StopWatch.h"
+#include "ThreadSafeStopWatch.h"
 #include <chrono>
 #include <thread>
 
@@ -93,3 +94,14 @@ TEST_F(ToolsTestStopWatch, ComparisonsWithOld) {
 
 
 
+/* ThreadSafeStopWatch tests*/
+TEST_F(ToolsTestStopWatch, ThreadSafeSecSimpleAfterSleep) {
+   auto preStart = std::chrono::steady_clock::now();
+   ThreadSafeStopWatch threadSafeWatch;
+   std::this_thread::sleep_for(std::chrono::seconds(1));
+   auto elapsedSec = threadSafeWatch.GetStopWatch().ElapsedSec();
+   auto preElapsedSec = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - preStart).count();
+
+   EXPECT_TRUE(elapsedSec <= preElapsedSec) << "elapsedSec:" << elapsedSec << ", preElapsedSec:" << preElapsedSec;
+   EXPECT_TRUE(elapsedSec >= 1);
+}
