@@ -98,10 +98,31 @@ TEST_F(ToolsTestStopWatch, ComparisonsWithOld) {
 TEST_F(ToolsTestStopWatch, ThreadSafeSecSimpleAfterSleep) {
    auto preStart = std::chrono::steady_clock::now();
    ThreadSafeStopWatch threadSafeWatch;
-   std::this_thread::sleep_for(std::chrono::seconds(1));
    auto elapsedSec = threadSafeWatch.GetStopWatch().ElapsedSec();
-   auto preElapsedSec = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - preStart).count();
-
-   EXPECT_TRUE(elapsedSec <= preElapsedSec) << "elapsedSec:" << elapsedSec << ", preElapsedSec:" << preElapsedSec;
+   std::this_thread::sleep_for(std::chrono::seconds(1));
+   elapsedSec = threadSafeWatch.GetStopWatch().ElapsedSec();
    EXPECT_TRUE(elapsedSec >= 1);
+}
+
+void StopWatchThread() {
+   /* Start stop watch */
+   ThreadSafeStopWatch threadSafeWatch;
+   auto elapsedSec = threadSafeWatch.GetStopWatch().ElapsedSec();
+   std::this_thread::sleep_for(std::chrono::seconds(5));
+   elapsedSec = threadSafeWatch.GetStopWatch().ElapsedSec();
+   EXPECT_TRUE(elapsedSec >= 5);
+}
+
+TEST_F(ToolsTestStopWatch, ThreadSafeSecBasicTest) {
+   std::vector<std::thread*> threads;
+   int threadCount = 5;
+   for (int i = 0; i < threadCount; i++) {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      threads.push_back(new std::thread(StopWatchThread));
+   }
+   for (auto jt = threads.begin(); jt != threads.end(); jt++) {
+      (*jt)->join();
+      delete *jt;
+   }
+   threads.clear();
 }
