@@ -21,16 +21,20 @@
 #include "MsgUuid.h"
 #include "DpiMsgLRPool.h"
 TEST_F(DiskPacketCaptureTest, FlushABigSession) {
-   MockDiskPacketCapture capture;
+   MockConfExposeUpdate conf;
+   MockDiskPacketCapture capture(conf);
+   capture.mSkipWrite = true;
    networkMonitor::DpiMsgLR invalidDpiMsg;
    
    auto bigFlows = capture.GetBigFlows();
    bigFlows->insert(&invalidDpiMsg);
    DpiMsgLRPool& dpiPool = DpiMsgLRPool::Instance();
    networkMonitor::DpiMsgLR* validDpiMsg = dpiPool.GetDpiMsg();
+   validDpiMsg->set_session_id(UNKNOWN_SESSIONID);
    bigFlows->insert(validDpiMsg);
    
    EXPECT_TRUE(capture.FlushABigSession());
+   capture.ClearFromBigSessions(validDpiMsg);
    EXPECT_FALSE(capture.FlushABigSession());
 }
 // System test -- for now not disabled
