@@ -20,7 +20,19 @@
 #include "tempFileCreate.h"
 #include "MsgUuid.h"
 #include "DpiMsgLRPool.h"
-
+TEST_F(DiskPacketCaptureTest, FlushABigSession) {
+   MockDiskPacketCapture capture;
+   networkMonitor::DpiMsgLR invalidDpiMsg;
+   
+   auto bigFlows = capture.GetBigFlows();
+   bigFlows->insert(&invalidDpiMsg);
+   DpiMsgLRPool& dpiPool = DpiMsgLRPool::Instance();
+   networkMonitor::DpiMsgLR* validDpiMsg = dpiPool.GetDpiMsg();
+   bigFlows->insert(validDpiMsg);
+   
+   EXPECT_TRUE(capture.FlushABigSession());
+   EXPECT_FALSE(capture.FlushABigSession());
+}
 // System test -- for now not disabled
 TEST_F(DiskPacketCaptureTest, SystemTest_VerifyGetCaptureFirstLocation) {
    MockConfExposeUpdate conf;
