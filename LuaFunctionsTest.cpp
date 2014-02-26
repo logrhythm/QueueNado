@@ -382,7 +382,7 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    delete functions;
 }
 
-#endif
+
 
    
    
@@ -421,7 +421,7 @@ TEST_F(LuaFunctionsTest, SessionAge) {
       lua_close(luaState);
    }
 }
-
+#endif
 
 TEST_F(LuaFunctionsTest, DataNull) {
    networkMonitor::DpiMsgLR dpiMsg;
