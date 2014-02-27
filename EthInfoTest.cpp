@@ -25,7 +25,7 @@ TEST_F(EthInfoTest, GetIFAddrs) {
    EXPECT_FALSE(ethInfo.IsValid());
    EXPECT_TRUE(ethInfo.GetAvaliableInterfaces().empty());
    ethInfo.mGetIFAddrsRetVal = 0;
-   EXPECT_FALSE(ethInfo.Initialize()); // aborts before bond0 is added
+   EXPECT_FALSE(ethInfo.Initialize()); 
    EXPECT_FALSE(ethInfo.IsValid());
    EXPECT_TRUE(ethInfo.GetAvaliableInterfaces().empty());  
    ethInfo.mifaddr = reinterpret_cast<struct ifaddrs*>(malloc(sizeof(struct ifaddrs)));
