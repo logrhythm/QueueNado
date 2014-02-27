@@ -81,8 +81,8 @@ TEST_F(EthInfoTest, GetIFAddrsBond0) {
 
 
 // It will ALWAYS have at least bond0, unless the ThirdParty rpm 'ifcfg-setup-*.x86_64.rpm'
-// was not installed
-TEST_F(EthInfoTest, SystemGetIFAddrsBond0) {
+// was not installed. Disabled to avoid problems in jenkins that might not be "bonded"
+TEST_F(EthInfoTest, DISABLED_SystemGetIFAddrsBond0) {
    EthInfo ethInfo;
    EXPECT_TRUE(ethInfo.Initialize());
    EXPECT_TRUE(ethInfo.IsValid());
