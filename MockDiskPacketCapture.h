@@ -6,7 +6,7 @@
 class MockDiskPacketCapture : public DiskPacketCapture {
 public:
 
-   MockDiskPacketCapture(Conf& conf) : DiskPacketCapture(conf), mPassFlush(false), mFailFlush(false), mSkipWrite(false) {
+   MockDiskPacketCapture(Conf& conf) : DiskPacketCapture(conf), mPassFlush(false), mFailFlush(false), mSkipWrite(false), mTrackWrites(true) {
    }
 
    virtual ~MockDiskPacketCapture() {
@@ -25,7 +25,9 @@ public:
    }
 
    bool WriteSavedSessionToDisk(networkMonitor::DpiMsgLR* dpiMsg) {
-      mFilesWritten.push_back(dpiMsg->session_id());
+      if (mTrackWrites) {
+         mFilesWritten.push_back(dpiMsg->session_id());
+      }
       return DiskPacketCapture::WriteSavedSessionToDisk(dpiMsg);
    }
    bool UnprotectedWriteSavedSessionToDisk(networkMonitor::DpiMsgLR* dpiMsg) {
@@ -69,6 +71,7 @@ public:
    bool mFailFlush;
    bool mPassFlush;
    bool mSkipWrite;
+   bool mTrackWrites;
    std::vector<std::string> mFilesWritten;
 };
 

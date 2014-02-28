@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 #include "boost/lexical_cast.hpp"
 #include <csignal>
-
+#include "g2log.hpp"
 namespace MockUuidGenerator {
   
    std::string GetMsgUuid(size_t value) { 
@@ -71,6 +71,13 @@ protected:
    timeval t_endTime;
    unsigned int t_totalTransactions;
    std::stringstream testDir;
+   static bool mDeathReceived;
+   static std::string mDeathMessage;
+      // Ref the Death test: ConstructAndInitializeFail. 
+   static void DeathReceiver(g2::internal::FatalMessage death) {
+      mDeathReceived = true;
+      mDeathMessage = death.message_;      
+   }
 private:
 
 };
