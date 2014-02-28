@@ -20,8 +20,10 @@
 #include "tempFileCreate.h"
 #include "MsgUuid.h"
 #include "DpiMsgLRPool.h"
-
+bool DiskPacketCaptureTest::mDeathReceived(false);
+std::string DiskPacketCaptureTest::mDeathMessage;
 TEST_F(DiskPacketCaptureTest, FlushABigSession) {
+   g2::internal::changeFatalInitHandlerForUnitTesting(DiskPacketCaptureTest::DeathReceiver);
    MockConfExposeUpdate conf;
    MockDiskPacketCapture capture(conf);
    capture.mSkipWrite = true;
@@ -33,6 +35,7 @@ TEST_F(DiskPacketCaptureTest, FlushABigSession) {
    }
    EXPECT_EQ(100,bigFlows->size());
    EXPECT_FALSE(capture.FlushABigSession());
+   EXPECT_FALSE(DiskPacketCaptureTest::mDeathReceived);
    EXPECT_EQ(0,bigFlows->size());
    for (int i = 0; i < 100; i++) {
       networkMonitor::DpiMsgLR* invalidDpiMsg = new networkMonitor::DpiMsgLR();
@@ -45,6 +48,7 @@ TEST_F(DiskPacketCaptureTest, FlushABigSession) {
    bigFlows->insert(validDpiMsg);
 
    EXPECT_TRUE(capture.FlushABigSession());
+   EXPECT_FALSE(DiskPacketCaptureTest::mDeathReceived);
    capture.ClearFromBigSessions(validDpiMsg);
    EXPECT_FALSE(capture.FlushABigSession());
 }
