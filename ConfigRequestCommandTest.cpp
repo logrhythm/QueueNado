@@ -270,7 +270,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    checkRealReply(realReply, "dpiThreads", protoMsg::ConfType::BASE, "4", "1", "12", it++);
    checkRealReply(realReply, "pcapETimeout", protoMsg::ConfType::BASE, "1", "1", "30", it++);
    checkRealReply(realReply, "pcapBufferSize", protoMsg::ConfType::BASE, "35", "1", "1000", it++);
-   checkRealReply(realReply, "pcapInterface", protoMsg::ConfType::BASE, "em2", "1", "1000", it++);
+   checkRealReply(realReply, "pcapInterface", protoMsg::ConfType::BASE, "bond0", "1", "1000", it++);
    checkRealReply(realReply, "dpiHalfSessions", protoMsg::ConfType::BASE, "1500000", "1000000", "20000000", it++);
    checkRealReply(realReply, "packetSendQueueSize", protoMsg::ConfType::BASE, "800", "10", "10000", it++);
    checkRealReply(realReply, "packetRecvQueueSize", protoMsg::ConfType::BASE, "800", "10", "10000", it++);
