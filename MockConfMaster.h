@@ -122,6 +122,11 @@ public:
       mConfLocation = path;
       mConf.setPath(path);
    }
+   
+   void SetCalculatedConfValues(Conf& conf){
+      ConfMaster::SetCalculatedConfValues(conf);
+   }
+   
    std::string mConfLocation;
       bool mOverrideInternalRepair;
    bool mInternalRepair;

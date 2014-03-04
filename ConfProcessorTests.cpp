@@ -1701,17 +1701,16 @@ TEST_F(ConfProcessorTests, SYSTEM_ConfMasterVerifyPcapDiskLimit) {
    master.Start();
    Conf conf = master.GetConf();
    master.Stop();
-
+   
    ProtoDefaults protoDefaults{conf.GetPcapCaptureLocations()};
    auto baseDefaults = protoDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
    auto pcapSizeLimit = protoDefaults.GetConfParam(baseDefaults, "captureSizeLimit");
    auto  rangePtr = std::get<ProtoDefaults::indexRange>(pcapSizeLimit);
    
-   const size_t rangeMax = std::stoul(rangePtr->StringifyMax());
-   EXPECT_EQ(conf.GetPcapCaptureSizeLimit(), rangeMax);
-   EXPECT_NE(conf.GetPcapCaptureSizeLimit(), 80000); // Ref Conf.cpp : Default if no reading
-   EXPECT_NE(conf.GetPcapCaptureSizeLimit(), 1000000); // Ref ProtoDefaults.cpp: Hard coded max (not default) if failed Reding
-   
+   // Should have started as default and not been changed 
+   // (unless range max is less than 80000)
+   EXPECT_EQ(conf.GetPcapCaptureSizeLimit(), 80000);  
+   EXPECT_TRUE(std::stoul(rangePtr->StringifyMax()) >= conf.GetPcapCaptureSizeLimit());
 }
 
 TEST_F(ConfProcessorTests, testConfMasterShutdown) {
@@ -1737,10 +1736,6 @@ TEST_F(ConfProcessorTests, testConfSlaveShutdown) {
    slave.Stop();
    slave.Stop();
 }
-
-
-
-
 
 TEST_F(ConfProcessorTests, testSetandGetQosmosConfig) {
    MockConf conf("/tmp/path/that/doesnt/exist/woo.ls");
