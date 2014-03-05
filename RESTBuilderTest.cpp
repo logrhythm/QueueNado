@@ -45,7 +45,7 @@ TEST_F(RESTBuilderTest, GetOldestNDocuments) {
            "  \"_cache\":";
    expectedResult += "false";
    expectedResult += ","
-           "\"fields\": [\"SessionID\", \"TimeUpdated\"],"
+           "\"fields\": [\"Session\", \"TimeUpdated\"],"
            "\"from\": 0,"
            "\"size\":";
    expectedResult += "1234";
@@ -88,7 +88,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
            "\"_cache\":false,"
            "\"from\": 0,"
            "\"size\":999,"
-           "\"fields\": [\"SessionID\", \"TimeUpdated\", \"TimeStart\"]"
+           "\"fields\": [\"Session\", \"TimeUpdated\", \"TimeStart\"]"
            "}"
            "}";
    EXPECT_EQ(expectedReply,query);
@@ -116,7 +116,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
            "\"_cache\":false,"
            "\"from\": 0,"
            "\"size\":999,"
-           "\"fields\": [\"SessionID\", \"TimeUpdated\", \"TimeStart\"]"
+           "\"fields\": [\"Session\", \"TimeUpdated\", \"TimeStart\"]"
            "}"
            "}";
    EXPECT_EQ(expectedReply,query);
@@ -145,7 +145,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
            "\"_cache\":false,"
            "\"from\": 0,"
            "\"size\":999,"
-           "\"fields\": [\"SessionID\", \"TimeUpdated\", \"TimeStart\"]"
+           "\"fields\": [\"Session\", \"TimeUpdated\", \"TimeStart\"]"
            "}"
            "}";
    EXPECT_EQ(expectedReply,query);

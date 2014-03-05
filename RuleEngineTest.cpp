@@ -20,7 +20,7 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
    MockRuleEngine dm(conf, 0);
 
    networkMonitor::DpiMsgLR aMessage;
-   aMessage.set_sessionid("abc123");
+   aMessage.set_session("abc123");
    aMessage.set_childflownumber(1);
    aMessage.set_timeupdated(123456789);
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
@@ -88,14 +88,14 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("0", results[SIEM_FIELD_TIME_DELTA].second);
    EXPECT_EQ("0", results[SIEM_FIELD_TIME_TOTAL].second);
 
-   tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_session("550e8400-e29b-41d4-a716-446655440000");
    tDpiMessage.set_macdest(123);
    tDpiMessage.set_macsource(124);
    tDpiMessage.set_ipdest(125);
    tDpiMessage.set_ipsource(126);
    tDpiMessage.set_portsource(127);
    tDpiMessage.set_portdest(128);
-   tDpiMessage.set_protoid(129);
+   tDpiMessage.set_protocol(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
    tDpiMessage.set_bytesdest(567);
@@ -177,14 +177,14 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest__NoHang) {
 
    dm.mSiemMode = true;
    dm.mSiemDebugMode = true;
-   tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_session("550e8400-e29b-41d4-a716-446655440000");
    tDpiMessage.set_macdest(123);
    tDpiMessage.set_macsource(124);
    tDpiMessage.set_ipdest(125);
    tDpiMessage.set_ipsource(126);
    tDpiMessage.set_portsource(127);
    tDpiMessage.set_portdest(128);
-   tDpiMessage.set_protoid(129);
+   tDpiMessage.set_protocol(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
    tDpiMessage.set_bytesdest(567);
@@ -383,14 +383,14 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
 
    dm.mSiemMode = true;
    dm.mSiemDebugMode = true;
-   tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_session("550e8400-e29b-41d4-a716-446655440000");
    tDpiMessage.set_macdest(123);
    tDpiMessage.set_macsource(124);
    tDpiMessage.set_ipdest(125);
    tDpiMessage.set_ipsource(126);
    tDpiMessage.set_portsource(127);
    tDpiMessage.set_portdest(128);
-   tDpiMessage.set_protoid(129);
+   tDpiMessage.set_protocol(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
    tDpiMessage.set_bytesdest(567);
@@ -569,14 +569,14 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
 
    dm.mSiemMode = true;
    dm.mSiemDebugMode = false;
-   tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_session("550e8400-e29b-41d4-a716-446655440000");
    tDpiMessage.set_macdest(123);
    tDpiMessage.set_macsource(124);
    tDpiMessage.set_ipdest(125);
    tDpiMessage.set_ipsource(126);
    tDpiMessage.set_portsource(127);
    tDpiMessage.set_portdest(128);
-   tDpiMessage.set_protoid(129);
+   tDpiMessage.set_protocol(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
    tDpiMessage.set_bytesdest(567);
@@ -732,7 +732,7 @@ TEST_F(RuleEngineTest, testMsgReceive) {
       msg.set_flowtype(DpiMsgLRproto_Type_FINAL);
 
       std::string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-      msg.set_sessionid(testUuid.c_str());
+      msg.set_session(testUuid.c_str());
 
       std::string testEthSrc("00:22:19:08:2c:00");
       std::vector<unsigned char> ethSrc;
@@ -764,7 +764,7 @@ TEST_F(RuleEngineTest, testMsgReceive) {
       msg.set_ipdest(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
-      msg.set_pktpath(path.c_str());
+      msg.set_packetpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
       msg.set_portsource(12345);
@@ -843,7 +843,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
       msg.set_flowtype(DpiMsgLRproto_Type_FINAL);
 
       std::string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-      msg.set_sessionid(testUuid.c_str());
+      msg.set_session(testUuid.c_str());
 
       std::string testEthSrc("00:22:19:08:2c:00");
       std::vector<unsigned char> ethSrc;
@@ -875,14 +875,14 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
       msg.set_ipdest(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
-      msg.set_pktpath(path.c_str());
+      msg.set_packetpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
       msg.set_portsource(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
       msg.set_portdest(54321);
-      msg.set_protoid(12);
+      msg.set_protocol(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
@@ -974,7 +974,7 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE);
 
       std::string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-      msg.set_sessionid(testUuid.c_str());
+      msg.set_session(testUuid.c_str());
 
       std::string testEthSrc("00:22:19:08:2c:00");
       std::vector<unsigned char> ethSrc;
@@ -1006,14 +1006,14 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       msg.set_ipdest(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
-      msg.set_pktpath(path.c_str());
+      msg.set_packetpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
       msg.set_portsource(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
       msg.set_portdest(54321);
-      msg.set_protoid(12);
+      msg.set_protocol(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
@@ -1115,7 +1115,7 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
       DpiMsgLR msg;
 
       std::string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-      msg.set_sessionid(testUuid.c_str());
+      msg.set_session(testUuid.c_str());
 
       std::string testEthSrc("00:22:19:08:2c:00");
       std::vector<unsigned char> ethSrc;
@@ -1147,14 +1147,14 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
       msg.set_ipdest(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
-      msg.set_pktpath(path.c_str());
+      msg.set_packetpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
       msg.set_portsource(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
       msg.set_portdest(54321);
-      msg.set_protoid(12);
+      msg.set_protocol(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
@@ -1242,7 +1242,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       msg.set_flowtype(DpiMsgLRproto_Type_FINAL);
 
       std::string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-      msg.set_sessionid(testUuid.c_str());
+      msg.set_session(testUuid.c_str());
 
       std::string testEthSrc("00:22:19:08:2c:00");
       std::vector<unsigned char> ethSrc;
@@ -1274,14 +1274,14 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       msg.set_ipdest(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
-      msg.set_pktpath(path.c_str());
+      msg.set_packetpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
       msg.set_portsource(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
       msg.set_portdest(54321);
-      msg.set_protoid(12);
+      msg.set_protocol(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
@@ -1363,7 +1363,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("sender=test1"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("receiver=test2"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("subject=test3"));
-      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("SessionID=2345"));
+      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("Session=2345"));
 
       re.join();
    }
@@ -1399,9 +1399,9 @@ TEST_F(RuleEngineTest, getSyslogMessages) {
    tDpiMessage.set_ipdest(0x01020304);
    tDpiMessage.set_macsource(0x00000a0b0c0d0e0f);
    tDpiMessage.set_macdest(0x0000010203040506);
-   tDpiMessage.set_sessionid("01234567-89ab-cdef-0123456789abcdef");
+   tDpiMessage.set_session("01234567-89ab-cdef-0123456789abcdef");
    std::string path = "foo.bar";
-   tDpiMessage.set_pktpath(path);
+   tDpiMessage.set_packetpath(path);
    tDpiMessage.set_portsource(1234);
    tDpiMessage.set_portdest(5678);
 

@@ -127,7 +127,7 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    EXPECT_EQ(0, count);
    std::string expectedQuery;
    expectedQuery = "POST|/_all/meta/_search|{\"sort\": [ { \"TimeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"Written\" : true}},{ \"term\" : {\"LatestUpdate\" : true}}]}}},\"_cache\":true,\"from\": 0,\"size\":1,\"fields\": "
-           "[\"SessionID\", \"TimeUpdated\", \"TimeStart\"]}}";
+           "[\"Session\", \"TimeUpdated\", \"TimeStart\"]}}";
    EXPECT_EQ(expectedQuery, target.mLastRequest);
    target.mReplyMessage = "200|ok|"
            "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
@@ -137,7 +137,7 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"TimeUpdated\":\"2013/09/30 00:00:00\",\"SessionID\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"TimeUpdated\":\"2013/09/30 00:00:00\",\"Session\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
@@ -165,7 +165,7 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"TimeUpdated\":\"2013/09/30 00:00:00\",\"SessionID\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"TimeUpdated\":\"2013/09/30 00:00:00\",\"Session\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
@@ -1337,7 +1337,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"TimeUpdated\":\"2013/09/30 00:00:00\",\"SessionID\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"TimeUpdated\":\"2013/09/30 00:00:00\",\"Session\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
@@ -1366,7 +1366,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"TimeUpdated\":\"NIL/NIL\",\"SessionID\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"TimeUpdated\":\"NIL/NIL\",\"Session\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
