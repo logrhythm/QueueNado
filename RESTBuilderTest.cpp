@@ -31,7 +31,7 @@ TEST_F(RESTBuilderTest, GetOldestNDocuments) {
    expectedResult += "{"
            "\"sort\": ["
            "      {"
-           "      \"time_updated\": {"
+           "      \"TimeUpdated\": {"
            "         \"order\" : \"asc\","
            "         \"ignore_unmapped\" : true"
            "     }"
@@ -45,7 +45,7 @@ TEST_F(RESTBuilderTest, GetOldestNDocuments) {
            "  \"_cache\":";
    expectedResult += "false";
    expectedResult += ","
-           "\"fields\": [\"session_id\", \"time_updated\"],"
+           "\"fields\": [\"SessionID\", \"TimeUpdated\"],"
            "\"from\": 0,"
            "\"size\":";
    expectedResult += "1234";
@@ -71,7 +71,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
    query = builder.GetRangedBoolQueryForOldestNDocuments("_all",terms,ranges,999,false);
    expectedReply = "POST|/_all/meta/_search|"
            "{"
-           "\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
+           "\"sort\": [ { \"TimeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
            "\"query\" : {"
            "\"filtered\" :"
            "{"
@@ -88,7 +88,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
            "\"_cache\":false,"
            "\"from\": 0,"
            "\"size\":999,"
-           "\"fields\": [\"session_id\", \"time_updated\", \"time_start\"]"
+           "\"fields\": [\"SessionID\", \"TimeUpdated\", \"TimeStart\"]"
            "}"
            "}";
    EXPECT_EQ(expectedReply,query);
@@ -99,7 +99,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
    query = builder.GetRangedBoolQueryForOldestNDocuments("_all",terms,ranges,999,false);
    expectedReply = "POST|/_all/meta/_search|"
            "{"
-           "\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
+           "\"sort\": [ { \"TimeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
            "\"query\" : {"
            "\"filtered\" :"
            "{"
@@ -116,7 +116,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
            "\"_cache\":false,"
            "\"from\": 0,"
            "\"size\":999,"
-           "\"fields\": [\"session_id\", \"time_updated\", \"time_start\"]"
+           "\"fields\": [\"SessionID\", \"TimeUpdated\", \"TimeStart\"]"
            "}"
            "}";
    EXPECT_EQ(expectedReply,query);
@@ -126,7 +126,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
    query = builder.GetRangedBoolQueryForOldestNDocuments("_all",terms,ranges,999,false);
    expectedReply = "POST|/_all/meta/_search|"
            "{"
-           "\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
+           "\"sort\": [ { \"TimeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],"
            "\"query\" : {"
            "\"filtered\" :"
            "{"
@@ -145,7 +145,7 @@ TEST_F(RESTBuilderTest, GetRangedBoolQueryForOldestNDocuments) {
            "\"_cache\":false,"
            "\"from\": 0,"
            "\"size\":999,"
-           "\"fields\": [\"session_id\", \"time_updated\", \"time_start\"]"
+           "\"fields\": [\"SessionID\", \"TimeUpdated\", \"TimeStart\"]"
            "}"
            "}";
    EXPECT_EQ(expectedReply,query);
@@ -218,11 +218,11 @@ TEST_F(RESTBuilderTest, GetIndexOptimize) {
 TEST_F(RESTBuilderTest, GetFilteredQuerySortedByTime) {
    RESTBuilder builder;
    
-   std::string command = builder.GetOldestNDocuments("captured:true",100,true);
+   std::string command = builder.GetOldestNDocuments("Captured:true",100,true);
    
-   EXPECT_TRUE(StringContains(command, "\"query\":\"captured:true\""));
+   EXPECT_TRUE(StringContains(command, "\"query\":\"Captured:true\""));
    
-   EXPECT_TRUE(StringContains(command, "\"time_updated\": "));
+   EXPECT_TRUE(StringContains(command, "\"TimeUpdated\": "));
    EXPECT_TRUE(StringContains(command, "\"order\" : \"asc\""));
    EXPECT_TRUE(StringContains(command, "\"size\":100"));
    EXPECT_TRUE(StringContains(command, "\"_cache\":true"));

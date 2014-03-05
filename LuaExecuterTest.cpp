@@ -11,14 +11,14 @@ static int LuaTestStringFunction(lua_State *L) {
 
 static int LuaTestDpiMsgFunction(lua_State *L) {
    networkMonitor::DpiMsgLR* dpiMsg = static_cast<networkMonitor::DpiMsgLR*> (lua_touserdata(L, 1));
-   dpiMsg->set_session_id("TEST");
+   dpiMsg->set_sessionid("TEST");
    return 0;
 }
 
 static int LuaTestPacketFunction(lua_State *L) {
    networkMonitor::DpiMsgLR* dpiMsg = static_cast<networkMonitor::DpiMsgLR*> (lua_touserdata(L, 1));
    struct upacket* packet = static_cast<struct upacket*> (lua_touserdata(L, 2));
-   dpiMsg->set_session_id("TEST");
+   dpiMsg->set_sessionid("TEST");
    packet->len = 999;
    return 0;
 }
@@ -26,7 +26,7 @@ static int LuaTestPacketFunction(lua_State *L) {
 static int LuaTestPacketFunction2(lua_State *L) {
    networkMonitor::DpiMsgLR* dpiMsg = static_cast<networkMonitor::DpiMsgLR*> (lua_touserdata(L, 1));
    struct upacket* packet = static_cast<struct upacket*> (lua_touserdata(L, 2));
-   dpiMsg->set_session_id("TEST");
+   dpiMsg->set_sessionid("TEST");
    packet->len = 99;
    return 0;
 }
@@ -157,7 +157,7 @@ TEST_F(LuaExecuterTest, RunDpiMsgRule) {
 
    networkMonitor::DpiMsgLR dpiMsg;
    EXPECT_TRUE(executer.RunFlowRule(rule, &dpiMsg));
-   EXPECT_EQ("TEST", dpiMsg.session_id());
+   EXPECT_EQ("TEST", dpiMsg.sessionid());
 }
 
 TEST_F(LuaExecuterTest, RunDpiMsgRuleBadFunction) {
@@ -222,7 +222,7 @@ TEST_F(LuaExecuterTest, RegisterPacketRule) {
    args.push_back(&dpiMsg);
    args.push_back(packet);
    EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
-   EXPECT_EQ("TEST", dpiMsg.session_id());
+   EXPECT_EQ("TEST", dpiMsg.sessionid());
    EXPECT_EQ(999, packet->len);
    free(packet);
 }
@@ -370,14 +370,14 @@ TEST_F(LuaExecuterTest, ReRegisterPacketRule) {
    args.push_back(&dpiMsg);
    args.push_back(packet);
    EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
-   EXPECT_EQ("TEST", dpiMsg.session_id());
+   EXPECT_EQ("TEST", dpiMsg.sessionid());
    EXPECT_EQ(999, packet->len);
    packet->len = 1;
    rule.set_ruletext("function test4 (x,y) return CFunction2(x,y) end");
    EXPECT_TRUE(executer.RegisterRule(rule));
    EXPECT_EQ(1, executer.SizeOfRuleset(protoMsg::RuleConf_Type_PACKET));
    EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
-   EXPECT_EQ("TEST", dpiMsg.session_id());
+   EXPECT_EQ("TEST", dpiMsg.sessionid());
    EXPECT_EQ(99, packet->len);
 
    free(packet);
@@ -484,7 +484,7 @@ TEST_F(LuaExecuterTest, ReadScriptsFromDirectories) {
    args.push_back(&dpiMsg);
    args.push_back(packet);
    EXPECT_TRUE(executer.RunAllRules(protoMsg::RuleConf_Type_PACKET, args));
-   EXPECT_EQ("TEST", dpiMsg.session_id());
+   EXPECT_EQ("TEST", dpiMsg.sessionid());
    EXPECT_EQ(999, packet->len); // Indicating CFunction1 ran (ignoring the rule text but using the file instead)
    packet->len = 0;
    rule.set_ruletext("");

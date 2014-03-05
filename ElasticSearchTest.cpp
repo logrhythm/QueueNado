@@ -126,8 +126,8 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
    EXPECT_FALSE(es.GetTotalCapturedFiles(count));
    EXPECT_EQ(0, count);
    std::string expectedQuery;
-   expectedQuery = "POST|/_all/meta/_search|{\"sort\": [ { \"time_updated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"written\" : true}},{ \"term\" : {\"latest_update\" : true}}]}}},\"_cache\":true,\"from\": 0,\"size\":1,\"fields\": "
-           "[\"session_id\", \"time_updated\", \"time_start\"]}}";
+   expectedQuery = "POST|/_all/meta/_search|{\"sort\": [ { \"TimeUpdated\": { \"order\" : \"asc\", \"ignore_unmapped\" : true } } ],\"query\" : {\"filtered\" :{\"filter\" : {\"bool\" :{\"must\": [{ \"term\" : {\"Written\" : true}},{ \"term\" : {\"LatestUpdate\" : true}}]}}},\"_cache\":true,\"from\": 0,\"size\":1,\"fields\": "
+           "[\"SessionID\", \"TimeUpdated\", \"TimeStart\"]}}";
    EXPECT_EQ(expectedQuery, target.mLastRequest);
    target.mReplyMessage = "200|ok|"
            "{\"took\":7948,\"timed_out\":false,\"_shards\":{\"total\":28,\"successful\":28,\"failed\":0},"
@@ -137,7 +137,7 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"time_updated\":\"2013/09/30 00:00:00\",\"session_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"TimeUpdated\":\"2013/09/30 00:00:00\",\"SessionID\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
@@ -165,7 +165,7 @@ TEST_F(ElasticSearchTest, GetTotalCapturedFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"time_updated\":\"2013/09/30 00:00:00\",\"session_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"TimeUpdated\":\"2013/09/30 00:00:00\",\"SessionID\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
@@ -191,22 +191,22 @@ TEST_F(ElasticSearchTest, GetListOfAllIndexesSince) {
    EXPECT_EQ(expectedString, es.GetListOfAllIndexesSince(0));
 
    networkMonitor::DpiMsgLR aMessage;
-   aMessage.set_time_updated(std::time(NULL));
+   aMessage.set_timeupdated(std::time(NULL));
    networkMonitor::DpiMsgLR yesterMessage;
-   yesterMessage.set_time_updated(aMessage.time_updated() - es.TwentyFourHoursInSeconds);
+   yesterMessage.set_timeupdated(aMessage.timeupdated() - es.TwentyFourHoursInSeconds);
    networkMonitor::DpiMsgLR morrowMessage;
-   morrowMessage.set_time_updated(aMessage.time_updated() + es.TwentyFourHoursInSeconds);
+   morrowMessage.set_timeupdated(aMessage.timeupdated() + es.TwentyFourHoursInSeconds);
 
    std::set<std::string> validNames;
    validNames.insert(aMessage.GetESIndexName());
    validNames.insert(yesterMessage.GetESIndexName());
    // Not adding tomorrow's message
    es.SetValidNames(validNames);
-   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.time_updated()).find("_all") == std::string::npos);
-   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.time_updated()).find(",") == std::string::npos);
-   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.time_updated()).find(aMessage.GetESIndexName()) == std::string::npos);
-   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.time_updated()).find(yesterMessage.GetESIndexName()) == std::string::npos);
-   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.time_updated()).find(morrowMessage.GetESIndexName()) == std::string::npos);
+   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find("_all") == std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(",") == std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(aMessage.GetESIndexName()) == std::string::npos);
+   EXPECT_FALSE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(yesterMessage.GetESIndexName()) == std::string::npos);
+   EXPECT_TRUE(es.GetListOfAllIndexesSince(aMessage.timeupdated()).find(morrowMessage.GetESIndexName()) == std::string::npos);
 }
 
 TEST_F(ElasticSearchTest, IndexActuallyExists) {
@@ -244,20 +244,20 @@ TEST_F(ElasticSearchTest, ConstructSearchHeaderWithTime) {
    std::string expectedString = "GET|/_all/meta/_search|";
    EXPECT_EQ(expectedString, es.ConstructSearchHeaderWithTime(0));
    networkMonitor::DpiMsgLR aMessage;
-   aMessage.set_time_updated(std::time(NULL));
+   aMessage.set_timeupdated(std::time(NULL));
    networkMonitor::DpiMsgLR yesterMessage;
-   yesterMessage.set_time_updated(aMessage.time_updated() - es.TwentyFourHoursInSeconds);
+   yesterMessage.set_timeupdated(aMessage.timeupdated() - es.TwentyFourHoursInSeconds);
    networkMonitor::DpiMsgLR morrowMessage;
-   morrowMessage.set_time_updated(aMessage.time_updated() + es.TwentyFourHoursInSeconds);
+   morrowMessage.set_timeupdated(aMessage.timeupdated() + es.TwentyFourHoursInSeconds);
 
    std::set<std::string> validNames;
    validNames.insert(aMessage.GetESIndexName());
    validNames.insert(yesterMessage.GetESIndexName());
    // Not adding tomorrow's message
    es.SetValidNames(validNames);
-   EXPECT_TRUE(es.ConstructSearchHeaderWithTime(aMessage.time_updated()).find("_all") == std::string::npos);
-   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.time_updated()).find(",") == std::string::npos);
-   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.time_updated()).find(aMessage.GetESIndexName()) == std::string::npos);
+   EXPECT_TRUE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find("_all") == std::string::npos);
+   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(",") == std::string::npos);
+   EXPECT_FALSE(es.ConstructSearchHeaderWithTime(aMessage.timeupdated()).find(aMessage.GetESIndexName()) == std::string::npos);
 }
 
 //TEST_F(ElasticSearchTest, GetAllRelevantRecordsForSessions) {
@@ -1337,7 +1337,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"time_updated\":\"2013/09/30 00:00:00\",\"session_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"TimeUpdated\":\"2013/09/30 00:00:00\",\"SessionID\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
@@ -1366,7 +1366,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
            "{\"_index\":\"network_2013_09_30\",\"_type\":\"meta\","
            "\"_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\",\"_score\":null, \"fields\" : "
            "{"
-           "\"time_updated\":\"NIL/NIL\",\"session_id\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
+           "\"TimeUpdated\":\"NIL/NIL\",\"SessionID\":\"f4d63941-af67-4b76-8e68-ba0f0b5366ff\""
            "},"
            "\"sort\":[1380499200000]"
            "}"
@@ -1479,14 +1479,14 @@ TEST_F(ElasticSearchTest, GetIndexesThatAreActive) {
    std::time_t now(std::time(NULL));
 
    networkMonitor::DpiMsgLR todayMsg;
-   todayMsg.set_time_updated(now);
+   todayMsg.set_timeupdated(now);
 
    std::set<std::string> excludes = es.GetIndexesThatAreActive();
 
    EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
-   todayMsg.set_time_updated(now - (es.TwentyFourHoursInSeconds));
+   todayMsg.set_timeupdated(now - (es.TwentyFourHoursInSeconds));
    EXPECT_TRUE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
-   todayMsg.set_time_updated(now - 2 * (es.TwentyFourHoursInSeconds));
+   todayMsg.set_timeupdated(now - 2 * (es.TwentyFourHoursInSeconds));
    EXPECT_FALSE(excludes.find(todayMsg.GetESIndexName()) != excludes.end());
 }
 #else

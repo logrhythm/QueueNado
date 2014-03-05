@@ -114,9 +114,9 @@ TEST_F(LuaFunctionsTest, LuaGetIpInfoFromDpi) {
    uint32_t ipSrc = 0x6401A8C0; // 192.168.1.100
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
-   dpiMsg.set_session_id("uuid");
-   dpiMsg.set_ip_dest(ipDst);
-   dpiMsg.set_ip_source(ipSrc);
+   dpiMsg.set_sessionid("uuid");
+   dpiMsg.set_ipdest(ipDst);
+   dpiMsg.set_ipsource(ipSrc);
 
    lua_State *luaState;
    luaState = luaL_newstate();
@@ -140,9 +140,9 @@ TEST_F(LuaFunctionsTest, LuaGetMACInfoFromDpi) {
    uint32_t ipSrc = 0x6401A8C0; // 192.168.1.100
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
-   dpiMsg.set_session_id("uuid");
-   dpiMsg.set_ip_dest(ipDst);
-   dpiMsg.set_ip_source(ipSrc);
+   dpiMsg.set_sessionid("uuid");
+   dpiMsg.set_ipdest(ipDst);
+   dpiMsg.set_ipsource(ipSrc);
    std::vector<unsigned char> ethSrc;
    ethSrc.push_back(0x00);
    ethSrc.push_back(0x50);
@@ -180,7 +180,7 @@ TEST_F(LuaFunctionsTest, GetLatestStringFromDpi) {
 
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
-   dpiMsg.set_session_id("uuid");
+   dpiMsg.set_sessionid("uuid");
    lua_State *luaState;
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
@@ -192,7 +192,7 @@ TEST_F(LuaFunctionsTest, GetLatestStringFromDpi) {
 
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushstring(luaState, "session_id");
+   lua_pushstring(luaState, "SessionID");
    EXPECT_EQ(1, LuaFunctions::GetLatestStringFromDpi(luaState));
    result = lua_tostring(luaState, -1);
    EXPECT_EQ("uuid", result);
@@ -204,7 +204,7 @@ TEST_F(LuaFunctionsTest, LuaGetFullListFromDpi) {
 
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
-   dpiMsg.set_session_id("uuid");
+   dpiMsg.set_sessionid("uuid");
    lua_State *luaState;
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
@@ -216,7 +216,7 @@ TEST_F(LuaFunctionsTest, LuaGetFullListFromDpi) {
 
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
-   lua_pushstring(luaState, "session_id");
+   lua_pushstring(luaState, "SessionID");
    EXPECT_EQ(1, LuaFunctions::GetFullStringFromDpi(luaState));
    result = lua_tostring(luaState, -1);
    EXPECT_EQ("uuid", result);
@@ -228,7 +228,7 @@ TEST_F(LuaFunctionsTest, GetListOfInts) {
 
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
-   dpiMsg.set_session_id("uuid");
+   dpiMsg.set_sessionid("uuid");
    dpiMsg.set_ack_numberq_proto_tcp(1234);
    lua_State *luaState;
    luaState = luaL_newstate();
@@ -250,7 +250,7 @@ TEST_F(LuaFunctionsTest, GetIntFromDpi) {
 
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
-   dpiMsg.set_session_id("uuid");
+   dpiMsg.set_sessionid("uuid");
    dpiMsg.set_ack_numberq_proto_tcp(1234);
    lua_State *luaState;
    luaState = luaL_newstate();
@@ -267,7 +267,7 @@ TEST_F(LuaFunctionsTest, GetListOfLongs) {
 
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
-   dpiMsg.set_session_id("uuid");
+   dpiMsg.set_sessionid("uuid");
    dpiMsg.set_ack_numberq_proto_tcp(1234);
    dpiMsg.set_avp_int64q_proto_radius(123456789L);
    lua_State *luaState;
@@ -290,7 +290,7 @@ TEST_F(LuaFunctionsTest, GetLongFromDpi) {
 
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
-   dpiMsg.set_session_id("uuid");
+   dpiMsg.set_sessionid("uuid");
    dpiMsg.set_ack_numberq_proto_tcp(1234);
    dpiMsg.set_avp_int64q_proto_radius(123456789L);
    lua_State *luaState;
@@ -308,7 +308,7 @@ TEST_F(LuaFunctionsTest, GetListOfStrings) {
 
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
-   dpiMsg.set_session_id("uuid");
+   dpiMsg.set_sessionid("uuid");
    lua_State *luaState;
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
@@ -319,7 +319,7 @@ TEST_F(LuaFunctionsTest, GetListOfStrings) {
       fields.push_back(lua_tostring(luaState, i + 1));
    }
    ASSERT_EQ(2, fields.size());
-   EXPECT_NE(fields.end(), std::find(fields.begin(), fields.end(), "session_id"));
+   EXPECT_NE(fields.end(), std::find(fields.begin(), fields.end(), "SessionID"));
    EXPECT_NE(fields.end(), std::find(fields.begin(), fields.end(), "accept_encodingq_proto_http"));
    lua_close(luaState);
 
@@ -403,7 +403,7 @@ TEST_F(LuaFunctionsTest, SessionAge) {
       EXPECT_FALSE(lua_toboolean(luaState, -1));
       lua_close(luaState);
       luaState = luaL_newstate();
-      dpiMsg.set_time_updated(std::time(NULL));
+      dpiMsg.set_timeupdated(std::time(NULL));
       lua_pushlightuserdata(luaState, &dpiMsg);
       conf.mFlowReportInterval = 999;
       LuaPacketFunctions::SessionAge(luaState);
@@ -411,13 +411,13 @@ TEST_F(LuaFunctionsTest, SessionAge) {
       lua_close(luaState);
       luaState = luaL_newstate();
       time_t pasttime = std::time(NULL) - 11;
-      dpiMsg.set_time_updated(pasttime);
+      dpiMsg.set_timeupdated(pasttime);
       lua_pushlightuserdata(luaState, &dpiMsg);
       conf.mFlowReportInterval = 10;
       LuaPacketFunctions::SessionAge(luaState);
       EXPECT_TRUE(lua_toboolean(luaState, -1));
-      EXPECT_TRUE(dpiMsg.flow_type() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
-      EXPECT_NE(pasttime, dpiMsg.time_updated());
+      EXPECT_TRUE(dpiMsg.flowtype() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
+      EXPECT_NE(pasttime, dpiMsg.timeupdated());
       lua_close(luaState);
    }
 }
@@ -618,10 +618,10 @@ using namespace std;
 TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
    DpiMsgLR dpiMsg;
 
-   dpiMsg.set_flow_type(DpiMsgLRproto_Type_FINAL);
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
 
    string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-   dpiMsg.set_session_id(testUuid.c_str());
+   dpiMsg.set_sessionid(testUuid.c_str());
 
    string testEthSrc("00:22:19:08:2c:00");
    std::vector<unsigned char> ethSrc;
@@ -646,30 +646,30 @@ TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
 
    string testIpSrc = "10.1.10.50";
    uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-   dpiMsg.set_ip_source(ipSrc);
+   dpiMsg.set_ipsource(ipSrc);
 
    string testIpDst = "10.128.64.251";
    uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-   dpiMsg.set_ip_dest(ipDst);
+   dpiMsg.set_ipdest(ipDst);
 
    string path("base.eth.ip.udp.ntp");
-   dpiMsg.set_pkt_path(path.c_str());
+   dpiMsg.set_pktpath(path.c_str());
 
    string testIpSourcePort = "=12345"; // bogus, but easier to test
-   dpiMsg.set_port_source(12345);
+   dpiMsg.set_portsource(12345);
 
    string testIpDestPort = "=54321"; // bogus, but easier to test
-   dpiMsg.set_port_dest(54321);
-   dpiMsg.set_proto_id(12);
+   dpiMsg.set_portdest(54321);
+   dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
    dpiMsg.add_application_endq_proto_base("dummy");
-   dpiMsg.set_bytes_dest(12345);
-   dpiMsg.set_bytes_dest_delta(12345);
-   dpiMsg.set_bytes_source(6789);
-   dpiMsg.set_bytes_source_delta(6789);
-   dpiMsg.set_packet_total(99);
-   dpiMsg.set_packets_delta(99);
+   dpiMsg.set_bytesdest(12345);
+   dpiMsg.set_bytesdestdelta(12345);
+   dpiMsg.set_bytessource(6789);
+   dpiMsg.set_bytessourcedelta(6789);
+   dpiMsg.set_packettotal(99);
+   dpiMsg.set_packetsdelta(99);
    dpiMsg.add_loginq_proto_aim("aLogin");
    dpiMsg.add_domainq_proto_smb("aDomain");
    dpiMsg.add_uri_fullq_proto_http("this/url.htm");
@@ -685,9 +685,9 @@ TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
    dpiMsg.add_filenameq_proto_gnutella("aFilename");
    dpiMsg.add_filename_encodingq_proto_aim_transfer("notitFile");
    dpiMsg.add_directoryq_proto_smb("aPath");
-   dpiMsg.set_time_start(123);
-   dpiMsg.set_time_updated(456);
-   dpiMsg.set_time_delta(333);
+   dpiMsg.set_timestart(123);
+   dpiMsg.set_timeupdated(456);
+   dpiMsg.set_timedelta(333);
    dpiMsg.set_sessionidq_proto_ymsg(2345);
    int expectedSpaceUsed = dpiMsg.SpaceUsed();
    lua_State *luaState;
@@ -701,21 +701,21 @@ TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
 TEST_F(LuaFunctionsTest, SetFlowState) {
    networkMonitor::DpiMsgLR dpiMsg;
    string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-   dpiMsg.set_session_id(testUuid.c_str());
+   dpiMsg.set_sessionid(testUuid.c_str());
 
    lua_State *luaState;
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, networkMonitor::DpiMsgLRproto_FlowStateType_MID_FLOW_DETECT);
    ASSERT_EQ(0, LuaPacketFunctions::SetFlowState(luaState));
-   EXPECT_EQ(networkMonitor::DpiMsgLRproto_FlowStateType_MID_FLOW_DETECT, dpiMsg.flow_state());
+   EXPECT_EQ(networkMonitor::DpiMsgLRproto_FlowStateType_MID_FLOW_DETECT, dpiMsg.flowstate());
    lua_close(luaState);
 
    luaState = luaL_newstate();
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, networkMonitor::DpiMsgLRproto_FlowStateType_SYN);
    ASSERT_EQ(0, LuaPacketFunctions::SetFlowState(luaState));
-   EXPECT_EQ(networkMonitor::DpiMsgLRproto_FlowStateType_SYN, dpiMsg.flow_state());
+   EXPECT_EQ(networkMonitor::DpiMsgLRproto_FlowStateType_SYN, dpiMsg.flowstate());
    lua_close(luaState);
 }
 
@@ -740,14 +740,14 @@ TEST_F(LuaFunctionsTest, StaticCallSetChildFlowNum) {
    lua_State *luaState;
    luaState = luaL_newstate();
 
-   EXPECT_FALSE(dpiMsg.has_child_flow_number());
+   EXPECT_FALSE(dpiMsg.has_childflownumber());
    // Expect known value when set
    int expectedChildFlowNum(1);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedChildFlowNum);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetChildFlowNum(luaState));
-   EXPECT_TRUE(dpiMsg.has_child_flow_number());
-   EXPECT_EQ(expectedChildFlowNum, dpiMsg.child_flow_number());
+   EXPECT_TRUE(dpiMsg.has_childflownumber());
+   EXPECT_EQ(expectedChildFlowNum, dpiMsg.childflownumber());
    lua_close(luaState);
 }
 
@@ -762,13 +762,13 @@ TEST_F(LuaFunctionsTest, StaticCallIsIntermediateFlow) {
    EXPECT_FALSE(lua_toboolean(luaState, -1));
 
    // Value set to FINAL, expect false
-   dpiMsg.set_flow_type(DpiMsgLRproto_Type_FINAL);
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::IsIntermediateFlow(luaState));
    EXPECT_FALSE(lua_toboolean(luaState, -1));
 
    // Value set to INTERMEDIATE, expect true
-   dpiMsg.set_flow_type(DpiMsgLRproto_Type_INTERMEDIATE);
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::IsIntermediateFlow(luaState));
    EXPECT_TRUE(lua_toboolean(luaState, -1));
@@ -786,13 +786,13 @@ TEST_F(LuaFunctionsTest, StaticCallIsIntermediateFinalFlow) {
    EXPECT_FALSE(lua_toboolean(luaState, -1));
 
    // Value set to FINAL, expect false
-   dpiMsg.set_flow_type(DpiMsgLRproto_Type_FINAL);
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::IsIntermediateFinalFlow(luaState));
    EXPECT_FALSE(lua_toboolean(luaState, -1));
 
    // Value set to INTERMEDIATE_FINAL, expect true
-   dpiMsg.set_flow_type(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::IsIntermediateFinalFlow(luaState));
    EXPECT_TRUE(lua_toboolean(luaState, -1));
@@ -812,7 +812,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetUuid) {
 
    // Expect known value when set
    std::string knownUuid("5a36f34b-d8e0-47d4-8712-1daccda18c48");
-   dpiMsg.set_session_id(knownUuid);
+   dpiMsg.set_sessionid(knownUuid);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionId(luaState));
    EXPECT_EQ(knownUuid, lua_tostring(luaState, -1));
@@ -831,7 +831,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetPacketCount) {
 
    // Expect known value when set
    int expectedPactetCount(236);
-   dpiMsg.set_packet_total(expectedPactetCount);
+   dpiMsg.set_packettotal(expectedPactetCount);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetPacketCount(luaState));
    EXPECT_EQ(expectedPactetCount, lua_tointeger(luaState, -1));
@@ -848,7 +848,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaPackets) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaPackets);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaPackets(luaState));
-   EXPECT_EQ(expectedDeltaPackets, dpiMsg.packets_delta());
+   EXPECT_EQ(expectedDeltaPackets, dpiMsg.packetsdelta());
    lua_close(luaState);
 }
 
@@ -864,7 +864,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetSessionLenServer) {
 
    // Expect known value when set
    int expectedSessionLenServer(99425);
-   dpiMsg.set_bytes_dest(expectedSessionLenServer);
+   dpiMsg.set_bytesdest(expectedSessionLenServer);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionLenServer(luaState));
    EXPECT_EQ(expectedSessionLenServer, lua_tointeger(luaState, -1));
@@ -881,7 +881,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaSessionLenServer) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaSessionLenServer);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaSessionLenServer(luaState));
-   EXPECT_EQ(expectedDeltaSessionLenServer, dpiMsg.bytes_dest_delta());
+   EXPECT_EQ(expectedDeltaSessionLenServer, dpiMsg.bytesdestdelta());
    lua_close(luaState);
 }
 
@@ -897,7 +897,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetSessionLenClient) {
 
    // Expect known value when set
    int expectedSessionLenClient(21553);
-   dpiMsg.set_bytes_source(expectedSessionLenClient);
+   dpiMsg.set_bytessource(expectedSessionLenClient);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionLenClient(luaState));
    EXPECT_EQ(expectedSessionLenClient, lua_tointeger(luaState, -1));
@@ -914,7 +914,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaSessionLenClient) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaSessionLenClient);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaSessionLenClient(luaState));
-   EXPECT_EQ(expectedDeltaSessionLenClient, dpiMsg.bytes_source_delta());
+   EXPECT_EQ(expectedDeltaSessionLenClient, dpiMsg.bytessourcedelta());
    lua_close(luaState);
 }
 
@@ -942,8 +942,8 @@ TEST_F(LuaFunctionsTest, StaticCallSetCustomApplication) {
    lua_pushlightuserdata(luaState1, &dpiMsg);
    lua_pushstring(luaState1, "custom_app_1");
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetCustomApplication(luaState1));
-   EXPECT_EQ(1, dpiMsg.custom_application_size());
-   EXPECT_EQ("custom_app_1", dpiMsg.custom_application(0));
+   EXPECT_EQ(1, dpiMsg.customapplication_size());
+   EXPECT_EQ("custom_app_1", dpiMsg.customapplication(0));
    lua_close(luaState1);
 
    lua_State *luaState2;
@@ -951,8 +951,8 @@ TEST_F(LuaFunctionsTest, StaticCallSetCustomApplication) {
    lua_pushlightuserdata(luaState2, &dpiMsg);
    lua_pushstring(luaState2, "custom_app_1");
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetCustomApplication(luaState2));
-   EXPECT_EQ(1, dpiMsg.custom_application_size());
-   EXPECT_EQ("custom_app_1", dpiMsg.custom_application(0));
+   EXPECT_EQ(1, dpiMsg.customapplication_size());
+   EXPECT_EQ("custom_app_1", dpiMsg.customapplication(0));
    lua_close(luaState2);
 
    lua_State *luaState3;
@@ -960,9 +960,9 @@ TEST_F(LuaFunctionsTest, StaticCallSetCustomApplication) {
    lua_pushlightuserdata(luaState3, &dpiMsg);
    lua_pushstring(luaState3, "custom_app_2");
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetCustomApplication(luaState3));
-   EXPECT_EQ(2, dpiMsg.custom_application_size());
-   EXPECT_EQ("custom_app_1", dpiMsg.custom_application(0));
-   EXPECT_EQ("custom_app_2", dpiMsg.custom_application(1));
+   EXPECT_EQ(2, dpiMsg.customapplication_size());
+   EXPECT_EQ("custom_app_1", dpiMsg.customapplication(0));
+   EXPECT_EQ("custom_app_2", dpiMsg.customapplication(1));
    lua_close(luaState3);
 }
 
@@ -978,7 +978,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetStartTime) {
 
    // Expect known value when set
    int expectedStartTime(1367606483);
-   dpiMsg.set_time_start(expectedStartTime);
+   dpiMsg.set_timestart(expectedStartTime);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetStartTime(luaState));
    EXPECT_EQ(expectedStartTime, lua_tointeger(luaState, -1));
@@ -997,7 +997,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetEndTime) {
 
    // Expect known value when set
    int expectedEndTime(1367606583);
-   dpiMsg.set_time_updated(expectedEndTime);
+   dpiMsg.set_timeupdated(expectedEndTime);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetEndTime(luaState));
    EXPECT_EQ(expectedEndTime, lua_tointeger(luaState, -1));
@@ -1014,7 +1014,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaTime) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaTime);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaTime(luaState));
-   EXPECT_EQ(expectedDeltaTime, dpiMsg.time_delta());
+   EXPECT_EQ(expectedDeltaTime, dpiMsg.timedelta());
    lua_close(luaState);
 }
 
@@ -1026,10 +1026,10 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
 
    DpiMsgLR dpiMsg;
 
-   dpiMsg.set_flow_type(DpiMsgLRproto_Type_INTERMEDIATE);
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE);
 
    string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-   dpiMsg.set_session_id(testUuid.c_str());
+   dpiMsg.set_sessionid(testUuid.c_str());
 
    string testEthSrc("00:22:19:08:2c:00");
    std::vector<unsigned char> ethSrc;
@@ -1054,27 +1054,27 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
 
    string testIpSrc = "10.1.10.50";
    uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-   dpiMsg.set_ip_source(ipSrc);
+   dpiMsg.set_ipsource(ipSrc);
 
    string testIpDst = "10.128.64.251";
    uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-   dpiMsg.set_ip_dest(ipDst);
+   dpiMsg.set_ipdest(ipDst);
 
    string path("base.eth.ip.udp.ntp");
-   dpiMsg.set_pkt_path(path.c_str());
+   dpiMsg.set_pktpath(path.c_str());
 
    string testIpSourcePort = "=12345"; // bogus, but easier to test
-   dpiMsg.set_port_source(12345);
+   dpiMsg.set_portsource(12345);
 
    string testIpDestPort = "=54321"; // bogus, but easier to test
-   dpiMsg.set_port_dest(54321);
-   dpiMsg.set_proto_id(12);
+   dpiMsg.set_portdest(54321);
+   dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
    dpiMsg.add_application_endq_proto_base("_3Com_Corp");
-   dpiMsg.set_bytes_dest(12345);
-   dpiMsg.set_bytes_source(6789);
-   dpiMsg.set_packet_total(99);
+   dpiMsg.set_bytesdest(12345);
+   dpiMsg.set_bytessource(6789);
+   dpiMsg.set_packettotal(99);
    dpiMsg.add_loginq_proto_aim("aLogin");
    dpiMsg.add_domainq_proto_smb("aDomain");
    dpiMsg.add_uri_fullq_proto_http("this/url.htm");
@@ -1089,12 +1089,12 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    dpiMsg.add_filenameq_proto_gnutella("aFilename");
    dpiMsg.add_filename_encodingq_proto_aim_transfer("notitFile");
    dpiMsg.add_directoryq_proto_smb("aPath");
-   dpiMsg.set_time_start(123);
-   dpiMsg.set_time_updated(456);
-   dpiMsg.set_time_delta(222);
-   dpiMsg.set_bytes_source_delta(567);
-   dpiMsg.set_bytes_dest_delta(234);
-   dpiMsg.set_packets_delta(33);
+   dpiMsg.set_timestart(123);
+   dpiMsg.set_timeupdated(456);
+   dpiMsg.set_timedelta(222);
+   dpiMsg.set_bytessourcedelta(567);
+   dpiMsg.set_bytesdestdelta(234);
+   dpiMsg.set_packetsdelta(33);
    dpiMsg.set_sessionidq_proto_ymsg(2345);
    lua_State *luaState;
    luaState = luaL_newstate();
@@ -1102,16 +1102,16 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    lua_pushlightuserdata(luaState, &mRuleEngine);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState));
 
-   dpiMsg.set_time_updated(567);
-   dpiMsg.set_bytes_dest(23456);
-   dpiMsg.set_bytes_source(7890);
-   dpiMsg.set_packet_total(124);
-   dpiMsg.set_time_delta(111); // 567 - 456
-   dpiMsg.set_bytes_source_delta(1101); // 7890 - 6789
-   dpiMsg.set_bytes_dest_delta(11111); // 23456 - 12345
-   dpiMsg.set_packets_delta(25); // 124 - 99
+   dpiMsg.set_timeupdated(567);
+   dpiMsg.set_bytesdest(23456);
+   dpiMsg.set_bytessource(7890);
+   dpiMsg.set_packettotal(124);
+   dpiMsg.set_timedelta(111); // 567 - 456
+   dpiMsg.set_bytessourcedelta(1101); // 7890 - 6789
+   dpiMsg.set_bytesdestdelta(11111); // 23456 - 12345
+   dpiMsg.set_packetsdelta(25); // 124 - 99
 
-   dpiMsg.set_flow_type(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushlightuserdata(luaState, &mRuleEngine);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState));
@@ -1137,10 +1137,10 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
 
    DpiMsgLR dpiMsg;
 
-   dpiMsg.set_flow_type(DpiMsgLRproto_Type_FINAL);
+   dpiMsg.set_flowtype(DpiMsgLRproto_Type_FINAL);
 
    string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-   dpiMsg.set_session_id(testUuid.c_str());
+   dpiMsg.set_sessionid(testUuid.c_str());
 
    string testEthSrc("00:22:19:08:2c:00");
    std::vector<unsigned char> ethSrc;
@@ -1165,30 +1165,30 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
 
    string testIpSrc = "10.1.10.50";
    uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-   dpiMsg.set_ip_source(ipSrc);
+   dpiMsg.set_ipsource(ipSrc);
 
    string testIpDst = "10.128.64.251";
    uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-   dpiMsg.set_ip_dest(ipDst);
+   dpiMsg.set_ipdest(ipDst);
 
    string path("base.eth.ip.udp.ntp");
-   dpiMsg.set_pkt_path(path.c_str());
+   dpiMsg.set_pktpath(path.c_str());
 
    string testIpSourcePort = "=12345"; // bogus, but easier to test
-   dpiMsg.set_port_source(12345);
+   dpiMsg.set_portsource(12345);
 
    string testIpDestPort = "=54321"; // bogus, but easier to test
-   dpiMsg.set_port_dest(54321);
-   dpiMsg.set_proto_id(12);
+   dpiMsg.set_portdest(54321);
+   dpiMsg.set_protoid(12);
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
    dpiMsg.add_application_endq_proto_base("_3Com_Corp");
-   dpiMsg.set_bytes_dest(12345);
-   dpiMsg.set_bytes_dest_delta(12345);
-   dpiMsg.set_bytes_source(6789);
-   dpiMsg.set_bytes_source_delta(6789);
-   dpiMsg.set_packet_total(99);
-   dpiMsg.set_packets_delta(99);
+   dpiMsg.set_bytesdest(12345);
+   dpiMsg.set_bytesdestdelta(12345);
+   dpiMsg.set_bytessource(6789);
+   dpiMsg.set_bytessourcedelta(6789);
+   dpiMsg.set_packettotal(99);
+   dpiMsg.set_packetsdelta(99);
    dpiMsg.add_loginq_proto_aim("aLogin");
    dpiMsg.add_domainq_proto_smb("aDomain");
    dpiMsg.add_uri_fullq_proto_http("this/url.htm");
@@ -1204,9 +1204,9 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
    dpiMsg.add_filenameq_proto_gnutella("aFilename");
    dpiMsg.add_filename_encodingq_proto_aim_transfer("notitFile");
    dpiMsg.add_directoryq_proto_smb("aPath");
-   dpiMsg.set_time_start(123);
-   dpiMsg.set_time_updated(456);
-   dpiMsg.set_time_delta(333);
+   dpiMsg.set_timestart(123);
+   dpiMsg.set_timeupdated(456);
+   dpiMsg.set_timedelta(333);
    dpiMsg.set_sessionidq_proto_ymsg(2345);
 
    lua_State *luaState;

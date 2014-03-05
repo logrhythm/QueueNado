@@ -20,27 +20,27 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
    MockRuleEngine dm(conf, 0);
 
    networkMonitor::DpiMsgLR aMessage;
-   aMessage.set_session_id("abc123");
-   aMessage.set_child_flow_number(1);
-   aMessage.set_time_updated(123456789);
+   aMessage.set_sessionid("abc123");
+   aMessage.set_childflownumber(1);
+   aMessage.set_timeupdated(123456789);
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_FALSE(dm.mSentUpdate);
-   aMessage.set_child_flow_number(2);
+   aMessage.set_childflownumber(2);
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_TRUE(dm.mSentUpdate);
-   EXPECT_EQ(123456789-600,dm.mEsMessage.time_updated());
-   EXPECT_TRUE(dm.mEsMessage.has_child_flow_number());
-   EXPECT_EQ(1,dm.mEsMessage.child_flow_number());
-   EXPECT_FALSE(dm.mEsMessage.latest_update());
+   EXPECT_EQ(123456789-600,dm.mEsMessage.timeupdated());
+   EXPECT_TRUE(dm.mEsMessage.has_childflownumber());
+   EXPECT_EQ(1,dm.mEsMessage.childflownumber());
+   EXPECT_FALSE(dm.mEsMessage.latestupdate());
    dm.mSentUpdate = false;
 
-   aMessage.set_time_previous(123);
-   aMessage.set_child_flow_number(201);
+   aMessage.set_timeprevious(123);
+   aMessage.set_childflownumber(201);
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_TRUE(dm.mSentUpdate);
-   EXPECT_EQ(123,dm.mEsMessage.time_updated());
-   EXPECT_EQ(200,dm.mEsMessage.child_flow_number());
-   EXPECT_FALSE(dm.mEsMessage.latest_update());
+   EXPECT_EQ(123,dm.mEsMessage.timeupdated());
+   EXPECT_EQ(200,dm.mEsMessage.childflownumber());
+   EXPECT_FALSE(dm.mEsMessage.latestupdate());
 #endif
 }
 
@@ -65,7 +65,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("deltabytesout", results[SIEM_FIELD_DELTA_BYTES_OUT ].first);
    EXPECT_EQ("packetsin", results[SIEM_FIELD_PACKETS_IN].first);
    EXPECT_EQ("deltapacketsin", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
-   EXPECT_EQ("time_start", results[SIEM_FIELD_TIME_START].first);
+   EXPECT_EQ("TimeStart", results[SIEM_FIELD_TIME_START].first);
    EXPECT_EQ("timeend", results[SIEM_FIELD_TIME_END].first);
    EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
    EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
@@ -88,26 +88,26 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("0", results[SIEM_FIELD_TIME_DELTA].second);
    EXPECT_EQ("0", results[SIEM_FIELD_TIME_TOTAL].second);
 
-   tDpiMessage.set_session_id("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_mac_dest(123);
-   tDpiMessage.set_mac_source(124);
-   tDpiMessage.set_ip_dest(125);
-   tDpiMessage.set_ip_source(126);
-   tDpiMessage.set_port_source(127);
-   tDpiMessage.set_port_dest(128);
-   tDpiMessage.set_proto_id(129);
+   tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_macdest(123);
+   tDpiMessage.set_macsource(124);
+   tDpiMessage.set_ipdest(125);
+   tDpiMessage.set_ipsource(126);
+   tDpiMessage.set_portsource(127);
+   tDpiMessage.set_portdest(128);
+   tDpiMessage.set_protoid(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytes_dest(567);
-   tDpiMessage.set_bytes_dest_delta(456);
-   tDpiMessage.set_bytes_source(89);
-   tDpiMessage.set_bytes_source_delta(78);
-   tDpiMessage.set_packet_total(88);
-   tDpiMessage.set_packets_delta(44);
+   tDpiMessage.set_bytesdest(567);
+   tDpiMessage.set_bytesdestdelta(456);
+   tDpiMessage.set_bytessource(89);
+   tDpiMessage.set_bytessourcedelta(78);
+   tDpiMessage.set_packettotal(88);
+   tDpiMessage.set_packetsdelta(44);
    tDpiMessage.add_loginq_proto_0zz0("dontSeeMee");
-   tDpiMessage.set_time_start(1234);
-   tDpiMessage.set_time_updated(5678);
-   tDpiMessage.set_time_delta(4444);
+   tDpiMessage.set_timestart(1234);
+   tDpiMessage.set_timeupdated(5678);
+   tDpiMessage.set_timedelta(4444);
    dm.GetSiemRequiredFieldPairs(tDpiMessage, results);
    ASSERT_EQ(19, results.size());
    EXPECT_EQ("UUID", results[SIEM_FIELD_UUID].first);
@@ -125,7 +125,7 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("deltabytesout", results[SIEM_FIELD_DELTA_BYTES_OUT ].first);
    EXPECT_EQ("packetsin", results[SIEM_FIELD_PACKETS_IN].first);
    EXPECT_EQ("deltapacketsin", results[SIEM_FIELD_DELTA_PACKETS_IN].first);
-   EXPECT_EQ("time_start", results[SIEM_FIELD_TIME_START].first);
+   EXPECT_EQ("TimeStart", results[SIEM_FIELD_TIME_START].first);
    EXPECT_EQ("timeend", results[SIEM_FIELD_TIME_END].first);
    EXPECT_EQ("deltatime", results[SIEM_FIELD_TIME_DELTA].first);
    EXPECT_EQ("totaltime", results[SIEM_FIELD_TIME_TOTAL].first);
@@ -177,22 +177,22 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest__NoHang) {
 
    dm.mSiemMode = true;
    dm.mSiemDebugMode = true;
-   tDpiMessage.set_session_id("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_mac_dest(123);
-   tDpiMessage.set_mac_source(124);
-   tDpiMessage.set_ip_dest(125);
-   tDpiMessage.set_ip_source(126);
-   tDpiMessage.set_port_source(127);
-   tDpiMessage.set_port_dest(128);
-   tDpiMessage.set_proto_id(129);
+   tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_macdest(123);
+   tDpiMessage.set_macsource(124);
+   tDpiMessage.set_ipdest(125);
+   tDpiMessage.set_ipsource(126);
+   tDpiMessage.set_portsource(127);
+   tDpiMessage.set_portdest(128);
+   tDpiMessage.set_protoid(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytes_dest(567);
-   tDpiMessage.set_bytes_dest_delta(567);
-   tDpiMessage.set_bytes_source(89);
-   tDpiMessage.set_bytes_source_delta(89);
-   tDpiMessage.set_packet_total(88);
-   tDpiMessage.set_packets_delta(88);
+   tDpiMessage.set_bytesdest(567);
+   tDpiMessage.set_bytesdestdelta(567);
+   tDpiMessage.set_bytessource(89);
+   tDpiMessage.set_bytessourcedelta(89);
+   tDpiMessage.set_packettotal(88);
+   tDpiMessage.set_packetsdelta(88);
    tDpiMessage.add_loginq_proto_aim("aLogin");
    tDpiMessage.add_domainq_proto_smb("aDomain1234");
    tDpiMessage.add_uri_fullq_proto_http("this/url.htm");
@@ -209,9 +209,9 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest__NoHang) {
    tDpiMessage.add_receiverq_proto_smtp("test2_12");
    tDpiMessage.add_subjectq_proto_smtp("test3_1234");
    tDpiMessage.add_versionq_proto_http("4.0");
-   tDpiMessage.set_time_start(123);
-   tDpiMessage.set_time_updated(456);
-   tDpiMessage.set_time_delta(333);
+   tDpiMessage.set_timestart(123);
+   tDpiMessage.set_timeupdated(456);
+   tDpiMessage.set_timedelta(333);
    dm.SetMaxSize(512 + 8 + 36 + 4);
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
    //   for (int i = 0; i < messages.size(); i++) {
@@ -383,22 +383,22 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
 
    dm.mSiemMode = true;
    dm.mSiemDebugMode = true;
-   tDpiMessage.set_session_id("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_mac_dest(123);
-   tDpiMessage.set_mac_source(124);
-   tDpiMessage.set_ip_dest(125);
-   tDpiMessage.set_ip_source(126);
-   tDpiMessage.set_port_source(127);
-   tDpiMessage.set_port_dest(128);
-   tDpiMessage.set_proto_id(129);
+   tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_macdest(123);
+   tDpiMessage.set_macsource(124);
+   tDpiMessage.set_ipdest(125);
+   tDpiMessage.set_ipsource(126);
+   tDpiMessage.set_portsource(127);
+   tDpiMessage.set_portdest(128);
+   tDpiMessage.set_protoid(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytes_dest(567);
-   tDpiMessage.set_bytes_dest_delta(567);
-   tDpiMessage.set_bytes_source(89);
-   tDpiMessage.set_bytes_source_delta(89);
-   tDpiMessage.set_packet_total(88);
-   tDpiMessage.set_packets_delta(88);
+   tDpiMessage.set_bytesdest(567);
+   tDpiMessage.set_bytesdestdelta(567);
+   tDpiMessage.set_bytessource(89);
+   tDpiMessage.set_bytessourcedelta(89);
+   tDpiMessage.set_packettotal(88);
+   tDpiMessage.set_packetsdelta(88);
    tDpiMessage.add_loginq_proto_aim("aLogin");
    tDpiMessage.add_domainq_proto_smb("aDomain1234");
    tDpiMessage.add_uri_fullq_proto_http("this/url.htm");
@@ -415,9 +415,9 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    tDpiMessage.add_receiverq_proto_smtp("test2_12");
    tDpiMessage.add_subjectq_proto_smtp("test3_1234");
    tDpiMessage.add_versionq_proto_http("4.0");
-   tDpiMessage.set_time_start(123);
-   tDpiMessage.set_time_updated(456);
-   tDpiMessage.set_time_delta(333);
+   tDpiMessage.set_timestart(123);
+   tDpiMessage.set_timeupdated(456);
+   tDpiMessage.set_timedelta(333);
    dm.SetMaxSize(512 + 8 + 36 + 4);
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
    //   for (int i = 0; i < messages.size(); i++) {
@@ -569,22 +569,22 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
 
    dm.mSiemMode = true;
    dm.mSiemDebugMode = false;
-   tDpiMessage.set_session_id("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_mac_dest(123);
-   tDpiMessage.set_mac_source(124);
-   tDpiMessage.set_ip_dest(125);
-   tDpiMessage.set_ip_source(126);
-   tDpiMessage.set_port_source(127);
-   tDpiMessage.set_port_dest(128);
-   tDpiMessage.set_proto_id(129);
+   tDpiMessage.set_sessionid("550e8400-e29b-41d4-a716-446655440000");
+   tDpiMessage.set_macdest(123);
+   tDpiMessage.set_macsource(124);
+   tDpiMessage.set_ipdest(125);
+   tDpiMessage.set_ipsource(126);
+   tDpiMessage.set_portsource(127);
+   tDpiMessage.set_portdest(128);
+   tDpiMessage.set_protoid(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytes_dest(567);
-   tDpiMessage.set_bytes_dest_delta(567);
-   tDpiMessage.set_bytes_source(899);
-   tDpiMessage.set_bytes_source_delta(899);
-   tDpiMessage.set_packet_total(88);
-   tDpiMessage.set_packets_delta(88);
+   tDpiMessage.set_bytesdest(567);
+   tDpiMessage.set_bytesdestdelta(567);
+   tDpiMessage.set_bytessource(899);
+   tDpiMessage.set_bytessourcedelta(899);
+   tDpiMessage.set_packettotal(88);
+   tDpiMessage.set_packetsdelta(88);
    tDpiMessage.add_loginq_proto_aim("aLogin");
    tDpiMessage.add_domainq_proto_smb("aDomain12345");
    tDpiMessage.add_uri_fullq_proto_http("this/url.htm");
@@ -598,9 +598,9 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    tDpiMessage.add_receiverq_proto_smtp("test2_123");
    tDpiMessage.add_subjectq_proto_smtp("test3_12345");
    tDpiMessage.add_versionq_proto_http("4.0");
-   tDpiMessage.set_time_start(123);
-   tDpiMessage.set_time_updated(456);
-   tDpiMessage.set_time_delta(333);
+   tDpiMessage.set_timestart(123);
+   tDpiMessage.set_timeupdated(456);
+   tDpiMessage.set_timedelta(333);
    int expectedMsgSize(353); // exact size of message with data as defined above
    dm.SetMaxSize(expectedMsgSize);
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
@@ -729,10 +729,10 @@ TEST_F(RuleEngineTest, testMsgReceive) {
 
       DpiMsgLR msg;
 
-      msg.set_flow_type(DpiMsgLRproto_Type_FINAL);
+      msg.set_flowtype(DpiMsgLRproto_Type_FINAL);
 
       std::string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-      msg.set_session_id(testUuid.c_str());
+      msg.set_sessionid(testUuid.c_str());
 
       std::string testEthSrc("00:22:19:08:2c:00");
       std::vector<unsigned char> ethSrc;
@@ -757,20 +757,20 @@ TEST_F(RuleEngineTest, testMsgReceive) {
 
       std::string testIpSrc = "10.1.10.50";
       uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-      msg.set_ip_source(ipSrc);
+      msg.set_ipsource(ipSrc);
 
       std::string testIpDst = "10.128.64.251";
       uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-      msg.set_ip_dest(ipDst);
+      msg.set_ipdest(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
-      msg.set_pkt_path(path.c_str());
+      msg.set_pktpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
-      msg.set_port_source(12345);
+      msg.set_portsource(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
-      msg.set_port_dest(54321);
+      msg.set_portdest(54321);
 
       std::string dataToSend;
       msg.GetBuffer(dataToSend);
@@ -840,10 +840,10 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
 
       DpiMsgLR msg;
 
-      msg.set_flow_type(DpiMsgLRproto_Type_FINAL);
+      msg.set_flowtype(DpiMsgLRproto_Type_FINAL);
 
       std::string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-      msg.set_session_id(testUuid.c_str());
+      msg.set_sessionid(testUuid.c_str());
 
       std::string testEthSrc("00:22:19:08:2c:00");
       std::vector<unsigned char> ethSrc;
@@ -868,27 +868,27 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
 
       std::string testIpSrc = "10.1.10.50";
       uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-      msg.set_ip_source(ipSrc);
+      msg.set_ipsource(ipSrc);
 
       std::string testIpDst = "10.128.64.251";
       uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-      msg.set_ip_dest(ipDst);
+      msg.set_ipdest(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
-      msg.set_pkt_path(path.c_str());
+      msg.set_pktpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
-      msg.set_port_source(12345);
+      msg.set_portsource(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
-      msg.set_port_dest(54321);
-      msg.set_proto_id(12);
+      msg.set_portdest(54321);
+      msg.set_protoid(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
-      msg.set_bytes_dest(12345);
-      msg.set_bytes_source(6789);
-      msg.set_packet_total(99);
+      msg.set_bytesdest(12345);
+      msg.set_bytessource(6789);
+      msg.set_packettotal(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
       msg.add_uri_fullq_proto_http("this/url.htm");
@@ -904,8 +904,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
       msg.add_filenameq_proto_gnutella("aFilename");
       msg.add_filename_encodingq_proto_aim_transfer("notitFile");
       msg.add_directoryq_proto_smb("aPath");
-      msg.set_time_start(123);
-      msg.set_time_updated(456);
+      msg.set_timestart(123);
+      msg.set_timeupdated(456);
       msg.set_sessionidq_proto_ymsg(2345);
       std::string dataToSend;
       msg.GetBuffer(dataToSend);
@@ -971,10 +971,10 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
 
       DpiMsgLR msg;
 
-      msg.set_flow_type(DpiMsgLRproto_Type_INTERMEDIATE);
+      msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE);
 
       std::string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-      msg.set_session_id(testUuid.c_str());
+      msg.set_sessionid(testUuid.c_str());
 
       std::string testEthSrc("00:22:19:08:2c:00");
       std::vector<unsigned char> ethSrc;
@@ -999,27 +999,27 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
 
       std::string testIpSrc = "10.1.10.50";
       uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-      msg.set_ip_source(ipSrc);
+      msg.set_ipsource(ipSrc);
 
       std::string testIpDst = "10.128.64.251";
       uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-      msg.set_ip_dest(ipDst);
+      msg.set_ipdest(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
-      msg.set_pkt_path(path.c_str());
+      msg.set_pktpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
-      msg.set_port_source(12345);
+      msg.set_portsource(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
-      msg.set_port_dest(54321);
-      msg.set_proto_id(12);
+      msg.set_portdest(54321);
+      msg.set_protoid(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
-      msg.set_bytes_dest(12345);
-      msg.set_bytes_source(6789);
-      msg.set_packet_total(99);
+      msg.set_bytesdest(12345);
+      msg.set_bytessource(6789);
+      msg.set_packettotal(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
       msg.add_uri_fullq_proto_http("this/url.htm");
@@ -1035,26 +1035,26 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       msg.add_filenameq_proto_gnutella("aFilename");
       msg.add_filename_encodingq_proto_aim_transfer("notitFile");
       msg.add_directoryq_proto_smb("aPath");
-      msg.set_time_start(123);
-      msg.set_time_updated(456); // delta = 333
+      msg.set_timestart(123);
+      msg.set_timeupdated(456); // delta = 333
       msg.set_sessionidq_proto_ymsg(2345);
       std::string dataToSend;
       msg.GetBuffer(dataToSend);
       sendQueue.SendData(dataToSend);
 
-      msg.set_bytes_dest(23456); // delta = 11111
-      msg.set_bytes_source(7900); // delta = 1111
-      msg.set_packet_total(210); // delta = 111
-      msg.set_time_updated(567); // delta = 111
+      msg.set_bytesdest(23456); // delta = 11111
+      msg.set_bytessource(7900); // delta = 1111
+      msg.set_packettotal(210); // delta = 111
+      msg.set_timeupdated(567); // delta = 111
       dataToSend.clear();
       msg.GetBuffer(dataToSend);
       sendQueue.SendData(dataToSend);
 
-      msg.set_flow_type(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
-      msg.set_bytes_dest(45678); // delta = 22222
-      msg.set_bytes_source(10122); // delta = 2222
-      msg.set_packet_total(432); // delta = 222
-      msg.set_time_updated(789); // delta = 222
+      msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
+      msg.set_bytesdest(45678); // delta = 22222
+      msg.set_bytessource(10122); // delta = 2222
+      msg.set_packettotal(432); // delta = 222
+      msg.set_timeupdated(789); // delta = 222
       dataToSend.clear();
       msg.GetBuffer(dataToSend);
       sendQueue.SendData(dataToSend);
@@ -1115,7 +1115,7 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
       DpiMsgLR msg;
 
       std::string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-      msg.set_session_id(testUuid.c_str());
+      msg.set_sessionid(testUuid.c_str());
 
       std::string testEthSrc("00:22:19:08:2c:00");
       std::vector<unsigned char> ethSrc;
@@ -1140,27 +1140,27 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
 
       std::string testIpSrc = "10.1.10.50";
       uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-      msg.set_ip_source(ipSrc);
+      msg.set_ipsource(ipSrc);
 
       std::string testIpDst = "10.128.64.251";
       uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-      msg.set_ip_dest(ipDst);
+      msg.set_ipdest(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
-      msg.set_pkt_path(path.c_str());
+      msg.set_pktpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
-      msg.set_port_source(12345);
+      msg.set_portsource(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
-      msg.set_port_dest(54321);
-      msg.set_proto_id(12);
+      msg.set_portdest(54321);
+      msg.set_protoid(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
-      msg.set_bytes_dest(12345);
-      msg.set_bytes_source(6789);
-      msg.set_packet_total(99);
+      msg.set_bytesdest(12345);
+      msg.set_bytessource(6789);
+      msg.set_packettotal(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
       msg.add_uri_fullq_proto_http("this/url.htm");
@@ -1176,11 +1176,11 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
       msg.add_filenameq_proto_gnutella("aFilename");
       msg.add_filename_encodingq_proto_aim_transfer("notitFile");
       msg.add_directoryq_proto_smb("aPath");
-      msg.set_time_start(123);
-      msg.set_time_updated(456); // delta = 333
+      msg.set_timestart(123);
+      msg.set_timeupdated(456); // delta = 333
       msg.set_sessionidq_proto_ymsg(2345);
 
-      msg.set_flow_type(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
+      msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
       std::string dataToSend;
       msg.GetBuffer(dataToSend);
       sendQueue.SendData(dataToSend);
@@ -1239,10 +1239,10 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
 
       DpiMsgLR msg;
 
-      msg.set_flow_type(DpiMsgLRproto_Type_FINAL);
+      msg.set_flowtype(DpiMsgLRproto_Type_FINAL);
 
       std::string testUuid("8a3461dc-4aaa-41d5-bf3f-f55037d5ed25");
-      msg.set_session_id(testUuid.c_str());
+      msg.set_sessionid(testUuid.c_str());
 
       std::string testEthSrc("00:22:19:08:2c:00");
       std::vector<unsigned char> ethSrc;
@@ -1267,27 +1267,27 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
 
       std::string testIpSrc = "10.1.10.50";
       uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-      msg.set_ip_source(ipSrc);
+      msg.set_ipsource(ipSrc);
 
       std::string testIpDst = "10.128.64.251";
       uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-      msg.set_ip_dest(ipDst);
+      msg.set_ipdest(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
-      msg.set_pkt_path(path.c_str());
+      msg.set_pktpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
-      msg.set_port_source(12345);
+      msg.set_portsource(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
-      msg.set_port_dest(54321);
-      msg.set_proto_id(12);
+      msg.set_portdest(54321);
+      msg.set_protoid(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
-      msg.set_bytes_dest(12345);
-      msg.set_bytes_source(67890);
-      msg.set_packet_total(99);
+      msg.set_bytesdest(12345);
+      msg.set_bytessource(67890);
+      msg.set_packettotal(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
       msg.add_uri_fullq_proto_http("this/url.htm");
@@ -1303,8 +1303,8 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       msg.add_filenameq_proto_gnutella("aFilename");
       msg.add_filename_encodingq_proto_aim_transfer("notitFile");
       msg.add_directoryq_proto_smb("aPath");
-      msg.set_time_start(123);
-      msg.set_time_updated(456);
+      msg.set_timestart(123);
+      msg.set_timeupdated(456);
       msg.set_sessionidq_proto_ymsg(2345);
       std::string dataToSend;
       msg.GetBuffer(dataToSend);
@@ -1363,7 +1363,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("sender=test1"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("receiver=test2"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("subject=test3"));
-      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("session_id=2345"));
+      EXPECT_NE(std::string::npos, re.GetSyslogSent()[1].find("SessionID=2345"));
 
       re.join();
    }
@@ -1395,15 +1395,15 @@ TEST_F(RuleEngineTest, getSyslogMessages) {
    MockRuleEngine dm(conf, 0);
    std::map<unsigned int, std::pair<std::string, std::string> > results;
 
-   tDpiMessage.set_ip_source(0x0a0b0c0d);
-   tDpiMessage.set_ip_dest(0x01020304);
-   tDpiMessage.set_mac_source(0x00000a0b0c0d0e0f);
-   tDpiMessage.set_mac_dest(0x0000010203040506);
-   tDpiMessage.set_session_id("01234567-89ab-cdef-0123456789abcdef");
+   tDpiMessage.set_ipsource(0x0a0b0c0d);
+   tDpiMessage.set_ipdest(0x01020304);
+   tDpiMessage.set_macsource(0x00000a0b0c0d0e0f);
+   tDpiMessage.set_macdest(0x0000010203040506);
+   tDpiMessage.set_sessionid("01234567-89ab-cdef-0123456789abcdef");
    std::string path = "foo.bar";
-   tDpiMessage.set_pkt_path(path);
-   tDpiMessage.set_port_source(1234);
-   tDpiMessage.set_port_dest(5678);
+   tDpiMessage.set_pktpath(path);
+   tDpiMessage.set_portsource(1234);
+   tDpiMessage.set_portdest(5678);
 
    tDpiMessage.set_filesizeq_proto_bittorrent(1212);
    tDpiMessage.set_filesizeq_proto_edonkey(12345678901234L);
@@ -1474,7 +1474,7 @@ TEST_F(RuleEngineTest, getSyslogMessagesSplitDataTest) {
    dataPairs[7] = std::make_pair("SourcePort", "52421");
    dataPairs[8] = std::make_pair("DestPort", "80");
    dataPairs[9] = std::make_pair("FlowCompleted", "true");
-   dataPairs[10] = std::make_pair("application", "tcp|http");
+   dataPairs[10] = std::make_pair("Application", "tcp|http");
    dataPairs[11] = std::make_pair("flowId", "49649");
    dataPairs[12] = std::make_pair("family", "Network Service|Web");
    dataPairs[13] = std::make_pair("applicationId", "67");
@@ -1521,7 +1521,7 @@ TEST_F(RuleEngineTest, getSyslogMessagesSplitDataTest) {
    //      std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
    //   }
    ASSERT_EQ(8, messages.size());
-   std::string expected = "EVT:999 UUID=57c4384a-15b7-44c0-9814-b2e95b23dd15, EthSrc=f0:f7:55:dc:a8:7f, EthDst=84:18:88:7b:db:04, IpSrc=10.128.24.59, IpDst=192.168.178.21, Path=base.eth.ip.tcp|base.eth.ip.tcp.http, DestPort=80, FlowCompleted=true, application=tcp|http, flowId=49649, family=Network Service|Web, applicationId=67, session=300, dev=eth0, declassified=67, application_end=tcp|http, familyEnd=Network Service|Web, applidation_id_end=67, sessionLen=74256, server=192.168.178.21";
+   std::string expected = "EVT:999 UUID=57c4384a-15b7-44c0-9814-b2e95b23dd15, EthSrc=f0:f7:55:dc:a8:7f, EthDst=84:18:88:7b:db:04, IpSrc=10.128.24.59, IpDst=192.168.178.21, Path=base.eth.ip.tcp|base.eth.ip.tcp.http, DestPort=80, FlowCompleted=true, Application=tcp|http, flowId=49649, family=Network Service|Web, applicationId=67, session=300, dev=eth0, declassified=67, application_end=tcp|http, familyEnd=Network Service|Web, applidation_id_end=67, sessionLen=74256, server=192.168.178.21";
    EXPECT_EQ(expected, messages[0]);
    expected = "EVT:999 UUID=57c4384a-15b7-44c0-9814-b2e95b23dd15, referer=http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/, referer=http://192.168.178.21/frameset/upper/|http://192.168.178.21/frameset/, referer_server=192.168.178.21, uri=/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel, uri=uri=/ha/status_json|/activity/query/, uri_full=/ha/status_json|/activity/query/?query=partition&query=config&query=threatLevel";
    EXPECT_EQ(expected, messages[1]);
@@ -2192,8 +2192,8 @@ TEST_F(RuleEngineTest, GetSessionField) {
    ASSERT_EQ(0, results.size());
    results.clear();
    tDpiMessage.Clear();
-   tDpiMessage.set_bytes_source(1234);
-   tDpiMessage.set_bytes_dest(5678);
+   tDpiMessage.set_bytessource(1234);
+   tDpiMessage.set_bytesdest(5678);
    ASSERT_EQ(1, dm.GetSessionField(1, tDpiMessage, 0, results));
    ASSERT_EQ(0, results.size());
    results.clear();

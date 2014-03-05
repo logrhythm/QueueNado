@@ -12,32 +12,32 @@ using namespace std;
 TEST_F(DpiMsgLRTests, EstimatePCapFileSize) {
    DpiMsgLR testMsg;
    
-   testMsg.set_session_id("123456789012345678901234567890123456");
-   testMsg.set_packet_total(0);
-   testMsg.set_bytes_source(0);
-   testMsg.set_bytes_dest(0);
+   testMsg.set_sessionid("123456789012345678901234567890123456");
+   testMsg.set_packettotal(0);
+   testMsg.set_bytessource(0);
+   testMsg.set_bytesdest(0);
    
    EXPECT_EQ(sizeof(pcap_file_header),testMsg.TheoreticalPCapFileSize());
-   testMsg.set_packet_total(10);
+   testMsg.set_packettotal(10);
    EXPECT_EQ(sizeof(pcap_file_header)+10*sizeof(pcap_pkthdr),testMsg.TheoreticalPCapFileSize());
-   testMsg.set_bytes_source(100);
+   testMsg.set_bytessource(100);
    EXPECT_EQ(sizeof(pcap_file_header)+10*sizeof(pcap_pkthdr)+100,testMsg.TheoreticalPCapFileSize());
-   testMsg.set_bytes_dest(1000);
+   testMsg.set_bytesdest(1000);
    EXPECT_EQ(sizeof(pcap_file_header)+10*sizeof(pcap_pkthdr)+100+1000,testMsg.TheoreticalPCapFileSize());
 }
 TEST_F(DpiMsgLRTests, EncodeJSonValgrind ) {
    DpiMsgLR testMsg;
    
-   testMsg.set_session_id("ABC123");
+   testMsg.set_sessionid("ABC123");
    testMsg.add_uri_fullq_proto_http("1");
    testMsg.add_application_endq_proto_base("test");
    testMsg.set_application_id_endq_proto_base(1234);
-   testMsg.set_bytes_dest(567);
-   testMsg.set_bytes_dest_delta(567);
-   testMsg.set_bytes_source(899);
-   testMsg.set_bytes_source_delta(899);
-   testMsg.set_packet_total(88);
-   testMsg.set_packets_delta(88);
+   testMsg.set_bytesdest(567);
+   testMsg.set_bytesdestdelta(567);
+   testMsg.set_bytessource(899);
+   testMsg.set_bytessourcedelta(899);
+   testMsg.set_packettotal(88);
+   testMsg.set_packetsdelta(88);
    testMsg.add_loginq_proto_aim("aLogin");
    testMsg.add_domainq_proto_smb("aDomain12345");
    testMsg.add_uriq_proto_http("not/this/one");
@@ -59,26 +59,26 @@ TEST_F(DpiMsgLRTests, SetTimeUpdated) {
    DpiMsgLR dm;
    
    dm.SetTimeUpdated(123456789);
-   EXPECT_FALSE(dm.has_time_previous());
-   EXPECT_EQ(123456789,dm.time_updated());
+   EXPECT_FALSE(dm.has_timeprevious());
+   EXPECT_EQ(123456789,dm.timeupdated());
    dm.SetTimeUpdated(123);
-   ASSERT_TRUE(dm.has_time_previous());
-   EXPECT_EQ(123456789,dm.time_previous());
-   EXPECT_EQ(123,dm.time_updated());
+   ASSERT_TRUE(dm.has_timeprevious());
+   EXPECT_EQ(123456789,dm.timeprevious());
+   EXPECT_EQ(123,dm.timeupdated());
 }
 TEST_F(DpiMsgLRTests, GetESIndexName) {
    DpiMsgLR dm;
-   dm.set_session_id("TESTTEST");
+   dm.set_sessionid("TESTTEST");
    EXPECT_EQ("",dm.GetESIndexName());
-   dm.set_time_updated(123456789);
+   dm.set_timeupdated(123456789);
    EXPECT_EQ("network_1973_11_29",dm.GetESIndexName());
 }
 
 TEST_F(DpiMsgLRTests, GetESDocId) {
    DpiMsgLR dm;
-   dm.set_session_id("TESTTEST");
+   dm.set_sessionid("TESTTEST");
    EXPECT_EQ("TESTTEST", dm.GetESDocId());
-   dm.set_child_flow_number(1234);
+   dm.set_childflownumber(1234);
    EXPECT_EQ("TESTTEST_1234", dm.GetESDocId());
 }
 
@@ -102,10 +102,10 @@ TEST_F(DpiMsgLRTests, setUuidSuccess) {
    // Set the Unique ID
    string uuid("01234567-89ab-cdef-0123456789abcdef");
    DpiMsgLR dm;
-   dm.set_session_id(uuid);
+   dm.set_sessionid(uuid);
 
    // Get the Unique ID from the object
-   string rUuid(dm.session_id());
+   string rUuid(dm.sessionid());
 
    // Expect the two values to match
    EXPECT_EQ(uuid, rUuid);
@@ -123,7 +123,7 @@ TEST_F(DpiMsgLRTests, ConstructDeconstruct) {
 TEST_F(DpiMsgLRTests, enablePasswordScrubbing) {
    DpiMsgLR* dm = new DpiMsgLR;
    dm->EnablePasswordScrubbing(true);
-   dm->set_session_id("01234567-89ab-cdef-0123456789abcdef");
+   dm->set_sessionid("01234567-89ab-cdef-0123456789abcdef");
    dm->add_passwordq_proto_ftp("wooo");
    IndexedFieldPairs pairs = dm->GetAllFieldsAsStrings();
    ASSERT_EQ(2, pairs.size());
@@ -204,10 +204,10 @@ TEST_F(DpiMsgLRTests, setIpSrcSuccess) {
    // Set the IP Source Address
    uint32_t ipSrc = 3232235876; // 192.168.1.100
    DpiMsgLR dm;
-   dm.set_ip_source(ipSrc);
+   dm.set_ipsource(ipSrc);
 
    // Get the IP Source Address
-   uint32_t rIpSrc = dm.ip_source();
+   uint32_t rIpSrc = dm.ipsource();
 
    // Expect the two address to match
    EXPECT_EQ(ipSrc, rIpSrc);
@@ -217,10 +217,10 @@ TEST_F(DpiMsgLRTests, setIpDstSuccess) {
    // Set the IP Destination Address
    uint32_t ipDst = 167837813; // 10.1.0.75
    DpiMsgLR dm;
-   dm.set_ip_dest(ipDst);
+   dm.set_ipdest(ipDst);
 
    // Get the IP Destination Address
-   uint32_t rIpDst = dm.ip_dest();
+   uint32_t rIpDst = dm.ipdest();
 
    // Expect the two address to match
    EXPECT_EQ(ipDst, rIpDst);
@@ -230,10 +230,10 @@ TEST_F(DpiMsgLRTests, setPktPathSuccess) {
    // Set the Packet Path
    std::string path("eth.ip.tcp.http");
    DpiMsgLR dm;
-   dm.set_pkt_path(path);
+   dm.set_pktpath(path);
 
    // Get the Packet Path
-   std::string rPath = dm.pkt_path();
+   std::string rPath = dm.pktpath();
 
    // Expect the two strings to match
    EXPECT_EQ(path, rPath);
@@ -252,8 +252,8 @@ TEST_F(DpiMsgLRTests, ReadIPSrcDstSPortDPortProto) {
    charbuffer[23] = '1';
 #ifdef LR_DEBUG
    tDpiMessage.ReadIPSrcDstSPortDPortProto(charbuffer);
-   EXPECT_EQ(0x90af, tDpiMessage.port_source());
-   EXPECT_EQ(0x5b41, tDpiMessage.port_dest());
+   EXPECT_EQ(0x90af, tDpiMessage.portsource());
+   EXPECT_EQ(0x5b41, tDpiMessage.portdest());
 #endif
 }
 
@@ -261,13 +261,13 @@ TEST_F(DpiMsgLRTests, GetSpecialIntegersAsStrings) {
 #ifdef LR_DEBUG
    MockDpiMsgLR dm;
 
-   dm.set_ip_source(0x0a0b0c0d);
+   dm.set_ipsource(0x0a0b0c0d);
    EXPECT_EQ("13.12.11.10", dm.GetIpSrcString());
-   dm.set_ip_dest(0x01020304);
+   dm.set_ipdest(0x01020304);
    EXPECT_EQ("4.3.2.1", dm.GetIpDstString());
-   dm.set_mac_source(0x00000a0b0c0d0e0f);
+   dm.set_macsource(0x00000a0b0c0d0e0f);
    EXPECT_EQ("0f:0e:0d:0c:0b:0a", dm.GetEthSrcString());
-   dm.set_mac_dest(0x0000010203040506);
+   dm.set_macdest(0x0000010203040506);
    EXPECT_EQ("06:05:04:03:02:01", dm.GetEthDstString());
 #endif
 }
@@ -286,7 +286,7 @@ TEST_F(DpiMsgLRTests, FlowSessionCount) {
 
 TEST_F(DpiMsgLRTests, GetUuidPair) {
    EXPECT_EQ("none", tDpiMessage.GetUuidPair().second);
-   tDpiMessage.set_session_id("01234567-89ab-cdef-0123456789abcdef");
+   tDpiMessage.set_sessionid("01234567-89ab-cdef-0123456789abcdef");
    EXPECT_EQ("UUID", tDpiMessage.GetUuidPair().first);
    EXPECT_EQ("01234567-89ab-cdef-0123456789abcdef",
            tDpiMessage.GetUuidPair().second);
@@ -294,21 +294,21 @@ TEST_F(DpiMsgLRTests, GetUuidPair) {
 
 TEST_F(DpiMsgLRTests, GetEthSrcPair) {
    EXPECT_EQ("00:00:00:00:00:00", tDpiMessage.GetEthSrcPair().second);
-   tDpiMessage.set_mac_source(0x00000a0b0c0d0e0f);
+   tDpiMessage.set_macsource(0x00000a0b0c0d0e0f);
    EXPECT_EQ("EthSrc", tDpiMessage.GetEthSrcPair().first);
    EXPECT_EQ("0f:0e:0d:0c:0b:0a", tDpiMessage.GetEthSrcPair().second);
 }
 
 TEST_F(DpiMsgLRTests, GetEthDstPair) {
    EXPECT_EQ("00:00:00:00:00:00", tDpiMessage.GetEthDstPair().second);
-   tDpiMessage.set_mac_dest(0x0000010203040506);
+   tDpiMessage.set_macdest(0x0000010203040506);
    EXPECT_EQ("EthDst", tDpiMessage.GetEthDstPair().first);
    EXPECT_EQ("06:05:04:03:02:01", tDpiMessage.GetEthDstPair().second);
 }
 
 TEST_F(DpiMsgLRTests, GetIpSrcPair) {
    EXPECT_EQ("00.00.00.00", tDpiMessage.GetIpSrcPair().second);
-   tDpiMessage.set_ip_source(0x0a0b0c0d);
+   tDpiMessage.set_ipsource(0x0a0b0c0d);
 
    EXPECT_EQ("IpSrc", tDpiMessage.GetIpSrcPair().first);
    EXPECT_EQ("13.12.11.10", tDpiMessage.GetIpSrcPair().second);
@@ -317,7 +317,7 @@ TEST_F(DpiMsgLRTests, GetIpSrcPair) {
 
 TEST_F(DpiMsgLRTests, GetIpDstPair) {
    EXPECT_EQ("00.00.00.00", tDpiMessage.GetIpDstPair().second);
-   tDpiMessage.set_ip_dest(0x01020304);
+   tDpiMessage.set_ipdest(0x01020304);
 
    EXPECT_EQ("IpDst", tDpiMessage.GetIpDstPair().first);
    EXPECT_EQ("4.3.2.1", tDpiMessage.GetIpDstPair().second);
@@ -327,7 +327,7 @@ TEST_F(DpiMsgLRTests, GetIpDstPair) {
 TEST_F(DpiMsgLRTests, GetPktPathPair) {
    EXPECT_EQ(EMPTY, tDpiMessage.GetPktPathPair().second);
    string path = "foo.bar";
-   tDpiMessage.set_pkt_path(path);
+   tDpiMessage.set_pktpath(path);
    EXPECT_EQ("Path", tDpiMessage.GetPktPathPair().first);
    EXPECT_EQ("foo.bar", tDpiMessage.GetPktPathPair().second);
 
@@ -335,7 +335,7 @@ TEST_F(DpiMsgLRTests, GetPktPathPair) {
 
 TEST_F(DpiMsgLRTests, GetSourcePortPair) {
    EXPECT_EQ("0", tDpiMessage.GetSourcePortPair().second);
-   tDpiMessage.set_port_source(1234);
+   tDpiMessage.set_portsource(1234);
    EXPECT_EQ("SourcePort", tDpiMessage.GetSourcePortPair().first);
    EXPECT_EQ("1234", tDpiMessage.GetSourcePortPair().second);
 
@@ -343,7 +343,7 @@ TEST_F(DpiMsgLRTests, GetSourcePortPair) {
 
 TEST_F(DpiMsgLRTests, GetDestPortPair) {
    EXPECT_EQ("0", tDpiMessage.GetDestPortPair().second);
-   tDpiMessage.set_port_dest(5678);
+   tDpiMessage.set_portdest(5678);
    EXPECT_EQ("DestPort", tDpiMessage.GetDestPortPair().first);
    EXPECT_EQ("5678", tDpiMessage.GetDestPortPair().second);
 }
@@ -353,14 +353,14 @@ TEST_F(DpiMsgLRTests, GetStaticFieldPairs) {
    tDpiMessage.GetStaticFieldPairs(results);
    ASSERT_EQ(1, results.size());
    EXPECT_EQ("UUID", results[1].first);
-   tDpiMessage.set_mac_dest(123);
-   tDpiMessage.set_mac_source(123);
-   tDpiMessage.set_ip_dest(123);
-   tDpiMessage.set_ip_source(123);
-   tDpiMessage.set_pkt_path("foo");
-   tDpiMessage.set_port_source(123);
-   tDpiMessage.set_port_dest(123);
-   tDpiMessage.set_flow_completed(true);
+   tDpiMessage.set_macdest(123);
+   tDpiMessage.set_macsource(123);
+   tDpiMessage.set_ipdest(123);
+   tDpiMessage.set_ipsource(123);
+   tDpiMessage.set_pktpath("foo");
+   tDpiMessage.set_portsource(123);
+   tDpiMessage.set_portdest(123);
+   tDpiMessage.set_flowcompleted(true);
    tDpiMessage.GetStaticFieldPairs(results);
    ASSERT_EQ(9, results.size());
 
@@ -420,36 +420,36 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    std::map<string, string> expecteds;
    MockDpiMsgLR dm;
 
-   string ip_sources = "13.12.11.10";
-   dm.set_ip_source(0x0a0b0c0d);
-   expecteds["IpSrc"] = ip_sources;
+   string IPSources = "13.12.11.10";
+   dm.set_ipsource(0x0a0b0c0d);
+   expecteds["IpSrc"] = IPSources;
 
-   string ip_dests = "4.3.2.1";
-   dm.set_ip_dest(0x01020304);
-   expecteds["IpDst"] = ip_dests;
+   string IPDests = "4.3.2.1";
+   dm.set_ipdest(0x01020304);
+   expecteds["IpDst"] = IPDests;
 
-   string mac_sources = "0f:0e:0d:0c:0b:0a";
-   dm.set_mac_source(0x00000a0b0c0d0e0f);
-   expecteds["EthSrc"] = mac_sources;
+   string MacSources = "0f:0e:0d:0c:0b:0a";
+   dm.set_macsource(0x00000a0b0c0d0e0f);
+   expecteds["EthSrc"] = MacSources;
 
-   string mac_dests = "06:05:04:03:02:01";
-   dm.set_mac_dest(0x0000010203040506);
-   expecteds["EthDst"] = mac_dests;
+   string MacDests = "06:05:04:03:02:01";
+   dm.set_macdest(0x0000010203040506);
+   expecteds["EthDst"] = MacDests;
 
    string uuid = "01234567-89ab-cdef-0123456789abcdef";
-   dm.set_session_id(uuid);
+   dm.set_sessionid(uuid);
    expecteds["UUID"] = uuid;
 
    string path = "foo.bar";
-   dm.set_pkt_path(path);
+   dm.set_pktpath(path);
    expecteds["Path"] = path;
 
    int sport = 1234;
-   dm.set_port_source(sport);
+   dm.set_portsource(sport);
    expecteds["SourcePort"] = std::to_string(sport);
 
    int dport = 5678;
-   dm.set_port_dest(dport);
+   dm.set_portdest(dport);
    expecteds["DestPort"] = std::to_string(dport);
 
    int chunk = 1234;
@@ -482,7 +482,7 @@ TEST_F(DpiMsgLRTests, MissingKeyFields) {
    map<unsigned int, pair<string, string> > results;
    MockDpiMsgLR dm;
 
-   dm.set_session_id("01234567-89ab-cdef-0123456789abcdef");
+   dm.set_sessionid("01234567-89ab-cdef-0123456789abcdef");
 
    results = dm.GetAllFieldsAsStrings();
 
@@ -516,12 +516,12 @@ TEST_F(DpiMsgLRTests, serializationSuccess) {
    DpiMsgLR dm;
    DpiMsgLR rdm;
    std::string dmVec;
-   dm.set_session_id(uuid);
+   dm.set_sessionid(uuid);
    dm.SetEthSrc(ethSrc);
    dm.SetEthDst(ethDst);
-   dm.set_ip_source(ipSrc);
-   dm.set_ip_dest(ipDst);
-   dm.set_pkt_path(path);
+   dm.set_ipsource(ipSrc);
+   dm.set_ipdest(ipDst);
+   dm.set_pktpath(path);
    vector<unsigned char> rEthDst;
    vector<unsigned char> rEthSrc;
 
@@ -536,22 +536,22 @@ TEST_F(DpiMsgLRTests, serializationSuccess) {
 
       // Expect the uuid in the new object to match what was put in the original
       // object.
-      string rUuid(rdm.session_id());
+      string rUuid(rdm.sessionid());
       ASSERT_EQ(uuid, rUuid);
 
       // Expect the IP Source Address in the new object to match what was put
       // in the original object.
-      uint32_t rIpSrc = rdm.ip_source();
+      uint32_t rIpSrc = rdm.ipsource();
       ASSERT_EQ(ipSrc, rIpSrc);
 
       // Expect the IP Destination Address in the new object to match what was
       // put in the original object.
-      uint32_t rIpDst = rdm.ip_dest();
+      uint32_t rIpDst = rdm.ipdest();
       ASSERT_EQ(ipDst, rIpDst);
 
       // Expect the Packet Path in the new object to match what was put in the
       // original object.
-      std::string rPath = rdm.pkt_path();
+      std::string rPath = rdm.pktpath();
       ASSERT_EQ(path, rPath);
 
       // Get the Ethernet Addresses from the new object
@@ -589,7 +589,7 @@ TEST_F(DpiMsgLRTests, SetStringFieldsByName) {
 TEST_F(DpiMsgLRTests, SetStringFieldsByNameSerializes) {
    DpiMsgLR dm;
    std::string serializeData;
-   dm.set_session_id("abc123");
+   dm.set_sessionid("abc123");
 
    EXPECT_TRUE(dm.CanAddRepeatedString("application_endq_proto_base", "ghi789"));
    EXPECT_FALSE(dm.CanAddRepeatedString("application_endq_proto_base", "ghi789"));
@@ -599,7 +599,7 @@ TEST_F(DpiMsgLRTests, SetStringFieldsByNameSerializes) {
    DpiMsgLR rdm;
 
    rdm.PutBuffer(serializeData);
-   ASSERT_EQ("abc123", rdm.session_id());
+   ASSERT_EQ("abc123", rdm.sessionid());
    ASSERT_EQ("abc123", rdm.application_endq_proto_base(1));
 }
 
