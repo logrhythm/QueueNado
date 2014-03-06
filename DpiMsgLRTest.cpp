@@ -13,16 +13,16 @@ TEST_F(DpiMsgLRTests, EstimatePCapFileSize) {
    DpiMsgLR testMsg;
    
    testMsg.set_session("123456789012345678901234567890123456");
-   testMsg.set_packettotal(0);
-   testMsg.set_bytessource(0);
-   testMsg.set_bytesdest(0);
+   testMsg.set_totalpackets(0);
+   testMsg.set_srcbytes(0);
+   testMsg.set_destbytes(0);
    
    EXPECT_EQ(sizeof(pcap_file_header),testMsg.TheoreticalPCapFileSize());
-   testMsg.set_packettotal(10);
+   testMsg.set_totalpackets(10);
    EXPECT_EQ(sizeof(pcap_file_header)+10*sizeof(pcap_pkthdr),testMsg.TheoreticalPCapFileSize());
-   testMsg.set_bytessource(100);
+   testMsg.set_srcbytes(100);
    EXPECT_EQ(sizeof(pcap_file_header)+10*sizeof(pcap_pkthdr)+100,testMsg.TheoreticalPCapFileSize());
-   testMsg.set_bytesdest(1000);
+   testMsg.set_destbytes(1000);
    EXPECT_EQ(sizeof(pcap_file_header)+10*sizeof(pcap_pkthdr)+100+1000,testMsg.TheoreticalPCapFileSize());
 }
 TEST_F(DpiMsgLRTests, EncodeJSonValgrind ) {
@@ -32,11 +32,11 @@ TEST_F(DpiMsgLRTests, EncodeJSonValgrind ) {
    testMsg.add_uri_fullq_proto_http("1");
    testMsg.add_application_endq_proto_base("test");
    testMsg.set_application_id_endq_proto_base(1234);
-   testMsg.set_bytesdest(567);
-   testMsg.set_bytesdestdelta(567);
-   testMsg.set_bytessource(899);
-   testMsg.set_bytessourcedelta(899);
-   testMsg.set_packettotal(88);
+   testMsg.set_destbytes(567);
+   testMsg.set_destbytesdelta(567);
+   testMsg.set_srcbytes(899);
+   testMsg.set_srcbytesdelta(899);
+   testMsg.set_totalpackets(88);
    testMsg.set_packetsdelta(88);
    testMsg.add_loginq_proto_aim("aLogin");
    testMsg.add_domainq_proto_smb("aDomain12345");
@@ -204,10 +204,10 @@ TEST_F(DpiMsgLRTests, setIpSrcSuccess) {
    // Set the IP Source Address
    uint32_t ipSrc = 3232235876; // 192.168.1.100
    DpiMsgLR dm;
-   dm.set_ipsource(ipSrc);
+   dm.set_srcip(ipSrc);
 
    // Get the IP Source Address
-   uint32_t rIpSrc = dm.ipsource();
+   uint32_t rIpSrc = dm.srcip();
 
    // Expect the two address to match
    EXPECT_EQ(ipSrc, rIpSrc);
@@ -217,10 +217,10 @@ TEST_F(DpiMsgLRTests, setIpDstSuccess) {
    // Set the IP Destination Address
    uint32_t ipDst = 167837813; // 10.1.0.75
    DpiMsgLR dm;
-   dm.set_ipdest(ipDst);
+   dm.set_destip(ipDst);
 
    // Get the IP Destination Address
-   uint32_t rIpDst = dm.ipdest();
+   uint32_t rIpDst = dm.destip();
 
    // Expect the two address to match
    EXPECT_EQ(ipDst, rIpDst);
@@ -252,8 +252,8 @@ TEST_F(DpiMsgLRTests, ReadIPSrcDstSPortDPortProto) {
    charbuffer[23] = '1';
 #ifdef LR_DEBUG
    tDpiMessage.ReadIPSrcDstSPortDPortProto(charbuffer);
-   EXPECT_EQ(0x90af, tDpiMessage.portsource());
-   EXPECT_EQ(0x5b41, tDpiMessage.portdest());
+   EXPECT_EQ(0x90af, tDpiMessage.srcport());
+   EXPECT_EQ(0x5b41, tDpiMessage.destport());
 #endif
 }
 
@@ -261,13 +261,13 @@ TEST_F(DpiMsgLRTests, GetSpecialIntegersAsStrings) {
 #ifdef LR_DEBUG
    MockDpiMsgLR dm;
 
-   dm.set_ipsource(0x0a0b0c0d);
+   dm.set_srcip(0x0a0b0c0d);
    EXPECT_EQ("13.12.11.10", dm.GetIpSrcString());
-   dm.set_ipdest(0x01020304);
+   dm.set_destip(0x01020304);
    EXPECT_EQ("4.3.2.1", dm.GetIpDstString());
-   dm.set_macsource(0x00000a0b0c0d0e0f);
+   dm.set_srcmac(0x00000a0b0c0d0e0f);
    EXPECT_EQ("0f:0e:0d:0c:0b:0a", dm.GetEthSrcString());
-   dm.set_macdest(0x0000010203040506);
+   dm.set_destmac(0x0000010203040506);
    EXPECT_EQ("06:05:04:03:02:01", dm.GetEthDstString());
 #endif
 }
@@ -294,21 +294,21 @@ TEST_F(DpiMsgLRTests, GetUuidPair) {
 
 TEST_F(DpiMsgLRTests, GetEthSrcPair) {
    EXPECT_EQ("00:00:00:00:00:00", tDpiMessage.GetEthSrcPair().second);
-   tDpiMessage.set_macsource(0x00000a0b0c0d0e0f);
+   tDpiMessage.set_srcmac(0x00000a0b0c0d0e0f);
    EXPECT_EQ("EthSrc", tDpiMessage.GetEthSrcPair().first);
    EXPECT_EQ("0f:0e:0d:0c:0b:0a", tDpiMessage.GetEthSrcPair().second);
 }
 
 TEST_F(DpiMsgLRTests, GetEthDstPair) {
    EXPECT_EQ("00:00:00:00:00:00", tDpiMessage.GetEthDstPair().second);
-   tDpiMessage.set_macdest(0x0000010203040506);
+   tDpiMessage.set_destmac(0x0000010203040506);
    EXPECT_EQ("EthDst", tDpiMessage.GetEthDstPair().first);
    EXPECT_EQ("06:05:04:03:02:01", tDpiMessage.GetEthDstPair().second);
 }
 
 TEST_F(DpiMsgLRTests, GetIpSrcPair) {
    EXPECT_EQ("00.00.00.00", tDpiMessage.GetIpSrcPair().second);
-   tDpiMessage.set_ipsource(0x0a0b0c0d);
+   tDpiMessage.set_srcip(0x0a0b0c0d);
 
    EXPECT_EQ("IpSrc", tDpiMessage.GetIpSrcPair().first);
    EXPECT_EQ("13.12.11.10", tDpiMessage.GetIpSrcPair().second);
@@ -317,7 +317,7 @@ TEST_F(DpiMsgLRTests, GetIpSrcPair) {
 
 TEST_F(DpiMsgLRTests, GetIpDstPair) {
    EXPECT_EQ("00.00.00.00", tDpiMessage.GetIpDstPair().second);
-   tDpiMessage.set_ipdest(0x01020304);
+   tDpiMessage.set_destip(0x01020304);
 
    EXPECT_EQ("IpDst", tDpiMessage.GetIpDstPair().first);
    EXPECT_EQ("4.3.2.1", tDpiMessage.GetIpDstPair().second);
@@ -335,7 +335,7 @@ TEST_F(DpiMsgLRTests, GetPacketPathPair) {
 
 TEST_F(DpiMsgLRTests, GetSourcePortPair) {
    EXPECT_EQ("0", tDpiMessage.GetSourcePortPair().second);
-   tDpiMessage.set_portsource(1234);
+   tDpiMessage.set_srcport(1234);
    EXPECT_EQ("SourcePort", tDpiMessage.GetSourcePortPair().first);
    EXPECT_EQ("1234", tDpiMessage.GetSourcePortPair().second);
 
@@ -343,7 +343,7 @@ TEST_F(DpiMsgLRTests, GetSourcePortPair) {
 
 TEST_F(DpiMsgLRTests, GetDestPortPair) {
    EXPECT_EQ("0", tDpiMessage.GetDestPortPair().second);
-   tDpiMessage.set_portdest(5678);
+   tDpiMessage.set_destport(5678);
    EXPECT_EQ("DestPort", tDpiMessage.GetDestPortPair().first);
    EXPECT_EQ("5678", tDpiMessage.GetDestPortPair().second);
 }
@@ -353,13 +353,13 @@ TEST_F(DpiMsgLRTests, GetStaticFieldPairs) {
    tDpiMessage.GetStaticFieldPairs(results);
    ASSERT_EQ(1, results.size());
    EXPECT_EQ("UUID", results[1].first);
-   tDpiMessage.set_macdest(123);
-   tDpiMessage.set_macsource(123);
-   tDpiMessage.set_ipdest(123);
-   tDpiMessage.set_ipsource(123);
+   tDpiMessage.set_destmac(123);
+   tDpiMessage.set_srcmac(123);
+   tDpiMessage.set_destip(123);
+   tDpiMessage.set_srcip(123);
    tDpiMessage.set_packetpath("foo");
-   tDpiMessage.set_portsource(123);
-   tDpiMessage.set_portdest(123);
+   tDpiMessage.set_srcport(123);
+   tDpiMessage.set_destport(123);
    tDpiMessage.set_flowcompleted(true);
    tDpiMessage.GetStaticFieldPairs(results);
    ASSERT_EQ(9, results.size());
@@ -420,20 +420,20 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    std::map<string, string> expecteds;
    MockDpiMsgLR dm;
 
-   string IPSources = "13.12.11.10";
-   dm.set_ipsource(0x0a0b0c0d);
-   expecteds["IpSrc"] = IPSources;
+   string SrcIPs = "13.12.11.10";
+   dm.set_srcip(0x0a0b0c0d);
+   expecteds["IpSrc"] = SrcIPs;
 
-   string IPDests = "4.3.2.1";
-   dm.set_ipdest(0x01020304);
-   expecteds["IpDst"] = IPDests;
+   string DestIPs = "4.3.2.1";
+   dm.set_destip(0x01020304);
+   expecteds["IpDst"] = DestIPs;
 
    string MacSources = "0f:0e:0d:0c:0b:0a";
-   dm.set_macsource(0x00000a0b0c0d0e0f);
+   dm.set_srcmac(0x00000a0b0c0d0e0f);
    expecteds["EthSrc"] = MacSources;
 
    string MacDests = "06:05:04:03:02:01";
-   dm.set_macdest(0x0000010203040506);
+   dm.set_destmac(0x0000010203040506);
    expecteds["EthDst"] = MacDests;
 
    string uuid = "01234567-89ab-cdef-0123456789abcdef";
@@ -445,11 +445,11 @@ TEST_F(DpiMsgLRTests, GetAllFieldsAsStrings) {
    expecteds["Path"] = path;
 
    int sport = 1234;
-   dm.set_portsource(sport);
+   dm.set_srcport(sport);
    expecteds["SourcePort"] = std::to_string(sport);
 
    int dport = 5678;
-   dm.set_portdest(dport);
+   dm.set_destport(dport);
    expecteds["DestPort"] = std::to_string(dport);
 
    int chunk = 1234;
@@ -519,8 +519,8 @@ TEST_F(DpiMsgLRTests, serializationSuccess) {
    dm.set_session(uuid);
    dm.SetEthSrc(ethSrc);
    dm.SetEthDst(ethDst);
-   dm.set_ipsource(ipSrc);
-   dm.set_ipdest(ipDst);
+   dm.set_srcip(ipSrc);
+   dm.set_destip(ipDst);
    dm.set_packetpath(path);
    vector<unsigned char> rEthDst;
    vector<unsigned char> rEthSrc;
@@ -541,12 +541,12 @@ TEST_F(DpiMsgLRTests, serializationSuccess) {
 
       // Expect the IP Source Address in the new object to match what was put
       // in the original object.
-      uint32_t rIpSrc = rdm.ipsource();
+      uint32_t rIpSrc = rdm.srcip();
       ASSERT_EQ(ipSrc, rIpSrc);
 
       // Expect the IP Destination Address in the new object to match what was
       // put in the original object.
-      uint32_t rIpDst = rdm.ipdest();
+      uint32_t rIpDst = rdm.destip();
       ASSERT_EQ(ipDst, rIpDst);
 
       // Expect the Packet Path in the new object to match what was put in the

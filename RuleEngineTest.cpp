@@ -89,20 +89,20 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
    EXPECT_EQ("0", results[SIEM_FIELD_TIME_TOTAL].second);
 
    tDpiMessage.set_session("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_macdest(123);
-   tDpiMessage.set_macsource(124);
-   tDpiMessage.set_ipdest(125);
-   tDpiMessage.set_ipsource(126);
-   tDpiMessage.set_portsource(127);
-   tDpiMessage.set_portdest(128);
+   tDpiMessage.set_destmac(123);
+   tDpiMessage.set_srcmac(124);
+   tDpiMessage.set_destip(125);
+   tDpiMessage.set_srcip(126);
+   tDpiMessage.set_srcport(127);
+   tDpiMessage.set_destport(128);
    tDpiMessage.set_protocol(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytesdest(567);
-   tDpiMessage.set_bytesdestdelta(456);
-   tDpiMessage.set_bytessource(89);
-   tDpiMessage.set_bytessourcedelta(78);
-   tDpiMessage.set_packettotal(88);
+   tDpiMessage.set_destbytes(567);
+   tDpiMessage.set_destbytesdelta(456);
+   tDpiMessage.set_srcbytes(89);
+   tDpiMessage.set_srcbytesdelta(78);
+   tDpiMessage.set_totalpackets(88);
    tDpiMessage.set_packetsdelta(44);
    tDpiMessage.add_loginq_proto_0zz0("dontSeeMee");
    tDpiMessage.set_timestart(1234);
@@ -178,20 +178,20 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest__NoHang) {
    dm.mSiemMode = true;
    dm.mSiemDebugMode = true;
    tDpiMessage.set_session("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_macdest(123);
-   tDpiMessage.set_macsource(124);
-   tDpiMessage.set_ipdest(125);
-   tDpiMessage.set_ipsource(126);
-   tDpiMessage.set_portsource(127);
-   tDpiMessage.set_portdest(128);
+   tDpiMessage.set_destmac(123);
+   tDpiMessage.set_srcmac(124);
+   tDpiMessage.set_destip(125);
+   tDpiMessage.set_srcip(126);
+   tDpiMessage.set_srcport(127);
+   tDpiMessage.set_destport(128);
    tDpiMessage.set_protocol(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytesdest(567);
-   tDpiMessage.set_bytesdestdelta(567);
-   tDpiMessage.set_bytessource(89);
-   tDpiMessage.set_bytessourcedelta(89);
-   tDpiMessage.set_packettotal(88);
+   tDpiMessage.set_destbytes(567);
+   tDpiMessage.set_destbytesdelta(567);
+   tDpiMessage.set_srcbytes(89);
+   tDpiMessage.set_srcbytesdelta(89);
+   tDpiMessage.set_totalpackets(88);
    tDpiMessage.set_packetsdelta(88);
    tDpiMessage.add_loginq_proto_aim("aLogin");
    tDpiMessage.add_domainq_proto_smb("aDomain1234");
@@ -384,20 +384,20 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTest) {
    dm.mSiemMode = true;
    dm.mSiemDebugMode = true;
    tDpiMessage.set_session("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_macdest(123);
-   tDpiMessage.set_macsource(124);
-   tDpiMessage.set_ipdest(125);
-   tDpiMessage.set_ipsource(126);
-   tDpiMessage.set_portsource(127);
-   tDpiMessage.set_portdest(128);
+   tDpiMessage.set_destmac(123);
+   tDpiMessage.set_srcmac(124);
+   tDpiMessage.set_destip(125);
+   tDpiMessage.set_srcip(126);
+   tDpiMessage.set_srcport(127);
+   tDpiMessage.set_destport(128);
    tDpiMessage.set_protocol(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytesdest(567);
-   tDpiMessage.set_bytesdestdelta(567);
-   tDpiMessage.set_bytessource(89);
-   tDpiMessage.set_bytessourcedelta(89);
-   tDpiMessage.set_packettotal(88);
+   tDpiMessage.set_destbytes(567);
+   tDpiMessage.set_destbytesdelta(567);
+   tDpiMessage.set_srcbytes(89);
+   tDpiMessage.set_srcbytesdelta(89);
+   tDpiMessage.set_totalpackets(88);
    tDpiMessage.set_packetsdelta(88);
    tDpiMessage.add_loginq_proto_aim("aLogin");
    tDpiMessage.add_domainq_proto_smb("aDomain1234");
@@ -570,20 +570,20 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    dm.mSiemMode = true;
    dm.mSiemDebugMode = false;
    tDpiMessage.set_session("550e8400-e29b-41d4-a716-446655440000");
-   tDpiMessage.set_macdest(123);
-   tDpiMessage.set_macsource(124);
-   tDpiMessage.set_ipdest(125);
-   tDpiMessage.set_ipsource(126);
-   tDpiMessage.set_portsource(127);
-   tDpiMessage.set_portdest(128);
+   tDpiMessage.set_destmac(123);
+   tDpiMessage.set_srcmac(124);
+   tDpiMessage.set_destip(125);
+   tDpiMessage.set_srcip(126);
+   tDpiMessage.set_srcport(127);
+   tDpiMessage.set_destport(128);
    tDpiMessage.set_protocol(129);
    tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
-   tDpiMessage.set_bytesdest(567);
-   tDpiMessage.set_bytesdestdelta(567);
-   tDpiMessage.set_bytessource(899);
-   tDpiMessage.set_bytessourcedelta(899);
-   tDpiMessage.set_packettotal(88);
+   tDpiMessage.set_destbytes(567);
+   tDpiMessage.set_destbytesdelta(567);
+   tDpiMessage.set_srcbytes(899);
+   tDpiMessage.set_srcbytesdelta(899);
+   tDpiMessage.set_totalpackets(88);
    tDpiMessage.set_packetsdelta(88);
    tDpiMessage.add_loginq_proto_aim("aLogin");
    tDpiMessage.add_domainq_proto_smb("aDomain12345");
@@ -757,20 +757,20 @@ TEST_F(RuleEngineTest, testMsgReceive) {
 
       std::string testIpSrc = "10.1.10.50";
       uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-      msg.set_ipsource(ipSrc);
+      msg.set_srcip(ipSrc);
 
       std::string testIpDst = "10.128.64.251";
       uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-      msg.set_ipdest(ipDst);
+      msg.set_destip(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
       msg.set_packetpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
-      msg.set_portsource(12345);
+      msg.set_srcport(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
-      msg.set_portdest(54321);
+      msg.set_destport(54321);
 
       std::string dataToSend;
       msg.GetBuffer(dataToSend);
@@ -868,27 +868,27 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
 
       std::string testIpSrc = "10.1.10.50";
       uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-      msg.set_ipsource(ipSrc);
+      msg.set_srcip(ipSrc);
 
       std::string testIpDst = "10.128.64.251";
       uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-      msg.set_ipdest(ipDst);
+      msg.set_destip(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
       msg.set_packetpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
-      msg.set_portsource(12345);
+      msg.set_srcport(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
-      msg.set_portdest(54321);
+      msg.set_destport(54321);
       msg.set_protocol(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
-      msg.set_bytesdest(12345);
-      msg.set_bytessource(6789);
-      msg.set_packettotal(99);
+      msg.set_destbytes(12345);
+      msg.set_srcbytes(6789);
+      msg.set_totalpackets(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
       msg.add_uri_fullq_proto_http("this/url.htm");
@@ -999,27 +999,27 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
 
       std::string testIpSrc = "10.1.10.50";
       uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-      msg.set_ipsource(ipSrc);
+      msg.set_srcip(ipSrc);
 
       std::string testIpDst = "10.128.64.251";
       uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-      msg.set_ipdest(ipDst);
+      msg.set_destip(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
       msg.set_packetpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
-      msg.set_portsource(12345);
+      msg.set_srcport(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
-      msg.set_portdest(54321);
+      msg.set_destport(54321);
       msg.set_protocol(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
-      msg.set_bytesdest(12345);
-      msg.set_bytessource(6789);
-      msg.set_packettotal(99);
+      msg.set_destbytes(12345);
+      msg.set_srcbytes(6789);
+      msg.set_totalpackets(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
       msg.add_uri_fullq_proto_http("this/url.htm");
@@ -1042,18 +1042,18 @@ TEST_F(RuleEngineTest, testMsgReceiveIntermediateTypes) {
       msg.GetBuffer(dataToSend);
       sendQueue.SendData(dataToSend);
 
-      msg.set_bytesdest(23456); // delta = 11111
-      msg.set_bytessource(7900); // delta = 1111
-      msg.set_packettotal(210); // delta = 111
+      msg.set_destbytes(23456); // delta = 11111
+      msg.set_srcbytes(7900); // delta = 1111
+      msg.set_totalpackets(210); // delta = 111
       msg.set_timeupdated(567); // delta = 111
       dataToSend.clear();
       msg.GetBuffer(dataToSend);
       sendQueue.SendData(dataToSend);
 
       msg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
-      msg.set_bytesdest(45678); // delta = 22222
-      msg.set_bytessource(10122); // delta = 2222
-      msg.set_packettotal(432); // delta = 222
+      msg.set_destbytes(45678); // delta = 22222
+      msg.set_srcbytes(10122); // delta = 2222
+      msg.set_totalpackets(432); // delta = 222
       msg.set_timeupdated(789); // delta = 222
       dataToSend.clear();
       msg.GetBuffer(dataToSend);
@@ -1140,27 +1140,27 @@ TEST_F(RuleEngineTest, testMsgIntermediateFinalNoIntermediate) {
 
       std::string testIpSrc = "10.1.10.50";
       uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-      msg.set_ipsource(ipSrc);
+      msg.set_srcip(ipSrc);
 
       std::string testIpDst = "10.128.64.251";
       uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-      msg.set_ipdest(ipDst);
+      msg.set_destip(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
       msg.set_packetpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
-      msg.set_portsource(12345);
+      msg.set_srcport(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
-      msg.set_portdest(54321);
+      msg.set_destport(54321);
       msg.set_protocol(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
-      msg.set_bytesdest(12345);
-      msg.set_bytessource(6789);
-      msg.set_packettotal(99);
+      msg.set_destbytes(12345);
+      msg.set_srcbytes(6789);
+      msg.set_totalpackets(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
       msg.add_uri_fullq_proto_http("this/url.htm");
@@ -1267,27 +1267,27 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemModeDebug) {
 
       std::string testIpSrc = "10.1.10.50";
       uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-      msg.set_ipsource(ipSrc);
+      msg.set_srcip(ipSrc);
 
       std::string testIpDst = "10.128.64.251";
       uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-      msg.set_ipdest(ipDst);
+      msg.set_destip(ipDst);
 
       std::string path("base.eth.ip.udp.ntp");
       msg.set_packetpath(path.c_str());
 
       std::string testIpSourcePort = "=12345"; // bogus, but easier to test
-      msg.set_portsource(12345);
+      msg.set_srcport(12345);
 
       std::string testIpDestPort = "=54321"; // bogus, but easier to test
-      msg.set_portdest(54321);
+      msg.set_destport(54321);
       msg.set_protocol(12);
       msg.set_application_id_endq_proto_base(13);
       msg.add_application_endq_proto_base("wrong");
       msg.add_application_endq_proto_base("_3Com_Corp");
-      msg.set_bytesdest(12345);
-      msg.set_bytessource(67890);
-      msg.set_packettotal(99);
+      msg.set_destbytes(12345);
+      msg.set_srcbytes(67890);
+      msg.set_totalpackets(99);
       msg.add_loginq_proto_aim("aLogin");
       msg.add_domainq_proto_smb("aDomain");
       msg.add_uri_fullq_proto_http("this/url.htm");
@@ -1395,15 +1395,15 @@ TEST_F(RuleEngineTest, getSyslogMessages) {
    MockRuleEngine dm(conf, 0);
    std::map<unsigned int, std::pair<std::string, std::string> > results;
 
-   tDpiMessage.set_ipsource(0x0a0b0c0d);
-   tDpiMessage.set_ipdest(0x01020304);
-   tDpiMessage.set_macsource(0x00000a0b0c0d0e0f);
-   tDpiMessage.set_macdest(0x0000010203040506);
+   tDpiMessage.set_srcip(0x0a0b0c0d);
+   tDpiMessage.set_destip(0x01020304);
+   tDpiMessage.set_srcmac(0x00000a0b0c0d0e0f);
+   tDpiMessage.set_destmac(0x0000010203040506);
    tDpiMessage.set_session("01234567-89ab-cdef-0123456789abcdef");
    std::string path = "foo.bar";
    tDpiMessage.set_packetpath(path);
-   tDpiMessage.set_portsource(1234);
-   tDpiMessage.set_portdest(5678);
+   tDpiMessage.set_srcport(1234);
+   tDpiMessage.set_destport(5678);
 
    tDpiMessage.set_filesizeq_proto_bittorrent(1212);
    tDpiMessage.set_filesizeq_proto_edonkey(12345678901234L);
@@ -2192,8 +2192,8 @@ TEST_F(RuleEngineTest, GetSessionField) {
    ASSERT_EQ(0, results.size());
    results.clear();
    tDpiMessage.Clear();
-   tDpiMessage.set_bytessource(1234);
-   tDpiMessage.set_bytesdest(5678);
+   tDpiMessage.set_srcbytes(1234);
+   tDpiMessage.set_destbytes(5678);
    ASSERT_EQ(1, dm.GetSessionField(1, tDpiMessage, 0, results));
    ASSERT_EQ(0, results.size());
    results.clear();

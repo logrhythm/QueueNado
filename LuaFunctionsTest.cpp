@@ -115,8 +115,8 @@ TEST_F(LuaFunctionsTest, LuaGetIpInfoFromDpi) {
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
    dpiMsg.set_session("uuid");
-   dpiMsg.set_ipdest(ipDst);
-   dpiMsg.set_ipsource(ipSrc);
+   dpiMsg.set_destip(ipDst);
+   dpiMsg.set_srcip(ipSrc);
 
    lua_State *luaState;
    luaState = luaL_newstate();
@@ -141,8 +141,8 @@ TEST_F(LuaFunctionsTest, LuaGetMACInfoFromDpi) {
    dpiMsg.add_accept_encodingq_proto_http("test1");
    dpiMsg.add_accept_encodingq_proto_http("test2");
    dpiMsg.set_session("uuid");
-   dpiMsg.set_ipdest(ipDst);
-   dpiMsg.set_ipsource(ipSrc);
+   dpiMsg.set_destip(ipDst);
+   dpiMsg.set_srcip(ipSrc);
    std::vector<unsigned char> ethSrc;
    ethSrc.push_back(0x00);
    ethSrc.push_back(0x50);
@@ -646,29 +646,29 @@ TEST_F(LuaFunctionsTest, StaticCallGetDpiMsgSize) {
 
    string testIpSrc = "10.1.10.50";
    uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-   dpiMsg.set_ipsource(ipSrc);
+   dpiMsg.set_srcip(ipSrc);
 
    string testIpDst = "10.128.64.251";
    uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-   dpiMsg.set_ipdest(ipDst);
+   dpiMsg.set_destip(ipDst);
 
    string path("base.eth.ip.udp.ntp");
    dpiMsg.set_packetpath(path.c_str());
 
    string testIpSourcePort = "=12345"; // bogus, but easier to test
-   dpiMsg.set_portsource(12345);
+   dpiMsg.set_srcport(12345);
 
    string testIpDestPort = "=54321"; // bogus, but easier to test
-   dpiMsg.set_portdest(54321);
+   dpiMsg.set_destport(54321);
    dpiMsg.set_protocol(12);
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
    dpiMsg.add_application_endq_proto_base("dummy");
-   dpiMsg.set_bytesdest(12345);
-   dpiMsg.set_bytesdestdelta(12345);
-   dpiMsg.set_bytessource(6789);
-   dpiMsg.set_bytessourcedelta(6789);
-   dpiMsg.set_packettotal(99);
+   dpiMsg.set_destbytes(12345);
+   dpiMsg.set_destbytesdelta(12345);
+   dpiMsg.set_srcbytes(6789);
+   dpiMsg.set_srcbytesdelta(6789);
+   dpiMsg.set_totalpackets(99);
    dpiMsg.set_packetsdelta(99);
    dpiMsg.add_loginq_proto_aim("aLogin");
    dpiMsg.add_domainq_proto_smb("aDomain");
@@ -831,7 +831,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetPacketCount) {
 
    // Expect known value when set
    int expectedPactetCount(236);
-   dpiMsg.set_packettotal(expectedPactetCount);
+   dpiMsg.set_totalpackets(expectedPactetCount);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetPacketCount(luaState));
    EXPECT_EQ(expectedPactetCount, lua_tointeger(luaState, -1));
@@ -864,7 +864,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetSessionLenServer) {
 
    // Expect known value when set
    int expectedSessionLenServer(99425);
-   dpiMsg.set_bytesdest(expectedSessionLenServer);
+   dpiMsg.set_destbytes(expectedSessionLenServer);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionLenServer(luaState));
    EXPECT_EQ(expectedSessionLenServer, lua_tointeger(luaState, -1));
@@ -881,7 +881,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaSessionLenServer) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaSessionLenServer);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaSessionLenServer(luaState));
-   EXPECT_EQ(expectedDeltaSessionLenServer, dpiMsg.bytesdestdelta());
+   EXPECT_EQ(expectedDeltaSessionLenServer, dpiMsg.destbytesdelta());
    lua_close(luaState);
 }
 
@@ -897,7 +897,7 @@ TEST_F(LuaFunctionsTest, StaticCallGetSessionLenClient) {
 
    // Expect known value when set
    int expectedSessionLenClient(21553);
-   dpiMsg.set_bytessource(expectedSessionLenClient);
+   dpiMsg.set_srcbytes(expectedSessionLenClient);
    lua_pushlightuserdata(luaState, &dpiMsg);
    ASSERT_EQ(1, LuaRuleEngineFunctions::GetSessionLenClient(luaState));
    EXPECT_EQ(expectedSessionLenClient, lua_tointeger(luaState, -1));
@@ -914,7 +914,7 @@ TEST_F(LuaFunctionsTest, StaticCallSetDeltaSessionLenClient) {
    lua_pushlightuserdata(luaState, &dpiMsg);
    lua_pushinteger(luaState, expectedDeltaSessionLenClient);
    ASSERT_EQ(0, LuaRuleEngineFunctions::SetDeltaSessionLenClient(luaState));
-   EXPECT_EQ(expectedDeltaSessionLenClient, dpiMsg.bytessourcedelta());
+   EXPECT_EQ(expectedDeltaSessionLenClient, dpiMsg.srcbytesdelta());
    lua_close(luaState);
 }
 
@@ -1054,27 +1054,27 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
 
    string testIpSrc = "10.1.10.50";
    uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-   dpiMsg.set_ipsource(ipSrc);
+   dpiMsg.set_srcip(ipSrc);
 
    string testIpDst = "10.128.64.251";
    uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-   dpiMsg.set_ipdest(ipDst);
+   dpiMsg.set_destip(ipDst);
 
    string path("base.eth.ip.udp.ntp");
    dpiMsg.set_packetpath(path.c_str());
 
    string testIpSourcePort = "=12345"; // bogus, but easier to test
-   dpiMsg.set_portsource(12345);
+   dpiMsg.set_srcport(12345);
 
    string testIpDestPort = "=54321"; // bogus, but easier to test
-   dpiMsg.set_portdest(54321);
+   dpiMsg.set_destport(54321);
    dpiMsg.set_protocol(12);
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
    dpiMsg.add_application_endq_proto_base("_3Com_Corp");
-   dpiMsg.set_bytesdest(12345);
-   dpiMsg.set_bytessource(6789);
-   dpiMsg.set_packettotal(99);
+   dpiMsg.set_destbytes(12345);
+   dpiMsg.set_srcbytes(6789);
+   dpiMsg.set_totalpackets(99);
    dpiMsg.add_loginq_proto_aim("aLogin");
    dpiMsg.add_domainq_proto_smb("aDomain");
    dpiMsg.add_uri_fullq_proto_http("this/url.htm");
@@ -1092,8 +1092,8 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    dpiMsg.set_timestart(123);
    dpiMsg.set_timeupdated(456);
    dpiMsg.set_timedelta(222);
-   dpiMsg.set_bytessourcedelta(567);
-   dpiMsg.set_bytesdestdelta(234);
+   dpiMsg.set_srcbytesdelta(567);
+   dpiMsg.set_destbytesdelta(234);
    dpiMsg.set_packetsdelta(33);
    dpiMsg.set_sessionidq_proto_ymsg(2345);
    lua_State *luaState;
@@ -1103,12 +1103,12 @@ TEST_F(LuaFunctionsTest, StaticCallSendInterFlow) {
    ASSERT_EQ(0, LuaRuleEngineFunctions::SendInterFlowToSyslog(luaState));
 
    dpiMsg.set_timeupdated(567);
-   dpiMsg.set_bytesdest(23456);
-   dpiMsg.set_bytessource(7890);
-   dpiMsg.set_packettotal(124);
+   dpiMsg.set_destbytes(23456);
+   dpiMsg.set_srcbytes(7890);
+   dpiMsg.set_totalpackets(124);
    dpiMsg.set_timedelta(111); // 567 - 456
-   dpiMsg.set_bytessourcedelta(1101); // 7890 - 6789
-   dpiMsg.set_bytesdestdelta(11111); // 23456 - 12345
+   dpiMsg.set_srcbytesdelta(1101); // 7890 - 6789
+   dpiMsg.set_destbytesdelta(11111); // 23456 - 12345
    dpiMsg.set_packetsdelta(25); // 124 - 99
 
    dpiMsg.set_flowtype(DpiMsgLRproto_Type_INTERMEDIATE_FINAL);
@@ -1165,29 +1165,29 @@ TEST_F(LuaFunctionsTest, StaticCallSendFinalFlow) {
 
    string testIpSrc = "10.1.10.50";
    uint32_t ipSrc = 0x320A010A; // 10.1.10.50, note: little endian
-   dpiMsg.set_ipsource(ipSrc);
+   dpiMsg.set_srcip(ipSrc);
 
    string testIpDst = "10.128.64.251";
    uint32_t ipDst = 0xFB40800A; // 10.128.64.251, note: little endian
-   dpiMsg.set_ipdest(ipDst);
+   dpiMsg.set_destip(ipDst);
 
    string path("base.eth.ip.udp.ntp");
    dpiMsg.set_packetpath(path.c_str());
 
    string testIpSourcePort = "=12345"; // bogus, but easier to test
-   dpiMsg.set_portsource(12345);
+   dpiMsg.set_srcport(12345);
 
    string testIpDestPort = "=54321"; // bogus, but easier to test
-   dpiMsg.set_portdest(54321);
+   dpiMsg.set_destport(54321);
    dpiMsg.set_protocol(12);
    dpiMsg.set_application_id_endq_proto_base(13);
    dpiMsg.add_application_endq_proto_base("wrong");
    dpiMsg.add_application_endq_proto_base("_3Com_Corp");
-   dpiMsg.set_bytesdest(12345);
-   dpiMsg.set_bytesdestdelta(12345);
-   dpiMsg.set_bytessource(6789);
-   dpiMsg.set_bytessourcedelta(6789);
-   dpiMsg.set_packettotal(99);
+   dpiMsg.set_destbytes(12345);
+   dpiMsg.set_destbytesdelta(12345);
+   dpiMsg.set_srcbytes(6789);
+   dpiMsg.set_srcbytesdelta(6789);
+   dpiMsg.set_totalpackets(99);
    dpiMsg.set_packetsdelta(99);
    dpiMsg.add_loginq_proto_aim("aLogin");
    dpiMsg.add_domainq_proto_smb("aDomain");

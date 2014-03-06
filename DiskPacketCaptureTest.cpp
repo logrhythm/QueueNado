@@ -148,30 +148,30 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    struct upacket packet;
 
    testMessage->set_session("123456789012345678901234567890123456");
-   testMessage->set_packettotal(0);
+   testMessage->set_totalpackets(0);
    testMessage->set_packetsdelta(0);
-   testMessage->set_bytessource(0);
-   testMessage->set_bytesdest(0);
-   testMessage->set_bytestotal(0);
-   testMessage->set_bytestotaldelta(0);
+   testMessage->set_srcbytes(0);
+   testMessage->set_destbytes(0);
+   testMessage->set_totalbytes(0);
+   testMessage->set_totalbytesdelta(0);
    testMessage->set_captured(true);
 
    packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
    packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
    packet.p->len = (testPacketSize);
    for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
-      testMessage->set_packettotal(testMessage->packettotal() + 1);
+      testMessage->set_totalpackets(testMessage->totalpackets() + 1);
       testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
       if (i % 2 == 0) {
-         testMessage->set_bytessource(testMessage->bytessource() + packet.p->len);
+         testMessage->set_srcbytes(testMessage->srcbytes() + packet.p->len);
       } else {
-         testMessage->set_bytesdest(testMessage->bytesdest() + packet.p->len);
+         testMessage->set_destbytes(testMessage->destbytes() + packet.p->len);
       }
       capture.SavePacket(testMessage, &packet);
    }
    EXPECT_TRUE(capture.WriteSavedSessionToDisk(testMessage));
-   EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage->packettotal());
-   EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage->bytessource() + testMessage->bytesdest());
+   EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage->totalpackets());
+   EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage->srcbytes() + testMessage->destbytes());
    EXPECT_TRUE(testMessage->written());
    struct stat statbuf;
 
@@ -182,20 +182,20 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
 
    remove(testFile.c_str());
    for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
-      testMessage->set_packettotal(testMessage->packettotal() + 1);
+      testMessage->set_totalpackets(testMessage->totalpackets() + 1);
       testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
       if (i % 2 == 0) {
-         testMessage->set_bytessource(testMessage->bytessource() + packet.p->len);
+         testMessage->set_srcbytes(testMessage->srcbytes() + packet.p->len);
       } else {
-         testMessage->set_bytesdest(testMessage->bytesdest() + packet.p->len);
+         testMessage->set_destbytes(testMessage->destbytes() + packet.p->len);
       }
       capture.SavePacket(testMessage, &packet);
       EXPECT_FALSE(capture.WriteSavedSessionToDisk(testMessage));
    }
    EXPECT_FALSE(testMessage->written());
    EXPECT_FALSE(testMessage->captured());
-   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2), testMessage->packettotal());
-   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage->bytessource() + testMessage->bytesdest());
+   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2), testMessage->totalpackets());
+   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage->srcbytes() + testMessage->destbytes());
 
    ASSERT_NE(0, stat(testFile.c_str(), &statbuf));
 
@@ -220,12 +220,12 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitFlushedFile) {
    struct upacket packet;
 
    testMessage->set_session("123456789012345678901234567890123456");
-   testMessage->set_packettotal(0);
+   testMessage->set_totalpackets(0);
    testMessage->set_packetsdelta(0);
-   testMessage->set_bytessource(9 * testPacketSize);
-   testMessage->set_bytesdest(0);
-   testMessage->set_bytestotal(0);
-   testMessage->set_bytestotaldelta(0);
+   testMessage->set_srcbytes(9 * testPacketSize);
+   testMessage->set_destbytes(0);
+   testMessage->set_totalbytes(0);
+   testMessage->set_totalbytesdelta(0);
    testMessage->set_captured(true);
    testMessage->set_written(true);
 
@@ -234,12 +234,12 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitFlushedFile) {
    packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
    packet.p->len = (testPacketSize);
    for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
-      testMessage->set_packettotal(testMessage->packettotal() + 1);
+      testMessage->set_totalpackets(testMessage->totalpackets() + 1);
       testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
       if (i % 2 == 0) {
-         testMessage->set_bytessource(testMessage->bytessource() + packet.p->len);
+         testMessage->set_srcbytes(testMessage->srcbytes() + packet.p->len);
       } else {
-         testMessage->set_bytesdest(testMessage->bytesdest() + packet.p->len);
+         testMessage->set_destbytes(testMessage->destbytes() + packet.p->len);
       }
       capture.SavePacket(testMessage, &packet);
       capture.WriteSavedSessionToDisk(testMessage);
