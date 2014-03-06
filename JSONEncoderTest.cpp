@@ -115,8 +115,8 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithEthSrcDst) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
    EXPECT_TRUE(StringContains(encodedMessage,"\"Session\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"MacDest\": \"35:1c:dc:df:02:00\""));   
-   EXPECT_TRUE(StringContains(encodedMessage,"\"MacSource\": \"34:1c:dc:df:02:00\""));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"DestMAC\": \"35:1c:dc:df:02:00\""));   
+   EXPECT_TRUE(StringContains(encodedMessage,"\"SrcMAC\": \"34:1c:dc:df:02:00\""));
    
 }
 
@@ -132,7 +132,7 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRepeatedStringField) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
    EXPECT_TRUE(StringContains(encodedMessage,"\"Session\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#accept_encoding\": [\"1\", \"2\", \"3\"]"));   
+   EXPECT_TRUE(StringContains(encodedMessage,"\"accept_encoding\": [\"1\", \"2\", \"3\"]"));   
 
 }
 
@@ -185,23 +185,23 @@ TEST_F(JSONEncoderTest, EncodeAMessageWithRenamer) {
 
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
    EXPECT_TRUE(StringContains(encodedMessage,"\"Session\": \"ABC123\""));
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#server\": [\"thisname12345\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"server\": [\"thisname12345\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"PacketsDelta\": 88")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#uri\": [\"not/this/one\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"uri\": [\"not/this/one\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"SrcBytes\": 899")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#referer_server\": [\"notThisOne\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#method\": [\"RUN\", \"COMMAND\", \"LONGLONGLONGLONG\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"referer_server\": [\"notThisOne\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"method\": [\"RUN\", \"COMMAND\", \"LONGLONGLONGLONG\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"TotalPackets\": 88")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"DestBytes\": 567")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"DestBytesDelta\": 567")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"SrcBytesDelta\": 899")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#subject\": [\"test3_12345\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#application_end\": [\"test\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#application_id_end\": 1234")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#login\": [\"aLogin\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#uri_full\": [\"1\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#version\":"" [\"4.0\"]")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#domain\": [\"aDomain12345\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"subject\": [\"test3_12345\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"application_end\": [\"test\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"application_id_end\": 1234")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"login\": [\"aLogin\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"uri_full\": [\"1\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"version\":"" [\"4.0\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"domain\": [\"aDomain12345\"]")); 
 }
 
 TEST_F(JSONEncoderTest, encodesQuickSearchFields) {
@@ -224,23 +224,23 @@ TEST_F(JSONEncoderTest, encodesQuickSearchFields) {
    std::string encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
    EXPECT_TRUE(StringContains(encodedMessage,"\"Session\": \"ABC123\""));
    EXPECT_TRUE(StringContains(encodedMessage,"\"SrcBytes\": 899")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#application\": [\"test\", \"test2\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"application\": [\"test\", \"test2\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"DestBytes\": 567")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"DestBytesDelta\": 67")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"SrcBytesDelta\": 99")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#application_end\": [\"test\", \"test2\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"application_end\": [\"test\", \"test2\"]")); 
 
    testMsg.UpdateQuickSearchFields();
    encodedMessage = encoder.EncodeWithCallback(testMsg.CleanupName);
    EXPECT_TRUE(StringContains(encodedMessage,"\"Session\": \"ABC123\""));
    EXPECT_TRUE(StringContains(encodedMessage,"\"SrcBytes\": 899")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#application\": [\"test\", \"test2\"]")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"application\": [\"test\", \"test2\"]")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"DestBytes\": 567")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"DestBytesDelta\": 67")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"SrcBytesDelta\": 99")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"#application_end\": [\"test\", \"test2\"]"));
+   EXPECT_TRUE(StringContains(encodedMessage,"\"application_end\": [\"test\", \"test2\"]"));
    EXPECT_TRUE(StringContains(encodedMessage,"\"ApplicationPath\": \"/test/test2\"")); 
-   EXPECT_TRUE(StringContains(encodedMessage,"\"application\": \"test2\"")); 
+   EXPECT_TRUE(StringContains(encodedMessage,"\"Application\": \"test2\"")); 
    EXPECT_TRUE(StringContains(encodedMessage,"\"TotalBytes\": 1466"));
    EXPECT_TRUE(StringContains(encodedMessage,"\"TotalBytesDelta\": 166"));
    
