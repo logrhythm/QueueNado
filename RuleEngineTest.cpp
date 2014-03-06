@@ -153,19 +153,6 @@ TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
 }
 
 
-TEST_F(RuleEngineTest, ApplicationNameIsTooLarge) {
-#if defined(LR_DEBUG)
-   MockRuleEngine dm(conf, 0);
-   std::string tooLarge{"Hello"};
-   size_t cutOffSize = tooLarge.size();
-   EXPECT_FALSE(dm.ApplicationNameIsTooLarge(cutOffSize+2, tooLarge)); // not too large
-   EXPECT_TRUE(dm.ApplicationNameIsTooLarge(cutOffSize+1, tooLarge));
-   EXPECT_TRUE(dm.ApplicationNameIsTooLarge(cutOffSize, tooLarge));
-   EXPECT_TRUE(dm.ApplicationNameIsTooLarge(cutOffSize-1, tooLarge));
-   EXPECT_TRUE(dm.ApplicationNameIsTooLarge(cutOffSize-2, tooLarge));
-#endif
-}
-
 TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
 #ifdef LR_DEBUG
    MockRuleEngine dm(conf, 0);
@@ -209,9 +196,9 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    int expectedMsgSize(353); // exact size of message with data as defined above
    dm.SetMaxSize(expectedMsgSize);
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
-   //  for (int i = 0; i < messages.size(); i++) {
-   //      std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
-   //   }
+     //for (int i = 0; i < messages.size(); i++) {
+         //std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
+     //}
    ASSERT_EQ(1, messages.size());
    ASSERT_EQ(expectedMsgSize, messages[0].size());
    std::string expectedEvent = "EVT:001 550e8400-e29b-41d4-a716-446655440000:";
@@ -219,7 +206,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,26,0/899,0/567,0/88,123,456,0/333";
    std::string expected;
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeader, 0);
-   expected += ",login=aLogin,domain=aDomain12345,dname=thisname12345,command=RUN|COMMAND|LONGLONGLONGLONG,sender=test1_123456,recipient=test2_123,subject=test3_12345,version=4.0,uri=this/url.htm,process=_CHAOSnet";
+   expected += ",login=aLogin,domain=aDomain12345,dname=thisname12345,command=RUN|COMMAND|LONGLONGLONGLONG,sender=test1_123456,recipient=test2_123,subject=test3_12345,version=4.0,url=this/url.htm,process=_CHAOSnet";
    EXPECT_EQ(expected, messages[0]);
 
    // Force each extra field to be split between multiple syslog EVT:001 messages.
@@ -263,7 +250,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    expected += ",version=4.0";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
-   expected += ",uri=this/url.htm";
+   expected += ",url=this/url.htm";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",process=_CHAOSnet";
@@ -530,7 +517,7 @@ TEST_F(RuleEngineTest, testMsgReceiveSiemMode) {
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[0].find("10.1.10.50,10.128.64.251,12345,54321,00:22:19:08:2c:00,f0:f7:55:dc:a8:00,12,2,6789/6789,12345/12345,99/99,123,456,333/333"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[0].find("login=aLogin"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[0].find("domain=aDomain"));
-      EXPECT_NE(std::string::npos, re.GetSyslogSent()[0].find("uri=this/url.htm"));
+      EXPECT_NE(std::string::npos, re.GetSyslogSent()[0].find("url=this/url.htm"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[0].find("dname=thisname"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[0].find("command=TEST|COMMAND"));
       EXPECT_NE(std::string::npos, re.GetSyslogSent()[0].find("sender=test1"));
@@ -1245,7 +1232,7 @@ TEST_F(RuleEngineTest, GetUrlField) {
    tDpiMessage.add_uri_fullq_proto_http("test1");
    ASSERT_EQ(2, dm.GetUrlField(1, tDpiMessage, 0, results));
    ASSERT_EQ(1, results.size());
-   EXPECT_EQ("uri", results[1].first);
+   EXPECT_EQ("url", results[1].first);
    EXPECT_EQ("test1", results[1].second);
    results.clear();
    tDpiMessage.Clear();
@@ -1255,7 +1242,7 @@ TEST_F(RuleEngineTest, GetUrlField) {
    tDpiMessage.add_destination_hostq_proto_diameter("test1");
    ASSERT_EQ(2, dm.GetUrlField(1, tDpiMessage, 0, results));
    ASSERT_EQ(1, results.size());
-   EXPECT_EQ("uri", results[1].first);
+   EXPECT_EQ("url", results[1].first);
    EXPECT_EQ("test1", results[1].second);
    results.clear();
    tDpiMessage.Clear();
@@ -1277,7 +1264,7 @@ TEST_F(RuleEngineTest, GetUrlField) {
    tDpiMessage.add_destination_hostq_proto_diameter("test1");
    ASSERT_EQ(2, dm.GetUrlField(1, tDpiMessage, 0, results));
    ASSERT_EQ(1, results.size());
-   EXPECT_EQ("uri", results[1].first);
+   EXPECT_EQ("url", results[1].first);
    EXPECT_EQ("test1", results[1].second);
    results.clear();
    tDpiMessage.Clear();
@@ -1286,7 +1273,7 @@ TEST_F(RuleEngineTest, GetUrlField) {
    tDpiMessage.add_ad_visible_urlq_proto_google_ads("notit");
    ASSERT_EQ(2, dm.GetUrlField(1, tDpiMessage, 0, results));
    ASSERT_EQ(1, results.size());
-   EXPECT_EQ("uri", results[1].first);
+   EXPECT_EQ("url", results[1].first);
    EXPECT_EQ("test1", results[1].second);
    results.clear();
    tDpiMessage.Clear();
@@ -1300,7 +1287,7 @@ TEST_F(RuleEngineTest, GetUrlField) {
    tDpiMessage.add_ad_visible_urlq_proto_google_ads("test1");
    ASSERT_EQ(2, dm.GetUrlField(1, tDpiMessage, 0, results));
    ASSERT_EQ(1, results.size());
-   EXPECT_EQ("uri", results[1].first);
+   EXPECT_EQ("url", results[1].first);
    EXPECT_EQ("test1", results[1].second);
    results.clear();
    tDpiMessage.Clear();
