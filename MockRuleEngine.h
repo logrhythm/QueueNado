@@ -74,55 +74,11 @@ namespace networkMonitor {
 
       int GetDpiMsgQueueSize() {
          return mDpiMsgQueueSize;
+      }   
+      unsigned int GetSpecificFieldPairs(unsigned int nextField, const DpiMsgLR& dpiMsg, 
+                                          IndexedFieldPairs& formattedFieldData, const unsigned int threshold) {
+         return RuleEngine::GetSpecificFieldPairs(nextField,dpiMsg,formattedFieldData, threshold);
       }
-
-      unsigned int GetLoginField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override{
-         return RuleEngine::GetLoginField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
-      unsigned int GetDomainField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override{
-         return RuleEngine::GetDomainField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
-      unsigned int GetUrlField(const unsigned int nextField,const  DpiMsgLR& dpiMsg,const unsigned int threshold,IndexedFieldPairs& formattedFieldData)override {
-         return RuleEngine::GetUrlField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
-      unsigned int GetDestHostField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override{
-         return RuleEngine::GetDestHostField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
-      unsigned int GetCommandField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override{
-         return RuleEngine::GetCommandField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
-      unsigned int GetSenderField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override{
-         return RuleEngine::GetSenderField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
-      unsigned int GetRecipientField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override{
-         return RuleEngine::GetRecipientField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
-      unsigned int GetSubjectField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override{
-         return RuleEngine::GetSubjectField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
-      unsigned int GetVersionField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override{
-         return RuleEngine::GetVersionField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-      unsigned int GetSessionField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override{
-         return RuleEngine::GetSessionField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
-      unsigned int GetPathField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override{
-         return RuleEngine::GetPathField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
-      unsigned int GetFilenameField(const unsigned int nextField,const  DpiMsgLR& dpiMsg, const unsigned int threshold,IndexedFieldPairs& formattedFieldData) override {
-         return RuleEngine::GetFilenameField(nextField, dpiMsg, threshold,formattedFieldData);
-      }
-
       void SetElasticSearchTarget(const std::string& target) {
          RuleEngine::mElasticSearchTarget = target;
          RuleEngine::mTransferElasticSearch.SetBinding(target);
@@ -158,12 +114,6 @@ namespace networkMonitor {
          return RuleEngine::InitializeSyslogSendQueue();
       }
       
-      bool ApplicationNameIsTooLarge(size_t cutOffLimit, const std::string& applicationName) LR_OVERRIDE {
-         return RuleEngine::ApplicationNameIsTooLarge(cutOffLimit, applicationName);
-      }
-      
-   
-
       bool mSiemMode;
       unsigned int mMaxLineLength;
       std::string mScriptsDir;
