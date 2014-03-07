@@ -324,7 +324,7 @@ TEST_F(LuaFunctionsTest, GetListOfStrings) {
    lua_close(luaState);
 
 }
-#ifdef LR_DEUBG
+#ifdef LR_DEBUG
 
 TEST_F(LuaFunctionsTest, AddThenRegister) {
    MockLuaFunctions functions;
@@ -382,9 +382,26 @@ TEST_F(LuaFunctionsTest, PacketFunctions) {
    delete functions;
 }
 
+TEST_F(LuaFunctionsTest, IntermediateFlow_CorrectlyBuiltMsg) {
+    MockConf conf;
+    MockLuaPacketFunctions luaFunctions;
+    luaFunctions.StartPacketCapture(conf);
+ 
+    networkMonitor::DpiMsgLR dpiMsg;
+    lua_State *luaState;
+    luaState = luaL_newstate();
+    lua_pushlightuserdata(luaState, &dpiMsg);
+    const int someValue{600};
+    lua_pushinteger(luaState, someValue);
 
+    LuaPacketFunctions::DataNull(luaState);
+    EXPECT_FALSE(lua_toboolean(luaState, -1)); // internal data is NOT null
 
-   
+    LuaPacketFunctions::SessionAge(luaState);
+    EXPECT_FALSE(lua_toboolean(luaState, -1));
+    lua_close(luaState);
+}
+
    
 TEST_F(LuaFunctionsTest, SessionAge) {
    MockConf conf;   
@@ -398,22 +415,28 @@ TEST_F(LuaFunctionsTest, SessionAge) {
       lua_State *luaState;
       luaState = luaL_newstate();
       lua_pushlightuserdata(luaState, &dpiMsg);
-      conf.mFlowReportInterval = 10;
+      // mimics QosmosDpiMsgLRCallbacks::RegisterRules (static)
+      conf.mFlowReportInterval = 600; // 10min in seconds
+      lua_pushinteger(luaState, conf.GetFlowReportInterval());
       LuaPacketFunctions::SessionAge(luaState);
       EXPECT_FALSE(lua_toboolean(luaState, -1));
       lua_close(luaState);
+      
       luaState = luaL_newstate();
       dpiMsg.set_time_updated(std::time(NULL));
       lua_pushlightuserdata(luaState, &dpiMsg);
       conf.mFlowReportInterval = 999;
+      lua_pushinteger(luaState, conf.GetFlowReportInterval());
       LuaPacketFunctions::SessionAge(luaState);
       EXPECT_FALSE(lua_toboolean(luaState, -1));
       lua_close(luaState);
+      
       luaState = luaL_newstate();
-      time_t pasttime = std::time(NULL) - 11;
+      time_t pasttime = std::time(NULL) - (605); // 10 minutes, 5 seconds
       dpiMsg.set_time_updated(pasttime);
       lua_pushlightuserdata(luaState, &dpiMsg);
-      conf.mFlowReportInterval = 10;
+      conf.mFlowReportInterval = 600; // 10 minutes
+      lua_pushinteger(luaState, conf.GetFlowReportInterval());
       LuaPacketFunctions::SessionAge(luaState);
       EXPECT_TRUE(lua_toboolean(luaState, -1));
       EXPECT_TRUE(dpiMsg.flow_type() == ::networkMonitor::DpiMsgLRproto_Type_INTERMEDIATE);
