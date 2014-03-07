@@ -432,13 +432,8 @@ TEST_F(LuaFunctionsTest, SessionAge) {
       lua_close(luaState);
       
       luaState = luaL_newstate();
-<<<<<<< HEAD
-      time_t pasttime = std::time(NULL) - 11;
-      dpiMsg.set_timeupdated(pasttime);
-=======
       time_t pasttime = std::time(NULL) - (605); // 10 minutes, 5 seconds
-      dpiMsg.set_time_updated(pasttime);
->>>>>>> d77cdba892571693dc8393208880e26dc1b74fbe
+      dpiMsg.set_timeupdated(pasttime);
       lua_pushlightuserdata(luaState, &dpiMsg);
       conf.mFlowReportInterval = 600; // 10 minutes
       lua_pushinteger(luaState, conf.GetFlowReportInterval());
