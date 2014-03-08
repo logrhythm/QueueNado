@@ -26,7 +26,7 @@ public:
 
    bool WriteSavedSessionToDisk(networkMonitor::DpiMsgLR* dpiMsg) {
       if (mTrackWrites) {
-         mFilesWritten.push_back(dpiMsg->session_id());
+         mFilesWritten.push_back(dpiMsg->session());
       }
       return DiskPacketCapture::WriteSavedSessionToDisk(dpiMsg);
    }

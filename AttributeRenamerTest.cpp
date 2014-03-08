@@ -30,7 +30,7 @@ TEST_F(AttributeRenamerTest, BasicRenaming) {
    MockAttributeRenamer renamer;
    ASSERT_TRUE(renamer.Initialize("resources/remapping.yaml"));
 
-   EXPECT_TRUE("logrhythm_ack_number" == renamer.GetNewName("ack_number", "#"));
+   EXPECT_TRUE("AckNumber" == renamer.GetNewName("ack_number", "#"));
    EXPECT_TRUE("#notFound" == renamer.GetNewName("notFound", "#"));
 }
 
@@ -38,7 +38,7 @@ TEST_F(AttributeRenamerTest, ResetRenaming) {
    MockAttributeRenamer renamer;
    ASSERT_TRUE(renamer.Initialize("resources/remapping.yaml"));
 
-   EXPECT_TRUE("logrhythm_ack_number" == renamer.GetNewName("ack_number", "#"));
+   EXPECT_TRUE("AckNumber" == renamer.GetNewName("ack_number", "#"));
    EXPECT_TRUE("#notFound" == renamer.GetNewName("notFound", "#"));
    ASSERT_FALSE(renamer.Initialize("/file/does/not/exist"));
    EXPECT_TRUE("#ack_number" == renamer.GetNewName("ack_number", "#"));

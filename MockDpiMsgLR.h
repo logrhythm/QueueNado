@@ -43,8 +43,8 @@ namespace networkMonitor {
          return DpiMsgLR::GetIpDstPair();
       }
 
-      std::pair<std::string, std::string> GetPktPathPair() const override {
-         return DpiMsgLR::GetPktPathPair();
+      std::pair<std::string, std::string> GetPacketPathPair() const override {
+         return DpiMsgLR::GetPacketPathPair();
       }
 
       std::pair<std::string, std::string> GetSourcePortPair() const override {

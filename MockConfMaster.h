@@ -122,6 +122,7 @@ public:
       mConfLocation = path;
       mConf.setPath(path);
    }
+   
    std::string mConfLocation;
       bool mOverrideInternalRepair;
    bool mInternalRepair;
