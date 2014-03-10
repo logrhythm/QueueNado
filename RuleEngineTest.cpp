@@ -18,6 +18,7 @@ using namespace networkMonitor;
 TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
 #ifdef LR_DEBUG
    MockRuleEngine dm(conf, 0);
+   const size_t flowReportTime = conf.GetConf().GetFlowReportInterval();
 
    networkMonitor::DpiMsgLR aMessage;
    aMessage.set_session("abc123");
@@ -28,7 +29,7 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
    aMessage.set_childflownumber(2);
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_TRUE(dm.mSentUpdate);
-   EXPECT_EQ(123456789-600,dm.mEsMessage.timeupdated());
+   EXPECT_EQ(123456789-flowReportTime,dm.mEsMessage.timeupdated());
    EXPECT_TRUE(dm.mEsMessage.has_childflownumber());
    EXPECT_EQ(1,dm.mEsMessage.childflownumber());
    EXPECT_FALSE(dm.mEsMessage.latestupdate());
@@ -43,6 +44,7 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
    EXPECT_FALSE(dm.mEsMessage.latestupdate());
 #endif
 }
+
 
 TEST_F(RuleEngineTest, GetSiemRequiredFieldPairs) {
 #ifdef LR_DEBUG
