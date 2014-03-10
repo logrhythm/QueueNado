@@ -4,8 +4,11 @@
 #include "g2log.hpp"
 #include "czmq.h"
 #include <pcap/pcap.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/generated_message_reflection.h>
 
 using namespace networkMonitor;
+using namespace google::protobuf;
 using namespace std;
 
 
@@ -408,6 +411,35 @@ TEST_F(DpiMsgLRTests, GetDynamicFieldPairs) {
    }
 }
 
+TEST_F(DpiMsgLRTests, GetPossiblyRepeatedString) {
+   DpiMsgLR dm;
+   const Reflection* msgReflection = dm.GetReflection();
+   IndexedFieldPairs tempFieldData;
+   vector<const FieldDescriptor*> allFields;
+
+   std::map<string, int> expecteds;
+   int k = 0;
+   int ldapProto = 20;
+   int messageSize = 100;
+   dm.set_message_type(ldapProto);
+   dm.set_message_size(messageSize);
+
+   expecteds["message_size"] =  messageSize; // this is CPPTYPE_UINT64
+   expecteds["message_idQ_PROTmessage_typeQ_PROTO_LDAPO_LDAP"] =  ldapProto;  // CPPTYPE_UINT32
+
+   msgReflection->ListFields(dm, &allFields);
+   for (auto j = allFields.begin(); j != allFields.end(); j++) {
+      std::string key = (*j)->name();
+      dm.PopulatePossiblyRepeatedField(msgReflection, j, key.c_str(), k, tempFieldData);
+      k++;
+   }
+
+   for (const auto &field:tempFieldData) {
+      string fieldName = field.second.first;
+      string  fieldValue = field.second.second;
+      EXPECT_EQ(std::to_string(expecteds[fieldName]),fieldValue) << "name/value: [" << fieldName << "]/[" <<fieldValue << "]";    
+   }
+}
 
 // Some of the fields will be camelcase and some of the fields will be 
 // lowercase-underscore separated
