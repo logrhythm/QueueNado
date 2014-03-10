@@ -417,15 +417,20 @@ TEST_F(DpiMsgLRTests, GetPossiblyRepeatedString) {
    IndexedFieldPairs tempFieldData;
    vector<const FieldDescriptor*> allFields;
 
-   std::map<string, int> expecteds;
+   std::map<string, int> expectedint;
+   std::map<string, string> expectedstring;
    int k = 0;
    int ldapProto = 20;
    int messageSize = 100;
-   dm.set_message_type(ldapProto);
-   dm.set_message_size(messageSize);
 
-   expecteds["message_size"] =  messageSize; // this is CPPTYPE_UINT64
-   expecteds["message_idQ_PROTmessage_typeQ_PROTO_LDAPO_LDAP"] =  ldapProto;  // CPPTYPE_UINT32
+   dm.set_message_idq_proto_ldap(ldapProto);
+   dm.set_messagesize(messageSize);
+   dm.set_flowcompleted(true);
+
+   expectedint["message_idQ_PROTO_LDAP"] =  ldapProto;  // CPPTYPE_UINT32
+   expectedint["MessageSize"] =  messageSize; // this is CPPTYPE_UINT64
+
+   expectedstring["FlowCompleted"] =  "true";  // CPPTYPE_BOOL
 
    msgReflection->ListFields(dm, &allFields);
    for (auto j = allFields.begin(); j != allFields.end(); j++) {
@@ -437,7 +442,11 @@ TEST_F(DpiMsgLRTests, GetPossiblyRepeatedString) {
    for (const auto &field:tempFieldData) {
       string fieldName = field.second.first;
       string  fieldValue = field.second.second;
-      EXPECT_EQ(std::to_string(expecteds[fieldName]),fieldValue) << "name/value: [" << fieldName << "]/[" <<fieldValue << "]";    
+      if (fieldName == "FlowCompleted") {
+         EXPECT_EQ(expectedstring[fieldName],fieldValue) << "name/value: [" << fieldName << "]/[" <<fieldValue << "]";    
+      } else {
+         EXPECT_EQ(std::to_string(expectedint[fieldName]),fieldValue) << "name/value: [" << fieldName << "]/[" <<fieldValue << "]";    
+      }
    }
 }
 
