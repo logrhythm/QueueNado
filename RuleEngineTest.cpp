@@ -14,7 +14,22 @@
 #include "ProcessManager.h"
 
 using namespace networkMonitor;
+#ifdef LR_DEBUG
+TEST_F(RuleEngineTest, MultipleValuesThatMapToSameSIEMFieldNameAreAppended) {
+   MockRuleEngine dm(conf, 0);
 
+   networkMonitor::DpiMsgLR aMessage;
+   aMessage.add_senderq_proto_gmail("gmail");
+   aMessage.add_senderq_proto_live_hotmail("hotmail");
+   IndexedFieldPairs formattedFieldData;
+   
+   unsigned int nextField = dm.GetSpecificFieldPairs(0, aMessage, 
+                                        formattedFieldData, 0);
+   EXPECT_EQ(1,nextField);
+   EXPECT_EQ(formattedFieldData[0].second,"gmail|hotmail");
+   EXPECT_EQ(formattedFieldData[0].first,"sender");
+}
+#endif
 TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
 #ifdef LR_DEBUG
    MockRuleEngine dm(conf, 0);
