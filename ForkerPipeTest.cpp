@@ -213,7 +213,7 @@ TEST_F(ForkerPipeTest, ParseCommandProto) {
 //
 // Currently the timeout is 300 seconds, with retries every second
 // This will push a lot of printouts to the system 
-TEST_F(ForkerPipeTest, CommandWithNoOutputExpected_WillTake3Minutes) {
+TEST_F(ForkerPipeTest, CommandWithNoOutputExpected_TakesTimeToFinish) {
    MockForkerPipe clientPipe("ForkerPipeTest");
    protoMsg::ForkerRequest requestProto;
    requestProto.set_expectreply(false);
