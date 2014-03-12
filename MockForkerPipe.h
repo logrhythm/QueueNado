@@ -3,7 +3,7 @@
 class MockForkerPipe : public ForkerPipe {
 public:
 
-   MockForkerPipe(std::string programName, bool client = true) : ForkerPipe(programName, client), mFakeChildFinished(false) {
+   MockForkerPipe(const std::string& programName, bool client = true) : ForkerPipe(programName, client), mFakeChildFinished(false) {
    }
 
    LR_VIRTUAL int GetReplyTimeout() {

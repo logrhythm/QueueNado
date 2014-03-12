@@ -262,7 +262,7 @@ public:
    }
 
    bool OptimizeIndexes(const std::set<std::string>& allIndexes,
-           const std::set<std::string> excludes) LR_OVERRIDE {
+           const std::set<std::string>& excludes) LR_OVERRIDE {
       ElasticSearch::OptimizeIndexes(allIndexes, excludes);
    }
 
