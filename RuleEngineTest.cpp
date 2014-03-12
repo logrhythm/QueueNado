@@ -14,7 +14,46 @@
 #include "ProcessManager.h"
 
 using namespace networkMonitor;
+#ifdef LR_DEBUG
+TEST_F(RuleEngineTest, MultipleValuesThatMapToSameSIEMFieldNameAreAppended) {
+   MockRuleEngine dm(conf, 0);
 
+   networkMonitor::DpiMsgLR aMessage;
+   aMessage.add_senderq_proto_gmail("gmail");
+   aMessage.add_senderq_proto_live_hotmail("hotmail");
+   IndexedFieldPairs formattedFieldData;
+   
+   unsigned int nextField = dm.GetSpecificFieldPairs(0, aMessage, 
+                                        formattedFieldData, 0);
+   EXPECT_EQ(1,nextField);
+   EXPECT_EQ(formattedFieldData[0].second,"gmail|hotmail");
+   EXPECT_EQ(formattedFieldData[0].first,"sender");
+   
+//   SIEM_LOGIN_ID, SIEM_DOMAIN_ID, SIEM_DEST_HOST,
+//          SIEM_COMMAND, SIEM_SENDER, SIEM_RECIPIENT,
+//          SIEM_SUBJECT, SIEM_VERSION, SIEM_PATH, 
+//          SIEM_FILENAME, SIEM_SESSION, SIEM_URL_ID, 
+//          SIEM_APP_NAME
+   
+   aMessage.add_loginq_proto_0zz0("ozzoLogin");
+   aMessage.add_loginq_proto_aim("aimlogin");
+   aMessage.add_loginq_proto_aim_express("aimlogin2");
+   aMessage.add_vtp_mgmt_domainq_proto_cdp("cdpdomain");
+   aMessage.add_real_sender_domainq_proto_gmail("gmaildomain");
+   aMessage.add_realmq_proto_krb5("kerbdomain");
+
+   formattedFieldData.clear();
+   nextField = dm.GetSpecificFieldPairs(0, aMessage, 
+                                        formattedFieldData, 0);
+   EXPECT_EQ(3,nextField);
+   EXPECT_EQ(formattedFieldData[0].second,"ozzoLogin|aimlogin|aimlogin2");
+   EXPECT_EQ(formattedFieldData[0].first,"login");
+   EXPECT_EQ(formattedFieldData[1].second,"cdpdomain|gmaildomain|kerbdomain");
+   EXPECT_EQ(formattedFieldData[1].first,"domain");
+   EXPECT_EQ(formattedFieldData[2].second,"gmail|hotmail");
+   EXPECT_EQ(formattedFieldData[2].first,"sender");
+}
+#endif
 TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
 #ifdef LR_DEBUG
    MockRuleEngine dm(conf, 0);
