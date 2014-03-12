@@ -5,8 +5,12 @@
  * Created on September 28, 2012, 3:53 PM
  */
 
-#include "ConfNetInterface.h"
 #include "ConfProcessorTests.h"
+
+#include <stdio.h>
+#include <algorithm>
+
+#include "ConfNetInterface.h"
 #include "ConfMaster.h"
 #include "ConfSlave.h"
 #include "Conf.h"
@@ -24,7 +28,6 @@
 #include "Shotgun.h"
 #include "g2log.hpp"
 #include "QosmosProtocolCapture.h"
-#include <stdio.h>
 using namespace std;
 
 #ifdef LR_DEBUG
@@ -1709,7 +1712,9 @@ TEST_F(ConfProcessorTests, SYSTEM_ConfMasterVerifyPcapDiskLimit) {
    
    // Should have started as default and not been changed 
    // (unless range max is less than 80000)
-   EXPECT_EQ(conf.GetPcapCaptureSizeLimit(), 80000);  
+   size_t pcapLimit = conf.GetPcapCaptureSizeLimit();
+   pcapLimit = std::min(size_t{80000}, pcapLimit);
+   EXPECT_EQ(conf.GetPcapCaptureSizeLimit(), pcapLimit);  
    EXPECT_TRUE(std::stoul(rangePtr->StringifyMax()) >= conf.GetPcapCaptureSizeLimit());
 }
 
