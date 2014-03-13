@@ -8,19 +8,19 @@ TEST_F(ForkerPipeTest, Constructors) {
    {
       ForkerPipe serverPipe("ForkerPipeTest", false);
       ForkerPipe clientPipe("ForkerPipeTest");
-      EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.serverToClient.fifo"));
-      EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.serverToClient.fifo"));
+      EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
+      EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
    }
-   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.serverToClient.fifo"));
-   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.serverToClient.fifo"));
+   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
+   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
    {
       std::unique_ptr<ForkerPipe> serverPipe(new ForkerPipe("ForkerPipeTest", false));
       std::unique_ptr<ForkerPipe> clientPipe(new ForkerPipe("ForkerPipeTest"));
-      EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.serverToClient.fifo"));
-      EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.serverToClient.fifo"));
+      EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
+      EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
    }
-   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.serverToClient.fifo"));
-   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.serverToClient.fifo"));
+   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
+   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
 }
 #ifdef LR_DEBUG
 TEST_F(ForkerPipeTest, GetResultOfSentCommand) {
@@ -123,13 +123,13 @@ TEST_F(ForkerPipeTest, CommandWithoutUUID) {
 TEST_F(ForkerPipeTest, MakeDestoryUniqueFifos) {
    MockForkerPipe serverPipe("ForkerPipeTest", false);
    MockForkerPipe clientPipe("ForkerPipeTest");
-   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.abc"));
+   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.abc"));
    EXPECT_FALSE(clientPipe.DestroyUniqueFifo("abc"));
    ASSERT_TRUE(clientPipe.MakeUniqueFifo("abc"));
-   EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.abc"));
+   EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.abc"));
    EXPECT_FALSE(clientPipe.MakeUniqueFifo("abc"));
    EXPECT_TRUE(clientPipe.DestroyUniqueFifo("abc"));
-   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest.abc"));
+   EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.abc"));
 }
 
 TEST_F(ForkerPipeTest, GetTargetReceivePipe_GetTargetSendPipe) {
@@ -143,8 +143,8 @@ TEST_F(ForkerPipeTest, GetTargetReceivePipe_GetTargetSendPipe) {
 
    EXPECT_EQ(serverSendPipe, clientReceiverPipe);
    EXPECT_EQ(clientSendPipe, serverReceiverPipe);
-   EXPECT_EQ("/tmp/ForkerPipeTest.serverToClient.fifo", serverSendPipe);
-   EXPECT_EQ("/tmp/ForkerPipeTest.clientToServer.fifo", clientSendPipe);
+   EXPECT_EQ("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo", serverSendPipe);
+   EXPECT_EQ("/tmp/ForkerPipeTest/ForkerPipeTest.clientToServer.fifo", clientSendPipe);
 }
 
 TEST_F(ForkerPipeTest, GetUUID) {
@@ -164,9 +164,9 @@ TEST_F(ForkerPipeTest, ConstructUniquePipeName) {
    MockForkerPipe clientPipe("ForkerPipeTest");
 
    std::string name = serverPipe.ConstructUniquePipeName("");
-   EXPECT_EQ("/tmp/ForkerPipeTest", name);
+   EXPECT_EQ("/tmp/ForkerPipeTest/ForkerPipeTest", name);
    name = serverPipe.ConstructUniquePipeName("fubar");
-   EXPECT_EQ("/tmp/ForkerPipeTest.fubar", name);
+   EXPECT_EQ("/tmp/ForkerPipeTest/ForkerPipeTest.fubar", name);
 }
 
 TEST_F(ForkerPipeTest, WaitForDataOnPipe) {
