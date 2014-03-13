@@ -80,10 +80,6 @@ void BoomStick::Swap(BoomStick& other) {
    m_uuidGen = other.m_uuidGen;
    mSendHWM = other.mSendHWM;
    mRecvHWM = other.mRecvHWM;
-   mPendingAlertSize = other.mPendingAlertSize;
-   mUnreadAlertSize = other.mUnreadAlertSize;
-   mUnreadAlert = other.mUnreadAlert;
-   mPendingAlert = other.mPendingAlert;
    mUtilizedThread = other.mUtilizedThread;
    //   other.mBinding.clear();  Allow it to be initialized again
    other.mChamber = nullptr;
