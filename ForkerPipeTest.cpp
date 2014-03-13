@@ -176,14 +176,14 @@ TEST_F(ForkerPipeTest, WaitForDataOnPipe) {
    MockClientPipe clientPipe("ForkerPipeTest");
    ASSERT_TRUE(clientPipe.MakeUniqueFifo("abc"));
    EXPECT_FALSE(serverPipe.WaitForDataOnPipe(0, 1));
-   std::thread clientThread([](MockClientPipe & clientPipe) {
-      clientPipe.SendStringToUniquePipe("abc", "def", 30);
+   std::thread clientThread([](MockServerPipe & serverPipe) {
+      serverPipe.SendStringToUniquePipe("abc", "def", 30);
    }
-   , std::ref(clientPipe));
+   , std::ref(serverPipe));
 
-   int pipe = serverPipe.ReadOpenUniqueFifo("abc");
-   ASSERT_TRUE(serverPipe.WaitForDataOnPipe(pipe, 10));
-   std::string result = serverPipe.ReadFromReadyPipe(pipe);
+   int pipe = clientPipe.ReadOpenUniqueFifo("abc");
+   ASSERT_TRUE(clientPipe.WaitForDataOnPipe(pipe, 10));
+   std::string result = clientPipe.ReadFromReadyPipe(pipe);
    close(pipe);
    clientThread.join();
    EXPECT_EQ("def", result);

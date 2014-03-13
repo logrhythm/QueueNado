@@ -107,14 +107,6 @@ public:
       return ServerPipe::GetStringFromPipeWithWait(resultString, waitInSeconds);
    }
 
-   LR_VIRTUAL bool GetStringFromUniquePipeWithWait(const CommandId& id, std::string& resultString, const int waitInSeconds) {
-      return ServerPipe::GetStringFromUniquePipeWithWait(id, resultString, waitInSeconds);
-   }
-
-   LR_VIRTUAL bool MakeUniqueFifo(const CommandId& id) {
-      return ServerPipe::MakeUniqueFifo(id);
-   }
-
    LR_VIRTUAL int ReadOpenUniqueFifo(const CommandId& id) {
       return ServerPipe::ReadOpenUniqueFifo(id);
    }
