@@ -59,13 +59,6 @@ public:
       return ClientPipe::RunExecVE(command, arguments, environment);
    }
 
-   LR_VIRTUAL bool IsChildLiving(pid_t child, int& returnCode) {
-      if (mFakeChildFinished) {
-         return false;
-      }
-      return ClientPipe::IsChildLiving(child, returnCode);
-   }
-
    LR_VIRTUAL std::string ReadFromReadyPipe(int pipe) {
       return ClientPipe::ReadFromReadyPipe(pipe);
    }
