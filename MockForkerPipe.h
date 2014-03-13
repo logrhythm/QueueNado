@@ -55,10 +55,6 @@ public:
       return ClientPipe::GetUUID();
    }
 
-   LR_VIRTUAL int RunExecVE(const char* command, char** arguments, char** environment) {
-      return ClientPipe::RunExecVE(command, arguments, environment);
-   }
-
    LR_VIRTUAL std::string ReadFromReadyPipe(int pipe) {
       return ClientPipe::ReadFromReadyPipe(pipe);
    }
