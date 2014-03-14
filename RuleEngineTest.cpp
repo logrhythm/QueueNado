@@ -228,12 +228,12 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    tDpiMessage.add_methodq_proto_ftp("LONGLONGLONGLONG"); 
    tDpiMessage.add_sender_emailq_proto_smtp("test1_123456");
    tDpiMessage.add_receiver_emailq_proto_smtp("test2_123");
-   tDpiMessage.add_subjectq_proto_smtp("test3_12345");
+   tDpiMessage.add_subjectq_proto_smtp("test3_1234567");
    tDpiMessage.add_versionq_proto_http("4.0");
    tDpiMessage.set_timestart(123);
    tDpiMessage.set_timeupdated(456);
    tDpiMessage.set_timedelta(333);
-   int expectedMsgSize(351); // exact size of message with data as defined above
+   int expectedMsgSize(353); // exact size of message with data as defined above
    dm.SetMaxSize(expectedMsgSize);
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
    std::ostringstream oss;
@@ -248,7 +248,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,,0/899,0/567,0/88,123,456,0/333";
    std::string expected;
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeader, 0);
-   expected += ",login=aLogin,domain=aDomain12345,dname=thisname12345,command=RUN|COMMAND|LONGLONGLONGLONG,sender=test1_123456,recipient=test2_123,subject=test3_12345,version=4.0,url=this/url.htm,process=_CHAOSnet";
+   expected += ",login=aLogin,domain=aDomain12345,dname=thisname12345,command=RUN|COMMAND|LONGLONGLONGLONG,sender=test1_123456,recipient=test2_123,subject=test3_1234567,version=4.0,url=this/url.htm,process=_CHAOSnet";
    EXPECT_EQ(expected, messages[0]);
 
    // Force each extra field to be split between multiple syslog EVT:001 messages.
@@ -258,7 +258,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    //   for (int i = 0; i < messages.size(); i++) {
    //      std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
    //   }
-   ASSERT_EQ(12, messages.size());
+   ASSERT_EQ(13, messages.size());
    unsigned int index = 0;
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeader, index);
    expected += ",login=aLogin";
@@ -288,6 +288,11 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",subject=test3_12345";
    EXPECT_EQ(expected, messages[index++]);
+
+   expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
+   expected += ",subject=67";
+   EXPECT_EQ(expected, messages[index++]);
+
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",version=4.0";
    EXPECT_EQ(expected, messages[index++]);
