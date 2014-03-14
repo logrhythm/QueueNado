@@ -288,11 +288,9 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",subject=test3_12345";
    EXPECT_EQ(expected, messages[index++]);
-
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",subject=67";
    EXPECT_EQ(expected, messages[index++]);
-
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",version=4.0";
    EXPECT_EQ(expected, messages[index++]);
