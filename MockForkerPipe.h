@@ -23,8 +23,8 @@ public:
       return ClientPipe::GetStringFromPipeWithWait(resultString, waitInSeconds);
    }
 
-   LR_VIRTUAL bool GetStringFromUniquePipeWithWait(const CommandId& id, std::string& resultString, const int waitInSeconds) {
-      return ClientPipe::GetStringFromUniquePipeWithWait(id, resultString, waitInSeconds);
+   LR_VIRTUAL bool GetStringFromUniquePipeWithWait(const CommandId& id, const int waitInSeconds, std::string& resultString) {
+      return ClientPipe::GetStringFromUniquePipeWithWait(id, waitInSeconds, resultString);
    }
 
    LR_VIRTUAL bool MakeUniqueFifo(const CommandId& id) {
