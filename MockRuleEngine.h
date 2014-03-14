@@ -83,16 +83,16 @@ namespace networkMonitor {
          RuleEngine::mElasticSearchTarget = target;
          RuleEngine::mTransferElasticSearch.SetBinding(target);
       }
-      void UpdatePreviousRecordNoLongerLatest(networkMonitor::DpiMsgLR* dpiMsg) {
+      void UpdatePreviousRecordNoLongerLatest(networkMonitor::DpiMsgLR* dpiMsg) LR_OVERRIDE {
          RuleEngine::UpdatePreviousRecordNoLongerLatest(dpiMsg);
       }
-      bool UpdateDocWithDpiMsg(const networkMonitor::DpiMsgLR& dpiMsg) {
+      bool UpdateDocWithDpiMsg(const networkMonitor::DpiMsgLR& dpiMsg) LR_OVERRIDE {
          mEsMessage.Clear();
          mEsMessage = dpiMsg;
          mSentUpdate = true;
          return true;
       }
-      bool AddDocWithDpiMsg(const networkMonitor::DpiMsgLR& dpiMsg) {
+      bool AddDocWithDpiMsg(const networkMonitor::DpiMsgLR& dpiMsg) LR_OVERRIDE {
          mEsMessage.Clear();
          mEsMessage = dpiMsg;
          return true;
