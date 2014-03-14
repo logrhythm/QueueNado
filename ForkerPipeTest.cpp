@@ -126,7 +126,7 @@ TEST_F(ForkerPipeTest, MakeDestoryUniqueFifos) {
    MockServerPipe serverPipe("ForkerPipeTest");
    MockClientPipe clientPipe("ForkerPipeTest");
    EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.abc"));
-   EXPECT_FALSE(clientPipe.DestroyUniqueFifo("abc"));
+   EXPECT_TRUE(clientPipe.DestroyUniqueFifo("abc"));
    ASSERT_TRUE(clientPipe.MakeUniqueFifo("abc"));
    EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.abc"));
    EXPECT_FALSE(clientPipe.MakeUniqueFifo("abc"));
