@@ -26,7 +26,6 @@ TEST_F(ConfProcessorTests, SyslogValidationBlankMsgWillSucceed) {
    EXPECT_EQ(blank.has_sysloglogagentport(), false);
    EXPECT_EQ(blank.has_syslogmaxlinelength(), false);
    EXPECT_EQ(blank.has_siemlogging(), false);
-   EXPECT_EQ(blank.has_debugsiemlogging(), false);
    EXPECT_EQ(blank.has_scrubpasswords(), false);
 
    EXPECT_TRUE(master.ValidateConfFieldValues(conf,blank,protoMsg::ConfType_Type_SYSLOG)); // trigger Mocked ValidateConfFieldValues
@@ -63,7 +62,6 @@ void SyslogValidateAllFieldsSetInvalidOnXLowerBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_sysloglogagentport("0") : msg.set_sysloglogagentport("1");
    (index++ == shouldFail) ? msg.set_syslogmaxlinelength("199") : msg.set_syslogmaxlinelength("200");
    (index++ == shouldFail) ? msg.set_siemlogging("0") : msg.set_siemlogging("false");
-   (index++ == shouldFail) ? msg.set_debugsiemlogging("0") : msg.set_debugsiemlogging("false");
    (index++ == shouldFail) ? msg.set_scrubpasswords("0") : msg.set_scrubpasswords("false");
 
    // Test sanity check. Total number of used fields are :  32
@@ -102,7 +100,6 @@ void SyslogValidateAllFieldsSetInvalidOnXUpperBound(const size_t shouldFail) {
    (index++ == shouldFail) ? msg.set_sysloglogagentport("65536") : msg.set_sysloglogagentport("65535");
    (index++ == shouldFail) ? msg.set_syslogmaxlinelength("2001") : msg.set_syslogmaxlinelength("2000");
    (index++ == shouldFail) ? msg.set_siemlogging("1") : msg.set_siemlogging("true");
-   (index++ == shouldFail) ? msg.set_debugsiemlogging("1") : msg.set_debugsiemlogging("true");
    (index++ == shouldFail) ? msg.set_scrubpasswords("1") : msg.set_scrubpasswords("true");
 
    // Test sanity check. Total number of used fields are :  32

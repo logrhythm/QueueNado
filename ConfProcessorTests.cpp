@@ -1293,18 +1293,6 @@ TEST_F(ConfProcessorTests, testCommandQueue) {
    EXPECT_EQ("now it is true", conf.GetCommandQueue());
 }
 
-TEST_F(ConfProcessorTests, testSiemDebugLogging) {
-   protoMsg::SyslogConf msg;
-   msg.set_debugsiemlogging("false");
-   MockConfExposeUpdate conf(mTestConf);
-   conf.setPath(mWriteLocation);
-   conf.updateFields(msg);
-   EXPECT_FALSE(conf.GetSiemDebugLogging());
-   msg.set_debugsiemlogging("true");
-   conf.updateFields(msg);
-   EXPECT_TRUE(conf.GetSiemDebugLogging());
-
-}
 
 TEST_F(ConfProcessorTests, testProtoMessage) {
    protoMsg::BaseConf msg;
@@ -1319,7 +1307,6 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    std::string syslogMaxLineLength = "1234";
    sysMsg.set_sysloglogagentip(expAgentIP);
    sysMsg.set_sysloglogagentport(expAgentPort);
-   sysMsg.set_debugsiemlogging("true");
    msg.set_dpithreads(dpiThreads);
    msg.set_pcapetimeout(pcapTimeout);
    msg.set_pcapbuffersize(pcapBufferSize);
@@ -1335,7 +1322,6 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    EXPECT_EQ(boost::lexical_cast<unsigned int>(pcapBufferSize), conf.GetPCAPBuffsize());
    EXPECT_EQ(pcapInterface, conf.GetPCAPInterface());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(syslogMaxLineLength), conf.GetSyslogMaxLineLength());
-   EXPECT_TRUE(conf.GetSiemDebugLogging());
 }
 
 TEST_F(ConfProcessorTests, testIpOnlyProtoMessage) {
