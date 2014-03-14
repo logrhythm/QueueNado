@@ -1002,7 +1002,6 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.GetQosmos256BytePool());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * .75, conf.GetQosmos512BytePool());
    EXPECT_EQ(DEFAULT_SESSION_EXPIRE_PER_PROCESS, conf.GetQosmosExpirePerCallback());
-   EXPECT_FALSE(conf.GetSiemDebugLogging());
    confThread.Stop();
 }
 
@@ -1043,7 +1042,6 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ(1, conf.GetStatsIntervalSeconds());
    EXPECT_TRUE(conf.GetQosmosDebugModeEnabled());
    EXPECT_TRUE(conf.GetSiemLogging());
-   EXPECT_TRUE(conf.GetSiemDebugLogging());
    EXPECT_EQ(64, conf.GetQosmos64BytePool());
    EXPECT_EQ(128, conf.GetQosmos128BytePool());
    EXPECT_EQ(256, conf.GetQosmos256BytePool());
