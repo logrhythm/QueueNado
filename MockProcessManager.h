@@ -54,7 +54,7 @@ public:
       return ProcessManager::DeletePid(pid);
    }
 
-   virtual void SetPidDir(const std::string pidDir) override {
+   virtual void SetPidDir(const std::string& pidDir) override {
       ProcessManager::SetPidDir(pidDir);
    }
 

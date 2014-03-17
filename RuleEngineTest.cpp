@@ -58,7 +58,7 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
 #ifdef LR_DEBUG
    MockRuleEngine dm(conf, 0);
    const size_t flowReportTime = conf.GetConf().GetFlowReportInterval();
-
+   EXPECT_EQ(flowReportTime, 600);
    networkMonitor::DpiMsgLR aMessage;
    aMessage.set_session("abc123");
    aMessage.set_childflownumber(1);
@@ -69,8 +69,7 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_TRUE(dm.mSentUpdate);
    EXPECT_EQ(123456789-flowReportTime,dm.mEsMessage.timeupdated());
-   EXPECT_TRUE(dm.mEsMessage.has_childflownumber());
-   EXPECT_EQ(1,dm.mEsMessage.childflownumber());
+   EXPECT_FALSE(dm.mEsMessage.has_childflownumber());
    EXPECT_FALSE(dm.mEsMessage.latestupdate());
    dm.mSentUpdate = false;
 
@@ -79,7 +78,7 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_TRUE(dm.mSentUpdate);
    EXPECT_EQ(123,dm.mEsMessage.timeupdated());
-   EXPECT_EQ(200,dm.mEsMessage.childflownumber());
+   EXPECT_FALSE(dm.mEsMessage.has_childflownumber());
    EXPECT_FALSE(dm.mEsMessage.latestupdate());
 #endif
 }
@@ -210,7 +209,7 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    tDpiMessage.set_srcport(127);
    tDpiMessage.set_destport(128);
    tDpiMessage.set_protocol(129);
-   tDpiMessage.add_application_endq_proto_base("_CHAOSnet");
+   tDpiMessage.add_serviceq_proto_smb("_CHAOSnet");
    tDpiMessage.set_application_id_endq_proto_base(1234);
    tDpiMessage.set_destbytes(567);
    tDpiMessage.set_destbytesdelta(567);
@@ -222,14 +221,14 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    tDpiMessage.add_domainq_proto_smb("aDomain12345");
    tDpiMessage.add_uri_fullq_proto_http("this/url.htm");
    tDpiMessage.add_uriq_proto_http("not/this/one");
-   tDpiMessage.add_serverq_proto_http("thisname12345");
+   tDpiMessage.add_hostq_proto_http("thisname12345");
    tDpiMessage.add_referer_serverq_proto_http("notThisOne");
    tDpiMessage.add_methodq_proto_ftp("RUN");
    tDpiMessage.add_methodq_proto_ftp("COMMAND");
-   tDpiMessage.add_methodq_proto_ftp("LONGLONGLONGLONG");
-   tDpiMessage.add_senderq_proto_smtp("test1_123456");
-   tDpiMessage.add_receiverq_proto_smtp("test2_123");
-   tDpiMessage.add_subjectq_proto_smtp("test3_12345");
+   tDpiMessage.add_methodq_proto_ftp("LONGLONGLONGLONG"); 
+   tDpiMessage.add_sender_emailq_proto_smtp("test1_123456");
+   tDpiMessage.add_receiver_emailq_proto_smtp("test2_123");
+   tDpiMessage.add_subjectq_proto_smtp("test3_1234567");
    tDpiMessage.add_versionq_proto_http("4.0");
    tDpiMessage.set_timestart(123);
    tDpiMessage.set_timeupdated(456);
@@ -237,27 +236,29 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    int expectedMsgSize(353); // exact size of message with data as defined above
    dm.SetMaxSize(expectedMsgSize);
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
-     //for (int i = 0; i < messages.size(); i++) {
-         //std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
-     //}
-   ASSERT_EQ(1, messages.size());
-   ASSERT_EQ(expectedMsgSize, messages[0].size());
+   std::ostringstream oss;
+   for (int i = 0; i < messages.size(); i++) {
+         oss << "#i:" << i << "\t\t" << messages[i] << ", size: " << messages[i].size() << "\n" << std::endl;
+   }
+   
+   ASSERT_EQ(1, messages.size()) << oss.str();
+   ASSERT_EQ(expectedMsgSize, messages[0].size()) << "\n\nThe actual message was: \n" << oss.str() << std::endl;
    std::string expectedEvent = "EVT:001 550e8400-e29b-41d4-a716-446655440000:";
-   std::string expectedHeader = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,26,899/899,567/567,88/88,123,456,333/333";
-   std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,26,0/899,0/567,0/88,123,456,0/333";
+   std::string expectedHeader = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,,899/899,567/567,88/88,123,456,333/333";
+   std::string expectedHeaderNoCounts = " 126.0.0.0,125.0.0.0,127,128,7c:00:00:00:00:00,7b:00:00:00:00:00,129,,0/899,0/567,0/88,123,456,0/333";
    std::string expected;
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeader, 0);
-   expected += ",login=aLogin,domain=aDomain12345,dname=thisname12345,command=RUN|COMMAND|LONGLONGLONGLONG,sender=test1_123456,recipient=test2_123,subject=test3_12345,version=4.0,url=this/url.htm,process=_CHAOSnet";
+   expected += ",login=aLogin,domain=aDomain12345,dname=thisname12345,command=RUN|COMMAND|LONGLONGLONGLONG,sender=test1_123456,recipient=test2_123,subject=test3_1234567,version=4.0,url=this/url.htm,process=_CHAOSnet";
    EXPECT_EQ(expected, messages[0]);
 
    // Force each extra field to be split between multiple syslog EVT:001 messages.
    messages.clear();
-   dm.SetMaxSize(169); // Number of chars in SIEM static data, plus first field ",login=aLogin"
+   dm.SetMaxSize(167); // Number of chars in SIEM static data, plus first field ",login=aLogin"
    messages = dm.GetSiemSyslogMessage(tDpiMessage);
    //   for (int i = 0; i < messages.size(); i++) {
    //      std::cout << messages[i] << ", size: " << messages[i].size() << std::endl;
    //   }
-   ASSERT_EQ(12, messages.size());
+   ASSERT_EQ(13, messages.size());
    unsigned int index = 0;
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeader, index);
    expected += ",login=aLogin";
@@ -286,6 +287,9 @@ TEST_F(RuleEngineTest, getSiemSyslogMessagesSplitDataTestWithDebug) {
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",subject=test3_12345";
+   EXPECT_EQ(expected, messages[index++]);
+   expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
+   expected += ",subject=67";
    EXPECT_EQ(expected, messages[index++]);
    expected = BuildExpectedHeaderForSiem(expectedEvent, expectedHeaderNoCounts, index);
    expected += ",version=4.0";
