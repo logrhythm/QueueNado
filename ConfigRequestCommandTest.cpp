@@ -189,12 +189,12 @@ TEST_F(ConfigRequestCommandTest, BaseConfExecuteUsingRealDefaultValues) {
 }
 
 void checkRealReply(protoMsg::ConfigDefaults realReply,
-        std::string configName,
-        protoMsg::ConfType::Type type,
-        std::string defaultVal,
-        std::string min,
-        std::string max,
-        int it) {
+   std::string configName,
+   protoMsg::ConfType::Type type,
+   std::string defaultVal,
+   std::string min,
+   std::string max,
+   int it) {
    const auto& readReply = realReply.values(it);
    EXPECT_TRUE(readReply.has_type());
    EXPECT_TRUE(readReply.has_configname());
@@ -295,13 +295,13 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    checkRealReply(realReply, "enableIntermediateFlows", protoMsg::ConfType::BASE, "true", "false", "true", it++);
    checkRealReply(realReply, "enablePacketCapture", protoMsg::ConfType::BASE, "true", "false", "true", it++);
    checkRealReply(realReply, "captureFileLimit", protoMsg::ConfType::BASE, "1000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
-   
-   
-   
+
+
+
    ProtoDefaults getDefaults{mockConf.GetPcapCaptureLocations()};
    auto confDefaults = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
    auto rangePtr = getDefaults.GetRange(confDefaults, "captureSizeLimit"); // int  
-   
+
    checkRealReply(realReply, "captureSizeLimit", protoMsg::ConfType::BASE, "80000", "1000", rangePtr->StringifyMax(), it++);
    checkRealReply(realReply, "captureMemoryLimit", protoMsg::ConfType::BASE, "1500", "1000", "16000", it++);
    checkRealReply(realReply, "captureMaxPackets", protoMsg::ConfType::BASE, "2000000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
@@ -329,8 +329,6 @@ TEST_F(ConfigRequestCommandTest, SyslogConfAllValues) {
    request.add_requestedconfigparams("syslogLogAgentIP");
    request.add_requestedconfigparams("syslogMaxLineLength");
    request.add_requestedconfigparams("siemLogging");
-   request.add_requestedconfigparams("debugSiemLogging");
-   //request.add_requestedconfigparams("reportEverything");
    request.add_requestedconfigparams("scrubPasswords");
 
    cmd.set_stringargone(request.SerializeAsString());
@@ -350,8 +348,6 @@ TEST_F(ConfigRequestCommandTest, SyslogConfAllValues) {
    checkRealReply(realReply, "syslogLogAgentIP", protoMsg::ConfType::SYSLOG, "0.0.0.0", "1", "1000", it++);
    checkRealReply(realReply, "syslogMaxLineLength", protoMsg::ConfType::SYSLOG, "1999", "200", "2000", it++);
    checkRealReply(realReply, "siemLogging", protoMsg::ConfType::SYSLOG, "true", "false", "true", it++);
-   checkRealReply(realReply, "debugSiemLogging", protoMsg::ConfType::SYSLOG, "true", "false", "true", it++);
-   //checkRealReply(realReply, "reportEverything", protoMsg::ConfType::SYSLOG, "false", "false", "true", it++);
    checkRealReply(realReply, "scrubPasswords", protoMsg::ConfType::SYSLOG, "false", "false", "true", it++);
 #endif
 }

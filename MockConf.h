@@ -309,10 +309,6 @@ public:
 
    }
 
-   bool SiemDebugLogging() {
-      return mSiemDebug;
-   }
-
    size_t GetPCapIndividualFileLimit() {
       return mMaxIndividualPCap;
    }

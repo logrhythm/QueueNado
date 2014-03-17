@@ -1002,7 +1002,6 @@ TEST_F(ConfProcessorTests, testConfIntDefaults) {
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS, conf.GetQosmos256BytePool());
    EXPECT_EQ(NUMBER_OF_DPI_HALF_SESSIONS * .75, conf.GetQosmos512BytePool());
    EXPECT_EQ(DEFAULT_SESSION_EXPIRE_PER_PROCESS, conf.GetQosmosExpirePerCallback());
-   EXPECT_FALSE(conf.GetSiemDebugLogging());
    confThread.Stop();
 }
 
@@ -1043,7 +1042,6 @@ TEST_F(ConfProcessorTests, testGetConfFromFile) {
    EXPECT_EQ(1, conf.GetStatsIntervalSeconds());
    EXPECT_TRUE(conf.GetQosmosDebugModeEnabled());
    EXPECT_TRUE(conf.GetSiemLogging());
-   EXPECT_TRUE(conf.GetSiemDebugLogging());
    EXPECT_EQ(64, conf.GetQosmos64BytePool());
    EXPECT_EQ(128, conf.GetQosmos128BytePool());
    EXPECT_EQ(256, conf.GetQosmos256BytePool());
@@ -1293,18 +1291,6 @@ TEST_F(ConfProcessorTests, testCommandQueue) {
    EXPECT_EQ("now it is true", conf.GetCommandQueue());
 }
 
-TEST_F(ConfProcessorTests, testSiemDebugLogging) {
-   protoMsg::SyslogConf msg;
-   msg.set_debugsiemlogging("false");
-   MockConfExposeUpdate conf(mTestConf);
-   conf.setPath(mWriteLocation);
-   conf.updateFields(msg);
-   EXPECT_FALSE(conf.GetSiemDebugLogging());
-   msg.set_debugsiemlogging("true");
-   conf.updateFields(msg);
-   EXPECT_TRUE(conf.GetSiemDebugLogging());
-
-}
 
 TEST_F(ConfProcessorTests, testProtoMessage) {
    protoMsg::BaseConf msg;
@@ -1319,7 +1305,6 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    std::string syslogMaxLineLength = "1234";
    sysMsg.set_sysloglogagentip(expAgentIP);
    sysMsg.set_sysloglogagentport(expAgentPort);
-   sysMsg.set_debugsiemlogging("true");
    msg.set_dpithreads(dpiThreads);
    msg.set_pcapetimeout(pcapTimeout);
    msg.set_pcapbuffersize(pcapBufferSize);
@@ -1335,7 +1320,6 @@ TEST_F(ConfProcessorTests, testProtoMessage) {
    EXPECT_EQ(boost::lexical_cast<unsigned int>(pcapBufferSize), conf.GetPCAPBuffsize());
    EXPECT_EQ(pcapInterface, conf.GetPCAPInterface());
    EXPECT_EQ(boost::lexical_cast<unsigned int>(syslogMaxLineLength), conf.GetSyslogMaxLineLength());
-   EXPECT_TRUE(conf.GetSiemDebugLogging());
 }
 
 TEST_F(ConfProcessorTests, testIpOnlyProtoMessage) {
