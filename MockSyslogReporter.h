@@ -20,15 +20,15 @@ class MockSyslogReporter : public SyslogReporter {
            mTvUSec(0),
            mStatCount(0) {};
 
-      boost::thread* Start() {
+      void Start() LR_OVERRIDE {
          return SyslogReporter::Start();
       }
 
-      void Join() {
+      void Join() LR_OVERRIDE{
          SyslogReporter::Join();
       }
 
-      bool SyslogEnabled() {
+      bool SyslogEnabled() LR_OVERRIDE {
          return mSyslogEnabled;
       }
 
@@ -72,19 +72,6 @@ class MockSyslogReporter : public SyslogReporter {
          mStatCount = 0;
       }
 
-      void GetTime(struct timeval& tv) {
-         if ( mTvSec != 0 ) {
-            tv.tv_sec = mTvSec;
-            tv.tv_usec = mTvUSec;
-         } else {
-            SyslogReporter::GetTime(tv);
-         }
-      }
-
-      void SetMockTime(time_t tvSec, time_t tvUSec) {
-         mTvSec = tvSec;
-         mTvUSec = tvUSec;
-      }
 
    private:
       bool mSyslogEnabled;
