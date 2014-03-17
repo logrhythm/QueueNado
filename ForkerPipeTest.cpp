@@ -3,19 +3,21 @@
 #include <thread>
 #include "FileIO.h"
 #include "MockForkerMother.h"
+#include "ClientPipe.h"
+#include "ServerPipe.h"
 
 TEST_F(ForkerPipeTest, Constructors) {
    {
-      ForkerPipe serverPipe("ForkerPipeTest", false);
-      ForkerPipe clientPipe("ForkerPipeTest");
+      ServerPipe serverPipe("ForkerPipeTest");
+      ClientPipe clientPipe("ForkerPipeTest");
       EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
       EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
    }
    EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
    EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
    {
-      std::unique_ptr<ForkerPipe> serverPipe(new ForkerPipe("ForkerPipeTest", false));
-      std::unique_ptr<ForkerPipe> clientPipe(new ForkerPipe("ForkerPipeTest"));
+      std::unique_ptr<ServerPipe> serverPipe(new ServerPipe("ForkerPipeTest"));
+      std::unique_ptr<ClientPipe> clientPipe(new ClientPipe("ForkerPipeTest"));
       EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
       EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.serverToClient.fifo"));
    }
@@ -24,8 +26,8 @@ TEST_F(ForkerPipeTest, Constructors) {
 }
 #ifdef LR_DEBUG
 TEST_F(ForkerPipeTest, GetResultOfSentCommand) {
-   MockForkerPipe serverPipe("ForkerPipeTest", false);
-   MockForkerPipe clientPipe("ForkerPipeTest");
+   MockServerPipe serverPipe("ForkerPipeTest");
+   MockClientPipe clientPipe("ForkerPipeTest");
    protoMsg::ForkerRequest requestProto;
    std::vector<std::string> args;
    args.push_back("one");
@@ -34,7 +36,7 @@ TEST_F(ForkerPipeTest, GetResultOfSentCommand) {
    std::string result;
    ForkerPipe::CommandId id;
    requestProto.set_uuid("");
-   std::thread serverThread([](MockForkerPipe& serverPipe, protoMsg::ForkerRequest & requestProto) {
+   std::thread serverThread([](MockServerPipe& serverPipe, protoMsg::ForkerRequest & requestProto) {
       if (serverPipe.GetCommand(requestProto, 60)) {
          protoMsg::ForkerReply replyProto;
          replyProto.set_success(true);
@@ -50,7 +52,7 @@ TEST_F(ForkerPipeTest, GetResultOfSentCommand) {
    serverThread.join();
    EXPECT_FALSE(gotReply);
 
-   std::thread clientThread([](MockForkerPipe& clientPipe, std::string& id, std::string& result, bool& gotReply) {
+   std::thread clientThread([](MockClientPipe& clientPipe, std::string& id, std::string& result, bool& gotReply) {
       int returnCode;
       while (!(gotReply = clientPipe.GetResultOfSentCommand(id, result, returnCode)));
       }
@@ -64,20 +66,20 @@ TEST_F(ForkerPipeTest, GetResultOfSentCommand) {
    serverPipe.SendStringToUniquePipe(requestProto.uuid(), replyProto.SerializeAsString(), 1);
    clientThread.join();
    
-//   bool finished;
-//   serverPipe.UpdateCommandResult(requestProto.uuid(),finished);
+   //bool finished;
+   //serverPipe.UpdateCommandResult(requestProto.uuid(),finished);
    EXPECT_TRUE((gotReply));
    EXPECT_FALSE(id.empty());
 
    EXPECT_EQ(requestProto.uuid(), id);
    EXPECT_EQ("success", result);
 
-   EXPECT_EQ(0,unlink(serverPipe.ConstructUniquePipeName(id).c_str()));
+   EXPECT_EQ(-1,unlink(serverPipe.ConstructUniquePipeName(id).c_str()));
 }
 
 TEST_F(ForkerPipeTest, GetCommandSendCommand) {
-   MockForkerPipe serverPipe("ForkerPipeTest", false);
-   MockForkerPipe clientPipe("ForkerPipeTest");
+   MockServerPipe serverPipe("ForkerPipeTest");
+   MockClientPipe clientPipe("ForkerPipeTest");
    protoMsg::ForkerRequest requestProto;
    EXPECT_FALSE(serverPipe.GetCommand(requestProto, 1));
 
@@ -88,7 +90,7 @@ TEST_F(ForkerPipeTest, GetCommandSendCommand) {
    std::string result;
    ForkerPipe::CommandId id;
    requestProto.set_uuid("");
-   std::thread serverThread([](MockForkerPipe& serverPipe, protoMsg::ForkerRequest & requestProto) {
+   std::thread serverThread([](MockServerPipe& serverPipe, protoMsg::ForkerRequest & requestProto) {
       if (serverPipe.GetCommand(requestProto, 60)) {
          protoMsg::ForkerReply replyProto;
          replyProto.set_success(true);
@@ -108,23 +110,23 @@ TEST_F(ForkerPipeTest, GetCommandSendCommand) {
    serverThread.join();
    EXPECT_EQ(requestProto.uuid(), id);
    EXPECT_EQ("success", result);
-   EXPECT_EQ(0,unlink(serverPipe.ConstructUniquePipeName(id).c_str()));
+   EXPECT_EQ(-1,unlink(serverPipe.ConstructUniquePipeName(id).c_str()));
 }
 TEST_F(ForkerPipeTest, CommandWithoutUUID) {
-   MockForkerPipe serverPipe("ForkerPipeTest", false);
-   MockForkerPipe clientPipe("ForkerPipeTest");
+   MockServerPipe serverPipe("ForkerPipeTest");
+   MockClientPipe clientPipe("ForkerPipeTest");
    protoMsg::ForkerRequest requestProto;
    pid_t childPid(0);
-   std::string commandId = clientPipe.CommandRequest(requestProto, childPid);
+   std::string commandId = serverPipe.CommandRequest(requestProto, childPid);
    EXPECT_EQ(-1, childPid);
    EXPECT_TRUE(commandId.empty());
 }
 
 TEST_F(ForkerPipeTest, MakeDestoryUniqueFifos) {
-   MockForkerPipe serverPipe("ForkerPipeTest", false);
-   MockForkerPipe clientPipe("ForkerPipeTest");
+   MockServerPipe serverPipe("ForkerPipeTest");
+   MockClientPipe clientPipe("ForkerPipeTest");
    EXPECT_FALSE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.abc"));
-   EXPECT_FALSE(clientPipe.DestroyUniqueFifo("abc"));
+   EXPECT_TRUE(clientPipe.DestroyUniqueFifo("abc"));
    ASSERT_TRUE(clientPipe.MakeUniqueFifo("abc"));
    EXPECT_TRUE(FileIO::DoesFileExist("/tmp/ForkerPipeTest/ForkerPipeTest.abc"));
    EXPECT_FALSE(clientPipe.MakeUniqueFifo("abc"));
@@ -133,8 +135,8 @@ TEST_F(ForkerPipeTest, MakeDestoryUniqueFifos) {
 }
 
 TEST_F(ForkerPipeTest, GetTargetReceivePipe_GetTargetSendPipe) {
-   MockForkerPipe serverPipe("ForkerPipeTest", false);
-   MockForkerPipe clientPipe("ForkerPipeTest");
+   MockServerPipe serverPipe("ForkerPipeTest");
+   MockClientPipe clientPipe("ForkerPipeTest");
 
    std::string serverSendPipe = serverPipe.GetTargetSendPipe();
    std::string clientSendPipe = clientPipe.GetTargetSendPipe();
@@ -148,8 +150,8 @@ TEST_F(ForkerPipeTest, GetTargetReceivePipe_GetTargetSendPipe) {
 }
 
 TEST_F(ForkerPipeTest, GetUUID) {
-   MockForkerPipe serverPipe("ForkerPipeTest", false);
-   MockForkerPipe clientPipe("ForkerPipeTest");
+   MockServerPipe serverPipe("ForkerPipeTest");
+   MockClientPipe clientPipe("ForkerPipeTest");
 
    std::string uuid = serverPipe.GetUUID();
    std::string client_uuid = clientPipe.GetUUID();
@@ -160,8 +162,8 @@ TEST_F(ForkerPipeTest, GetUUID) {
 }
 
 TEST_F(ForkerPipeTest, ConstructUniquePipeName) {
-   MockForkerPipe serverPipe("ForkerPipeTest", false);
-   MockForkerPipe clientPipe("ForkerPipeTest");
+   MockServerPipe serverPipe("ForkerPipeTest");
+   MockClientPipe clientPipe("ForkerPipeTest");
 
    std::string name = serverPipe.ConstructUniquePipeName("");
    EXPECT_EQ("/tmp/ForkerPipeTest/ForkerPipeTest", name);
@@ -170,18 +172,18 @@ TEST_F(ForkerPipeTest, ConstructUniquePipeName) {
 }
 
 TEST_F(ForkerPipeTest, WaitForDataOnPipe) {
-   MockForkerPipe serverPipe("ForkerPipeTest", false);
-   MockForkerPipe clientPipe("ForkerPipeTest");
+   MockServerPipe serverPipe("ForkerPipeTest");
+   MockClientPipe clientPipe("ForkerPipeTest");
    ASSERT_TRUE(clientPipe.MakeUniqueFifo("abc"));
    EXPECT_FALSE(serverPipe.WaitForDataOnPipe(0, 1));
-   std::thread clientThread([](MockForkerPipe & clientPipe) {
-      clientPipe.SendStringToUniquePipe("abc", "def", 30);
+   std::thread clientThread([](MockServerPipe & serverPipe) {
+      serverPipe.SendStringToUniquePipe("abc", "def", 30);
    }
-   , std::ref(clientPipe));
+   , std::ref(serverPipe));
 
-   int pipe = serverPipe.ReadOpenUniqueFifo("abc");
-   ASSERT_TRUE(serverPipe.WaitForDataOnPipe(pipe, 10));
-   std::string result = serverPipe.ReadFromReadyPipe(pipe);
+   int pipe = clientPipe.ReadOpenUniqueFifo("abc");
+   ASSERT_TRUE(clientPipe.WaitForDataOnPipe(pipe, 10));
+   std::string result = clientPipe.ReadFromReadyPipe(pipe);
    close(pipe);
    clientThread.join();
    EXPECT_EQ("def", result);
@@ -192,7 +194,7 @@ TEST_F(ForkerPipeTest, ParseCommandProto) {
    std::string command;
    std::vector<std::string> args;
    protoMsg::ForkerRequest requestProto;
-   MockForkerPipe testPipe("ForkerPipeTest", false);
+   MockServerPipe testPipe("ForkerPipeTest");
 
    EXPECT_FALSE(testPipe.ParseCommandProto(requestProto, command, args));
    requestProto.set_command("test");
@@ -214,7 +216,9 @@ TEST_F(ForkerPipeTest, ParseCommandProto) {
 // Currently the timeout is 300 seconds, with retries every second
 // This will push a lot of printouts to the system 
 TEST_F(ForkerPipeTest, CommandWithNoOutputExpected_TakesTimeToFinish) {
-   MockForkerPipe clientPipe("ForkerPipeTest");
+   MockServerPipe serverPipe("ForkerPipeTest");
+   MockClientPipe clientPipe("ForkerPipeTest");
+
    protoMsg::ForkerRequest requestProto;
    requestProto.set_expectreply(false);
    ForkerPipe::CommandState foo;
@@ -226,10 +230,14 @@ TEST_F(ForkerPipeTest, CommandWithNoOutputExpected_TakesTimeToFinish) {
    clientPipe.InsertDummyCommand("Reply", foo);
    clientPipe.MakeUniqueFifo("Reply");
    bool commandFinished(false);
-   clientPipe.UpdateCommandResult("Reply", commandFinished);
+   serverPipe.UpdateCommandResult("Reply", commandFinished);
    EXPECT_TRUE(commandFinished);
-   clientPipe.UpdateCommandResult("NoReply", commandFinished);
+   serverPipe.UpdateCommandResult("NoReply", commandFinished);
    EXPECT_TRUE(commandFinished);
+   std::string resultString;
+   int returnCode;
+   clientPipe.GetResultOfSentCommand("NoReply",resultString,returnCode);
+   clientPipe.GetResultOfSentCommand("Reply",resultString,returnCode);
    EXPECT_FALSE(FileIO::DoesFileExist(clientPipe.ConstructUniquePipeName("Reply")));
    EXPECT_FALSE(FileIO::DoesFileExist(clientPipe.ConstructUniquePipeName("NoReply")));
 
