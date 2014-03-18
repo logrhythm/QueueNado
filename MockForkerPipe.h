@@ -4,7 +4,7 @@
 class MockClientPipe : public ClientPipe {
 public:
 
-   MockClientPipe(std::string programName) : ClientPipe(programName), mFakeChildFinished(false) {
+   MockClientPipe(const std::string& programName) : ClientPipe(programName), mFakeChildFinished(false) {
    }
 
    LR_VIRTUAL int GetReplyTimeout() {
