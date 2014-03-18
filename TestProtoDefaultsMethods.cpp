@@ -20,7 +20,7 @@ TEST(TestProtoDefaults, GetConfDefaultsOK) {
    ASSERT_TRUE(defaults1.find("dpiThreads") != defaults1.end());
    
    auto element = defaults1.find("dpiThreads")->second;
-   EXPECT_TRUE((*std::get<ProtoDefaults::indexRange>(element)).Validate("4")); //4 DPI Threads
+   EXPECT_TRUE((*std::get<ProtoDefaults::indexRange>(element)).Validate("8")); //4 DPI Threads
 }
 
 TEST(TestProtoDefaults, GetRangeOK){
@@ -79,8 +79,8 @@ TEST(TestProtoDefaults, GetConfParamOK){
    EXPECT_TRUE(std::get<ProtoDefaults::indexRange>(getDefaults.GetConfParam(confDefaults, str)) != nullptr);
    EXPECT_TRUE((std::get<ProtoDefaults::indexType>(getDefaults.GetConfParam(confDefaults, str))).size() > 0);
 
-   EXPECT_TRUE((std::get<ProtoDefaults::indexDefault>(getDefaults.GetConfParam(confDefaults, str))).compare("4") == 0);
-   EXPECT_TRUE((*std::get<ProtoDefaults::indexRange>(getDefaults.GetConfParam(confDefaults, str))).Validate("4")); //Int
+   EXPECT_TRUE((std::get<ProtoDefaults::indexDefault>(getDefaults.GetConfParam(confDefaults, str))).compare("8") == 0);
+   EXPECT_TRUE((*std::get<ProtoDefaults::indexRange>(getDefaults.GetConfParam(confDefaults, str))).Validate("8")); //Int
    EXPECT_FALSE((*std::get<ProtoDefaults::indexRange>(getDefaults.GetConfParam(confDefaults, str))).Validate("f")); //Int
 }
 
@@ -95,7 +95,7 @@ TEST(TestProtoDefaults, VerifyPcapStorageSizeLimit__Default){
 
    auto pcapSizeLimitDefault = failedDefault.GetConfParam(baseDefaults, "captureSizeLimit");
    std::string defaultValue = std::get<ProtoDefaults::indexDefault>(pcapSizeLimitDefault);
-   EXPECT_EQ(defaultValue, "80000");
+   EXPECT_EQ(defaultValue, "122880");
    
    auto  rangePtr = std::get<ProtoDefaults::indexRange>(pcapSizeLimitDefault);
    EXPECT_EQ(rangePtr->StringifyMin(), "1000");
