@@ -195,6 +195,9 @@ void checkRealReply(protoMsg::ConfigDefaults realReply,
    std::string min,
    std::string max,
    int it) {
+   
+   ASSERT_TRUE(it <= realReply.values_size()) << "it was: " << it << ", but max size was: " << realReply.values_size();
+          
    const auto& readReply = realReply.values(it);
    EXPECT_TRUE(readReply.has_type());
    EXPECT_TRUE(readReply.has_configname());
@@ -255,6 +258,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    request.add_requestedconfigparams("dpiFreeThreshold");
    request.add_requestedconfigparams("dpiRecycleThreshold");
    request.add_requestedconfigparams("pcapRecordsToClearPerCycle");
+   request.add_requestedconfigparams("flowReportInterval");
 
    cmd.set_stringargone(request.SerializeAsString());
    MockConfigRequestCommand doIt(cmd, autoManagedManager);
@@ -269,15 +273,15 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    int it = 0;
    checkRealReply(realReply, "dpiThreads", protoMsg::ConfType::BASE, "8", "1", "12", it++);
    checkRealReply(realReply, "pcapETimeout", protoMsg::ConfType::BASE, "1", "1", "30", it++);
-   checkRealReply(realReply, "pcapBufferSize", protoMsg::ConfType::BASE, "35", "1", "1000", it++);
+   checkRealReply(realReply, "pcapBufferSize", protoMsg::ConfType::BASE, "256", "1", "1000", it++);
    checkRealReply(realReply, "pcapInterface", protoMsg::ConfType::BASE, "bond0", "1", "1000", it++);
    checkRealReply(realReply, "dpiHalfSessions", protoMsg::ConfType::BASE, "1500000", "1000000", "20000000", it++);
-   checkRealReply(realReply, "packetSendQueueSize", protoMsg::ConfType::BASE, "800", "10", "10000", it++);
-   checkRealReply(realReply, "packetRecvQueueSize", protoMsg::ConfType::BASE, "800", "10", "10000", it++);
+   checkRealReply(realReply, "packetSendQueueSize", protoMsg::ConfType::BASE, "200", "10", "10000", it++);
+   checkRealReply(realReply, "packetRecvQueueSize", protoMsg::ConfType::BASE, "200", "10", "10000", it++);
    checkRealReply(realReply, "dpiMsgSendQueueSize", protoMsg::ConfType::BASE, "10000", "10", "100000", it++);
    checkRealReply(realReply, "dpiMsgRecvQueueSize", protoMsg::ConfType::BASE, "10000", "10", "100000", it++);
-   checkRealReply(realReply, "syslogSendQueueSize", protoMsg::ConfType::BASE, "1000", "10", "10000", it++);
-   checkRealReply(realReply, "syslogRecvQueueSize", protoMsg::ConfType::BASE, "1000", "10", "10000", it++);
+   checkRealReply(realReply, "syslogSendQueueSize", protoMsg::ConfType::BASE, "2000", "10", "10000", it++);
+   checkRealReply(realReply, "syslogRecvQueueSize", protoMsg::ConfType::BASE, "2000", "10", "10000", it++);
    checkRealReply(realReply, "qosmosDebugModeEnabled", protoMsg::ConfType::BASE, "false", "false", "true", it++);
    checkRealReply(realReply, "qosmos64BytePool", protoMsg::ConfType::BASE, "1500000", "200000", "8000000", it++);
    checkRealReply(realReply, "qosmos128BytePool", protoMsg::ConfType::BASE, "3000000", "200000", "8000000", it++);
@@ -294,7 +298,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    checkRealReply(realReply, "commandQueue", protoMsg::ConfType::BASE, "tcp://127.0.0.1:5556", "6", "1000", it++);
    checkRealReply(realReply, "enableIntermediateFlows", protoMsg::ConfType::BASE, "true", "false", "true", it++);
    checkRealReply(realReply, "enablePacketCapture", protoMsg::ConfType::BASE, "true", "false", "true", it++);
-   checkRealReply(realReply, "captureFileLimit", protoMsg::ConfType::BASE, "1000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
+   checkRealReply(realReply, "captureFileLimit", protoMsg::ConfType::BASE, "2000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
 
 
 
@@ -302,15 +306,16 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    auto confDefaults = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
    auto rangePtr = getDefaults.GetRange(confDefaults, "captureSizeLimit"); // int  
 
-   checkRealReply(realReply, "captureSizeLimit", protoMsg::ConfType::BASE, "80000", "1000", rangePtr->StringifyMax(), it++);
-   checkRealReply(realReply, "captureMemoryLimit", protoMsg::ConfType::BASE, "1500", "1000", "16000", it++);
+   checkRealReply(realReply, "captureSizeLimit", protoMsg::ConfType::BASE, "122880", "1000", rangePtr->StringifyMax(), it++);
+   checkRealReply(realReply, "captureMemoryLimit", protoMsg::ConfType::BASE, "1536", "1000", "16000", it++);
    checkRealReply(realReply, "captureMaxPackets", protoMsg::ConfType::BASE, "2000000000", "1000", std::to_string(std::numeric_limits<int32_t>::max()), it++);
-   checkRealReply(realReply, "captureIndividualFileLimit", protoMsg::ConfType::BASE, "2000", "1", "2000000", it++);
+   checkRealReply(realReply, "captureIndividualFileLimit", protoMsg::ConfType::BASE, "2048", "1", "2000000", it++);
    checkRealReply(realReply, "dpiMaxFree", protoMsg::ConfType::BASE, "2000", "1", std::to_string(std::numeric_limits<int32_t>::max()), it++);
-   checkRealReply(realReply, "dpiMinFree", protoMsg::ConfType::BASE, "200", "1", std::to_string(std::numeric_limits<int32_t>::max()), it++);
-   checkRealReply(realReply, "dpiFreeThreshold", protoMsg::ConfType::BASE, "0.01", std::to_string(0.0), std::to_string(1.0), it++);
-   checkRealReply(realReply, "dpiRecycleThreshold", protoMsg::ConfType::BASE, "1048576", "1024", "33554432", it++);
+   checkRealReply(realReply, "dpiMinFree", protoMsg::ConfType::BASE, "150", "1", std::to_string(std::numeric_limits<int32_t>::max()), it++);
+   checkRealReply(realReply, "dpiFreeThreshold", protoMsg::ConfType::BASE, "0.03", std::to_string(0.0), std::to_string(1.0), it++);
+   checkRealReply(realReply, "dpiRecycleThreshold", protoMsg::ConfType::BASE, "2097152", "1024", "33554432", it++);
    checkRealReply(realReply, "pcapRecordsToClearPerCycle", protoMsg::ConfType::BASE, "10000", "1", "20000", it++);
+   checkRealReply(realReply, "flowReportInterval", protoMsg::ConfType::BASE, "600", "60", "3600", it++);
 #endif
 }
 
