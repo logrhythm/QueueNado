@@ -4,6 +4,9 @@
  * 
  */
 #include <iostream>
+#include <thread>
+#include <chrono>
+
 #include "SendDpiMsgLRZMQ.h"
 #include "SyslogReporterTest.h"
 #include "MockSyslogReporter.h"
@@ -13,10 +16,8 @@
 #include "boost/lexical_cast.hpp"
 #include "MockCommandProcessor.h"
 #include "MakeUniquePtr.h"
-#include <thread>
-#include <chrono>
-//#include "DpiMsgLR.h"
-//#include "luajit-2.0/lua.hpp"
+#include "StopWatch.h"
+
 void ZeroCopyDelete(void*, void* data) {
    std::string* theString = reinterpret_cast<std::string*> (data);
    delete theString;
@@ -228,10 +229,21 @@ TEST_F(SyslogReporterTest, SendStatTime) {
 TEST_F(SyslogReporterTest, SyslogInitialize) {
    MockConfSlave slave;
    slave.mConfLocation = "resources/test.yaml.Syslog2";
-   MockCommandProcessor testProcessor(slave.GetConf());
-   EXPECT_TRUE(testProcessor.Initialize());
+   auto testProcessor = std2::make_unique<MockCommandProcessor>(slave.GetConf());
+   ASSERT_FALSE(testProcessor->HasWorkerThreadStarted());
+   EXPECT_TRUE(testProcessor->Initialize());
 
-   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART, MockRestartSyslogCommand::Construct);
+   StopWatch waitForInitialization;
+   size_t maxWaitSec = 10;
+   while(waitForInitialization.ElapsedSec() < maxWaitSec && 
+           (false == testProcessor->HasWorkerThreadStarted())) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+   }
+   ASSERT_TRUE(testProcessor->HasWorkerThreadStarted()) << 
+           "\nCommandProcessor has not yet started. It is taking too long time" 
+           << "\nBailing out from the test";
+   
+   testProcessor->ChangeRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART, MockRestartSyslogCommand::Construct);
    MockRestartSyslogCommand::mReceivedExecute = false;
    protoMsg::SyslogConf empty; // initially empty
    MockRestartSyslogCommand::mSyslogMsg = empty; // save the empty to the receiver. it should later be filled
@@ -248,9 +260,10 @@ TEST_F(SyslogReporterTest, SyslogInitialize) {
 
       syslogReporter->SetSyslogCmdSendToRestart();
       syslogReporter->Start();
-      std::chrono::milliseconds dura(2000);
-      std::this_thread::sleep_for(dura);
-      syslogReporter.reset(nullptr);
+      std::this_thread::sleep_for(std::chrono::seconds(4)); 
+      syslogReporter.reset(nullptr); 
+      testProcessor.reset(nullptr); // force CommandProcessor to exit
+      
    }
    EXPECT_TRUE(MockRestartSyslogCommand::mReceivedExecute); // Hack to enable these outside of the object instance 
    EXPECT_EQ(MockRestartSyslogCommand::mSyslogMsg.sysloglogagentip(), "1.2.1.2");

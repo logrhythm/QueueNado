@@ -49,6 +49,10 @@ public:
       mKillCounter=0;
    }
    
+   bool HasWorkerThreadStarted() {
+      return CommandProcessor::HasWorkerThreadStarted();
+   }
+   
    private:
       size_t mKillCounter;
       std::mutex mMutex;
