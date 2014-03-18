@@ -37,7 +37,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfOneSetOfValues) {
 
    // Test Mock Preparation to Answer the UI
    MockConfigRequestCommand::ManyConfDefaults defaults;
-   auto dpiThreads = std::make_tuple("dpiThreads", "7", MockConfigRequestCommand::Ranges{"1", "12"});
+   auto dpiThreads = std::make_tuple("dpiThreads", "8", MockConfigRequestCommand::Ranges{"1", "12"});
    defaults.push_back(dpiThreads);
    doIt.EnabledMockExecuteRequest(protoMsg::ConfType::BASE, defaults);
 
@@ -64,7 +64,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfOneSetOfValues) {
    // check that the values are as expected for the dpithreads as set above
    EXPECT_EQ(defaultValues.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(defaultValues.configname(), "dpiThreads");
-   EXPECT_EQ(defaultValues.defaultval(), "7");
+   EXPECT_EQ(defaultValues.defaultval(), "8");
    EXPECT_EQ(defaultValues.min(), "1");
    EXPECT_EQ(defaultValues.max(), "12");
 #endif
@@ -88,7 +88,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
 
    // BUILD UP THE FAKE RESPONSE 
    MockConfigRequestCommand::ManyConfDefaults defaults;
-   auto dpiThreads = std::make_tuple("dpiThreads", "7", MockConfigRequestCommand::Ranges{"1", "12"});
+   auto dpiThreads = std::make_tuple("dpiThreads", "8", MockConfigRequestCommand::Ranges{"1", "12"});
    auto qosmosDebugEnabled = std::make_tuple("qosmosDebugModeEnabled", "false", MockConfigRequestCommand::Ranges{"false", "true"});
    defaults.push_back(dpiThreads);
    defaults.push_back(qosmosDebugEnabled);
@@ -114,7 +114,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfTwoSetOfValues) {
    // check that the values are as expected for the dpithreads as set above
    EXPECT_EQ(readDpiValues.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(readDpiValues.configname(), "dpiThreads");
-   EXPECT_EQ(readDpiValues.defaultval(), "7");
+   EXPECT_EQ(readDpiValues.defaultval(), "8");
    EXPECT_EQ(readDpiValues.min(), "1");
    EXPECT_EQ(readDpiValues.max(), "12");
 
@@ -169,7 +169,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfExecuteUsingRealDefaultValues) {
    // check that the values are as expected for the dpithreads as set above
    EXPECT_EQ(readDpiValues.type(), protoMsg::ConfType::BASE);
    EXPECT_EQ(readDpiValues.configname(), "dpiThreads");
-   EXPECT_EQ(readDpiValues.defaultval(), "4");
+   EXPECT_EQ(readDpiValues.defaultval(), "8");
    EXPECT_EQ(readDpiValues.min(), "1");
    EXPECT_EQ(readDpiValues.max(), "12");
 
@@ -267,7 +267,7 @@ TEST_F(ConfigRequestCommandTest, BaseConfAllValues) {
    EXPECT_TRUE(realReply.ParseFromString(reply.result()));
 
    int it = 0;
-   checkRealReply(realReply, "dpiThreads", protoMsg::ConfType::BASE, "4", "1", "12", it++);
+   checkRealReply(realReply, "dpiThreads", protoMsg::ConfType::BASE, "8", "1", "12", it++);
    checkRealReply(realReply, "pcapETimeout", protoMsg::ConfType::BASE, "1", "1", "30", it++);
    checkRealReply(realReply, "pcapBufferSize", protoMsg::ConfType::BASE, "35", "1", "1000", it++);
    checkRealReply(realReply, "pcapInterface", protoMsg::ConfType::BASE, "bond0", "1", "1000", it++);
@@ -343,12 +343,12 @@ TEST_F(ConfigRequestCommandTest, SyslogConfAllValues) {
 
    int it = 0;
    checkRealReply(realReply, "syslogEnabled", protoMsg::ConfType::SYSLOG, "true", "false", "true", it++);
-   checkRealReply(realReply, "syslogTcpEnabled", protoMsg::ConfType::SYSLOG, "true", "false", "true", it++);
+   checkRealReply(realReply, "syslogTcpEnabled", protoMsg::ConfType::SYSLOG, "false", "false", "true", it++);
    checkRealReply(realReply, "syslogLogAgentPort", protoMsg::ConfType::SYSLOG, "514", "1", "65535", it++);
    checkRealReply(realReply, "syslogLogAgentIP", protoMsg::ConfType::SYSLOG, "0.0.0.0", "1", "1000", it++);
-   checkRealReply(realReply, "syslogMaxLineLength", protoMsg::ConfType::SYSLOG, "1999", "200", "2000", it++);
+   checkRealReply(realReply, "syslogMaxLineLength", protoMsg::ConfType::SYSLOG, "2000", "200", "2000", it++);
    checkRealReply(realReply, "siemLogging", protoMsg::ConfType::SYSLOG, "true", "false", "true", it++);
-   checkRealReply(realReply, "scrubPasswords", protoMsg::ConfType::SYSLOG, "false", "false", "true", it++);
+   checkRealReply(realReply, "scrubPasswords", protoMsg::ConfType::SYSLOG, "true", "false", "true", it++);
 #endif
 }
 

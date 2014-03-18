@@ -57,7 +57,7 @@ TEST(TestProtoDefaults, GetConfParamDefaultOK){
    
    auto confDefaults = getDefaults.GetConfDefaults(protoMsg::ConfType_Type_BASE);
    
-   const std::string str("4");
+   const std::string str("8");
    EXPECT_TRUE(getDefaults.GetConfParamDefault(confDefaults, "dpiThreads").size() > 0);
    EXPECT_TRUE(str.compare(getDefaults.GetConfParamDefault(confDefaults, "dpiThreads")) == 0);
    EXPECT_TRUE(getDefaults.GetConfParamDefault(confDefaults, "dpiThreads2").size() == 0);

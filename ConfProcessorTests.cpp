@@ -92,7 +92,7 @@ TEST_F(ConfProcessorTests, EthConfRepair) {
    ethInfo.mFakeIsValidValue = false;
    master.RepairEthConfFieldsWithDefaults(conf, ethInfo); // doesn't do anything
    ASSERT_LE(0, conf.GetProtoMap().size());
-   EXPECT_EQ("eth1", conf.GetProtoMap()["pcapInterface"]);
+   EXPECT_EQ("bond0", conf.GetProtoMap()["pcapInterface"]);
    ethInfo.mFakeIsValidValue = true;
    master.RepairEthConfFieldsWithDefaults(conf, ethInfo); // empty becomes full
    ASSERT_LE(0, conf.GetProtoMap().size());
