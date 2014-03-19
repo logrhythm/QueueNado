@@ -63,9 +63,11 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
    aMessage.set_session("abc123");
    aMessage.set_childflownumber(1);
    aMessage.set_timeupdated(123456789);
+   
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_FALSE(dm.mSentUpdate);
    aMessage.set_childflownumber(2);
+   aMessage.set_timeprevious(123456789 - flowReportTime);
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_TRUE(dm.mSentUpdate);
    EXPECT_EQ(123456789-flowReportTime,dm.mEsMessage.timeupdated());
