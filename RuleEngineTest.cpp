@@ -69,7 +69,8 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_TRUE(dm.mSentUpdate);
    EXPECT_EQ(123456789-flowReportTime,dm.mEsMessage.timeupdated());
-   EXPECT_FALSE(dm.mEsMessage.has_childflownumber());
+   EXPECT_TRUE(dm.mEsMessage.has_childflownumber());
+   EXPECT_EQ(1,dm.mEsMessage.childflownumber());
    EXPECT_FALSE(dm.mEsMessage.latestupdate());
    dm.mSentUpdate = false;
 
@@ -78,7 +79,7 @@ TEST_F(RuleEngineTest, UpdatePreviousRecordNoLongerLatest) {
    dm.UpdatePreviousRecordNoLongerLatest(&aMessage);
    EXPECT_TRUE(dm.mSentUpdate);
    EXPECT_EQ(123,dm.mEsMessage.timeupdated());
-   EXPECT_FALSE(dm.mEsMessage.has_childflownumber());
+   EXPECT_EQ(200,dm.mEsMessage.childflownumber());
    EXPECT_FALSE(dm.mEsMessage.latestupdate());
 #endif
 }
