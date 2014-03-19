@@ -86,7 +86,7 @@ namespace networkMonitor {
       void UpdatePreviousRecordNoLongerLatest(networkMonitor::DpiMsgLR* dpiMsg) LR_OVERRIDE {
          RuleEngine::UpdatePreviousRecordNoLongerLatest(dpiMsg);
       }
-      bool UpdateDocWithDpiMsg(const networkMonitor::DpiMsgLR& dpiMsg) LR_OVERRIDE {
+      bool UpdatePreviousDocWithDpiMsg(const networkMonitor::DpiMsgLR& dpiMsg) LR_OVERRIDE {
          mEsMessage.Clear();
          mEsMessage = dpiMsg;
          mSentUpdate = true;
