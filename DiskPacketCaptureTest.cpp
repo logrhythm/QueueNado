@@ -6,6 +6,7 @@
 #include <thread>
 #include <future>
 #include <map>
+#include <boost/filesystem.hpp>
 
 #ifdef LR_DEBUG
 #include "MockConf.h"
@@ -134,8 +135,7 @@ TEST_F(DiskPacketCaptureTest, ConfCreatesCorrectCaptureLocations) {
 TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
-   std::string testDir =  "/tmp/";
-   conf.mPCapCaptureLocations.push_back(testDir);
+   conf.mPCapCaptureLocations.push_back(testDir.str());
    conf.mMaxIndividualPCap = 10; // MB
    conf.mPCapCaptureMemoryLimit = 99999;
    conf.mPcapCaptureMaxPackets = 99999999;
@@ -206,10 +206,11 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
 
 TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior1) {
    MockConf conf;
+   std::string testDir = "/tmp/";
    conf.mUnknownCaptureEnabled = true;
-   std::string testDir =  "/tmp/";
+   //conf.mPCapCaptureLocations.push_back(testDir.str());
    conf.mPCapCaptureLocations.push_back(testDir);
-   conf.mMaxIndividualPCap = 10; // MB
+   conf.mMaxIndividualPCap = 20; // MB
    conf.mPCapCaptureMemoryLimit = 99999;
    conf.mPcapCaptureMaxPackets = 99999999;
    conf.mPCapCaptureSizeLimit = 999999999;
@@ -229,6 +230,9 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior1) {
    testMessage->set_totalbytes(0);
    testMessage->set_totalbytesdelta(0);
    testMessage->set_captured(true);
+
+   auto DoesFileExist = [](const std::string& name) ->bool{ return boost::filesystem::exists(name); };
+   std::string testFile = "/tmp/" + testMessage->session();
 
    packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
    packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
@@ -250,13 +254,14 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior1) {
    struct stat statbuf;
 
    //std::string testFile = testDir.str() + "/" + testMessage->session();
-   std::string testFile = "/tmp/" + testMessage->session();
+   std::cout << __FUNCTION__ << "\tL:" << __LINE__ << ", testFile: " << testFile << ". Existance: " << DoesFileExist(testFile) << std::endl;
    ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
    EXPECT_TRUE(conf.mMaxIndividualPCap * testPacketSize >= statbuf.st_size);
    EXPECT_TRUE((conf.mMaxIndividualPCap - 1) * testPacketSize <= statbuf.st_size);
 
-   std::cout << "TEST FILE: " << testFile << std::endl;
-   //remove(testFile.c_str());
+   std::cout << "REMOVING TEST FILE: " << testFile << std::endl;
+   remove(testFile.c_str());
+
    for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
       testMessage->set_totalpackets(testMessage->totalpackets() + 1);
       testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
@@ -268,6 +273,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior1) {
       capture.SavePacket(testMessage, &packet);
       EXPECT_FALSE(capture.WriteSavedSessionToDisk(testMessage));
    }
+   std::cout << "WRITTEN: " << testMessage->written() << " CAPTURED: " << testMessage->captured() << std::endl;
    EXPECT_FALSE(testMessage->written());
    EXPECT_FALSE(testMessage->captured());
    EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2), testMessage->totalpackets());
