@@ -36,7 +36,7 @@ TEST_F(EthInfoTest, GetIFAddrs) {
    strncpy(ethInfo.mifaddr->ifa_name,fakeName.c_str(),fakeName.size());
    EXPECT_TRUE(ethInfo.Initialize());
    EXPECT_TRUE(ethInfo.IsValid());
-   EXPECT_EQ(1,ethInfo.GetAvaliableInterfaces().size());
+   EXPECT_EQ(2,ethInfo.GetAvaliableInterfaces().size()); // bond0 available
    EXPECT_TRUE(ethInfo.GetAvaliableInterfaces().count("eth1") != 0);
    ethInfo.mifaddr->ifa_next = reinterpret_cast<struct ifaddrs*>(malloc(sizeof(struct ifaddrs)));
    ASSERT_FALSE(NULL == ethInfo.mifaddr->ifa_next);
@@ -47,11 +47,14 @@ TEST_F(EthInfoTest, GetIFAddrs) {
    ASSERT_FALSE(NULL == ethInfo.mifaddr->ifa_name);
    strncpy(ethInfo.mifaddr->ifa_next->ifa_name,fakeName2.c_str(),fakeName2.size());
    EXPECT_TRUE(ethInfo.Initialize());
-   EXPECT_EQ(2,ethInfo.GetAvaliableInterfaces().size());
+   EXPECT_EQ(3,ethInfo.GetAvaliableInterfaces().size()); // bond0 is always added
    free(ethInfo.mifaddr->ifa_next->ifa_name);
    free(ethInfo.mifaddr->ifa_name);
    free(ethInfo.mifaddr->ifa_next);
    free(ethInfo.mifaddr);
+   
+   
+   EXPECT_TRUE(ethInfo.GetAvaliableInterfaces().count("bond0") != 0);
 }
 
 TEST_F(EthInfoTest, GetIFAddrsBond0) {
