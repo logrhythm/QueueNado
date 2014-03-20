@@ -134,7 +134,8 @@ TEST_F(DiskPacketCaptureTest, ConfCreatesCorrectCaptureLocations) {
 TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
-   conf.mPCapCaptureLocations.push_back(testDir.str());
+   std::string testDir =  "/tmp/";
+   conf.mPCapCaptureLocations.push_back(testDir);
    conf.mMaxIndividualPCap = 10; // MB
    conf.mPCapCaptureMemoryLimit = 99999;
    conf.mPcapCaptureMaxPackets = 99999999;
@@ -181,6 +182,81 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    EXPECT_TRUE((conf.mMaxIndividualPCap - 1) * testPacketSize <= statbuf.st_size);
 
    remove(testFile.c_str());
+   for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
+      testMessage->set_totalpackets(testMessage->totalpackets() + 1);
+      testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
+      if (i % 2 == 0) {
+         testMessage->set_srcbytes(testMessage->srcbytes() + packet.p->len);
+      } else {
+         testMessage->set_destbytes(testMessage->destbytes() + packet.p->len);
+      }
+      capture.SavePacket(testMessage, &packet);
+      EXPECT_FALSE(capture.WriteSavedSessionToDisk(testMessage));
+   }
+   EXPECT_FALSE(testMessage->written());
+   EXPECT_FALSE(testMessage->captured());
+   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2), testMessage->totalpackets());
+   EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage->srcbytes() + testMessage->destbytes());
+
+   ASSERT_NE(0, stat(testFile.c_str(), &statbuf));
+
+   free(packet.p->data);
+   free(packet.p);
+}
+
+TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior1) {
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
+   std::string testDir =  "/tmp/";
+   conf.mPCapCaptureLocations.push_back(testDir);
+   conf.mMaxIndividualPCap = 10; // MB
+   conf.mPCapCaptureMemoryLimit = 99999;
+   conf.mPcapCaptureMaxPackets = 99999999;
+   conf.mPCapCaptureSizeLimit = 999999999;
+   const size_t testPacketSize = 1024 * 1024;
+   MockDiskPacketCapture capture(conf);
+
+   ASSERT_TRUE(capture.Initialize());
+   DpiMsgLRPool& pool = DpiMsgLRPool::Instance();
+   networkMonitor::DpiMsgLR* testMessage = pool.GetDpiMsg();
+   struct upacket packet;
+
+   testMessage->set_session("123456789012345678901234567890123456");
+   testMessage->set_totalpackets(0);
+   testMessage->set_packetsdelta(0);
+   testMessage->set_srcbytes(0);
+   testMessage->set_destbytes(0);
+   testMessage->set_totalbytes(0);
+   testMessage->set_totalbytesdelta(0);
+   testMessage->set_captured(true);
+
+   packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
+   packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
+   packet.p->len = (testPacketSize);
+   for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
+      testMessage->set_totalpackets(testMessage->totalpackets() + 1);
+      testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
+      if (i % 2 == 0) {
+         testMessage->set_srcbytes(testMessage->srcbytes() + packet.p->len);
+      } else {
+         testMessage->set_destbytes(testMessage->destbytes() + packet.p->len);
+      }
+      capture.SavePacket(testMessage, &packet);
+   }
+   EXPECT_TRUE(capture.WriteSavedSessionToDisk(testMessage));
+   EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage->totalpackets());
+   EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage->srcbytes() + testMessage->destbytes());
+   EXPECT_TRUE(testMessage->written());
+   struct stat statbuf;
+
+   //std::string testFile = testDir.str() + "/" + testMessage->session();
+   std::string testFile = "/tmp/" + testMessage->session();
+   ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
+   EXPECT_TRUE(conf.mMaxIndividualPCap * testPacketSize >= statbuf.st_size);
+   EXPECT_TRUE((conf.mMaxIndividualPCap - 1) * testPacketSize <= statbuf.st_size);
+
+   std::cout << "TEST FILE: " << testFile << std::endl;
+   //remove(testFile.c_str());
    for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
       testMessage->set_totalpackets(testMessage->totalpackets() + 1);
       testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
@@ -609,7 +685,7 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
       capture.SavePacket(dpiMsg2, &packet);
       EXPECT_EQ(2, capture.NewTotalMemory(0));
       EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012346"));
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012346")); 
 
       conf.mPCapCaptureMemoryLimit = 2;
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
