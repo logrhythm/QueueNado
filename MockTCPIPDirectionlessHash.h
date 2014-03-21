@@ -12,25 +12,25 @@ class MockTCPIPDirectionlessHash : public TCPIPDirectionlessHash {
 public:
 MockTCPIPDirectionlessHash() {}
 ~MockTCPIPDirectionlessHash() {}
-uLong GetHash(const uint8_t* packet) {
-   return TCPIPDirectionlessHash::GetHash(packet);
+uLong GetHash(const uint8_t* packet, const unsigned int length) LR_OVERRIDE {
+   return TCPIPDirectionlessHash::GetHash(packet,length);
 }
-bool CompareEth(const  u_int8_t* first,const  u_int8_t* second) {
+bool CompareEth(const  u_int8_t* first,const  u_int8_t* second) LR_OVERRIDE {
    return TCPIPDirectionlessHash::CompareEth(first,second);
 }
-bool CompareIp6(const  u_int8_t* first,const  u_int8_t* second) {
+bool CompareIp6(const  u_int8_t* first,const  u_int8_t* second) LR_OVERRIDE {
    return TCPIPDirectionlessHash::CompareIp6(first,second);
 }
-bool CompareArray(const  u_int8_t* first,const  u_int8_t* second, unsigned int length) {
+bool CompareArray(const  u_int8_t* first,const  u_int8_t* second, unsigned int length) LR_OVERRIDE {
    return TCPIPDirectionlessHash::CompareArray(first,second,length);
 }
-void GetSortedEthAddrs(const uint8_t* packet, bool& isIp, std::string& result) {
-   return TCPIPDirectionlessHash::GetSortedEthAddrs(packet,isIp,result);
+void GetSortedEthAddrs(struct ether_header *eth, bool& isIp, std::vector<uint8_t>& result) LR_OVERRIDE {
+   return TCPIPDirectionlessHash::GetSortedEthAddrs(eth,isIp,result);
 }
-void GetSortedIPAddrs(const uint8_t* packet, std::string& result) {
-   return TCPIPDirectionlessHash::GetSortedIPAddrs(packet,result);
+void GetSortedIPAddrs(struct ether_header *eth, std::vector<uint8_t>& result) LR_OVERRIDE {
+   return TCPIPDirectionlessHash::GetSortedIPAddrs(eth,result);
 }
-bool CompareIp(const struct in_addr& first, const struct in_addr& second) {
+bool CompareIp(const struct in_addr& first, const struct in_addr& second) LR_OVERRIDE {
    return TCPIPDirectionlessHash::CompareIp(first,second);
 }
 private:
