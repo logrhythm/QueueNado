@@ -207,7 +207,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
 TEST_F(DiskPacketCaptureTest, DeleteLongPcapCaptureFalse) {
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
-   conf.mPCapCaptureLocations.push_back(testDir);
+   conf.mPCapCaptureLocations.push_back(testDir.str());
    conf.mMaxIndividualPCap = 20; // MB
    conf.mPCapCaptureMemoryLimit = 99999;
    conf.mPcapCaptureMaxPackets = 99999999;
