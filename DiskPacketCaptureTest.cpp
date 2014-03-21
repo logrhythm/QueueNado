@@ -204,11 +204,9 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    free(packet.p);
 }
 
-TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior1) {
+TEST_F(DiskPacketCaptureTest, DeleteLongPcapCaptureFalse) {
    MockConf conf;
-   std::string testDir = "/tmp/";
    conf.mUnknownCaptureEnabled = true;
-   //conf.mPCapCaptureLocations.push_back(testDir.str());
    conf.mPCapCaptureLocations.push_back(testDir);
    conf.mMaxIndividualPCap = 20; // MB
    conf.mPCapCaptureMemoryLimit = 99999;
@@ -232,7 +230,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior1) {
    testMessage->set_captured(true);
 
    auto DoesFileExist = [](const std::string& name) ->bool{ return boost::filesystem::exists(name); };
-   std::string testFile = "/tmp/" + testMessage->session();
+   std::string testFile = testDir.str() + "/" + testMessage->session();
 
    packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
    packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
@@ -253,13 +251,10 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior1) {
    EXPECT_TRUE(testMessage->written());
    struct stat statbuf;
 
-   //std::string testFile = testDir.str() + "/" + testMessage->session();
-   std::cout << __FUNCTION__ << "\tL:" << __LINE__ << ", testFile: " << testFile << ". Existance: " << DoesFileExist(testFile) << std::endl;
    ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
    EXPECT_TRUE(conf.mMaxIndividualPCap * testPacketSize >= statbuf.st_size);
    EXPECT_TRUE((conf.mMaxIndividualPCap - 1) * testPacketSize <= statbuf.st_size);
 
-   std::cout << "REMOVING TEST FILE: " << testFile << std::endl;
    remove(testFile.c_str());
 
    for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
@@ -273,7 +268,6 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior1) {
       capture.SavePacket(testMessage, &packet);
       EXPECT_FALSE(capture.WriteSavedSessionToDisk(testMessage));
    }
-   std::cout << "WRITTEN: " << testMessage->written() << " CAPTURED: " << testMessage->captured() << std::endl;
    EXPECT_FALSE(testMessage->written());
    EXPECT_FALSE(testMessage->captured());
    EXPECT_EQ(2 * (conf.mMaxIndividualPCap + 2), testMessage->totalpackets());
