@@ -1,6 +1,6 @@
 /* 
  * File:   FileIO.cpp
- * Author: kjell
+ * Author: kjell/weberr13
  * 
  * Created on August 15, 2013, 2:28 PM
  */
