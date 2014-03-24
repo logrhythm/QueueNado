@@ -1,21 +1,40 @@
+/**
+ * 
+ * Statistics for Murmur3 and City32 for hashing Msg UUIDs
+ * Non failing tests. You can run this by doing 
+ *  sudo ../source/MotherForker ./ToolsTest --gtest_filter=*Hash* --gtest_also_run_disabled_tests
+ * 
+ * Both tests takes in total approx 5 minutes to run. Most of the time 
+ * is used for building up the test data. The actual hashing takes only in the seconds.
+ */
+
 #include <city.h>
 #include <gtest/gtest.h>
 #include <string>
 #include <deque>
 #include <algorithm>
 #include <sstream>
-//#include "MsgUuid.h"
 #include "boost/uuid/uuid.hpp"
 #include "boost/uuid/uuid_generators.hpp"
 #include "boost/uuid/uuid_io.hpp"
-#include "StopWatch.h"
 #include <iostream>
 #include <map>
-// We only want to build up this information ONCE
+#include <algorithm>
+#include <g2log.hpp>
+
+#include "StopWatch.h"
+#include "MurMurHash.h"
+
+
 namespace {
-   const size_t gNumberOfFiles = 2000000;
-   const size_t gNumberOfFoldersPerPartition = 100; //16000;
-   const size_t gNumberOfPartitions = 1; // 128;
+   typedef long long NumberType;
+
+   const NumberType gNumberOfFiles = 200000; //. 2 000 000
+   const NumberType gNumberOfFoldersPerPartition = 32; //16 000;
+   const NumberType gNumberOfPartitions = 4; // 23;   // i.e6400000
+   const NumberType gNumberOfBuckets = gNumberOfFoldersPerPartition * gNumberOfPartitions;
+
+   const NumberType gNumberOfSessions = gNumberOfFiles * gNumberOfBuckets;
    struct UuidGenerator {
       boost::mt19937 mRandomEngine;
       boost::uuids::basic_random_generator<boost::mt19937> mUuidGenerator;
@@ -36,47 +55,140 @@ namespace {
 
 
    // Will have as many session IDs as our maximum number of files
-   // totally on our system http://stackoverflow.com/questions/15220199/how-would-you-initialize-a-const-vector-of-function-results-using-c11
-
-   std::deque<std::string> CreateSessionIDs(const size_t amount) {
+   // This is NOT done through the MsgUUID::GetMsgUuid(..) since we do not want
+   // the std::mutex overhead 
+   std::deque<std::string> CreateSessionIDs(const NumberType amount) {
       static UuidGenerator generator;
-      
-      std::deque<std::string> created{amount,
-         {""}};
-      std::generate(created.begin(), created.end(), [] {
-         return generator.ThreadUnsafeMsgUuidCreator();
-      });
+      std::deque<std::string> created{size_t(amount), {""}};
+      std::generate(created.begin(), created.end(), [] {return generator.ThreadUnsafeMsgUuidCreator();});
       return created;
    }
-}
+   
+   
+   struct Stats {
+      Stats() : maxOfHitsInBucket(0), minOfHitsInBucket(0), mean(0), stdDeviation(0) { }
+      NumberType maxOfHitsInBucket;
+      NumberType minOfHitsInBucket;
+      NumberType mean;
+      NumberType stdDeviation;
+   };
 
-TEST(TestCityHash, ThisTestWillFail) {
-   const size_t numberOfSessions = 2000000; //gNumberOfFiles * gNumberOfFoldersPerPartition * gNumberOfPartitions;
+
+   /// Used for std::accumulate in map
+   NumberType AddToSum(NumberType lhs, const std::pair<NumberType, NumberType>& rhs) {
+      return (lhs + rhs.second);
+   }
+
+   Stats CalculateStats(const std::map<NumberType, NumberType>& values) {
+      auto sum = std::accumulate(values.begin(), values.end(), 0, AddToSum);
+      auto size = values.size();
+      auto mean = (sum / size);
+
+
+      // std deviation http://www.social-science.co.uk/research/?n1=&id=93
+      // and http://stackoverflow.com/questions/7616511/calculate-mean-and-standard-deviation-from-a-vector-of-samples-in-c-using-boos
+      NumberType accumulated = 0;
+      NumberType min = mean;
+      NumberType max = 0;
+      for (const auto& pair : values) {
+         accumulated += ((pair.second - mean) * (pair.second - mean));
+         min = std::min(pair.second, min);
+         max = std::max(pair.second, max);
+      }
+
+
+      auto stdDeviation = std::sqrt(accumulated / (size - 1));
+
+      Stats stats;
+      stats.stdDeviation = stdDeviation;
+      stats.minOfHitsInBucket = min;
+      stats.maxOfHitsInBucket = max;
+      stats.mean = mean;
+      return stats;
+   }
+
+   // this will take approx 1 minute
+   const std::deque<std::string> gAllSessions{CreateSessionIDs(gNumberOfSessions)};
+} // anonymous
+
+// enable by adding --gtest_also_run_disabled_tests
+TEST(TestCityHash, DISABLED_CityHash32) {
+
    StopWatch watch;
-   auto allSessions = CreateSessionIDs(numberOfSessions);
-   std::cout << "Creating : " << numberOfSessions << ", took: " << watch.ElapsedSec() << " seconds" << std::endl;
-   watch.Restart();
-   
-   std::map<uint32_t, int> counter;
-   std::map<uint32_t, int> counterHashed;
-   
-   for(const auto& session: allSessions) {
+
+   std::map<NumberType, NumberType> counterHashed;
+   for (const auto& session : gAllSessions) {
       auto hashed = CityHash32(session.c_str(), session.size());
-      counter[hashed]++;
-      
-      auto bucket =  hashed % gNumberOfFoldersPerPartition; // digit % size
+      auto bucket = hashed % gNumberOfBuckets;
       counterHashed[bucket]++;
    }
-   std::cout << "Hashing : " << numberOfSessions << ", took: " << watch.ElapsedSec() << " seconds" << std::endl;
-   std::cout << "Number of raw bins: " << counter.size() << std::endl;
-   std::cout << "Number of buckets: " <<  gNumberOfFoldersPerPartition << ", number of hashed buckets: " << counterHashed.size() << std::endl;
-   for(auto& b : counterHashed) {
-      std::cout << b.first << ": " << b.second << std::endl;
-   }
-          
-   // left to do,. calculate statistical variance betwen all the maps.
-   ASSERT_EQ(allSessions.size(), numberOfSessions);
+   std::ostringstream oss;
+   oss << "CityHash32 Hashing : " << gNumberOfSessions << ", took: " << watch.ElapsedSec() << " seconds" << std::endl;
+   oss << "CityHash32 Number of buckets: " << gNumberOfBuckets << ", number of hashed buckets: " << counterHashed.size() << std::endl;
+   LOG(INFO) << oss.str();
+
+   // Commented away but left for visibility in case anyone wanted to see or plot the exact values
+   //for (auto& b : counterHashed) {
+   //   LOG(DEBUG) << b.first << ": " << b.second << std::endl;
+   //}
+   Stats stats = CalculateStats(counterHashed);
+   oss.str(""); // cleared.
+   oss << "\nCityHash32\tMin in a bucket: " << stats.minOfHitsInBucket;
+   oss << "\nCityHash32\tMax in a bucket: " << stats.maxOfHitsInBucket;
+   oss << "\nCityHash32\tMean overall: " << stats.mean;
+   oss << "\nCityHash32\tStd deviation: : " << stats.stdDeviation << std::endl;
+   LOG(INFO) << oss.str();
+
+
+
+   ASSERT_EQ(gAllSessions.size(), gNumberOfSessions);
+   ASSERT_EQ(counterHashed.size(), gNumberOfBuckets);
+   ASSERT_NE(stats.minOfHitsInBucket, 0);
 }
 
+
+//  enable by adding --gtest_also_run_disabled_tests
+TEST(TestCityHash, DISABLED_Murmur3Hash) {
+
+
+   std::map<NumberType, NumberType> counterHashed;
+   std::deque<std::vector < uint8_t>> sessionsConverted;
+   // Converted the previously generated input for Murmur3
+   for (const auto& session : gAllSessions) {
+      std::uint8_t* raw = reinterpret_cast<uint8_t*> (const_cast<char*> (session.c_str()));
+      std::vector<uint8_t> input{raw, raw + session.size()};
+      sessionsConverted.push_back(input);
+   }
+
+   StopWatch watch;
+   for (auto& session : sessionsConverted) {
+      auto hashed = MurMurHash::MurMur3_32(session);
+      auto bucket = hashed % gNumberOfBuckets;
+      counterHashed[bucket]++;
+   }
+
+   std::ostringstream oss;
+   oss << "Murmur3Hash Hashing : " << gNumberOfSessions << ", took: " << watch.ElapsedSec() << " seconds" << std::endl;
+   oss << "Murmur3Hash Number of buckets: " << gNumberOfBuckets << ", number of hashed buckets: " << counterHashed.size() << std::endl;
+   LOG(INFO) << oss.str();
+
+   // Commented away but left for visibility in case anyone wanted to see or plot the exact values
+   //for (auto& b : counterHashed) {
+   //LOG(DEBUG) << b.first << ": " << b.second << std::endl;
+   //}
+   Stats stats = CalculateStats(counterHashed);
+   oss.str(""); // cleared.
+   oss << "\nMurmur3Hash\tMin in a bucket: " << stats.minOfHitsInBucket;
+   oss << "\nMurmur3Hash\tMax in a bucket: " << stats.maxOfHitsInBucket;
+   oss << "\nMurmur3Hash\tMean overall: " << stats.mean;
+   oss << "\nMurmur3Hash\tStd deviation: : " << stats.stdDeviation << std::endl;
+   LOG(INFO) << oss.str();
+
+
+
+   ASSERT_EQ(sessionsConverted.size(), gNumberOfSessions);
+   ASSERT_EQ(counterHashed.size(), gNumberOfBuckets);
+   ASSERT_NE(stats.minOfHitsInBucket, 0);
+}
 // just generate tons of stuff
-// 
+//    
