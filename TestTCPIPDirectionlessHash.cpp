@@ -2,7 +2,6 @@
 #include "TestTCPIPDirectionlessHash.h"
 
 TEST_F(TestTCPIPDirectionlessHash, IpTypeIdentified) {
-   MockTCPIPDirectionlessHash generator;
 
    bool isIp;
    std::vector<u_int8_t> result;
@@ -13,8 +12,7 @@ TEST_F(TestTCPIPDirectionlessHash, IpTypeIdentified) {
       first.push_back(i);
       second.push_back(ETH_ALEN - i);
    }
-   struct ether_header *eth;
-   eth = (struct ether_header *) packet;
+
    memcpy(eth->ether_shost, &first[0], ETH_ALEN);
    memcpy(eth->ether_dhost, &second[0], ETH_ALEN);
    eth->ether_type = htons(ETHERTYPE_PUP);
@@ -66,13 +64,10 @@ TEST_F(TestTCPIPDirectionlessHash, IpTypeIdentified) {
 }
 
 TEST_F(TestTCPIPDirectionlessHash, EtherSorted) {
-   MockTCPIPDirectionlessHash generator;
 
    bool isIp;
    std::vector<u_int8_t> result;
 
-   struct ether_header *eth;
-   eth = (struct ether_header *) packet;
    memcpy(eth->ether_shost, &first[0], ETH_ALEN);
    memcpy(eth->ether_dhost, &second[0], ETH_ALEN);
 
@@ -91,7 +86,6 @@ TEST_F(TestTCPIPDirectionlessHash, EtherSorted) {
 }
 
 TEST_F(TestTCPIPDirectionlessHash, TestCompareEth) {
-   MockTCPIPDirectionlessHash generator;
    for (int i = 0; i < ETH_ALEN; ++i) {
       first[i] = 0;
       second[i] = 0;
@@ -115,7 +109,6 @@ TEST_F(TestTCPIPDirectionlessHash, TestCompareEth) {
 }
 
 TEST_F(TestTCPIPDirectionlessHash, TestCompareArray) {
-   MockTCPIPDirectionlessHash generator;
    unsigned int length = 12;
    for (int i = 0; i < length; ++i) {
       first[i] = 0;
@@ -140,7 +133,6 @@ TEST_F(TestTCPIPDirectionlessHash, TestCompareArray) {
 }
 
 TEST_F(TestTCPIPDirectionlessHash, TestCompareIp6) {
-   MockTCPIPDirectionlessHash generator;
    for (int i = 0; i < IP6_ALEN; ++i) {
       first[i] = 0;
       second[i] = 0;
@@ -163,7 +155,6 @@ TEST_F(TestTCPIPDirectionlessHash, TestCompareIp6) {
 
 }
 TEST_F(TestTCPIPDirectionlessHash, TestCompareIP) {
-   MockTCPIPDirectionlessHash generator;
 
    for (int i = 0; i < sizeof (in_addr); ++i) {
       first[i] = 0;
@@ -198,7 +189,6 @@ TEST_F(TestTCPIPDirectionlessHash, TestCompareIP) {
 }
 
 TEST_F(TestTCPIPDirectionlessHash, IpSorted) {
-   MockTCPIPDirectionlessHash generator;
 
    std::vector<u_int8_t> result;
    struct IPHeader* ipHeader;
@@ -218,34 +208,47 @@ TEST_F(TestTCPIPDirectionlessHash, IpSorted) {
    EXPECT_EQ(first[sizeof (in_addr) - 1], result[sizeof (in_addr)]);
 }
 
-TEST_F(TestTCPIPDirectionlessHash, HashFunction) {
-   MockTCPIPDirectionlessHash generator;
+TEST_F(TestTCPIPDirectionlessHash, HashEthPacket) {
 
-   struct ether_header *eth;
-   eth = (struct ether_header *) packet;
-   memcpy(eth->ether_shost, &first[0], ETH_ALEN);
-   memcpy(eth->ether_dhost, &second[0], ETH_ALEN);
    eth->ether_type = htons(ETHERTYPE_ARP);
-   EXPECT_EQ(20, generator.GetHash(packet,1024));
-   memcpy(eth->ether_dhost, &first[0], ETH_ALEN);
-   memcpy(eth->ether_shost, &second[0], ETH_ALEN);
-   EXPECT_EQ(20, generator.GetHash(packet,1024));
+   EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));
+   memcpy(eth->ether_dhost, &second[0], ETH_ALEN);
+   memcpy(eth->ether_shost, &first[0], ETH_ALEN);
+   EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));
+   
+}
+TEST_F(TestTCPIPDirectionlessHash, HashIPv4Packet) {
 
-   struct IPHeader* ipHeader;
-   ipHeader = (struct IPHeader*) (packet + sizeof (ether_header));
-   memcpy(&ipHeader->ip_src.s_addr, &first[0], sizeof (in_addr));
-   memcpy(&ipHeader->ip_dst.s_addr, &second[0], sizeof (in_addr));
-   EXPECT_EQ(20, generator.GetHash(packet,1024));
    eth->ether_type = htons(ETHERTYPE_IP);
-   EXPECT_EQ(22, generator.GetHash(packet,1024));
+   
+   EXPECT_EQ(IPv4Hash, generator.GetHash(packet,1024));
    memcpy(&ipHeader->ip_dst.s_addr, &first[0], sizeof (in_addr));
    memcpy(&ipHeader->ip_src.s_addr, &second[0], sizeof (in_addr));
-   EXPECT_EQ(22, generator.GetHash(packet,1024));
+   EXPECT_EQ(IPv4Hash, generator.GetHash(packet,1024));
+   memcpy(eth->ether_dhost, &third[0], ETH_ALEN);
+   memcpy(eth->ether_shost, &fourth[0], ETH_ALEN);
+   EXPECT_EQ(IPv4Hash, generator.GetHash(packet,1024));
+   
+}
+TEST_F(TestTCPIPDirectionlessHash, HashIPv6Packet) {
    ipHeader->ip_vhl = (6 << 4);
-   struct IP6Header* ip6Header = (struct IP6Header*) ipHeader;
+   eth->ether_type = htons(ETHERTYPE_IP);
    memcpy(&ip6Header->ip_dst, &first[0], IP6_ALEN);
    memcpy(&ip6Header->ip_src, &second[0], IP6_ALEN);
-   EXPECT_EQ(17, generator.GetHash(packet,1024));
+   EXPECT_EQ(IPv6Hash, generator.GetHash(packet,1024));
+   memcpy(&ip6Header->ip_dst, &second[0], IP6_ALEN);
+   memcpy(&ip6Header->ip_src, &first[0], IP6_ALEN);
+   EXPECT_EQ(IPv6Hash, generator.GetHash(packet,1024));   
+   memcpy(eth->ether_dhost, &second[0], ETH_ALEN);
+   memcpy(eth->ether_shost, &first[0], ETH_ALEN);
+   EXPECT_EQ(IPv6Hash, generator.GetHash(packet,1024));   
+   
+   memcpy(eth->ether_dhost, &third[0], ETH_ALEN);
+   memcpy(eth->ether_shost, &fourth[0], ETH_ALEN);
+   EXPECT_EQ(IPv6Hash2, generator.GetHash(packet,1024));
+   memcpy(eth->ether_dhost, &third[0], ETH_ALEN);
+   memcpy(eth->ether_shost, &fourth[0], ETH_ALEN);
+   EXPECT_EQ(IPv6Hash2, generator.GetHash(packet,1024));
    memset(&ip6Header->ip_dst, 'a',1);
-   EXPECT_EQ(13, generator.GetHash(packet,1024));
+   EXPECT_EQ(IPv6Hash3, generator.GetHash(packet,1024));
 }
