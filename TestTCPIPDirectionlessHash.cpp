@@ -212,11 +212,34 @@ TEST_F(TestTCPIPDirectionlessHash, HashEthPacket) {
 
    eth->ether_type = htons(ETHERTYPE_ARP);
    EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));
-   memcpy(eth->ether_dhost, &second[0], ETH_ALEN);
-   memcpy(eth->ether_shost, &first[0], ETH_ALEN);
+   eth->ether_type = htons(ETHERTYPE_PUP);
+   EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));
+   eth->ether_type = htons(ETHERTYPE_SPRITE);
+   EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));
+   eth->ether_type = htons(ETHERTYPE_REVARP);
+   EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));
+   eth->ether_type = htons(ETHERTYPE_AT);
+   EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));
+   eth->ether_type = htons(ETHERTYPE_AARP);
+   EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));
+   eth->ether_type = htons(ETHERTYPE_IPX);
+   EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));
+   eth->ether_type = htons(ETHERTYPE_LOOPBACK);
    EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));
    
+   memcpy(eth->ether_dhost, &second[0], ETH_ALEN);
+   memcpy(eth->ether_shost, &first[0], ETH_ALEN);
+   EXPECT_EQ(EthOnlyHash, generator.GetHash(packet,1024));  
 }
+
+TEST_F(TestTCPIPDirectionlessHash, UnsupportedTypesReturn0) {
+
+   generator.mRealSupportedFunction = false;
+   generator.mEthSupported = false;
+   EXPECT_EQ(0, generator.GetHash(packet,1024));
+   
+}
+
 TEST_F(TestTCPIPDirectionlessHash, HashIPv4Packet) {
 
    eth->ether_type = htons(ETHERTYPE_IP);
