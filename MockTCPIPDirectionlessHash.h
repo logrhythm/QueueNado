@@ -17,7 +17,7 @@ public:
    ~MockTCPIPDirectionlessHash() {
    }
 
-   uLong GetHash(const uint8_t* packet, const unsigned int length) LR_OVERRIDE {
+   uLong GetHash(uint8_t* packet, const unsigned int length) LR_OVERRIDE {
       return TCPIPDirectionlessHash::GetHash(packet, length);
    }
 
@@ -49,6 +49,9 @@ public:
          return TCPIPDirectionlessHash::IsEthTypeSupported(eth);
       }
       return mEthSupported;
+   }
+   bool GetEthHeader(uint8_t* packet,struct ether_header*& eth) LR_OVERRIDE {
+      return TCPIPDirectionlessHash::GetEthHeader(packet,eth);
    }
    bool mRealSupportedFunction;
    bool mEthSupported;

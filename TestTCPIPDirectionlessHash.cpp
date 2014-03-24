@@ -240,6 +240,25 @@ TEST_F(TestTCPIPDirectionlessHash, UnsupportedTypesReturn0) {
    
 }
 
+TEST_F(TestTCPIPDirectionlessHash, StripdoubleVlans) {
+   
+   eth->ether_type = htons(0x9100);
+   struct ether_header* stripped = generator.StripVLANHeaders(eth);
+   EXPECT_EQ(reinterpret_cast<uint8_t*>(eth)+8,reinterpret_cast<uint8_t*>(stripped));
+   generator.GetEthHeader(packet,stripped);
+   EXPECT_EQ(reinterpret_cast<uint8_t*>(eth)+8,reinterpret_cast<uint8_t*>(stripped));
+   eth->ether_type = htons(0x88A8);  
+   stripped = generator.StripVLANHeaders(eth);
+   EXPECT_EQ(reinterpret_cast<uint8_t*>(eth)+8,reinterpret_cast<uint8_t*>(stripped));
+   generator.GetEthHeader(packet,stripped);
+   EXPECT_EQ(reinterpret_cast<uint8_t*>(eth)+8,reinterpret_cast<uint8_t*>(stripped));
+   eth->ether_type = htons(ETHERTYPE_VLAN);  
+   stripped = generator.StripVLANHeaders(eth);
+   EXPECT_EQ(reinterpret_cast<uint8_t*>(eth)+4,reinterpret_cast<uint8_t*>(stripped));
+   generator.GetEthHeader(packet,stripped);
+   EXPECT_EQ(reinterpret_cast<uint8_t*>(eth)+4,reinterpret_cast<uint8_t*>(stripped));
+
+}
 TEST_F(TestTCPIPDirectionlessHash, HashIPv4Packet) {
 
    eth->ether_type = htons(ETHERTYPE_IP);
