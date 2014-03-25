@@ -6,7 +6,6 @@
 #include <thread>
 #include <future>
 #include <map>
-#include <boost/filesystem.hpp>
 
 #ifdef LR_DEBUG
 #include "MockConf.h"
@@ -245,7 +244,7 @@ TEST_F(DiskPacketCaptureTest, DeleteLongPcapCaptureFalse) {
       }
       capture.SavePacket(testMessage, &packet);
    }
-   EXPECT_TRUE(capture.WriteSavedSessionToDisk(testMessage));
+   capture.WritePacketsToDisk(testMessage);
    EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage->totalpackets());
    EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage->srcbytes() + testMessage->destbytes());
    EXPECT_TRUE(testMessage->written());
@@ -266,7 +265,7 @@ TEST_F(DiskPacketCaptureTest, DeleteLongPcapCaptureFalse) {
          testMessage->set_destbytes(testMessage->destbytes() + packet.p->len);
       }
       capture.SavePacket(testMessage, &packet);
-      EXPECT_FALSE(capture.WriteSavedSessionToDisk(testMessage));
+      capture.WritePacketsToDisk(testMessage);
    }
    EXPECT_FALSE(testMessage->written());
    EXPECT_FALSE(testMessage->captured());
