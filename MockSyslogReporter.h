@@ -10,89 +10,88 @@
 #include "g2log.hpp"
 
 class MockSyslogReporter : public SyslogReporter {
+public:
 
-   public:
-      MockSyslogReporter(ConfSlave& slave, const std::string& name,
-              const int option, const int facility, const int priority)
-         : SyslogReporter(slave, name, option, facility, priority),
-           mSyslogEnabled(true), mySyslogCmdSendToRestart(false),
-           mTvSec(0),
-           mTvUSec(0),
-           mStatCount(0) {};
+   MockSyslogReporter(ConfSlave& slave, const std::string& name,
+           const int option, const int facility, const int priority)
+   : SyslogReporter(slave, name, option, facility, priority),
+   mOverrideStatReportIntervalInSec(false), mOverrideStatIntervalInSec(0),
+   mSyslogEnabled(true), mySyslogCmdSendToRestart(false),
+   mStatCount(0) {
+   };
 
-      boost::thread* Start() {
-         return SyslogReporter::Start();
+   void Start() LR_OVERRIDE {
+      return SyslogReporter::Start();
+   }
+
+   void Join() LR_OVERRIDE {
+      SyslogReporter::Join();
+   }
+
+   bool SyslogEnabled() LR_OVERRIDE {
+      return mSyslogEnabled;
+   }
+
+   bool InitializeRsyslog() LR_OVERRIDE {
+      if (mySyslogCmdSendToRestart) {
+         return SyslogReporter::InitializeRsyslog();
+      } else {
+         return false;
       }
+   }
 
-      void Join() {
-         SyslogReporter::Join();
-      }
+   void SetSyslogProtoConf(const protoMsg::SyslogConf& msg) {
+      mSyslogCmdConf = msg;
+   }
 
-      bool SyslogEnabled() {
-         return mSyslogEnabled;
-      }
+   protoMsg::SyslogConf GetSyslogProtoConf() LR_OVERRIDE {
+      return mSyslogCmdConf;
+   }
 
-      bool InitializeRsyslog() LR_OVERRIDE {
-         if (mySyslogCmdSendToRestart) {
-            return SyslogReporter::InitializeRsyslog();
-         } else  {
-            return false;
-         }
-      }
+   void SetSyslogCmdSendToRestart() {
+      mySyslogCmdSendToRestart = true;
+   }
 
-     void SetSyslogProtoConf(const protoMsg::SyslogConf& msg) {
-        mSyslogCmdConf = msg;
-     }
-      
-      protoMsg::SyslogConf  GetSyslogProtoConf() LR_OVERRIDE {
-          return mSyslogCmdConf;
-      }
+   void SetSyslogEnabled(bool val) {
+      mSyslogEnabled = val;
+   }
 
-      void SetSyslogCmdSendToRestart() {
-         mySyslogCmdSendToRestart = true;
-      }
-       
-      void SetSyslogEnabled(bool val) {
-         mSyslogEnabled = val;
-      }
+   bool IsSendStatTime() LR_OVERRIDE {
+      return SyslogReporter::IsSendStatTime();
+   }
 
-      void SendAccumStat(unsigned int stat) {
-         mStatCount = stat;
+   unsigned long GetStatReportIntervalInSec() LR_OVERRIDE {
+      if (mOverrideStatReportIntervalInSec) {
+         return mOverrideStatIntervalInSec;
       }
-      
-     void ResetConf() LR_OVERRIDE {
-        SyslogReporter::ResetConf();
-     }
+      return SyslogReporter::GetStatReportIntervalInSec();
+   }
 
-      unsigned int GetStatCount() {
-         return mStatCount;
-      }
+   void SendAccumStat(unsigned int stat) {
+      mStatCount = stat;
+   }
 
-      void ResetStatCount() {
-         mStatCount = 0;
-      }
+   void ResetConf() LR_OVERRIDE {
+      SyslogReporter::ResetConf();
+   }
 
-      void GetTime(struct timeval& tv) {
-         if ( mTvSec != 0 ) {
-            tv.tv_sec = mTvSec;
-            tv.tv_usec = mTvUSec;
-         } else {
-            SyslogReporter::GetTime(tv);
-         }
-      }
+   unsigned int GetStatCount() {
+      return mStatCount;
+   }
 
-      void SetMockTime(time_t tvSec, time_t tvUSec) {
-         mTvSec = tvSec;
-         mTvUSec = tvUSec;
-      }
+   void ResetStatCount() {
+      mStatCount = 0;
+   }
 
-   private:
-      bool mSyslogEnabled;
-      bool mySyslogCmdSendToRestart;
-      time_t mTvSec;
-      time_t mTvUSec;
-      unsigned int mStatCount;
-      protoMsg::SyslogConf  mSyslogCmdConf;
+
+   bool mOverrideStatReportIntervalInSec;
+   unsigned long mOverrideStatIntervalInSec;
+
+private:
+   bool mSyslogEnabled;
+   bool mySyslogCmdSendToRestart;
+   unsigned int mStatCount;
+   protoMsg::SyslogConf mSyslogCmdConf;
 
 };
 

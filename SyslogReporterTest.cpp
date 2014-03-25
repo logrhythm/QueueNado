@@ -4,6 +4,9 @@
  * 
  */
 #include <iostream>
+#include <thread>
+#include <chrono>
+
 #include "SendDpiMsgLRZMQ.h"
 #include "SyslogReporterTest.h"
 #include "MockSyslogReporter.h"
@@ -12,10 +15,10 @@
 #include "MockRestartSyslogCommand.h"
 #include "boost/lexical_cast.hpp"
 #include "MockCommandProcessor.h"
-#include <thread>
-#include <chrono>
-//#include "DpiMsgLR.h"
-//#include "luajit-2.0/lua.hpp"
+#include "MakeUniquePtr.h"
+#include "StopWatch.h"
+#include "Death.h"
+
 void ZeroCopyDelete(void*, void* data) {
    std::string* theString = reinterpret_cast<std::string*> (data);
    delete theString;
@@ -33,8 +36,15 @@ void SyslogReporterTest::ShootZeroCopySyslogThread(int numberOfMessages,
       std::string* syslogMsg = new std::string(exampleSyslog);
       ASSERT_TRUE(rifle.FireZeroCopy(syslogMsg, syslogMsg->size(), ZeroCopyDelete, 10000));
    }
-   while (!zctx_interrupted) {
-      boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+   
+   try {
+      while (!zctx_interrupted) {
+         boost::this_thread::interruption_point();
+         std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+   } catch(...) 
+   { // just exit
+     
    }
 }
 
@@ -58,18 +68,18 @@ TEST_F(SyslogReporterTest, NewDeleteSyslogReporter) {
 TEST_F(SyslogReporterTest, StartStopSyslogReporter) {
    MockSyslogReporter syslogReporter(mConfSlave, syslogName, syslogOption,
            syslogFacility, syslogPriority);
-   boost::thread* srThread = syslogReporter.Start();
-   boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+   syslogReporter.Start();
+   std::this_thread::sleep_for(std::chrono::milliseconds(100));
    EXPECT_NE(syslogReporter.GetThreadId(), 0);
-   boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
    syslogReporter.Join();
 }
 
 TEST_F(SyslogReporterTest, SendMsgToSyslogReporter) {
    MockSyslogReporter syslogReporter(mConfSlave, syslogName, syslogOption,
            syslogFacility, syslogPriority);
-   boost::thread* srThread = syslogReporter.Start();
-   boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+   syslogReporter.Start();
+   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
    std::string queueName = mConfSlave.GetConf().GetSyslogQueue();
 
@@ -87,12 +97,19 @@ TEST_F(SyslogReporterTest, SendMsgToSyslogReporter) {
       theSyslogSenders.push_back(aSender);
    }
 
-   boost::this_thread::sleep(boost::posix_time::seconds(10));
-
+   std::this_thread::sleep_for(std::chrono::seconds(10));
    for (auto it = theSyslogSenders.begin();
-           it != theSyslogSenders.end() && !zctx_interrupted; it++) {
+           it != theSyslogSenders.end() && !zctx_interrupted; ++it) {
       (*it)->interrupt();
-      (*it)->join();
+   }
+   
+   LOG(DEBUG) << "All syslog senders interrupted" << std::endl;
+   int counter = 0;
+    for (auto it = theSyslogSenders.begin();
+           it != theSyslogSenders.end() && !zctx_interrupted; ++it) {
+       if( (*it)->joinable()) {
+          (*it)->join();
+       }
       delete *it;
    }
 
@@ -100,15 +117,14 @@ TEST_F(SyslogReporterTest, SendMsgToSyslogReporter) {
    for (auto syslogIt : syslogOutput) {
       EXPECT_NE(std::string::npos, syslogIt.find(syslogMsg));
    }
-   syslogReporter.Join();
 }
 
 TEST_F(SyslogReporterTest, SendMsgToSyslogReporterSyslogDisabled) {
    MockSyslogReporter syslogReporter(mConfSlave, syslogName, syslogOption,
            syslogFacility, syslogPriority);
    syslogReporter.SetSyslogEnabled(false);
-   boost::thread* srThread = syslogReporter.Start();
-   boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+   syslogReporter.Start();
+   std::this_thread::sleep_for(std::chrono::milliseconds(500));
    EXPECT_NE(syslogReporter.GetThreadId(), 0);
 
    std::string queueName = mConfSlave.GetConf().GetSyslogQueue();
@@ -127,11 +143,15 @@ TEST_F(SyslogReporterTest, SendMsgToSyslogReporterSyslogDisabled) {
       theSyslogSenders.push_back(aSender);
    }
 
-   boost::this_thread::sleep(boost::posix_time::seconds(1));
+   std::this_thread::sleep_for(std::chrono::seconds(1));
 
    for (auto it = theSyslogSenders.begin();
            it != theSyslogSenders.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
+   }
+
+   for (auto it = theSyslogSenders.begin();
+           it != theSyslogSenders.end() && !zctx_interrupted; it++) {
       (*it)->join();
       delete *it;
    }
@@ -143,9 +163,10 @@ TEST_F(SyslogReporterTest, SendMsgToSyslogReporterSyslogDisabled) {
 TEST_F(SyslogReporterTest, SyslogSendStat) {
    MockSyslogReporter syslogReporter(mConfSlave, syslogName, syslogOption,
            syslogFacility, syslogPriority);
-   syslogReporter.SetMockTime(10, 0);
-   boost::thread* srThread = syslogReporter.Start();
-   boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+   syslogReporter.mOverrideStatReportIntervalInSec = true;
+   syslogReporter.mOverrideStatIntervalInSec = 15;
+   syslogReporter.Start();
+   std::this_thread::sleep_for(std::chrono::milliseconds(500));
    EXPECT_NE(syslogReporter.GetThreadId(), 0);
 
    std::string queueName = mConfSlave.GetConf().GetSyslogQueue();
@@ -163,14 +184,14 @@ TEST_F(SyslogReporterTest, SyslogSendStat) {
       pMsg = new std::string(syslogMsg);
       ASSERT_TRUE(rifle.FireZeroCopy(pMsg, pMsg->size(), ZeroCopyDelete, 10));
    }
-   boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+   std::this_thread::sleep_for(std::chrono::milliseconds(500));
    EXPECT_EQ(0, syslogReporter.GetStatCount());
-   syslogReporter.SetMockTime(15, 0);
-   boost::this_thread::sleep(boost::posix_time::milliseconds(600));
+   syslogReporter.mOverrideStatReportIntervalInSec = true;
+   syslogReporter.mOverrideStatIntervalInSec = 1;
+   std::this_thread::sleep_for(std::chrono::milliseconds(600));
    EXPECT_EQ(numSyslogMsgs, syslogReporter.GetStatCount());
 
-   syslogReporter.SetMockTime(16, 0);
-   boost::this_thread::sleep(boost::posix_time::milliseconds(600));
+   std::this_thread::sleep_for(std::chrono::milliseconds(600));
    EXPECT_EQ(0, syslogReporter.GetStatCount());
 
    numSyslogMsgs = 5;
@@ -178,10 +199,10 @@ TEST_F(SyslogReporterTest, SyslogSendStat) {
       pMsg = new std::string(syslogMsg);
       ASSERT_TRUE(rifle.FireZeroCopy(pMsg, pMsg->size(), ZeroCopyDelete, 10));
    }
-   boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+   
+   std::this_thread::sleep_for(std::chrono::milliseconds(500));
    EXPECT_EQ(0, syslogReporter.GetStatCount());
-   syslogReporter.SetMockTime(17, 0);
-   boost::this_thread::sleep(boost::posix_time::milliseconds(600));
+   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
    EXPECT_EQ(numSyslogMsgs, syslogReporter.GetStatCount());
 
    syslogReporter.Join();
@@ -191,12 +212,16 @@ TEST_F(SyslogReporterTest, SendStatTime) {
    MockSyslogReporter syslogReporter(mConfSlave, syslogName, syslogOption,
            syslogFacility, syslogPriority);
 
-   syslogReporter.SetMockTime(1, 0);
+   syslogReporter.mOverrideStatReportIntervalInSec = true;
+   syslogReporter.mOverrideStatIntervalInSec = 1;
+   std::this_thread::sleep_for(std::chrono::seconds(1));
+   
    EXPECT_TRUE(syslogReporter.IsSendStatTime());
+   syslogReporter.mOverrideStatIntervalInSec = 5;
+   EXPECT_FALSE(syslogReporter.IsSendStatTime()); // should be less than 1sec in beteen
+   
    EXPECT_FALSE(syslogReporter.IsSendStatTime());
-   syslogReporter.SetMockTime(1, 999999);
-   EXPECT_FALSE(syslogReporter.IsSendStatTime());
-   syslogReporter.SetMockTime(2, 0);
+   syslogReporter.mOverrideStatIntervalInSec = 0; 
    EXPECT_TRUE(syslogReporter.IsSendStatTime());
 }
 
@@ -205,29 +230,41 @@ TEST_F(SyslogReporterTest, SendStatTime) {
 TEST_F(SyslogReporterTest, SyslogInitialize) {
    MockConfSlave slave;
    slave.mConfLocation = "resources/test.yaml.Syslog2";
-   MockCommandProcessor testProcessor(slave.GetConf());
-   EXPECT_TRUE(testProcessor.Initialize());
+   auto testProcessor = std2::make_unique<MockCommandProcessor>(slave.GetConf());
+   ASSERT_FALSE(testProcessor->HasWorkerThreadStarted());
+   EXPECT_TRUE(testProcessor->Initialize());
 
-   testProcessor.ChangeRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART, MockRestartSyslogCommand::Construct);
+   StopWatch waitForInitialization;
+   size_t maxWaitSec = 10;
+   while(waitForInitialization.ElapsedSec() < maxWaitSec && 
+           (false == testProcessor->HasWorkerThreadStarted())) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+   }
+   ASSERT_TRUE(testProcessor->HasWorkerThreadStarted()) << 
+           "\nCommandProcessor has not yet started. It is taking too long time" 
+           << "\nBailing out from the test";
+   
+   testProcessor->ChangeRegistration(protoMsg::CommandRequest_CommandType_SYSLOG_RESTART, MockRestartSyslogCommand::Construct);
    MockRestartSyslogCommand::mReceivedExecute = false;
    protoMsg::SyslogConf empty; // initially empty
    MockRestartSyslogCommand::mSyslogMsg = empty; // save the empty to the receiver. it should later be filled
    // This spins up a thread that should work wonders. 
    // We scope it so that it is sure to exit before  continuing
    {
-      MockSyslogReporter syslogReporter(slave, syslogName, syslogOption, syslogFacility, syslogPriority);
+      std::unique_ptr<MockSyslogReporter> syslogReporter = 
+              std2::make_unique<MockSyslogReporter>(slave, syslogName, syslogOption, syslogFacility, syslogPriority);
       protoMsg::SyslogConf msg;
       msg.set_sysloglogagentip("1.2.1.2");
       msg.set_sysloglogagentport("123");
       msg.set_syslogenabled("true");
-      syslogReporter.SetSyslogProtoConf(msg);
+      syslogReporter->SetSyslogProtoConf(msg);
 
-      syslogReporter.SetSyslogCmdSendToRestart();
-      syslogReporter.Start();
-      std::chrono::milliseconds dura(2000);
-      std::this_thread::sleep_for(dura);
-      syslogReporter.Join();
-      raise(SIGTERM);
+      syslogReporter->SetSyslogCmdSendToRestart();
+      syslogReporter->Start();
+      std::this_thread::sleep_for(std::chrono::seconds(4)); 
+      syslogReporter.reset(nullptr); 
+      testProcessor.reset(nullptr); // force CommandProcessor to exit
+      
    }
    EXPECT_TRUE(MockRestartSyslogCommand::mReceivedExecute); // Hack to enable these outside of the object instance 
    EXPECT_EQ(MockRestartSyslogCommand::mSyslogMsg.sysloglogagentip(), "1.2.1.2");
@@ -235,6 +272,24 @@ TEST_F(SyslogReporterTest, SyslogInitialize) {
    EXPECT_EQ(MockRestartSyslogCommand::mSyslogMsg.syslogenabled(), "true");
 }
 
+
+
+TEST_F(SyslogReporterTest, DeathIfStartingTwice) {
+   RaiiDeathCleanup cleanup;
+
+   Death::SetupExitHandler(); // DEATH TEST
+   EXPECT_FALSE(Death::WasKilled());
+   {
+      MockSyslogReporter syslogReporter(mConfSlave, syslogName, syslogOption,
+              syslogFacility, syslogPriority);
+      syslogReporter.Start();
+      EXPECT_FALSE(Death::WasKilled());
+      syslogReporter.Start();
+      EXPECT_TRUE(Death::WasKilled());
+   }
+
+  Death::ClearExits();
+}
 
 // END LR_DEBUG
 #else
