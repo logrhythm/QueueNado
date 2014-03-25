@@ -228,13 +228,12 @@ TEST_F(DiskPacketCaptureTest, DeleteLongPcapCaptureFalse) {
    testMessage->set_totalbytesdelta(0);
    testMessage->set_captured(true);
 
-   auto DoesFileExist = [](const std::string& name) ->bool{ return boost::filesystem::exists(name); };
    std::string testFile = testDir.str() + "/" + testMessage->session();
 
    packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
    packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
    packet.p->len = (testPacketSize);
-   for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
+   for (int i = 0; i < conf.mMaxIndividualPCap + 2; ++i) {
       testMessage->set_totalpackets(testMessage->totalpackets() + 1);
       testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
       if (i % 2 == 0) {
@@ -256,7 +255,7 @@ TEST_F(DiskPacketCaptureTest, DeleteLongPcapCaptureFalse) {
 
    remove(testFile.c_str());
 
-   for (int i = 0; i < conf.mMaxIndividualPCap + 2; i++) {
+   for (int i = 0; i < conf.mMaxIndividualPCap + 2; ++i) {
       testMessage->set_totalpackets(testMessage->totalpackets() + 1);
       testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
       if (i % 2 == 0) {
@@ -684,7 +683,7 @@ TEST_F(DiskPacketCaptureTest, MemoryLimits) {
       capture.SavePacket(dpiMsg2, &packet);
       EXPECT_EQ(2, capture.NewTotalMemory(0));
       EXPECT_EQ(1, capture.CurrentMemoryForFlow("012345678901234567890123456789012345"));
-      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012346")); 
+      EXPECT_EQ(0, capture.CurrentMemoryForFlow("012345678901234567890123456789012346"));
 
       conf.mPCapCaptureMemoryLimit = 2;
       p.len = (1024 * 1024) - sizeof (struct pcap_pkthdr);
