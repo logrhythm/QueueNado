@@ -17,6 +17,7 @@
 #include "MockCommandProcessor.h"
 #include "MakeUniquePtr.h"
 #include "StopWatch.h"
+#include "Death.h"
 
 void ZeroCopyDelete(void*, void* data) {
    std::string* theString = reinterpret_cast<std::string*> (data);
@@ -271,6 +272,24 @@ TEST_F(SyslogReporterTest, SyslogInitialize) {
    EXPECT_EQ(MockRestartSyslogCommand::mSyslogMsg.syslogenabled(), "true");
 }
 
+
+
+TEST_F(SyslogReporterTest, DeathIfStartingTwice) {
+   RaiiDeathCleanup cleanup;
+
+   Death::SetupExitHandler(); // DEATH TEST
+   EXPECT_FALSE(Death::WasKilled());
+   {
+      MockSyslogReporter syslogReporter(mConfSlave, syslogName, syslogOption,
+              syslogFacility, syslogPriority);
+      syslogReporter.Start();
+      EXPECT_FALSE(Death::WasKilled());
+      syslogReporter.Start();
+      EXPECT_TRUE(Death::WasKilled());
+   }
+
+  Death::ClearExits();
+}
 
 // END LR_DEBUG
 #else
