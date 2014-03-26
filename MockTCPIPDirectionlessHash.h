@@ -10,29 +10,51 @@
 
 class MockTCPIPDirectionlessHash : public TCPIPDirectionlessHash {
 public:
-MockTCPIPDirectionlessHash() {}
-~MockTCPIPDirectionlessHash() {}
-uLong GetHash(const uint8_t* packet) {
-   return TCPIPDirectionlessHash::GetHash(packet);
-}
-bool CompareEth(const  u_int8_t* first,const  u_int8_t* second) {
-   return TCPIPDirectionlessHash::CompareEth(first,second);
-}
-bool CompareIp6(const  u_int8_t* first,const  u_int8_t* second) {
-   return TCPIPDirectionlessHash::CompareIp6(first,second);
-}
-bool CompareArray(const  u_int8_t* first,const  u_int8_t* second, unsigned int length) {
-   return TCPIPDirectionlessHash::CompareArray(first,second,length);
-}
-void GetSortedEthAddrs(const uint8_t* packet, bool& isIp, std::string& result) {
-   return TCPIPDirectionlessHash::GetSortedEthAddrs(packet,isIp,result);
-}
-void GetSortedIPAddrs(const uint8_t* packet, std::string& result) {
-   return TCPIPDirectionlessHash::GetSortedIPAddrs(packet,result);
-}
-bool CompareIp(const struct in_addr& first, const struct in_addr& second) {
-   return TCPIPDirectionlessHash::CompareIp(first,second);
-}
+
+   MockTCPIPDirectionlessHash(): mRealSupportedFunction (true), mEthSupported(true){
+   }
+
+   ~MockTCPIPDirectionlessHash() {
+   }
+
+   uLong GetHash(uint8_t* packet, const unsigned int length) LR_OVERRIDE {
+      return TCPIPDirectionlessHash::GetHash(packet, length);
+   }
+
+   bool CompareEth(const u_int8_t* first, const u_int8_t* second) LR_OVERRIDE {
+      return TCPIPDirectionlessHash::CompareEth(first, second);
+   }
+
+   bool CompareIp6(const u_int8_t* first, const u_int8_t* second) LR_OVERRIDE {
+      return TCPIPDirectionlessHash::CompareIp6(first, second);
+   }
+
+   bool CompareArray(const u_int8_t* first, const u_int8_t* second, unsigned int length) LR_OVERRIDE {
+      return TCPIPDirectionlessHash::CompareArray(first, second, length);
+   }
+
+   void GetSortedEthAddrs(struct ether_header *eth, bool& isIp, std::vector<uint8_t>& result) LR_OVERRIDE {
+      return TCPIPDirectionlessHash::GetSortedEthAddrs(eth, isIp, result);
+   }
+
+   void GetSortedIPAddrs(struct ether_header *eth, std::vector<uint8_t>& result) LR_OVERRIDE {
+      return TCPIPDirectionlessHash::GetSortedIPAddrs(eth, result);
+   }
+
+   bool CompareIp(const struct in_addr& first, const struct in_addr& second) LR_OVERRIDE {
+      return TCPIPDirectionlessHash::CompareIp(first, second);
+   }
+   LR_VIRTUAL bool IsEthTypeSupported(const struct ether_header* eth) {
+      if (mRealSupportedFunction) {
+         return TCPIPDirectionlessHash::IsEthTypeSupported(eth);
+      }
+      return mEthSupported;
+   }
+   bool GetEthHeader(uint8_t* packet,struct ether_header*& eth) LR_OVERRIDE {
+      return TCPIPDirectionlessHash::GetEthHeader(packet,eth);
+   }
+   bool mRealSupportedFunction;
+   bool mEthSupported;
 private:
 
 };
