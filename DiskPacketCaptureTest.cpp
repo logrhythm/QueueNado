@@ -6,6 +6,7 @@
 #include <thread>
 #include <future>
 #include <map>
+#include <city.h>
 
 #ifdef LR_DEBUG
 #include "MockConf.h"
@@ -22,6 +23,7 @@
 #include "DpiMsgLRPool.h"
 bool DiskPacketCaptureTest::mDeathReceived(false);
 std::string DiskPacketCaptureTest::mDeathMessage;
+
 TEST_F(DiskPacketCaptureTest, FlushABigSession) {
    g2::internal::changeFatalInitHandlerForUnitTesting(DiskPacketCaptureTest::DeathReceiver);
    MockConfExposeUpdate conf;
@@ -33,10 +35,10 @@ TEST_F(DiskPacketCaptureTest, FlushABigSession) {
    for (size_t i = 0; i < 100; i++) {
       bigFlows->insert((networkMonitor::DpiMsgLR*)i);
    }
-   EXPECT_EQ(100,bigFlows->size());
+   EXPECT_EQ(100, bigFlows->size());
    EXPECT_FALSE(capture.FlushABigSession());
    EXPECT_FALSE(DiskPacketCaptureTest::mDeathReceived);
-   EXPECT_EQ(0,bigFlows->size());
+   EXPECT_EQ(0, bigFlows->size());
    for (int i = 0; i < 100; i++) {
       networkMonitor::DpiMsgLR* invalidDpiMsg = new networkMonitor::DpiMsgLR();
       bigFlows->insert(invalidDpiMsg);
@@ -131,10 +133,19 @@ TEST_F(DiskPacketCaptureTest, ConfCreatesCorrectCaptureLocations) {
    EXPECT_TRUE(std::equal(putLocations.begin(), putLocations.end(), locations.begin()));
 }
 
+
+//TEST_F(DiskPacketCaptureTest, GetLocationBucket) {
+//   PacketLocationHashing  location;
+//   
+//  
+//   
+//}
+
 TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
    conf.mPCapCaptureLocations.push_back(testDir.str());
+   conf.mPcapCaptureFolderPerPartitionLimit = 1;
    conf.mMaxIndividualPCap = 10; // MB
    conf.mPCapCaptureMemoryLimit = 99999;
    conf.mPcapCaptureMaxPackets = 99999999;
@@ -148,6 +159,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    struct upacket packet;
 
    testMessage->set_session("123456789012345678901234567890123456");
+
    testMessage->set_totalpackets(0);
    testMessage->set_packetsdelta(0);
    testMessage->set_srcbytes(0);
@@ -175,7 +187,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    EXPECT_TRUE(testMessage->written());
    struct stat statbuf;
 
-   std::string testFile = testDir.str() + "/" + testMessage->session();
+   std::string testFile = DiskPacketCapture::BuildFilenameWithPath(testMessage->session(), conf);
    ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
    EXPECT_TRUE(conf.mMaxIndividualPCap * testPacketSize >= statbuf.st_size);
    EXPECT_TRUE((conf.mMaxIndividualPCap - 1) * testPacketSize <= statbuf.st_size);
@@ -360,12 +372,12 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
-
+   conf.mPcapCaptureFolderPerPartitionLimit = 1;
    conf.mPCapCaptureLocations.push_back("testLocation");
-   auto locations = conf.GetPcapCaptureLocations();
-   std::string fileName = DiskPacketCapture::BuildFilenameWithPath(locations, "TestUUID00");
-   ASSERT_EQ("testLocation/TestUUID00", fileName);
-   fileName = DiskPacketCapture::BuildFilenameWithPath(locations, "");
+
+   std::string fileName = DiskPacketCapture::BuildFilenameWithPath("TestUUID00", conf);
+   ASSERT_EQ("testLocation/0/TestUUID00", fileName);
+   fileName = DiskPacketCapture::BuildFilenameWithPath("", conf);
    ASSERT_EQ("", fileName);
 #endif
 }
@@ -374,6 +386,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin) {
 #ifdef LR_DEBUG
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
+   conf.mPcapCaptureFolderPerPartitionLimit = 1;
    MockDiskPacketCapture capture(conf);
 
    conf.mPCapCaptureLocations.push_back("testLocation0");
@@ -381,9 +394,9 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin) {
    for (size_t idx = 0; idx <= 0xF; ++idx) {
       size_t index = idx % 1; // size of one
       auto locations = conf.GetPcapCaptureLocations();
-      std::string fileName = DiskPacketCapture::BuildFilenameWithPath(locations, "TestUUID11");
+      std::string fileName = DiskPacketCapture::BuildFilenameWithPath("TestUUID11", conf);
       std::string expected = "testLocation";
-      expected.append(std::to_string(index)).append("/TestUUID11");
+      expected.append(std::to_string(index)).append("/0/TestUUID11");
       ASSERT_EQ(expected, fileName);
       if (0 == index) {
          ++count0;
@@ -398,14 +411,14 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin2) {
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
-
+   conf.mPcapCaptureFolderPerPartitionLimit = 1;
    conf.mPCapCaptureLocations.push_back("testLocation");
    for (size_t digit = 0; digit <= 0xFF; ++digit) {
       std::string uuid = MockUuidGenerator::GetMsgUuid(digit);
       std::string fileName = {};
       auto locations = conf.GetPcapCaptureLocations();
-      EXPECT_NO_THROW(fileName = DiskPacketCapture::BuildFilenameWithPath(locations, uuid));
-      ASSERT_EQ("testLocation/" + uuid, fileName);
+      EXPECT_NO_THROW(fileName = DiskPacketCapture::BuildFilenameWithPath(uuid, conf));
+      ASSERT_EQ("testLocation/0/" + uuid, fileName);
    }
 #endif
 }
@@ -414,6 +427,8 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
 #ifdef LR_DEBUG
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
+   conf.mPcapCaptureFolderPerPartitionLimit = 16000;
+
    MockDiskPacketCapture capture(conf);
    auto& generator = networkMonitor::MsgUuid::Instance();
 
@@ -428,68 +443,116 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
    }
    auto locations = conf.GetPcapCaptureLocations();
    const auto max = 102400;
+   const size_t directoriesPerPartition = conf.GetPcapCaptureFolderPerPartitionLimit();
+   const size_t totalBuckets = locations.size() * directoriesPerPartition;
 
    for (auto loop = 0; loop < max; ++loop) {
-
-
       std::string uuid = generator.GetMsgUuid();
-      std::size_t digitFromHex = 0;
-      EXPECT_NO_THROW(digitFromHex = std::stoul(&uuid[uuid.size() - 2], 0, 16));
       std::string fileName = {};
-      EXPECT_NO_THROW(fileName = DiskPacketCapture::BuildFilenameWithPath(locations, uuid));
-      size_t whichBucket = digitFromHex % buckets;
+      EXPECT_NO_THROW(fileName = DiskPacketCapture::BuildFilenameWithPath(uuid, conf));
 
-      counters[whichBucket]++;
-      std::string checkName = "testLocation";
-      checkName.append(std::to_string(whichBucket)).append("/").append(uuid);
-      ASSERT_EQ(checkName, fileName);
+      // Re-create the bucket and partition ID
+      const size_t hashed = CityHash32(uuid.data(), uuid.size());
+      const size_t bucket = hashed % totalBuckets;
+      const size_t partitionID = bucket / directoriesPerPartition;
+
+      counters[bucket]++;
+      ASSERT_TRUE(partitionID < locations.size());
+      std::string checkName = locations[partitionID];
+      checkName.append("/").append(std::to_string(bucket)).append("/");
+      checkName.append(uuid);
+      ASSERT_EQ(checkName, fileName) << "locations.size(): " << locations.size()
+              << "\tpartitionID: " << partitionID << ", bucket: " << bucket << ", totalBuckets: " << totalBuckets;
    }
+
+   // fuzzy numbers -- we could do a statistics standard deviation check
+   // but unless made very wide such tests can fail. Instead we just check for
+   // very obvious failures
+   //
+   // The buckets will mostly have ones, but a few will be zeroes and some rare
+   // instances might get doubles (or more)
+   size_t zeroes{0}, ones{0}, twos{0}, multiples{0};
    for (auto& count : counters) {
       LOG(INFO) << "bucket: " << count.first << " : " << count.second;
-      ASSERT_NE(0, count.second);
+
+      // not our standard formatting but easy to read
+      if (0 == count.second) ++zeroes;
+      if (1 == count.second) ++ones;
+      if (2 == count.second) ++twos;
+      if (count.second > 2) ++multiples;
    }
    ASSERT_EQ(locations.size(), 256);
+   ASSERT_GT(ones, zeroes);
+   ASSERT_GT(ones, twos);
+   ASSERT_GT(ones, multiples);
 #endif
 }
 
-TEST_F(DiskPacketCaptureTest, GetFilenamesMaxRoundRobin) {
+TEST_F(DiskPacketCaptureTest, GetFilenamesEvenMoreRoundRobin) { 
 #ifdef LR_DEBUG
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
+   const size_t directoryLimit = 16000;
+   const size_t numberOfPartitions = 23;
+   const size_t numberOfSessions =  directoryLimit * numberOfPartitions; 
+   conf.mPcapCaptureFolderPerPartitionLimit = directoryLimit;
+
    MockDiskPacketCapture capture(conf);
+   auto& generator = networkMonitor::MsgUuid::Instance();
 
-   for (size_t digit = 0; digit <= 0xFF; ++digit) {
-      std::string dir = "testLocation";
-      dir.append(std::to_string(digit));
-      conf.mPCapCaptureLocations.push_back(dir);
+   std::string base = {"testLocation"};
+   std::map<int, int> counters;
+   for (int i = 0; i < numberOfPartitions; ++i) {
+      std::string location = base;
+      location.append(std::to_string(i));
+      conf.mPCapCaptureLocations.push_back(location);
+      counters[i] = 0;
    }
-   std::vector<std::string> locations = conf.GetPcapCaptureLocations();
-   ASSERT_EQ(locations.size(), 256);
-   std::map<size_t, size_t> counters;
 
-   for (size_t digit = 0; digit <= 0xFF; ++digit) {
-      std::string uuid = MockUuidGenerator::GetMsgUuid(digit);
+   auto locations = conf.GetPcapCaptureLocations();
+   const size_t directoriesPerPartition = conf.GetPcapCaptureFolderPerPartitionLimit();
+   const size_t totalBuckets = locations.size() * directoriesPerPartition;
 
-      // Mimic the convertion in DiskPacketCapture to verify it works as intended
-      std::size_t digitFromHex = 0;
-      EXPECT_NO_THROW(digitFromHex = std::stoul(&uuid[uuid.size() - 2], 0, 16));
+   for (auto loop = 0; loop < numberOfSessions; ++loop) {
+      std::string uuid = generator.GetMsgUuid();
       std::string fileName = {};
-      EXPECT_NO_THROW(fileName = DiskPacketCapture::BuildFilenameWithPath(locations, uuid));
-      size_t bucket = digitFromHex % 256;
-      ++counters[bucket];
-      std::string checkName = "testLocation";
-      checkName.append(std::to_string(bucket)).append("/").append(uuid);
-      ASSERT_EQ(checkName, fileName);
+      EXPECT_NO_THROW(fileName = DiskPacketCapture::BuildFilenameWithPath(uuid, conf));
+
+      // Re-create the bucket and partition ID
+      const size_t hashed = CityHash32(uuid.data(), uuid.size());
+      const size_t bucket = hashed % totalBuckets;
+      const size_t partitionID = bucket / directoriesPerPartition;
+      counters[bucket]++;
+      ASSERT_TRUE(partitionID < locations.size());
+      std::string checkName = locations[partitionID];
+      checkName.append("/").append(std::to_string(bucket)).append("/");
+      checkName.append(uuid);
+      
+      // This line is really what this test is all about!
+      ASSERT_EQ(checkName, fileName) << "locations.size(): " << locations.size()
+              << "\tpartitionID: " << partitionID << ", bucket: " << bucket << ", totalBuckets: " << totalBuckets;
    }
-   ASSERT_EQ(counters.size(), 256);
-   size_t total = 0;
-   size_t idx = 0;
-   for (const auto& count : counters) {
-      ASSERT_EQ(count.first, idx++); // make sure that all the buckets exist 0-255
-      total += count.second; // add total saved
-      ASSERT_EQ(count.second, 1); // only one saved per bucket
+
+   // fuzzy numbers -- we could do a statistics standard deviation check
+   // but unless made very wide such tests can fail. Instead we just check for
+   // very obvious failures
+   //
+   // The buckets will mostly have ones, but a few will be zeroes and some rare
+   // instances might get doubles (or more)
+   size_t zeroes{0}, ones{0}, twos{0}, multiples{0};
+   for (auto& count : counters) {
+      // not our standard formatting but easy to read
+      if (0 == count.second) ++zeroes;
+      if (1 == count.second) ++ones;
+      if (2 == count.second) ++twos;  
+      if (count.second > 2) ++multiples;
    }
-   EXPECT_EQ(256, total);
+   ASSERT_EQ(locations.size(), 23);
+   ASSERT_TRUE(counters.size() <= (directoryLimit*numberOfPartitions));
+   ASSERT_TRUE(counters.size() >= directoryLimit);
+   ASSERT_GT(ones, zeroes);
+   ASSERT_GT(ones, twos);
+   ASSERT_GT(ones, multiples);   
 #endif
 }
 
@@ -523,9 +586,9 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesAvoidDuplicates) {
    conf.mPCapCaptureLocations.push_back(dir1);
    EXPECT_EQ(conf.GetPcapCaptureLocations().size(), 3);
    auto locations = conf.GetPcapCaptureLocations();
-   std::string fileName1 = DiskPacketCapture::BuildFilenameWithPath(locations, "DoesNotHaveHexButWorks");
-   std::string fileName2 = DiskPacketCapture::BuildFilenameWithPath(locations, "DoesNotHaveHexButWorks");
-   std::string fileName3 = DiskPacketCapture::BuildFilenameWithPath(locations, "DoesNotHaveHexButWorks");
+   std::string fileName1 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
+   std::string fileName2 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
+   std::string fileName3 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
 
    // Make sure the filenames goes in the same hashed buckets since no file exists in 
    // buckets
@@ -537,9 +600,9 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesAvoidDuplicates) {
    std::string touch = {"touch "};
    touch.append(fileName1);
    EXPECT_EQ(0, system(touch.c_str()));
-   fileName1 = DiskPacketCapture::BuildFilenameWithPath(locations, "DoesNotHaveHexButWorks");
-   fileName2 = DiskPacketCapture::BuildFilenameWithPath(locations, "DoesNotHaveHexButWorks");
-   fileName3 = DiskPacketCapture::BuildFilenameWithPath(locations, "DoesNotHaveHexButWorks");
+   fileName1 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
+   fileName2 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
+   fileName3 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
    EXPECT_EQ(fileName1, fileName2);
    EXPECT_EQ(fileName1, fileName3);
    EXPECT_EQ(fileName2, fileName3);
@@ -779,6 +842,7 @@ TEST_F(DiskPacketCaptureTest, IndividualFileLimit) {
    conf.mPCapCaptureLocations.push_back("testLocation");
    conf.mPCapCaptureFileLimit = 10000;
    conf.mPCapCaptureSizeLimit = 10000;
+   conf.mPcapCaptureFolderPerPartitionLimit = 1;
    conf.mPCapCaptureMemoryLimit = 5;
    conf.mMaxIndividualPCap = 10;
 

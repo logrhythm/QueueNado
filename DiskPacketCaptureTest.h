@@ -35,6 +35,16 @@ protected:
       makeADir = "mkdir -p ";
       makeADir += testDir.str();
       system(makeADir.c_str());
+      
+      std::string pcapSubDirectory{testDir.str()};
+      pcapSubDirectory += {"/0/"};
+      makeADir = "rm -rf ";
+      makeADir +=  pcapSubDirectory;
+      system(makeADir.c_str());
+
+      makeADir = "mkdir -p ";
+      makeADir += pcapSubDirectory;
+      system(makeADir.c_str());
     };
  
     virtual void TearDown() {
