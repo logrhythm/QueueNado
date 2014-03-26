@@ -118,7 +118,7 @@ TEST(TestCityHash, DISABLED_CityHash32) {
 
    std::map<NumberType, NumberType> counterHashed;
    for (const auto& session : gAllSessions) {
-      auto hashed = CityHash32(session.c_str(), session.size());
+      auto hashed = CityHash32(session.data(), session.size());
       auto bucket = hashed % gNumberOfBuckets;
       counterHashed[bucket]++;
    }
@@ -155,7 +155,7 @@ TEST(TestCityHash, DISABLED_Murmur3Hash) {
    std::deque<std::vector < uint8_t>> sessionsConverted;
    // Converted the previously generated input for Murmur3
    for (const auto& session : gAllSessions) {
-      std::uint8_t* raw = reinterpret_cast<uint8_t*> (const_cast<char*> (session.c_str()));
+      std::uint8_t* raw = reinterpret_cast<uint8_t*> (const_cast<char*> (session.data()));
       std::vector<uint8_t> input{raw, raw + session.size()};
       sessionsConverted.push_back(input);
    }
