@@ -7,14 +7,17 @@
 #pragma once
 
 #include "gtest/gtest.h"
-#include "MockSyslogReporter.h"
-#include "ConfSlave.h"
-#include "ConfMaster.h"
+#include <g2log.hpp>
 #include <cstdlib> // rand
 #include <ctime>
 #include <string>
 #include <vector>
+#include "MockSyslogReporter.h"
+#include "ConfSlave.h"
+#include "ConfMaster.h"
 #include "ProcessManager.h"
+
+
 static int syslogOption = LOG_ODELAY | LOG_PERROR | LOG_PID;
 static int syslogFacility = LOG_LOCAL4;
 static int syslogPriority = LOG_DEBUG;
@@ -37,6 +40,9 @@ void closelog(void);
 class SyslogReporterTest : public ::testing::Test {
 public:
 
+
+
+
    SyslogReporterTest() : mConfSlave(ConfSlave::Instance()),
                           mMasterConf(ConfMaster::Instance()) {
       mMasterConf.SetPath("resources/test.yaml");
@@ -54,6 +60,7 @@ public:
 
    void ShootZeroCopySyslogThread(int numberOfMessages, std::string& location, 
          std::string& exampleData);
+
 protected:
    ConfSlave& mConfSlave;
    ConfMaster& mMasterConf;

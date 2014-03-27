@@ -345,7 +345,7 @@ nmTest_SOURCES=main.cpp \
 
 SyslogReporterTest_LDADD=${DYNAMIC_LIBS}
 SyslogReporterTest_LDFLAGS=${BASE_LIBS}
-SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp MockSyslogReporter.h
+SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp MockSyslogReporter.h Death.cpp Death.h
 SyslogReporterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 AttributeRenamerTest_LDADD=${DYNAMIC_LIBS}
