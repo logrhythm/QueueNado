@@ -34,7 +34,9 @@ namespace FileIO {
    Result<bool> WriteFileContentInternal(const std::string& pathToFile, const std::string& content, std::ios_base::openmode mode);
    bool DoesFileExist(const std::string& pathToFile);
    Result<bool> RemoveFileAsRoot(const std::string& filename);
-   struct passwd* GetDpiPasswd();
-   void SetDpiFileSystemAccess();
+   struct passwd* GetUserFromPasswordFile(const std::string& username);
+   void SetUserFileSystemAccess(const std::string& username);
 }
+
+
 
