@@ -16,11 +16,16 @@
 #include "DiskPacketCapture.h"
 #endif
 
-#ifdef LR_DEBUG
-
 #include "tempFileCreate.h"
 #include "MsgUuid.h"
 #include "DpiMsgLRPool.h"
+#include "StopWatch.h"
+#include "FileIO.h"
+
+#include <boost/filesystem.hpp>
+
+
+#ifdef LR_DEBUG
 bool DiskPacketCaptureTest::mDeathReceived(false);
 std::string DiskPacketCaptureTest::mDeathMessage;
 
@@ -57,6 +62,7 @@ TEST_F(DiskPacketCaptureTest, FlushABigSession) {
 
 
 // System test -- for now not disabled
+
 TEST_F(DiskPacketCaptureTest, SystemTest_VerifyGetCaptureFirstLocation) {
    MockConfExposeUpdate conf;
    const auto& first = conf.GetFirstPcapCaptureLocation();
@@ -133,7 +139,6 @@ TEST_F(DiskPacketCaptureTest, ConfCreatesCorrectCaptureLocations) {
    }
    EXPECT_TRUE(std::equal(putLocations.begin(), putLocations.end(), locations.begin()));
 }
-
 
 TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    MockConf conf;
@@ -942,6 +947,59 @@ TEST_F(DiskPacketCaptureTest, PacketCaptureDisabled) {
       delete []data;
    }
    ASSERT_FALSE(capture.Initialize());
+
+}
+#endif
+
+
+#ifdef LR_DEBUG
+// Time to create 16,000 directories: ~50 seconds
+// Time to verify 16,000 directories: ~0 seconds
+// 16,000 directories per PCAP partition is the default
+TEST_F(DiskPacketCaptureTest, DISABLED_TimingTestCreate16000SubFolders) {
+   std::string base = testDir.str() + "/";
+   std::string create{"mkdir -p "};
+   create.append(base);
+
+   size_t numberOfDirectories{16000};
+   StopWatch watch;
+   for (size_t directory = 0; directory < numberOfDirectories; ++directory) {
+      std::string createDirectory{create + std::to_string(directory)};
+      EXPECT_EQ(0, system(createDirectory.c_str()));
+   }
+   LOG(INFO) << "Total time to create : " << numberOfDirectories
+           << " took " << watch.ElapsedSec() << " seconds";
+
+
+   //  Duplicate check: Boost vs FileIO
+   watch.Restart();
+   for (size_t directory = 0; directory < numberOfDirectories; ++directory) {
+      std::string checkDirectory{testDir.str() + "/" + std::to_string(directory)};
+      EXPECT_TRUE(boost::filesystem::exists(checkDirectory)) << checkDirectory;
+      EXPECT_TRUE(boost::filesystem::is_directory(checkDirectory)) << checkDirectory;
+   }
+   LOG(INFO) << "Total time to boost verify the existance of : " << numberOfDirectories
+           << " directories took " << watch.ElapsedSec() << " seconds";
+   
+
+   // 15,999 should exist but not 16,000
+   std::string checkDirectory{testDir.str() + "/" + std::to_string(numberOfDirectories+1)};
+   EXPECT_FALSE(boost::filesystem::exists(checkDirectory)) << checkDirectory;
+   EXPECT_FALSE(boost::filesystem::is_directory(checkDirectory)) << checkDirectory;
+
+   
+   //  Duplicate check: Boost vs FileIO   
+   watch.Restart();
+   for (size_t directory = 0; directory < numberOfDirectories; ++directory) {
+      std::string checkDirectory{testDir.str() + "/" + std::to_string(directory)};
+      EXPECT_TRUE(FileIO::DoesDirectoryExist(checkDirectory)) << checkDirectory;
+   }
+   LOG(INFO) << "Total time to FileIO verify the existance of : " << numberOfDirectories
+           << " directories took " << watch.ElapsedSec() << " seconds";
+ 
+   // 15,999 should exist but not 16,000
+   EXPECT_FALSE(FileIO::DoesDirectoryExist(checkDirectory)) << checkDirectory;
+   EXPECT_FALSE(FileIO::DoesFileExist(checkDirectory)) << checkDirectory;
 
 }
 #endif
