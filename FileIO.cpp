@@ -103,8 +103,19 @@ namespace FileIO {
     */
    bool DoesFileExist(const std::string& pathToFile) {
       struct stat fileInfo;
-
       return (stat(pathToFile.c_str(), &fileInfo) == 0);
+   }
+
+   /**
+    * Use stat to determine the presence of a directory
+    * @param pathToFile
+    * @return if the stat command succeeded (meaning that there is a directory that directory name)
+    */
+   bool DoesDirectoryExist(const std::string& pathToDirectory) {
+      struct stat directoryInfo;
+      stat(pathToDirectory.c_str(), &directoryInfo);
+      bool isDirectory = S_ISDIR(directoryInfo.st_mode);
+      return isDirectory;     
    }
 
    struct passwd* GetUserFromPasswordFile(const std::string& username) {
