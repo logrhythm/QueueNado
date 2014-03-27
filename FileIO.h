@@ -35,7 +35,9 @@ namespace FileIO {
    bool DoesFileExist(const std::string& pathToFile);
    bool DoesDirectoryExist(const std::string& pathToDirectory);
    Result<bool> RemoveFileAsRoot(const std::string& filename);
-   struct passwd* GetDpiPasswd();
-   void SetDpiFileSystemAccess();
+   struct passwd* GetUserFromPasswordFile(const std::string& username);
+   void SetUserFileSystemAccess(const std::string& username);
 }
+
+
 

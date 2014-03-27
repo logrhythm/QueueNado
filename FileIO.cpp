@@ -1,6 +1,6 @@
 /* 
  * File:   FileIO.cpp
- * Author: kjell
+ * Author: kjell/weberr13
  * 
  * Created on August 15, 2013, 2:28 PM
  */
@@ -117,11 +117,8 @@ namespace FileIO {
       bool isDirectory = S_ISDIR(directoryInfo.st_mode);
       return isDirectory;     
    }
-   
-   
-   struct passwd* GetDpiPasswd() {
-      // Get the uid for dpi user
-      static const std::string username("dpi");
+
+   struct passwd* GetUserFromPasswordFile(const std::string& username) {
       struct passwd* pwd = (struct passwd *) calloc(1, sizeof (struct passwd));
       if (pwd == NULL) {
          // Failed to allocate struct passwd for getpwnam_r.
@@ -143,12 +140,11 @@ namespace FileIO {
    }
 
    /*
-    * When running as root, change the file system access to user dpi.
+    * When running as root, change the file system access to a user.
     */
-   void SetDpiFileSystemAccess() {
-      struct passwd* pwd = GetDpiPasswd();
+   void SetUserFileSystemAccess(const std::string& username) {
+      struct passwd* pwd = GetUserFromPasswordFile(username);
 
-      // Set file system access to dpi for owner and group. Only on Linux.
       setfsuid(pwd->pw_uid);
       setfsgid(pwd->pw_gid);
 
