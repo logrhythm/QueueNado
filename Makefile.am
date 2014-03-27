@@ -269,6 +269,8 @@ ToolsTestMakeUnique.cpp \
 ToolsTestStringFix.cpp \
 ToolsTestStopWatch.cpp \
 ToolsTestFileIO.cpp \
+ToolsTestUuidHash.cpp \
+Death.cpp Death.h \
 EthInfoTest.cpp \
 WorkerThreadTest.cpp \
 ToolsRangeTest.cpp
