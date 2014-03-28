@@ -43,6 +43,9 @@ std::vector<std::string> Alien::GetShot() {
       GetShot(1000, bullets);
       boost::this_thread::interruption_point();
    }
+   if (zctx_interrupted) {
+      LOG(INFO) << "Caught Interrupt Signal";
+   }
    return bullets;
 }
 
