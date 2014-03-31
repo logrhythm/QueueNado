@@ -18,6 +18,7 @@
 #include "NtpConfigCommand.h"
 #include "RebootCommandTest.h"
 #include "MockShutdownCommand.h"
+#include "PCapFilePathCommand.h"
 #include <g2loglevels.hpp>
 #include "g2log.hpp"
 #include "RestartSyslogCommandTest.h"
@@ -465,6 +466,7 @@ TEST_F(CommandProcessorTests, ConstructAndInitializeCheckRegistrations) {
    EXPECT_EQ(NtpConfigCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_NTP_CONFIG));
    EXPECT_EQ(ShutdownCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_SHUTDOWN));
    EXPECT_EQ(ConfigRequestCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_CONFIG_REQUEST));
+   EXPECT_EQ(PCapFilePathCommand::Construct, testProcessor.CheckRegistration(protoMsg::CommandRequest_CommandType_PCAP_FILE_PATH));
 #endif
 }
 
