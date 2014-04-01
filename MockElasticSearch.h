@@ -350,7 +350,7 @@ public:
    MOCK_METHOD0(Initialize, bool());
    MOCK_METHOD1(GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored, bool(time_t&));
    MOCK_METHOD6(GetOldestNFiles, PathAndFileNames(const unsigned int numberOfFiles,
-           const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename& fileConstructor,
+           Conf& conf, ElasticSearch::ConstructPathWithFilename fileConstructor,
            IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits));
    MOCK_METHOD2(SendAndGetReplyCommandToWorker, bool (const std::string& command, std::string& reply));
 
