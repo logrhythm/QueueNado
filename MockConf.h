@@ -283,11 +283,11 @@ public:
       return mPCapCaptureMemoryLimit;
    }
 
-   size_t GetPcapCaptureFolderPerPartitionLimit() LR_OVERRIDE {
+   size_t GetPcapCaptureFolderPerPartitionLimit() const LR_OVERRIDE {
       return mPcapCaptureFolderPerPartitionLimit;
    }
    
-   std::vector<std::string> GetPcapCaptureLocations() LR_OVERRIDE {
+   std::vector<std::string> GetPcapCaptureLocations() const LR_OVERRIDE {
       if (mOverrideGetPcapCaptureLocations) {
          return mPCapCaptureLocations;
       }
@@ -295,7 +295,7 @@ public:
       return Conf::GetPcapCaptureLocations();
    }
 
-   std::string GetFirstPcapCaptureLocation() LR_OVERRIDE {
+   std::string GetFirstPcapCaptureLocation() const LR_OVERRIDE {
       if (!mOverrideGetFirstCaptureLocation) {
          return Conf::GetFirstPcapCaptureLocation();
       }
