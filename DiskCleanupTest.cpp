@@ -172,9 +172,10 @@ TEST_F(DiskCleanupTest, GetProbeDiskUsage) {
    EXPECT_NE(maxFreeDiffAllowed, 0);
    EXPECT_NEAR(stats.pcapDiskInGB.Free, stats.probeDiskInGB.Free, maxFreeDiffAllowed);
 
+   size_t subDirectories = conf.GetPcapCaptureFolderPerPartitionLimit();
    EXPECT_EQ(stats.pcapDiskInGB.Total, stats.probeDiskInGB.Total);
    EXPECT_NE(stats.pcapDiskInGB.Used, stats.probeDiskInGB.Used); // pcap is the folder, probe is the partition
-   EXPECT_EQ(stats.pcapDiskInGB.Used, 4); // folder takes up space
+   EXPECT_EQ(stats.pcapDiskInGB.Used, 4 + (4*subDirectories)); // folder takes up space
    EXPECT_NE(stats.probeDiskInGB.Used, 4); // probe is the whole partition
    EXPECT_TRUE(stats.probeDiskInGB.Used > 4);
 
