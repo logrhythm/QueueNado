@@ -299,7 +299,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       EXPECT_FALSE(cleanup.TooMuchPCap(stats));
       EXPECT_EQ(2, stats.aTotalFiles);
       EXPECT_FALSE(FileIO::DoesFileExist("/tmp/TooMuchPcap/0/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
-      /*
+      
       // 2MB + (4KByte*2 folder overhead) - 1byte
       EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte),
               (2 << B_TO_MB_SHIFT) + ((4+4) << B_TO_KB_SHIFT) - byte);
@@ -309,7 +309,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       EXPECT_TRUE(cleanup.TooMuchPCap(stats));
       EXPECT_EQ(stats.aTotalFiles, 2);
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      EXPECT_EQ(1, cleanup.BruteForceCleanupOfOldFiles(testDir.str(), timeThird, spaceSaved));
+      EXPECT_EQ(1, cleanup.BruteForceCleanupOfOldFiles(pcapLocation, timeThird, spaceSaved));
       cleanup.RecalculatePCapDiskUsed(stats, es);
       EXPECT_EQ(1, stats.aTotalFiles);
       EXPECT_EQ(1, spaceSaved); //left is 1 file: 1MB-1byte + (4KByte*2 folder overhead) 
@@ -322,7 +322,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       cleanup.ResetConf();
       EXPECT_TRUE(cleanup.TooMuchPCap(stats));
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      EXPECT_EQ(1, cleanup.BruteForceCleanupOfOldFiles(testDir.str(), std::time(NULL), spaceSaved));
+      EXPECT_EQ(1, cleanup.BruteForceCleanupOfOldFiles(pcapLocation, std::time(NULL), spaceSaved));
       EXPECT_EQ(1, spaceSaved); // 
       EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte),
               (0 << B_TO_MB_SHIFT) + ((4+4) << B_TO_KB_SHIFT));
@@ -330,7 +330,7 @@ TEST_F(DiskCleanupTest, TooMuchPCap) {
       cleanup.RecalculatePCapDiskUsed(stats, es);
       EXPECT_EQ(0, stats.aTotalFiles);
       EXPECT_FALSE(cleanup.TooMuchPCap(stats));
-*/
+
    }
 #endif
 }
@@ -347,8 +347,9 @@ TEST_F(DiskCleanupTest, TooMuchPCapPrecursor) {
    EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB), 0); // empty folder eq 4 Bytes
    EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::GB), 0); // empty folder eq 4 Bytes
 
+   std::string pcapLocation = testDir.str() + "/0";
    std::string almost1MFileFile = "dd bs=1024 count=1000 if=/dev/zero of=";
-   almost1MFileFile += testDir.str();
+   almost1MFileFile += pcapLocation;
    almost1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbAlmost1M";
    EXPECT_EQ(0, system(almost1MFileFile.c_str()));
    EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte), (1024 * 1000) + 4096); // written explicitly 
@@ -358,7 +359,7 @@ TEST_F(DiskCleanupTest, TooMuchPCapPrecursor) {
 
    // 1MB
    std::string upTo1MFile = "dd bs=1024 count=20 if=/dev/zero of=";
-   upTo1MFile += testDir.str();
+   upTo1MFile += pcapLocation;
    upTo1MFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbUpTo1M";
    EXPECT_EQ(0, system(upTo1MFile.c_str()));
    EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte), 1024 * 1024);
