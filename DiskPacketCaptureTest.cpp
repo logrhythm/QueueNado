@@ -21,6 +21,7 @@
 #include "DpiMsgLRPool.h"
 #include "StopWatch.h"
 #include "FileIO.h"
+#include "UuidHash.h"
 
 #include <boost/filesystem.hpp>
 
@@ -158,6 +159,9 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    struct upacket packet;
 
    testMessage->set_session("123456789012345678901234567890123456");
+   auto pathForMessage = DiskPacketCapture::BuildFilenameWithPath(testMessage->session(), conf);
+   std::string pathForFile = {testDir.str() + "/0/" + testMessage->session()};
+   EXPECT_EQ(pathForMessage, pathForFile);
 
    testMessage->set_totalpackets(0);
    testMessage->set_packetsdelta(0);
@@ -187,6 +191,8 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    struct stat statbuf;
 
    std::string testFile = DiskPacketCapture::BuildFilenameWithPath(testMessage->session(), conf);
+   std::string path1{testDir.str() + "/0/" + testMessage->session()};
+   EXPECT_EQ(testFile, path1);
    ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
    EXPECT_TRUE(conf.mMaxIndividualPCap * testPacketSize >= statbuf.st_size);
    EXPECT_TRUE((conf.mMaxIndividualPCap - 1) * testPacketSize <= statbuf.st_size);
@@ -212,6 +218,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
 
    free(packet.p->data);
    free(packet.p);
+    
 }
 
 TEST_F(DiskPacketCaptureTest, DeleteLongPcapCaptureFalse) {
@@ -230,7 +237,16 @@ TEST_F(DiskPacketCaptureTest, DeleteLongPcapCaptureFalse) {
    networkMonitor::DpiMsgLR* testMessage = pool.GetDpiMsg();
    struct upacket packet;
 
-   testMessage->set_session("123456789012345678901234567890123456");
+   std::string uuid = {"123456789012345678901234567890123456"};
+   testMessage->set_session(uuid);
+   
+   // create the necessary directory for it under the pcap storage location
+   const size_t bucketsPerPartition = conf.GetPcapCaptureFolderPerPartitionLimit();
+   const size_t bucket = UuidHash::GetUuidBucket(uuid, bucketsPerPartition, conf.mPCapCaptureLocations.size());
+   auto bucketDirectoryIndex = UuidHash::GetUuidBucketDirectoryIndex(bucket, bucketsPerPartition);
+   std::string mkSubDir = {"mkdir -p " + testDir.str() + "/" + std::to_string(bucketDirectoryIndex)};
+   EXPECT_EQ(0, system(mkSubDir.c_str()));
+   
    testMessage->set_totalpackets(0);
    testMessage->set_packetsdelta(0);
    testMessage->set_srcbytes(0);
@@ -239,7 +255,7 @@ TEST_F(DiskPacketCaptureTest, DeleteLongPcapCaptureFalse) {
    testMessage->set_totalbytesdelta(0);
    testMessage->set_captured(true);
 
-   std::string testFile = testDir.str() + "/" + testMessage->session();
+   std::string testFile = testDir.str() + "/" + std::to_string(bucketDirectoryIndex) +"/" + testMessage->session();
 
    packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
    packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
@@ -527,12 +543,13 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
       // Re-create the bucket and partition ID
       const size_t hashed = CityHash32(uuid.data(), uuid.size());
       const size_t bucket = hashed % totalBuckets;
+      const size_t bucketDirectory = UuidHash::GetUuidBucketDirectoryIndex(bucket, directoriesPerPartition);
       const size_t partitionID = bucket / directoriesPerPartition;
 
       counters[bucket]++;
       ASSERT_TRUE(partitionID < locations.size());
       std::string checkName = locations[partitionID];
-      checkName.append("/").append(std::to_string(bucket)).append("/");
+      checkName.append("/").append(std::to_string(bucketDirectory)).append("/");
       checkName.append(uuid);
       ASSERT_EQ(checkName, fileName) << "locations.size(): " << locations.size()
               << "\tpartitionID: " << partitionID << ", bucket: " << bucket << ", totalBuckets: " << totalBuckets;
@@ -594,11 +611,12 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenMoreRoundRobin) {
       // Re-create the bucket and partition ID
       const size_t hashed = CityHash32(uuid.data(), uuid.size());
       const size_t bucket = hashed % totalBuckets;
+      const size_t bucketDirectory = UuidHash::GetUuidBucketDirectoryIndex(bucket, directoriesPerPartition);
       const size_t partitionID = bucket / directoriesPerPartition;
       counters[bucket]++;
       ASSERT_TRUE(partitionID < locations.size());
       std::string checkName = locations[partitionID];
-      checkName.append("/").append(std::to_string(bucket)).append("/");
+      checkName.append("/").append(std::to_string(bucketDirectory)).append("/");
       checkName.append(uuid);
 
       // This line is really what this test is all about!
