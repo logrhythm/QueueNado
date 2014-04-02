@@ -946,7 +946,8 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageSamePartition) {
    // free and total should be huge since it is on the root partition
    cleanup.GetPcapStoreUsage(stats, MemorySize::KByte);
    size_t spaceToCreateADirectory = 4;
-   EXPECT_EQ(stats.pcapDiskInGB.Used, spaceToCreateADirectory); // overhead creating dir
+   size_t totalSpaceInPcapLocations = 2*spaceToCreateADirectory; // /tmp/TooMuchPcap/0/
+   EXPECT_EQ(stats.pcapDiskInGB.Used, totalSpaceInPcapLocations); // overhead creating dir
 
    std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
    make1MFileFile += testDir.str();
@@ -954,10 +955,10 @@ TEST_F(DiskCleanupTest, SystemTest_GetPcapStoreUsageSamePartition) {
    EXPECT_EQ(0, system(make1MFileFile.c_str()));
    DiskUsage usage(testDir.str(), processClient);
    size_t usedKByte = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte);
-   EXPECT_EQ(usedKByte, 1024 + spaceToCreateADirectory); // including 4: overhead
+   EXPECT_EQ(usedKByte, 1024 + totalSpaceInPcapLocations); // including 4: overhead
 
    cleanup.GetPcapStoreUsage(stats, MemorySize::KByte);
-   EXPECT_EQ(stats.pcapDiskInGB.Used, 1024 + spaceToCreateADirectory);
+   EXPECT_EQ(stats.pcapDiskInGB.Used, 1024 + totalSpaceInPcapLocations);
 }
 
 TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
@@ -976,7 +977,6 @@ TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
 
    // Same partition: disk usage for pcap is calulcated on the folder itself
    // free and total should be huge since it is on the root partition
-
    cleanup.RecalculatePCapDiskUsed(stats, es);
    EXPECT_EQ(stats.aTotalFiles, 0);
    DiskUsage usage(testDir.str(), processClient);
@@ -986,7 +986,7 @@ TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
 
    std::string make10MFile = "dd bs=1024 count=10240 if=/dev/zero of=";
    make10MFile += testDir.str();
-   make10MFile += "/10MFile";
+   make10MFile += "/0/10MFile";
    EXPECT_EQ(0, system(make10MFile.c_str()));
    mConf.mConfLocation = "resources/test.yaml.DiskCleanup10"; // file limit is 2
    cleanup.ResetConf();
@@ -1000,7 +1000,8 @@ TEST_F(DiskCleanupTest, SystemTest_RecalculatePCapDiskUsedSamePartition) {
 
    cleanup.GetPcapStoreUsage(stats, MemorySize::KByte);
    size_t spaceToCreateADirectory = 4;
-   EXPECT_EQ(stats.pcapDiskInGB.Used, 10240 + spaceToCreateADirectory);
+   size_t spaceToCreatePcapDirectories = spaceToCreateADirectory*2; // /tmp/TooMuchPcap/0/
+   EXPECT_EQ(stats.pcapDiskInGB.Used, 10240 + spaceToCreatePcapDirectories);
 }
 #endif
 
