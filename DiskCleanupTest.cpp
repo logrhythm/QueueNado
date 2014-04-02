@@ -7,6 +7,7 @@
 #include "MockConfMaster.h"
 #include "MockElasticSearch.h"
 #include "MockSendStats.h"
+#include "UuidHash.h"
 #include <future>
 #include <thread>
 #include <atomic>
@@ -342,31 +343,32 @@ TEST_F(DiskCleanupTest, TooMuchPCapPrecursor) {
    ProcessClient processClient(mConf.GetConf());
    ASSERT_TRUE(processClient.Initialize());
    DiskUsage usage(testDir.str(), processClient);
+   
+   std::string dirToCheck = {testDir.str() + "/0/"};
    // Empty folder:
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte), 4096); // empty folder eq 4 KByte
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte), 4); // empty folder eq 4 KByte
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB), 0); // empty folder eq 4 Bytes
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::GB), 0); // empty folder eq 4 Bytes
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::Byte), 4096); // empty folder eq 4 KByte
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::KByte), 4); // empty folder eq 4 KByte
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::MB), 0); // empty folder eq 4 Bytes
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::GB), 0); // empty folder eq 4 Bytes
 
-   std::string pcapLocation = testDir.str() + "/0";
    std::string almost1MFileFile = "dd bs=1024 count=1000 if=/dev/zero of=";
-   almost1MFileFile += pcapLocation;
-   almost1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbAlmost1M";
+   almost1MFileFile += dirToCheck;
+   almost1MFileFile += "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbAlmost1M";
    EXPECT_EQ(0, system(almost1MFileFile.c_str()));
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte), (1024 * 1000) + 4096); // written explicitly 
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte), 1004);
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB), 0); //  // 2 files: 1MB + (4KByte folder overhead)
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::GB), 0);
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::Byte), (1024 * 1000) + 4096); // written explicitly 
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::KByte), 1004);
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::MB), 0); //  // 2 files: 1MB + (4KByte folder overhead)
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::GB), 0);
 
    // 1MB
    std::string upTo1MFile = "dd bs=1024 count=20 if=/dev/zero of=";
-   upTo1MFile += pcapLocation;
-   upTo1MFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbUpTo1M";
+   upTo1MFile += dirToCheck;
+   upTo1MFile += "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbUpTo1M";
    EXPECT_EQ(0, system(upTo1MFile.c_str()));
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte), 1024 * 1024);
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte), 1024);
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB), 1); //  // 2 files: 1MB + (4KByte folder overhead)
-   EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::GB), 0);
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::Byte), 1024 * 1024);
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::KByte), 1024);
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::MB), 1); //  // 2 files: 1MB + (4KByte folder overhead)
+   EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::GB), 0);
 
 #endif
 }
@@ -836,8 +838,10 @@ TEST_F(DiskCleanupTest, TooMuchPCapsAtManyLocations) {
       MockDiskCleanup cleanup(mConf, processClient);
       cleanup.mRealFilesSystemAccess = true;
       mConf.mConfLocation = "resources/test.yaml.GetPcapStoreUsage1";
-      ASSERT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap0"));
-      ASSERT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap1"));
+      ASSERT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap0/0"));
+      ASSERT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap0/1"));
+      ASSERT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap1/0"));
+      ASSERT_EQ(0, system("mkdir -p /tmp/TooMuchPcap/pcap1/1"));
       cleanup.ResetConf();
       Conf& conf = cleanup.GetConf();
       auto locations = conf.GetPcapCaptureLocations();
@@ -845,24 +849,51 @@ TEST_F(DiskCleanupTest, TooMuchPCapsAtManyLocations) {
       ASSERT_EQ(locations[0], "/tmp/TooMuchPcap/pcap0/");
       ASSERT_EQ(locations[1], "/tmp/TooMuchPcap/pcap1/");
 
+
+      std::string uuid1 = "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
+      std::string uuid2 = "aaabbbbbbbbbbbbbbbbbbbbbbbbbccc1Mm1";    
+
+      const size_t bucketsPerPartition = 2;
+      const size_t bucket1 = (UuidHash::GetUuidBucket(uuid1, bucketsPerPartition, locations.size())/bucketsPerPartition);
+      
+      const std::string partition1 = {UuidHash::GetUuidPartition(bucket1, bucketsPerPartition, locations)};
+      const size_t bucket2 = (UuidHash::GetUuidBucket(uuid2, bucketsPerPartition, locations.size())/bucketsPerPartition);
+      const std::string partition2 = {UuidHash::GetUuidPartition(bucket2, bucketsPerPartition, locations)};
+ 
+ 
+       std::string createDir1{"mkdir -p " + partition1 + std::to_string(bucket1)};
+       std::string createDir2{"mkdir -p " + partition2 + std::to_string(bucket2)};
+       EXPECT_EQ(system(createDir1.c_str()), 0) << createDir1;
+       EXPECT_EQ(system(createDir2.c_str()), 0) << createDir2;
+
+
       cleanup.RecalculatePCapDiskUsed(stats, es);
-      ASSERT_FALSE(cleanup.TooMuchPCap(stats));
+      EXPECT_FALSE(cleanup.TooMuchPCap(stats));
       EXPECT_EQ(stats.aTotalFiles, 0);
 
+      std::string path1 = {partition1 + std::to_string(bucket1) + "/" + uuid1};
       std::string makeFile1 = "dd bs=1024 count=1024 if=/dev/zero of=";
-      makeFile1 += locations[0];
-      makeFile1 += "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
+      makeFile1 += path1;
+  
+      std::string path2 = {partition2 + std::to_string(bucket2) + "/" + uuid2};
       std::string makeFile2 = "dd bs=1024 count=1024 if=/dev/zero of=";
-      makeFile2 += locations[1];
-      makeFile2 += "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
+      makeFile2 += path2;
+      LOG(INFO) << "CREATING 1 : " << path1;
+      LOG(INFO) << "CREATING 2 : " << path2;
       EXPECT_EQ(system(makeFile1.c_str()), 0) << makeFile1;
       EXPECT_EQ(system(makeFile2.c_str()), 0) << makeFile2;
       std::this_thread::sleep_for(std::chrono::seconds(1));
       time_t timeFirst = std::time(NULL);
 
 
-      EXPECT_TRUE(boost::filesystem::exists(locations[0] + "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1"));
-      EXPECT_TRUE(boost::filesystem::exists(locations[1] + "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1"));
+      EXPECT_TRUE(boost::filesystem::exists(path1));
+      EXPECT_TRUE(FileIO::DoesFileExist(path1));
+      EXPECT_FALSE(FileIO::DoesDirectoryExist(path1));
+
+      
+      EXPECT_TRUE(boost::filesystem::exists(path2));
+      EXPECT_TRUE(FileIO::DoesFileExist(path2));
+      EXPECT_FALSE(FileIO::DoesDirectoryExist(path2));
 
       // Clean it up
       cleanup.RecalculatePCapDiskUsed(stats, es);
@@ -871,17 +902,23 @@ TEST_F(DiskCleanupTest, TooMuchPCapsAtManyLocations) {
       size_t spaceSaved = 0;
 
       // Remove the first file
-      EXPECT_EQ(1, cleanup.BruteForceCleanupOfOldFiles(locations[0], timeFirst, spaceSaved));
+      std::string prePath1  = partition1;
+      prePath1.append("/").append(std::to_string(bucket1)).append("/");
+      EXPECT_EQ(1, cleanup.BruteForceCleanupOfOldFiles(prePath1, timeFirst, spaceSaved));
       EXPECT_EQ(1, spaceSaved);
       cleanup.RecalculatePCapDiskUsed(stats, es);
       EXPECT_EQ(1, stats.aTotalFiles);
-      EXPECT_FALSE(boost::filesystem::exists(locations[0] + "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1"));
-      EXPECT_TRUE(boost::filesystem::exists(locations[1] + "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1"));
+      EXPECT_FALSE(boost::filesystem::exists(path1));
+      EXPECT_TRUE(boost::filesystem::exists(path2));
+
+
       // Remove the second file
-      EXPECT_EQ(1, cleanup.BruteForceCleanupOfOldFiles(locations[1], timeFirst, spaceSaved));
+      std::string prePath2  = partition2;
+      prePath2.append("/").append(std::to_string(bucket2)).append("/");
+      EXPECT_EQ(1, cleanup.BruteForceCleanupOfOldFiles(prePath2, timeFirst, spaceSaved));
       EXPECT_EQ(1, spaceSaved);
-      EXPECT_FALSE(boost::filesystem::exists(locations[0] + "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1"));
-      EXPECT_FALSE(boost::filesystem::exists(locations[1] + "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1"));
+      EXPECT_FALSE(boost::filesystem::exists(path1));
+      EXPECT_FALSE(boost::filesystem::exists(path2));
 
       cleanup.RecalculatePCapDiskUsed(stats, es);
       EXPECT_EQ(0, stats.aTotalFiles);
