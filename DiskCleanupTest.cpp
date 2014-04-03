@@ -1292,17 +1292,17 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
       conf.mPCapCaptureLocations = locations;
       conf.mPcapCaptureFolderPerPartitionLimit = 2;
       size_t bucket1 = UuidHash::GetUuidBucket(uuid1, 2, locations.size());
+      size_t bucket1Dir = UuidHash::GetUuidBucketDirectoryIndex(bucket1, 2);
+      
       size_t bucket2 = UuidHash::GetUuidBucket(uuid2, 2, locations.size());
-      
-      
-      
+      size_t bucket2Dir = UuidHash::GetUuidBucketDirectoryIndex(bucket2, 2);
       
       
       // Fake two  capture locations
       std::string mkdir1{"mkdir -p " + locations[0] + "/0"};
       std::string mkdir2{"mkdir -p " + locations[0] + "/1"};
-      std::string mkdir3{"mkdir -p " + locations[1] + "/2"};
-      std::string mkdir4{"mkdir -p " + locations[1] + "/3"};
+      std::string mkdir3{"mkdir -p " + locations[1] + "/0"};
+      std::string mkdir4{"mkdir -p " + locations[1] + "/1"};
       
       ASSERT_EQ(0, system(mkdir1.c_str()));
       ASSERT_EQ(0, system(mkdir2.c_str()));
@@ -1312,8 +1312,8 @@ TEST_F(DiskCleanupTest, ESFailuresGoAheadAndRemoveFilesManyLocations) {
       std::string makeFile1 = "touch ";
       std::string makeFile2 = makeFile1;
       
-      std::string file1 = {"/tmp/TooMuchPcap/pcap1/" + std::to_string(bucket1) + "/" + uuid1};
-      std::string file2 = {"/tmp/TooMuchPcap/pcap0/" + std::to_string(bucket2) + "/" + uuid2};
+      std::string file1 = {"/tmp/TooMuchPcap/pcap1/" + std::to_string(bucket1Dir) + "/" + uuid1};
+      std::string file2 = {"/tmp/TooMuchPcap/pcap0/" + std::to_string(bucket2Dir) + "/" + uuid2};
       
       makeFile1 += file1;
       makeFile2 += file2;
