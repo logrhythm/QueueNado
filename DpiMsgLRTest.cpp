@@ -146,6 +146,54 @@ TEST_F(DpiMsgLRTests, enablePasswordScrubbing) {
    delete dm;
 }
 
+TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
+   // Set the Ethernet Source
+   vector<unsigned char> ipv6Src;
+   ipv6Src.push_back(0xfe);
+   ipv6Src.push_back(0x80);
+   ipv6Src.push_back(0x00);
+   ipv6Src.push_back(0x00);
+   ipv6Src.push_back(0x00);
+   ipv6Src.push_back(0x00);
+   ipv6Src.push_back(0x00);
+   ipv6Src.push_back(0x00);
+   ipv6Src.push_back(0x38);
+   ipv6Src.push_back(0xff);
+   ipv6Src.push_back(0x05);
+   ipv6Src.push_back(0xfa);
+   ipv6Src.push_back(0x6b);
+   ipv6Src.push_back(0x76);
+   ipv6Src.push_back(0x87);
+   ipv6Src.push_back(0x0c);
+   DpiMsgLR dm;
+   dm.SetIPV6Src(ipv6Src);
+
+   // Get the Ethernet Source
+   vector<unsigned char> rIPV6Src;
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   dm.GetIPV6Src(rIPV6Src);
+
+   // Expect the values in the two arrays to match
+   for (int tInd = 0; tInd < IPV6_ADDR_SIZE; tInd++) {
+      EXPECT_EQ(rIPV6Src[tInd], ipv6Src[tInd]);
+   }
+}
+
 TEST_F(DpiMsgLRTests, setEthSrcSuccess) {
    // Set the Ethernet Source
    vector<unsigned char> ethSrc;
