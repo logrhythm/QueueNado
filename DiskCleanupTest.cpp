@@ -1118,6 +1118,14 @@ TEST_F(DiskCleanupTest, DISABLED_SystemTest_RecalculatePCapDiskUsedManyPartition
 TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
 #ifdef LR_DEBUG
    if (geteuid() == 0) {
+      
+      auto GetBucketDirectory = [](Conf& conf, const std::string& uuid) ->std::string {
+         auto bucket = UuidHash::GetUuidBucket(uuid, conf.GetPcapCaptureFolderPerPartitionLimit(), conf.GetPcapCaptureLocations().size());         
+         return std::to_string(UuidHash::GetUuidBucketDirectoryIndex(bucket, conf.GetPcapCaptureFolderPerPartitionLimit()));
+      };
+      
+      
+      
       ProcessClient processClient(mConf.GetConf());
       ASSERT_TRUE(processClient.Initialize());
       MockDiskCleanup cleanup(mConf, processClient);
@@ -1136,26 +1144,29 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
 
       std::string makeSmallFile = "touch ";
       makeSmallFile += testDir.str();
-      makeSmallFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
+      std::string smallUuid = "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M";
+      makeSmallFile += {"/" + GetBucketDirectory(cleanup.GetConf(), smallUuid) + "/" + smallUuid};
       EXPECT_EQ(0, system(makeSmallFile.c_str())); // 1 file, empty
+      std::string checkMakeSmallFile{"touch /tmp/TooMuchPcap/0/" + smallUuid};
+      EXPECT_EQ(makeSmallFile,  checkMakeSmallFile);
       cleanup.RecalculatePCapDiskUsed(stats, es);
 
       std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
       make1MFileFile += testDir.str();
-      make1MFileFile += "/1MFile";
+      make1MFileFile += "/0/1MFile";
       EXPECT_EQ(0, system(make1MFileFile.c_str())); // 2 files, 1MB
       cleanup.RecalculatePCapDiskUsed(stats, es);
 
       make1MFileFile = "dd bs=1048575 count=1 if=/dev/zero of="; // 1MB-1byte
       make1MFileFile += testDir.str();
-      make1MFileFile += "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
+      make1MFileFile += "/0/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
       EXPECT_EQ(0, system(make1MFileFile.c_str())); // 3 files, 2MB -1byte (+folder overhead)
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup7";
       cleanup.ResetConf();
       cleanup.RecalculatePCapDiskUsed(stats, es);
       EXPECT_TRUE(cleanup.TooMuchPCap(stats));
-      PathAndFileName element(testDir.str() + "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M");
+      PathAndFileName element(testDir.str() + "/0/" + "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M", "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1M");
       es.mOldestFiles.insert(element);
       stats.canSendStats = false;
       cleanup.CleanupOldPcapFiles(es, stats); // empty file removed, 2 left
@@ -1171,7 +1182,7 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       auto sizeLimit = conf.GetPcapCaptureSizeLimit();
       EXPECT_NE(conf.GetPcapCaptureLocations()[0], conf.GetProbeLocation());
       EXPECT_TRUE(cleanup.TooMuchPCap(stats));
-      std::get<0>(element) = testDir.str() + "/aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
+      std::get<0>(element) = testDir.str() + "/0/" + "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
       std::get<1>(element) = "aaabbbbbbbbbbbbbbbbbbbbbbbbbbbbb1Mm1";
       es.mOldestFiles.insert(element);
       stats.canSendStats = false;
@@ -1179,9 +1190,10 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       es.mOldestFiles.clear();
       EXPECT_FALSE(cleanup.TooMuchPCap(stats));
       EXPECT_EQ(1, stats.aTotalFiles);
-      size_t ByteTotalLeft = 1052672;
+      size_t bytesForStorage  = 4096;
+      size_t ByteTotalLeft = 1052672 + bytesForStorage;
       DiskUsage usage(testDir.str(), processClient);
-      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte), ByteTotalLeft);
+     EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte), ByteTotalLeft);
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
       cleanup.ResetConf();
@@ -1189,7 +1201,7 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       EXPECT_EQ(stats.aTotalFiles, 1);
       EXPECT_EQ(stats.aPcapUsageInMB, 1);
       EXPECT_TRUE(cleanup.TooMuchPCap(stats));
-      std::get<0>(element) = testDir.str() + "/1MFile";
+      std::get<0>(element) = testDir.str() + "/0/" + "1MFile";
       std::get<1>(element) = "1MFile";
       es.mOldestFiles.insert(element);
       cleanup.CleanupOldPcapFiles(es, stats);
