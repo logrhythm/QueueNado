@@ -283,7 +283,7 @@ public:
       return mPCapCaptureMemoryLimit;
    }
 
-   size_t GetPcapCaptureFolderPerPartitionLimit() LR_OVERRIDE {
+   size_t GetPcapCaptureFolderPerPartitionLimit() const LR_OVERRIDE {
       return mPcapCaptureFolderPerPartitionLimit;
    }
    
