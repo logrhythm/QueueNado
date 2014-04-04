@@ -145,7 +145,7 @@ QosmosProtocolCaptureTest.cpp
 DiskPacketCaptureTest_LDADD=${DYNAMIC_LIBS}
 DiskPacketCaptureTest_LDFLAGS=${BASE_LIBS}
 DiskPacketCaptureTest_SOURCES=main.cpp \
-DiskPacketCaptureTest.cpp 
+DiskPacketCaptureTest.cpp DiskPcapMoveTest.cpp
 
 DiskCleanupTest_LDADD=${DYNAMIC_LIBS}
 DiskCleanupTest_LDFLAGS=${BASE_LIBS}
