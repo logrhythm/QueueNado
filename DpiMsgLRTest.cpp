@@ -148,28 +148,36 @@ TEST_F(DpiMsgLRTests, enablePasswordScrubbing) {
 
 TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
    // Set the Ethernet Source
-   vector<unsigned char> ipv6Src;
-   ipv6Src.push_back(0xfe);
-   ipv6Src.push_back(0x80);
-   ipv6Src.push_back(0x00);
-   ipv6Src.push_back(0x00);
-   ipv6Src.push_back(0x00);
-   ipv6Src.push_back(0x00);
-   ipv6Src.push_back(0x00);
-   ipv6Src.push_back(0x00);
-   ipv6Src.push_back(0x38);
-   ipv6Src.push_back(0xff);
-   ipv6Src.push_back(0x05);
-   ipv6Src.push_back(0xfa);
-   ipv6Src.push_back(0x6b);
-   ipv6Src.push_back(0x76);
-   ipv6Src.push_back(0x87);
-   ipv6Src.push_back(0x0c);
+   uint8_t ipv6Addr[16];
+
+   ipv6Addr[0] = 0xfe;
+   ipv6Addr[1] = 0x80;
+   ipv6Addr[2] = 0x00;
+   ipv6Addr[3] = 0x00;
+   ipv6Addr[4] = 0x00;
+   ipv6Addr[5] = 0x00;
+   ipv6Addr[6] = 0x00;
+   ipv6Addr[7] = 0x00;
+   ipv6Addr[8] = 0x38;
+   ipv6Addr[9] = 0xff;
+   ipv6Addr[10] = 0x05;
+   ipv6Addr[11] = 0xfa;
+   ipv6Addr[12] = 0x6b;
+   ipv6Addr[13] = 0x76;
+   ipv6Addr[14] = 0x87;
+   ipv6Addr[15] = 0x0c;
+
    DpiMsgLR dm;
-   dm.SetIPV6Src(ipv6Src);
+   uint32_t outVal;
+   for (int i = 0, j = 0; i < 16 && j < 8 ; i = i + 2, ++j) {
+      outVal = ipv6Addr[i];
+      outVal = outVal << 8;
+      outVal |= ipv6Addr[i + 1];
+      dm.SetIP6SrcOctet(outVal);
+   }
 
    // Get the Ethernet Source
-   vector<unsigned char> rIPV6Src;
+   vector<uint32_t> rIPV6Src;
    rIPV6Src.push_back(0x00);
    rIPV6Src.push_back(0x00);
    rIPV6Src.push_back(0x00);
@@ -178,19 +186,22 @@ TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
    rIPV6Src.push_back(0x00);
    rIPV6Src.push_back(0x00);
    rIPV6Src.push_back(0x00);
-   rIPV6Src.push_back(0x00);
-   rIPV6Src.push_back(0x00);
-   rIPV6Src.push_back(0x00);
-   rIPV6Src.push_back(0x00);
-   rIPV6Src.push_back(0x00);
-   rIPV6Src.push_back(0x00);
-   rIPV6Src.push_back(0x00);
-   rIPV6Src.push_back(0x00);
-   dm.GetIPV6Src(rIPV6Src);
+
+   vector<uint32_t> expIP6Src;
+   expIP6Src.push_back(0xfe80);
+   expIP6Src.push_back(0x00);
+   expIP6Src.push_back(0x00);
+   expIP6Src.push_back(0x00);
+   expIP6Src.push_back(0x38ff);
+   expIP6Src.push_back(0x05fa);
+   expIP6Src.push_back(0x6b76);
+   expIP6Src.push_back(0x870c);
+
+   dm.GetIP6Src(rIPV6Src);
 
    // Expect the values in the two arrays to match
    for (int tInd = 0; tInd < IPV6_ADDR_SIZE; tInd++) {
-      EXPECT_EQ(rIPV6Src[tInd], ipv6Src[tInd]);
+      EXPECT_EQ(rIPV6Src[tInd], expIP6Src[tInd]);
    }
 }
 
