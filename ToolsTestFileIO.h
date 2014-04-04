@@ -19,15 +19,7 @@ public:
       std::string mkTestSubDir{"touch " + directory + "/" + filename};
       return (0 == system(mkTestSubDir.c_str()));
    }
-   
-//   FileIO::DirectoryReader::Found  FastForward(FileIO::DirectoryReader& reader){
-//      auto fileAndType = reader.Next();
-//      while ((fileAndType.second == ".") || (fileAndType.second == "..")) {
-//         fileAndType = reader.Next();
-//      }
-//      return fileAndType;
-//   }
-   
+    
 
 protected:
 
