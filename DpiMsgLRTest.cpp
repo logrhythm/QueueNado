@@ -169,12 +169,14 @@ TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
 
    DpiMsgLR dm;
    uint32_t outVal;
+   vector<uint32_t> inpIp6Src;
    for (int i = 0, j = 0; i < 16 && j < 8 ; i = i + 2, ++j) {
       outVal = ipv6Addr[i];
       outVal = outVal << 8;
       outVal |= ipv6Addr[i + 1];
-      dm.SetIP6SrcOctet(outVal);
+      inpIp6Src.push_back(outVal);
    }
+   dm.SetIP6Src(inpIp6Src);
 
    // Get the Ethernet Source
    vector<uint32_t> rIPV6Src;
@@ -187,21 +189,11 @@ TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
    rIPV6Src.push_back(0x00);
    rIPV6Src.push_back(0x00);
 
-   vector<uint32_t> expIP6Src;
-   expIP6Src.push_back(0xfe80);
-   expIP6Src.push_back(0x00);
-   expIP6Src.push_back(0x00);
-   expIP6Src.push_back(0x00);
-   expIP6Src.push_back(0x38ff);
-   expIP6Src.push_back(0x05fa);
-   expIP6Src.push_back(0x6b76);
-   expIP6Src.push_back(0x870c);
-
    dm.GetIP6Src(rIPV6Src);
 
    // Expect the values in the two arrays to match
    for (int tInd = 0; tInd < IPV6_ADDR_SIZE; tInd++) {
-      EXPECT_EQ(rIPV6Src[tInd], expIP6Src[tInd]);
+      EXPECT_EQ(rIPV6Src[tInd], inpIp6Src[tInd]);
    }
 }
 
