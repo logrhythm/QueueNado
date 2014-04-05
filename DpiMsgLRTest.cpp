@@ -197,6 +197,57 @@ TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
    }
 }
 
+TEST_F(DpiMsgLRTests, setIPV6DstSuccess) {
+   // Set the Ethernet Source
+   uint8_t ipv6Addr[16];
+
+   ipv6Addr[0] = 0xfe;
+   ipv6Addr[1] = 0x80;
+   ipv6Addr[2] = 0x00;
+   ipv6Addr[3] = 0x00;
+   ipv6Addr[4] = 0x00;
+   ipv6Addr[5] = 0x00;
+   ipv6Addr[6] = 0x00;
+   ipv6Addr[7] = 0x00;
+   ipv6Addr[8] = 0x38;
+   ipv6Addr[9] = 0xff;
+   ipv6Addr[10] = 0x05;
+   ipv6Addr[11] = 0xfa;
+   ipv6Addr[12] = 0x6b;
+   ipv6Addr[13] = 0x76;
+   ipv6Addr[14] = 0x87;
+   ipv6Addr[15] = 0x0c;
+
+   DpiMsgLR dm;
+   uint32_t outVal;
+   vector<uint32_t> inpIp6Dst;
+   for (int i = 0, j = 0; i < 16 && j < 8 ; i = i + 2, ++j) {
+      outVal = ipv6Addr[i];
+      outVal = outVal << 8;
+      outVal |= ipv6Addr[i + 1];
+      inpIp6Dst.push_back(outVal);
+   }
+   dm.SetIP6Dst(inpIp6Dst);
+
+   // Get the Ethernet Source
+   vector<uint32_t> rIPV6Dst;
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+
+   dm.GetIP6Dst(rIPV6Dst);
+
+   // Expect the values in the two arrays to match
+   for (int tInd = 0; tInd < IPV6_ADDR_SIZE; tInd++) {
+      EXPECT_EQ(rIPV6Dst[tInd], inpIp6Dst[tInd]);
+   }
+}
+
 TEST_F(DpiMsgLRTests, setEthSrcSuccess) {
    // Set the Ethernet Source
    vector<unsigned char> ethSrc;
