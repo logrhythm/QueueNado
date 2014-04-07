@@ -248,6 +248,50 @@ TEST_F(DpiMsgLRTests, setIPV6DstSuccess) {
    }
 }
 
+TEST_F(DpiMsgLRTests, compareIpV6Addr) {
+   vector<uint32_t> rIPV6Src;
+   vector<uint32_t> rIPV6Dst, rIPV6Dst1;
+
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x01);
+   rIPV6Src.push_back(0x02);
+   rIPV6Src.push_back(0x03);
+   rIPV6Src.push_back(0x04);
+   rIPV6Src.push_back(0x05);
+   rIPV6Src.push_back(0x06);
+   rIPV6Src.push_back(0x07);
+
+
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x01);
+   rIPV6Dst.push_back(0x02);
+   rIPV6Dst.push_back(0x03);
+   rIPV6Dst.push_back(0x04);
+   rIPV6Dst.push_back(0x05);
+   rIPV6Dst.push_back(0x06);
+   rIPV6Dst.push_back(0x07);
+
+
+   rIPV6Dst1.push_back(0x07);
+   rIPV6Dst1.push_back(0x06);
+   rIPV6Dst1.push_back(0x05);
+   rIPV6Dst1.push_back(0x04);
+   rIPV6Dst1.push_back(0x03);
+   rIPV6Dst1.push_back(0x02);
+   rIPV6Dst1.push_back(0x01);
+   rIPV6Dst1.push_back(0x00);
+
+   EXPECT_EQ(rIPV6Src.size(), rIPV6Dst.size());
+   EXPECT_EQ(rIPV6Src.size(), rIPV6Dst1.size());
+   bool is_equal = false;
+
+   is_equal = std::equal(rIPV6Src.begin(), rIPV6Src.end(), rIPV6Dst.begin());
+   EXPECT_TRUE(is_equal);
+
+   is_equal = std::equal(rIPV6Src.begin(), rIPV6Src.end(), rIPV6Dst1.begin());
+   EXPECT_FALSE(is_equal);
+}
+
 TEST_F(DpiMsgLRTests, setEthSrcSuccess) {
    // Set the Ethernet Source
    vector<unsigned char> ethSrc;
