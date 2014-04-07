@@ -147,7 +147,6 @@ TEST_F(DpiMsgLRTests, enablePasswordScrubbing) {
 }
 
 TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
-   // Set the Ethernet Source
    uint8_t ipv6Addr[16];
 
    ipv6Addr[0] = 0xfe;
@@ -176,9 +175,8 @@ TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
       outVal |= ipv6Addr[i + 1];
       inpIp6Src.push_back(outVal);
    }
-   dm.SetIP6Src(inpIp6Src);
+   dm.SetSrcIP6(inpIp6Src);
 
-   // Get the Ethernet Source
    vector<uint32_t> rIPV6Src;
    rIPV6Src.push_back(0x00);
    rIPV6Src.push_back(0x00);
@@ -189,7 +187,7 @@ TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
    rIPV6Src.push_back(0x00);
    rIPV6Src.push_back(0x00);
 
-   dm.GetIP6Src(rIPV6Src);
+   dm.GetSrcIP6(rIPV6Src);
 
    // Expect the values in the two arrays to match
    for (int tInd = 0; tInd < IPV6_ADDR_SIZE; tInd++) {
@@ -198,7 +196,6 @@ TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
 }
 
 TEST_F(DpiMsgLRTests, setIPV6DstSuccess) {
-   // Set the Ethernet Source
    uint8_t ipv6Addr[16];
 
    ipv6Addr[0] = 0xfe;
@@ -221,15 +218,15 @@ TEST_F(DpiMsgLRTests, setIPV6DstSuccess) {
    DpiMsgLR dm;
    uint32_t outVal;
    vector<uint32_t> inpIp6Dst;
+   dm.GetDpiMsgDstIP6Vector();
    for (int i = 0, j = 0; i < 16 && j < 8 ; i = i + 2, ++j) {
       outVal = ipv6Addr[i];
       outVal = outVal << 8;
       outVal |= ipv6Addr[i + 1];
       inpIp6Dst.push_back(outVal);
    }
-   dm.SetIP6Dst(inpIp6Dst);
+   dm.SetDstIP6(inpIp6Dst);
 
-   // Get the Ethernet Source
    vector<uint32_t> rIPV6Dst;
    rIPV6Dst.push_back(0x00);
    rIPV6Dst.push_back(0x00);
@@ -240,7 +237,7 @@ TEST_F(DpiMsgLRTests, setIPV6DstSuccess) {
    rIPV6Dst.push_back(0x00);
    rIPV6Dst.push_back(0x00);
 
-   dm.GetIP6Dst(rIPV6Dst);
+   dm.GetDstIP6(rIPV6Dst);
 
    // Expect the values in the two arrays to match
    for (int tInd = 0; tInd < IPV6_ADDR_SIZE; tInd++) {
