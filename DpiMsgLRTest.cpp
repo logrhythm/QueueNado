@@ -218,7 +218,6 @@ TEST_F(DpiMsgLRTests, setIPV6DstSuccess) {
    DpiMsgLR dm;
    uint32_t outVal;
    vector<uint32_t> inpIp6Dst;
-   dm.GetDpiMsgDstIP6Vector();
    for (int i = 0, j = 0; i < 16 && j < 8 ; i = i + 2, ++j) {
       outVal = ipv6Addr[i];
       outVal = outVal << 8;
