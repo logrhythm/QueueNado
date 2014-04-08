@@ -29,12 +29,12 @@ public:
       return DpiMsgLRPool::GetStatsSender(thread);
    }
 
-   time_t GetStatsTimer(pthread_t thread) {
+   StopWatch& GetStatsTimer(pthread_t thread) LR_OVERRIDE {
       return DpiMsgLRPool::GetStatsTimer(thread);
    }
 
-   void SetStatsTimer(pthread_t thread, time_t time) {
-      return DpiMsgLRPool::SetStatsTimer(thread, time);
+   void SetStatsTimer(pthread_t thread) LR_OVERRIDE {
+      DpiMsgLRPool::SetStatsTimer(thread);
    }
 };
 #endif
