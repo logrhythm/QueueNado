@@ -20,7 +20,7 @@ protected:
    virtual void TearDown() {
       std::string removeDir{"rm -rf " + mTestDirectory};
       EXPECT_EQ(0, system(removeDir.c_str()));
-   }
+   }  
    
    
    virtual bool CreateSubDirectory(const std::string& directory){

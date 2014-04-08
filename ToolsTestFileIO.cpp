@@ -13,7 +13,8 @@
 #include "StopWatch.h"
 #include <algorithm>
 #include <boost/filesystem.hpp>
-
+#include <iostream>
+#include <g2log.hpp>
 namespace {
    // Random integer function from http://www2.research.att.com/~bs/C++0xFAQ.html#std-random
 
@@ -27,14 +28,14 @@ namespace {
    }
    struct ScopedFileCleanup {
       const std::string file;
+
       explicit ScopedFileCleanup(const std::string& name) : file(name) { }
+
       ~ScopedFileCleanup() {
          remove(file.c_str());
       }
    };
-   
-   
-}
+} // anonymous
 
 TEST_F(TestFileIO, CannotOpenFileToRead) {
    auto fileRead = FileIO::ReadAsciiFileContent({"/xyz/*&%/x.y.z"});
@@ -118,7 +119,6 @@ TEST_F(TestFileIO, DirectoryExistance) {
    EXPECT_FALSE(FileIO::DoesDirectoryExist(directory));
 }
 
-
 TEST_F(TestFileIO, DirectoryReader_NotExistingDirectory) {
    FileIO::DirectoryReader reader{mTestDirectory + "/_#Does_not+_exist"};
    EXPECT_TRUE(reader.Valid().HasFailed()) << reader.Valid().error;
@@ -131,143 +131,143 @@ TEST_F(TestFileIO, DirectoryReader_ExistingDirectory) {
 
 
 // An empty directory will only contain "." and ".." which we ignores
+
 TEST_F(TestFileIO, DirectoryReader_NoFilesInDirectory) {
    FileIO::DirectoryReader reader{mTestDirectory};
    EXPECT_FALSE(reader.Valid().HasFailed());
-   
-   FileIO::DirectoryReader::Found fileAndType = reader.Next();
-   EXPECT_EQ(fileAndType.first, FileIO::DirectoryReader::TypeFound::End);
+
+   FileIO::DirectoryReader::Entry fileAndType = reader.Next();
+   EXPECT_EQ(fileAndType.first, FileIO::FileType::End);
    EXPECT_EQ(fileAndType.second, "");
 }
 
-
 TEST_F(TestFileIO, DirectoryReader_HasFilesInDirectory__AfterReset) {
-   using namespace FileIO;  
-   
+   using namespace FileIO;
+
    DirectoryReader reader{mTestDirectory};
-   DirectoryReader::Found fileAndType = reader.Next(); 
-   
-   EXPECT_EQ(fileAndType.first, DirectoryReader::TypeFound::End);
+   DirectoryReader::Entry fileAndType = reader.Next();
+
+   EXPECT_EQ(fileAndType.first, FileType::End);
    EXPECT_EQ(fileAndType.second, "");
-      
+
    // We have already reached the end. This must be reset before reading successfully
    CreateFile(mTestDirectory, "some_file");
    fileAndType = reader.Next();
-   EXPECT_EQ(fileAndType.first, DirectoryReader::TypeFound::End);
+   EXPECT_EQ(fileAndType.first, FileType::End);
    EXPECT_EQ(fileAndType.second, "");
-   
+
    // After the reset we can find the file
    reader.Reset();
-   fileAndType = reader.Next();   
-   EXPECT_EQ(fileAndType.first, DirectoryReader::TypeFound::File);
+   fileAndType = reader.Next();
+   EXPECT_EQ(fileAndType.first, FileType::File);
    EXPECT_EQ(fileAndType.second, "some_file");
-  
+
 
    // has reached the end again
    fileAndType = reader.Next();
    EXPECT_EQ(fileAndType.second, "");
-   EXPECT_EQ(fileAndType.first, DirectoryReader::TypeFound::End);
-   
-   
+   EXPECT_EQ(fileAndType.first, FileType::End);
+
+
    CreateSubDirectory("some_directory");
    EXPECT_TRUE(FileIO::DoesDirectoryExist({mTestDirectory + "/some_directory"}));
    reader.Reset();
-   
+
    fileAndType = reader.Next();
-   EXPECT_NE(fileAndType.first, DirectoryReader::TypeFound::End);
-   
+   EXPECT_NE(fileAndType.first, FileType::End);
+
    std::string filename;
    std::string directoryname;
 
    for (size_t count = 0; count < 2; ++count) {
-      if (fileAndType.first == DirectoryReader::TypeFound::Directory) {
+      if (fileAndType.first == FileType::Directory) {
          directoryname = fileAndType.second;
          fileAndType = reader.Next();
       }
 
-      if (fileAndType.first == DirectoryReader::TypeFound::File) {
+      if (fileAndType.first == FileType::File) {
          filename = fileAndType.second;
          reader.Next();
       }
-   }   
-   
+   }
+
    EXPECT_EQ(filename, "some_file");
    EXPECT_EQ(directoryname, "some_directory");
    fileAndType = reader.Next();
-   
-   EXPECT_EQ(fileAndType.first, DirectoryReader::TypeFound::End);
+
+   EXPECT_EQ(fileAndType.first, FileType::End);
    EXPECT_EQ(fileAndType.second, "");
 }
 
-   //   for (size_t index = 0; index < 1000; ++index) {
-   //  CreateSubDirectory(std::to_string(index));      
-  // }
+
+
 TEST_F(TestFileIO, AThousandFiles) {
-   using namespace FileIO;  
-     
+   using namespace FileIO;
    for (size_t index = 0; index < 1000; ++index) {
       CreateFile(mTestDirectory, std::to_string(index));
    }
-   
-   
+
    std::vector<std::string> files;
-   DirectoryReader::Found entry;
-   
-   DirectoryReader reader(mTestDirectory);  
+   DirectoryReader::Entry entry;
+
+   DirectoryReader reader(mTestDirectory);
    StopWatch timeToFind;
    entry = reader.Next();
-   while(entry.first != DirectoryReader::TypeFound::End) {
-      ASSERT_NE(entry.first, DirectoryReader::TypeFound::Directory);
-      ASSERT_NE(entry.first, DirectoryReader::TypeFound::Unknown);
+   while (entry.first != FileType::End) {
+      ASSERT_NE(entry.first, FileType::Directory);
+      ASSERT_NE(entry.first, FileType::Unknown);
       files.push_back(entry.second);
       entry = reader.Next();
    }
-   
-   ASSERT_EQ(files.size(), 1000);
-   std::cout << "Time to find 1000 files and save them took: " << timeToFind.ElapsedUs() << " us" << std::endl;
 
-   std::sort(files.begin(), files.end(), [](const std::string& lh, const std::string& rh){
+   ASSERT_EQ(files.size(), 1000);
+   LOG(INFO) << "Time to find 1000 files and save them took: " << timeToFind.ElapsedUs() << " us";
+
+   std::sort(files.begin(), files.end(), [](const std::string& lh, const std::string & rh) {
       return std::stoul(lh) < std::stoul(rh);
    });
-   for(size_t index = 0; index < 1000; ++index) {
+   for (size_t index = 0; index < 1000; ++index) {
       EXPECT_EQ(files[index], std::to_string(index));
    }
 }
-     
-   
+
+// FileIO #files   time
+//        63,8841  761 ms
+//        994,080  1 sec
+
+// Boost #files   time
+//       63,8841  3199 ms
+//       985,524  5 sec
 TEST_F(TestFileIO, DISABLED_System_Performance_FileIO__vs_Boost) {
-   using namespace FileIO;  
-     
-   DirectoryReader::Found entry;
-   
+   using namespace FileIO;
+
+   DirectoryReader::Entry entry;
+
    StopWatch timeToFind;
-   
+
    size_t filecounter = 0;
-   
-    std::string path = {"/usr/local/probe/pcap"};
-    DirectoryReader reader(path);
-    if (false == reader.Valid().HasFailed()) {
-       reader.Next();
-       while(entry.first != DirectoryReader::TypeFound::End) {
-         ++filecounter;
+
+   std::string path = {"/usr/local/probe/pcap"};
+   DirectoryReader reader(path);
+   if (false == reader.Valid().HasFailed()) {
+      reader.Next();
+      while (entry.first != FileIO::FileType::End) {
+         if (FileIO::FileType::File == entry.first) {
+            ++filecounter;
+         }
          entry = reader.Next();
       }
    }
-   
-   
- // 65, 4841 took: 0 se
- std::cout << "FileIO Time to find " << filecounter << "took: " << timeToFind.ElapsedMs() << " ms" << std::endl;
- 
+   LOG(INFO) << "FileIO Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec";
+
    timeToFind.Restart();
    boost::filesystem::path boostPath = path;
    boost::filesystem::directory_iterator end;
    filecounter = 0;
-   for( boost::filesystem::directory_iterator dir_iter(boostPath) ; dir_iter != end ; ++dir_iter)
-  {
-    if (boost::filesystem::is_regular_file(dir_iter->status()) )
-    {
-       ++filecounter;
-    }
-}
-std::cout << "Boost Time to find " << filecounter << "took: " << timeToFind.ElapsedMs() << " ms" << std::endl;
+   for (boost::filesystem::directory_iterator dir_iter(boostPath); dir_iter != end; ++dir_iter) {
+      if (boost::filesystem::is_regular_file(dir_iter->status())) {
+         ++filecounter;
+      }
+   }
+   LOG(INFO) << "Boost Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec";
 }
