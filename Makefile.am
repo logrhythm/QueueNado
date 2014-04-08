@@ -270,6 +270,7 @@ ToolsTestMakeUnique.cpp \
 ToolsTestStringFix.cpp \
 ToolsTestStopWatch.cpp \
 ToolsTestFileIO.cpp \
+ToolsTestConcurrent.cpp \
 EthInfoTest.cpp \
 WorkerThreadTest.cpp \
 ToolsRangeTest.cpp
