@@ -221,46 +221,68 @@ TEST_F(DiskPcapMoveTest, IsPcapStorageValid_loose_files) {
    EXPECT_FALSE(mover.IsPcapStorageValid(mTestDirectory));
 }
 
-
-
-
-TEST_F(DiskPcapMoveTest, CleanPcapStorageLocation) {
+TEST_F(DiskPcapMoveTest, DeleteOldPcapStorage) {
    MockConf conf;
    MockDiskPcapMover mover(conf);
    mover.mOverrideProbePcapOriginalLocation = true; // using GetFirstPcapCaptureLocation from MockConf
-   
+
    conf.mPcapCaptureFolderPerPartitionLimit = 10;
    conf.mOverrideGetPcapCaptureLocations = true;
    conf.mPCapCaptureLocations.clear();
    conf.mPCapCaptureLocations.push_back(mTestDirectory);
-   
-   
-   // Only do this test if the setup is OK. Otherwise it would be 
-   // really, really, really bad
+   //   // Only do this test if the setup is OK. Otherwise it would be 
+   //   // really, really, really bad
    ASSERT_EQ(mover.GetOriginalProbePcapLocation(), mTestDirectory);
    ASSERT_EQ(conf.GetFirstPcapCaptureLocation(), mTestDirectory);
    ASSERT_EQ(conf.GetPcapCaptureLocations().size(), 1);
-   ASSERT_EQ(conf.GetPcapCaptureLocations()[0], mTestDirectory);
+   LOG(INFO) << "TEST_F(DiskPcapMoveTest, DeleteOldPcapStorage)";
+   EXPECT_TRUE(mover.DeleteOldPcapStorage());
    
-   
-   // nothing to do
-   EXPECT_TRUE(mover.CleanPcapStorageLocation(mTestDirectory));
-   EXPECT_FALSE(mover.DoesDirectoryHaveContent(mTestDirectory));
-
-   // Add stuff   
-   EXPECT_FALSE(mover.DoesDirectoryHaveContent(mTestDirectory));
-   CreateSubDirectory("0");
-   CreateSubDirectory("15999");
-   CreateSubDirectory("hello");
-   CreateFile(mTestDirectory, "some_file");
-   CreateFile({mTestDirectory+"/hello"}, "some_other_file");
-   EXPECT_TRUE(mover.DoesDirectoryHaveContent(mTestDirectory));
-   EXPECT_TRUE(mover.CleanPcapStorageLocation(mTestDirectory));
-   EXPECT_FALSE(mover.DoesDirectoryHaveContent(mTestDirectory));
-
-   // Add one extra level of stuff. This will not be cleaned up
-   CreateSubDirectory("hello/again");
-   CreateFile({mTestDirectory+"/hello/again"}, "some_other_file");
-   EXPECT_FALSE(mover.CleanPcapStorageLocation(mTestDirectory));
-   EXPECT_TRUE(mover.DoesDirectoryHaveContent(mTestDirectory));  
+   CreateFile(mTestDirectory, "some_file_1");
+   CreateSubDirectory("some_directory");
+   CreateFile({mTestDirectory + "/some_directory"}, "some_file_2");
+   EXPECT_TRUE(mover.DeleteOldPcapStorage());
 }
+
+
+
+//TEST_F(DiskPcapMoveTest, CleanPcapStorageLocation) {
+//   MockConf conf;
+//   MockDiskPcapMover mover(conf);
+//   mover.mOverrideProbePcapOriginalLocation = true; // using GetFirstPcapCaptureLocation from MockConf
+//   
+//   conf.mPcapCaptureFolderPerPartitionLimit = 10;
+//   conf.mOverrideGetPcapCaptureLocations = true;
+//   conf.mPCapCaptureLocations.clear();
+//   conf.mPCapCaptureLocations.push_back(mTestDirectory);
+//   
+//   
+//   // Only do this test if the setup is OK. Otherwise it would be 
+//   // really, really, really bad
+//   ASSERT_EQ(mover.GetOriginalProbePcapLocation(), mTestDirectory);
+//   ASSERT_EQ(conf.GetFirstPcapCaptureLocation(), mTestDirectory);
+//   ASSERT_EQ(conf.GetPcapCaptureLocations().size(), 1);
+//   ASSERT_EQ(conf.GetPcapCaptureLocations()[0], mTestDirectory);
+//   
+//   
+//   // nothing to do
+//   EXPECT_TRUE(mover.CleanPcapStorageLocation(mTestDirectory));
+//   EXPECT_FALSE(mover.DoesDirectoryHaveContent(mTestDirectory));
+//
+//   // Add stuff   
+//   EXPECT_FALSE(mover.DoesDirectoryHaveContent(mTestDirectory));
+//   CreateSubDirectory("0");
+//   CreateSubDirectory("15999");
+//   CreateSubDirectory("hello");
+//   CreateFile(mTestDirectory, "some_file");
+//   CreateFile({mTestDirectory+"/hello"}, "some_other_file");
+//   EXPECT_TRUE(mover.DoesDirectoryHaveContent(mTestDirectory));
+//   EXPECT_TRUE(mover.CleanPcapStorageLocation(mTestDirectory));
+//   EXPECT_FALSE(mover.DoesDirectoryHaveContent(mTestDirectory));
+//
+//   // Add one extra level of stuff. This will not be cleaned up
+//   CreateSubDirectory("hello/again");
+//   CreateFile({mTestDirectory+"/hello/again"}, "some_other_file");
+//   EXPECT_FALSE(mover.CleanPcapStorageLocation(mTestDirectory));
+//   EXPECT_TRUE(mover.DoesDirectoryHaveContent(mTestDirectory));  
+//}
