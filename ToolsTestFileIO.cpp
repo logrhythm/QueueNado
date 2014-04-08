@@ -5,14 +5,15 @@
  * Created on August 15, 2013, 3:41 PM
  */
 
-#include "ToolsTestFileIO.h"
-#include "FileIO.h"
 #include <random>
 #include <cstdio>
 #include <functional>
-#include "StopWatch.h"
 #include <algorithm>
 #include <boost/filesystem.hpp>
+
+#include "ToolsTestFileIO.h"
+#include "FileIO.h"
+#include "StopWatch.h"
 
 namespace {
    // Random integer function from http://www2.research.att.com/~bs/C++0xFAQ.html#std-random
@@ -233,42 +234,37 @@ TEST_F(TestFileIO, AThousandFiles) {
       EXPECT_EQ(files[index], std::to_string(index));
    }
 }
-     
-   
-TEST_F(TestFileIO, System_Performance_FileIO__vs_Boost) {
-   using namespace FileIO;  
-     
+
+TEST_F(TestFileIO, DISABLED_System_Performance_FileIO__vs_Boost) {
+   using namespace FileIO;
+
    DirectoryReader::Entry entry;
-   
+
    StopWatch timeToFind;
-   
+
    size_t filecounter = 0;
-   
-    std::string path = {"/usr/local/probe/pcap"};
-    DirectoryReader reader(path);
-    if (false == reader.Valid().HasFailed()) {
-       reader.Next();
-       while(entry.first != DirectoryReader::TypeFound::End) {
+
+   std::string path = {"/usr/local/probe/pcap"};
+   DirectoryReader reader(path);
+   if (false == reader.Valid().HasFailed()) {
+      reader.Next();
+      while (entry.first != FileIO::FileType::End) {
          ++filecounter;
-         }
-         entry = reader.Next();
       }
+      entry = reader.Next();
    }
-   
-   
- // 65, 4841 took: 0 se
- std::cout << "FileIO Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec" << std::endl;
- 
+
+   // 65, 4841 took: 0 se
+   std::cout << "FileIO Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec" << std::endl;
+
    timeToFind.Restart();
    boost::filesystem::path boostPath = path;
    boost::filesystem::directory_iterator end;
    filecounter = 0;
-   for( boost::filesystem::directory_iterator dir_iter(boostPath) ; dir_iter != end ; ++dir_iter)
-  {
-    if (boost::filesystem::is_regular_file(dir_iter->status()) )
-    {
-       ++filecounter;
-    }
-}
-std::cout << "Boost Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec" << std::endl;
+   for (boost::filesystem::directory_iterator dir_iter(boostPath); dir_iter != end; ++dir_iter) {
+      if (boost::filesystem::is_regular_file(dir_iter->status())) {
+         ++filecounter;
+      }
+   }
+   std::cout << "Boost Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec" << std::endl;
 }
