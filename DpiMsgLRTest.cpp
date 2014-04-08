@@ -469,6 +469,43 @@ TEST_F(DpiMsgLRTests, GetIpDstPair) {
 
 }
 
+TEST_F(DpiMsgLRTests, GetIp6SrcPair) {
+   EXPECT_EQ("0000:0000:0000:0000:0000:0000:0000:0000", tDpiMessage.GetDstIP6Pair().second);
+   vector<uint32_t> ipv6Addr;
+   ipv6Addr.push_back(0x0102);
+   ipv6Addr.push_back(0x0203);
+   ipv6Addr.push_back(0x0405);
+   ipv6Addr.push_back(0x0607);
+   ipv6Addr.push_back(0x0809);
+   ipv6Addr.push_back(0x1011);
+   ipv6Addr.push_back(0x1112);
+   ipv6Addr.push_back(0x1314);
+
+   tDpiMessage.SetSrcIP6(ipv6Addr);
+
+   EXPECT_EQ("Ip6Src", tDpiMessage.GetSrcIP6Pair().first);
+   EXPECT_EQ("0102:0203:0405:0607:0809:1011:1112:1314", tDpiMessage.GetSrcIP6Pair().second);
+}
+
+TEST_F(DpiMsgLRTests, GetIp6DstPair) {
+   EXPECT_EQ("0000:0000:0000:0000:0000:0000:0000:0000", tDpiMessage.GetDstIP6Pair().second);
+   vector<uint32_t> ipv6Addr;
+   ipv6Addr.push_back(0x0001);
+   ipv6Addr.push_back(0x0002);
+   ipv6Addr.push_back(0x0003);
+   ipv6Addr.push_back(0x0004);
+   ipv6Addr.push_back(0x0005);
+   ipv6Addr.push_back(0x0006);
+   ipv6Addr.push_back(0x0007);
+   ipv6Addr.push_back(0x0008);
+
+   std::cout << "Setting Dest IP6 " << std::endl;
+   tDpiMessage.SetDstIP6(ipv6Addr);
+
+   EXPECT_EQ("Ip6Dst", tDpiMessage.GetDstIP6Pair().first);
+   EXPECT_EQ("0001:0002:0003:0004:0005:0006:0007:0008", tDpiMessage.GetDstIP6Pair().second);
+}
+
 TEST_F(DpiMsgLRTests, GetPacketPathPair) {
    EXPECT_EQ(EMPTY, tDpiMessage.GetPacketPathPair().second);
    string path = "foo.bar";
