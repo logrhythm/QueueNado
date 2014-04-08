@@ -22,9 +22,10 @@ struct MockDiskPcapMover : public DiskPcapMover {
        return DiskPcapMover::DeleteOldPcapStorage();
     }
     
-//    bool CleanPcapStorageLocation(const std::string& location) LR_OVERRIDE {
-//       return DiskPcapMover::CleanPcapStorageLocation(location);
-//    }
+    bool HashContentsToPcapBuckets(const std::string& location) LR_OVERRIDE {
+       return DiskPcapMover::HashContentsToPcapBuckets(location);
+    }
+    
    
     bool DoesDirectoryHaveContent(const std::string& location) LR_OVERRIDE {
        return DiskPcapMover::DoesDirectoryHaveContent(location);

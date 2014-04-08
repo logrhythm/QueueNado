@@ -245,44 +245,111 @@ TEST_F(DiskPcapMoveTest, DeleteOldPcapStorage) {
 }
 
 
+TEST_F(DiskPcapMoveTest, IsPcapStorageSetupAlready) {
+   MockConf conf;
+   MockDiskPcapMover mover(conf);
+   mover.mOverrideProbePcapOriginalLocation = true; // using GetFirstPcapCaptureLocation from MockConf
 
-//TEST_F(DiskPcapMoveTest, CleanPcapStorageLocation) {
-//   MockConf conf;
-//   MockDiskPcapMover mover(conf);
-//   mover.mOverrideProbePcapOriginalLocation = true; // using GetFirstPcapCaptureLocation from MockConf
-//   
-//   conf.mPcapCaptureFolderPerPartitionLimit = 10;
-//   conf.mOverrideGetPcapCaptureLocations = true;
-//   conf.mPCapCaptureLocations.clear();
-//   conf.mPCapCaptureLocations.push_back(mTestDirectory);
-//   
-//   
-//   // Only do this test if the setup is OK. Otherwise it would be 
-//   // really, really, really bad
-//   ASSERT_EQ(mover.GetOriginalProbePcapLocation(), mTestDirectory);
-//   ASSERT_EQ(conf.GetFirstPcapCaptureLocation(), mTestDirectory);
-//   ASSERT_EQ(conf.GetPcapCaptureLocations().size(), 1);
-//   ASSERT_EQ(conf.GetPcapCaptureLocations()[0], mTestDirectory);
-//   
-//   
-//   // nothing to do
-//   EXPECT_TRUE(mover.CleanPcapStorageLocation(mTestDirectory));
-//   EXPECT_FALSE(mover.DoesDirectoryHaveContent(mTestDirectory));
-//
-//   // Add stuff   
-//   EXPECT_FALSE(mover.DoesDirectoryHaveContent(mTestDirectory));
-//   CreateSubDirectory("0");
-//   CreateSubDirectory("15999");
-//   CreateSubDirectory("hello");
-//   CreateFile(mTestDirectory, "some_file");
-//   CreateFile({mTestDirectory+"/hello"}, "some_other_file");
-//   EXPECT_TRUE(mover.DoesDirectoryHaveContent(mTestDirectory));
-//   EXPECT_TRUE(mover.CleanPcapStorageLocation(mTestDirectory));
-//   EXPECT_FALSE(mover.DoesDirectoryHaveContent(mTestDirectory));
-//
-//   // Add one extra level of stuff. This will not be cleaned up
-//   CreateSubDirectory("hello/again");
-//   CreateFile({mTestDirectory+"/hello/again"}, "some_other_file");
-//   EXPECT_FALSE(mover.CleanPcapStorageLocation(mTestDirectory));
-//   EXPECT_TRUE(mover.DoesDirectoryHaveContent(mTestDirectory));  
-//}
+   conf.mPcapCaptureFolderPerPartitionLimit = 10;
+   conf.mOverrideGetPcapCaptureLocations = true;
+   conf.mPCapCaptureLocations.clear();
+   conf.mPCapCaptureLocations.push_back(mTestDirectory);
+   
+   EXPECT_FALSE(mover.IsPcapStorageSetupAlready());
+   for (size_t index = 0; index < 9; ++index) {
+      CreateSubDirectory(std::to_string(index));
+      EXPECT_FALSE(mover.IsPcapStorageSetupAlready());
+   }
+   CreateSubDirectory(std::to_string(9));
+   EXPECT_TRUE(mover.IsPcapStorageSetupAlready());
+}
+
+TEST_F(DiskPcapMoveTest,  CreatePcapStorage) {
+   MockConf conf;
+   MockDiskPcapMover mover(conf);
+   mover.mOverrideProbePcapOriginalLocation = true; // using GetFirstPcapCaptureLocation from MockConf
+
+   conf.mPcapCaptureFolderPerPartitionLimit = 10;
+   conf.mOverrideGetPcapCaptureLocations = true;
+   conf.mPCapCaptureLocations.clear();
+   conf.mPCapCaptureLocations.push_back(mTestDirectory);
+   
+  EXPECT_FALSE(mover.IsPcapStorageSetupAlready());
+  EXPECT_TRUE(mover.CreatePcapStorage());
+  EXPECT_TRUE(mover.IsPcapStorageSetupAlready());   
+}
+
+TEST_F(DiskPcapMoveTest, HashContentsToPcapBuckets) {
+   MockConf conf;
+   MockDiskPcapMover mover(conf);
+   mover.mOverrideProbePcapOriginalLocation = true; // using GetFirstPcapCaptureLocation from MockConf
+
+   conf.mPcapCaptureFolderPerPartitionLimit = 2;
+   conf.mOverrideGetPcapCaptureLocations = true;
+   conf.mPCapCaptureLocations.clear();
+   conf.mPCapCaptureLocations.push_back(mTestDirectory);
+   
+   EXPECT_TRUE(mover.CreatePcapStorage());
+   // nothing to do
+   for (const auto& location: conf.GetPcapCaptureLocations()) {
+      ASSERT_TRUE(location.find("/tmp/") != std::string::npos);
+      EXPECT_TRUE(mover.HashContentsToPcapBuckets(location)) << location;  
+   }
+   
+   CreateFile(mTestDirectory, "553c367a-f638-457c-9916-624e189702ef"); 
+   CreateFile(mTestDirectory, "aa681de2-d32b-4aa4-abe0-5b57d47da5de"); 
+   for (const auto& location: conf.GetPcapCaptureLocations()) {
+      ASSERT_TRUE(location.find("/tmp/") != std::string::npos);
+      EXPECT_TRUE(mover.HashContentsToPcapBuckets(location)) << location;  
+   }
+   
+   EXPECT_TRUE(FileIO::DoesFileExist({mTestDirectory + "/0/553c367a-f638-457c-9916-624e189702ef"}));
+   EXPECT_TRUE(FileIO::DoesFileExist({mTestDirectory + "/1/aa681de2-d32b-4aa4-abe0-5b57d47da5de"}));  
+
+   // All is already hashed. Nothing to do
+   for (const auto& location: conf.GetPcapCaptureLocations()) {
+      ASSERT_TRUE(location.find("/tmp/") != std::string::npos);
+      EXPECT_TRUE(mover.HashContentsToPcapBuckets(location)) << location;  
+   }
+   EXPECT_TRUE(FileIO::DoesFileExist({mTestDirectory + "/0/553c367a-f638-457c-9916-624e189702ef"}));
+   EXPECT_TRUE(FileIO::DoesFileExist({mTestDirectory + "/1/aa681de2-d32b-4aa4-abe0-5b57d47da5de"}));  
+}
+
+
+
+TEST_F(DiskPcapMoveTest,TheWholeShebang__NothingCreated) {
+   MockConf conf;
+   MockDiskPcapMover mover(conf);
+   mover.mOverrideProbePcapOriginalLocation = true; // using GetFirstPcapCaptureLocation from MockConf
+
+   conf.mPcapCaptureFolderPerPartitionLimit = 2;
+   conf.mOverrideGetPcapCaptureLocations = true;
+   conf.mPCapCaptureLocations.clear();
+   conf.mPCapCaptureLocations.push_back(mTestDirectory);
+   
+   // scenario 1: empty with the directories
+   EXPECT_FALSE(mover.IsPcapStorageSetupAlready());
+   EXPECT_TRUE(mover.CreatePcapStorage());
+   EXPECT_TRUE(mover.IsPcapStorageSetupAlready());
+}
+
+TEST_F(DiskPcapMoveTest,TheWholeShebang__FilesButNoDirectories) {
+   MockConf conf;
+   MockDiskPcapMover mover(conf);
+   mover.mOverrideProbePcapOriginalLocation = true; // using GetFirstPcapCaptureLocation from MockConf
+
+   conf.mPcapCaptureFolderPerPartitionLimit = 2;
+   conf.mOverrideGetPcapCaptureLocations = true;
+   conf.mPCapCaptureLocations.clear();
+   conf.mPCapCaptureLocations.push_back(mTestDirectory);
+   
+   // scenario 1: empty with the directories
+   EXPECT_FALSE(mover.IsPcapStorageSetupAlready());
+   EXPECT_TRUE(mover.CreatePcapStorage());
+   
+   CreateFile(mTestDirectory, "553c367a-f638-457c-9916-624e189702ef"); 
+   CreateFile(mTestDirectory, "aa681de2-d32b-4aa4-abe0-5b57d47da5de"); 
+   EXPECT_FALSE(mover.IsPcapStorageSetupAlready());
+   EXPECT_TRUE(mover.DiskPcapMover::FixUpPcapStorage());
+   EXPECT_TRUE(mover.IsPcapStorageSetupAlready());
+}
