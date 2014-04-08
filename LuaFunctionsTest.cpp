@@ -45,6 +45,10 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["GetSourceIPFromFlow"], LuaFunctions::GetSourceIPFromDpi);
    ASSERT_TRUE(registered.end() != registered.find("GetDestIPFromFlow"));
    ASSERT_EQ(registered["GetDestIPFromFlow"], LuaFunctions::GetDestIPFromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetSourceIP6FromFlow"));
+   ASSERT_EQ(registered["GetSourceIP6FromFlow"], LuaFunctions::GetSourceIP6FromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetDestIP6FromFlow"));
+   ASSERT_EQ(registered["GetDestIP6FromFlow"], LuaFunctions::GetDestIP6FromDpi);
    ASSERT_TRUE(registered.end() != registered.find("GetSourceMACFromFlow"));
    ASSERT_EQ(registered["GetSourceMACFromFlow"], LuaFunctions::GetSourceMACFromDpi);
    ASSERT_TRUE(registered.end() != registered.find("GetDestMACFromFlow"));
