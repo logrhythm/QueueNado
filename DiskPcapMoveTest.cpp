@@ -84,65 +84,6 @@ TEST_F(DiskPcapMoveTest, DoesDirectoryHaveContent_CheckFile) {
 }
 
 
-TEST_F(DiskPcapMoveTest, CleanDirectoryOfFileContents_BogusDirectory) {
-   MockConf conf;
-   MockDiskPcapMover mover(conf);
-   std::vector<std::string> newDirectories;
-   size_t removedFiles{0};   
-   EXPECT_FALSE(mover.CleanDirectoryOfFileContents("", removedFiles, newDirectories));
-   EXPECT_FALSE(mover.CleanDirectoryOfFileContents("/does/not/exist/", removedFiles, newDirectories));
-}
-
-
-TEST_F(DiskPcapMoveTest, CleanDirectoryOfFileContents) {
-   MockConf conf;
-   MockDiskPcapMover mover(conf);
-   
-   std::vector<std::string> newDirectories;
-   size_t removedFiles{0};  
-   CreateSubDirectory("some_directory");
-   EXPECT_TRUE(FileIO::DoesDirectoryExist({mTestDirectory + "/some_directory"}));
-   EXPECT_EQ(removedFiles, 0);
-   
-   CreateFile(mTestDirectory, "some_file");  
-   EXPECT_TRUE(mover.CleanDirectoryOfFileContents(mTestDirectory, removedFiles, newDirectories));
-   EXPECT_EQ(removedFiles, 1);
-   ASSERT_EQ(newDirectories.size(), 1);
-   EXPECT_EQ(std::string{mTestDirectory + "/some_directory"}, newDirectories[0]);
-   // directories are not removed
-   EXPECT_TRUE(FileIO::DoesDirectoryExist({mTestDirectory + "/some_directory"})); 
-}
-
-
-TEST_F(DiskPcapMoveTest,  RemoveEmptyDirectories_FakeDirectoriesAreIgnored) {
-      
-   MockConf conf;
-   MockDiskPcapMover mover(conf);
-   
-   EXPECT_TRUE(mover.RemoveEmptyDirectories({})); // invalids are ignored
-   EXPECT_TRUE(mover.RemoveEmptyDirectories({{""}})); // invalids are ignored
-
-   std::vector<std::string> doNotExist({{}, {" "}, {"/does/not/exist"}});
-   EXPECT_TRUE(mover.RemoveEmptyDirectories(doNotExist)); // invalids are ignored
-   
-   CreateSubDirectory("some_directory");
-   std::string real = {mTestDirectory+"/"+"some_directory"};
-   EXPECT_TRUE(FileIO::DoesDirectoryExist(real));
-   EXPECT_TRUE(mover.RemoveEmptyDirectories({{"does_not_exist"},real})); // the one invalid is ignored
-   
-}
-
-TEST_F(DiskPcapMoveTest, RemoveDirectories__ExpectNonEmptyToStay) {
-   MockConf conf;
-   MockDiskPcapMover mover(conf);
-   CreateSubDirectory("some_directory");
-   CreateFile({mTestDirectory + "/some_directory/"}, "some_file");
-   EXPECT_TRUE(FileIO::DoesFileExist({mTestDirectory + "/some_directory/some_file"}));
-   EXPECT_FALSE(mover.RemoveEmptyDirectories({{mTestDirectory + "/some_directory"}}));
-   EXPECT_TRUE(FileIO::DoesFileExist({mTestDirectory + "/some_directory/some_file"}));   
-}
-
-
 TEST_F(DiskPcapMoveTest, CreatePcapSubDirectories_FailForBogusLocation){
    MockConf conf;
    MockDiskPcapMover mover(conf);
@@ -150,34 +91,10 @@ TEST_F(DiskPcapMoveTest, CreatePcapSubDirectories_FailForBogusLocation){
 }
 
 
-TEST_F(DiskPcapMoveTest, CreateDirectories__ThenDeleteThem) {
-   MockConf conf;
-   MockDiskPcapMover mover(conf);
-   
-   conf.mPcapCaptureFolderPerPartitionLimit = 10;
-   mover.CreatePcapSubDirectories(mTestDirectory);
-   std::vector<std::string> all;
-   for (size_t index = 0; index < 10; ++index) {
-      std::string directory{mTestDirectory + "/" + std::to_string(index)};
-      ASSERT_TRUE(FileIO::DoesDirectoryExist(directory)); // skip annoying failures if one fails
-      all.push_back(directory);
-   }
-   
-   EXPECT_TRUE(mover.RemoveEmptyDirectories(all));
-   size_t count = 0;
-   for (const auto& dir: all) {
-      ASSERT_FALSE(FileIO::DoesDirectoryExist(dir));
-      ++count;
-   }
-   EXPECT_EQ(count, 10); 
-}
-
-
 
 // 
 // Here starts High Level Pcap Storage validation, cleanup and setup tests
 // 
-//
 TEST_F(DiskPcapMoveTest, IsPcapStorageValid__Invalid) {
 
    MockConf conf;

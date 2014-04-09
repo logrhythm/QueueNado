@@ -31,15 +31,6 @@ struct MockDiskPcapMover : public DiskPcapMover {
        return DiskPcapMover::DoesDirectoryHaveContent(location);
     }
     
-    bool CleanDirectoryOfFileContents(const std::string& location, size_t& filesRemoved, 
-            std::vector<std::string>& foundDirectories) LR_OVERRIDE {
-       return DiskPcapMover::CleanDirectoryOfFileContents(location, filesRemoved, foundDirectories);
-    }
-
-    bool RemoveEmptyDirectories(const std::vector<std::string>& fullPathDirectories) LR_OVERRIDE {
-       return DiskPcapMover::RemoveEmptyDirectories(fullPathDirectories);
-    }
-    
     bool CreatePcapSubDirectories(const std::string& location) LR_OVERRIDE {
        return DiskPcapMover::CreatePcapSubDirectories(location);
     }
