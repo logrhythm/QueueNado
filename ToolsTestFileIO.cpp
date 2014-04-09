@@ -5,16 +5,18 @@
  * Created on August 15, 2013, 3:41 PM
  */
 
-#include "ToolsTestFileIO.h"
-#include "FileIO.h"
 #include <random>
 #include <cstdio>
 #include <functional>
-#include "StopWatch.h"
 #include <algorithm>
 #include <boost/filesystem.hpp>
-#include <iostream>
 #include <g2log.hpp>
+
+#include "ToolsTestFileIO.h"
+#include "FileIO.h"
+#include "StopWatch.h"
+#include "concurrent.h"
+
 namespace {
    // Random integer function from http://www2.research.att.com/~bs/C++0xFAQ.html#std-random
 
@@ -231,6 +233,7 @@ TEST_F(TestFileIO, AThousandFiles) {
    }
 }
 
+
 // FileIO #files   time
 //        63,8841  761 ms
 //        994,080  1 sec
@@ -252,14 +255,13 @@ TEST_F(TestFileIO, DISABLED_System_Performance_FileIO__vs_Boost) {
    if (false == reader.Valid().HasFailed()) {
       reader.Next();
       while (entry.first != FileIO::FileType::End) {
-         if (FileIO::FileType::File == entry.first) {
-            ++filecounter;
-         }
-         entry = reader.Next();
+         ++filecounter;
       }
+      entry = reader.Next();
    }
-   LOG(INFO) << "FileIO Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec";
 
+  
+   LOG(INFO) << "FileIO Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec";
    timeToFind.Restart();
    boost::filesystem::path boostPath = path;
    boost::filesystem::directory_iterator end;
@@ -269,5 +271,5 @@ TEST_F(TestFileIO, DISABLED_System_Performance_FileIO__vs_Boost) {
          ++filecounter;
       }
    }
-   LOG(INFO) << "Boost Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec";
+   LOG(INFO)<< "Boost Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec";
 }
