@@ -272,6 +272,7 @@ ToolsTestStopWatch.cpp \
 ToolsTestFileIO.cpp \
 ToolsTestUuidHash.cpp \
 Death.cpp Death.h \
+ToolsTestConcurrent.cpp \
 EthInfoTest.cpp \
 WorkerThreadTest.cpp \
 ToolsRangeTest.cpp
