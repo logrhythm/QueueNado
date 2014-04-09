@@ -15,7 +15,6 @@
 #include "ToolsTestFileIO.h"
 #include "FileIO.h"
 #include "StopWatch.h"
-#include "concurrent.h"
 
 namespace {
    // Random integer function from http://www2.research.att.com/~bs/C++0xFAQ.html#std-random
