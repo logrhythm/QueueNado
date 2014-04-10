@@ -5,6 +5,7 @@
 #include "MockBoomStick.h"
 #include "gmock/gmock.h"
 #include "BoolReturns.h"
+#include "DiskPcapPath.h"
 #include "include/global.h"
 class BoomStick;
 #ifdef LR_DEBUG
@@ -26,7 +27,7 @@ class MockElasticSearch : public ElasticSearch {
 public:
 
    static std::string CreateFileNameWithPath(const std::string& id, const Conf& conf) {
-      return DiskPacketCapture::BuildFilenameWithPath(id, conf);
+      return DiskPcapPath::BuildFilenameWithPath(id, conf);
    }
 
    MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport, async), mFakeIndexList(true),

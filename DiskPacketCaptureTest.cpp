@@ -22,7 +22,7 @@
 #include "StopWatch.h"
 #include "FileIO.h"
 #include "UuidHash.h"
-
+#include "DiskPcapPath.h"
 #include <boost/filesystem.hpp>
 
 
@@ -159,7 +159,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    struct upacket packet;
 
    testMessage->set_session("123456789012345678901234567890123456");
-   auto pathForMessage = DiskPacketCapture::BuildFilenameWithPath(testMessage->session(), conf);
+   auto pathForMessage = DiskPcapPath::BuildFilenameWithPath(testMessage->session(), conf);
    std::string pathForFile = {testDir.str() + "/0/" + testMessage->session()};
    EXPECT_EQ(pathForMessage, pathForFile);
 
@@ -190,7 +190,7 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    EXPECT_TRUE(testMessage->written());
    struct stat statbuf;
 
-   std::string testFile = DiskPacketCapture::BuildFilenameWithPath(testMessage->session(), conf);
+   std::string testFile = DiskPcapPath::BuildFilenameWithPath(testMessage->session(), conf);
    std::string path1{testDir.str() + "/0/" + testMessage->session()};
    EXPECT_EQ(testFile, path1);
    ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
@@ -360,7 +360,7 @@ TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
    conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
 
-   std::string filename = DiskPacketCapture::BuildFilename("161122fd-6681-42a3-b953-48beb5247172");
+   std::string filename = DiskPcapPath::BuildFilename("161122fd-6681-42a3-b953-48beb5247172");
 
    ASSERT_FALSE(filename.empty());
    EXPECT_EQ("161122fd-6681-42a3-b953-48beb5247172", filename);
@@ -368,7 +368,7 @@ TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilename) {
    ASSERT_TRUE(capture.ParseFilename(filename, fileDetails));
    EXPECT_EQ("161122fd-6681-42a3-b953-48beb5247172", fileDetails.sessionId);
 
-   filename = DiskPacketCapture::BuildFilename("notAUuid");
+   filename = DiskPcapPath::BuildFilename("notAUuid");
    ASSERT_FALSE(filename.empty());
    EXPECT_EQ("notAUuid", filename);
    ASSERT_FALSE(capture.ParseFilename(filename, fileDetails));
@@ -382,7 +382,7 @@ TEST_F(DiskPacketCaptureTest, ConstructAndDeconstructFilenameFail) {
    conf.mUnknownCaptureEnabled = true;
    MockDiskPacketCapture capture(conf);
 
-   std::string filename = DiskPacketCapture::BuildFilename("testuuid");
+   std::string filename = DiskPcapPath::BuildFilename("testuuid");
 
    ASSERT_FALSE(filename.empty());
    EXPECT_EQ("testuuid", filename);
@@ -464,9 +464,9 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesTest) {
    conf.mPcapCaptureFolderPerPartitionLimit = 1;
    conf.mPCapCaptureLocations.push_back("testLocation");
 
-   std::string fileName = DiskPacketCapture::BuildFilenameWithPath("TestUUID00", conf);
+   std::string fileName = DiskPcapPath::BuildFilenameWithPath("TestUUID00", conf);
    ASSERT_EQ("testLocation/0/TestUUID00", fileName);
-   fileName = DiskPacketCapture::BuildFilenameWithPath("", conf);
+   fileName = DiskPcapPath::BuildFilenameWithPath("", conf);
    ASSERT_EQ("", fileName);
 #endif
 }
@@ -483,7 +483,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin) {
    for (size_t idx = 0; idx <= 0xF; ++idx) {
       size_t index = idx % 1; // size of one
       auto locations = conf.GetPcapCaptureLocations();
-      std::string fileName = DiskPacketCapture::BuildFilenameWithPath("TestUUID11", conf);
+      std::string fileName = DiskPcapPath::BuildFilenameWithPath("TestUUID11", conf);
       std::string expected = "testLocation";
       expected.append(std::to_string(index)).append("/0/TestUUID11");
       ASSERT_EQ(expected, fileName);
@@ -506,7 +506,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesOneRoundRobin2) {
       std::string uuid = MockUuidGenerator::GetMsgUuid(digit);
       std::string fileName = {};
       auto locations = conf.GetPcapCaptureLocations();
-      EXPECT_NO_THROW(fileName = DiskPacketCapture::BuildFilenameWithPath(uuid, conf));
+      EXPECT_NO_THROW(fileName = DiskPcapPath::BuildFilenameWithPath(uuid, conf));
       ASSERT_EQ("testLocation/0/" + uuid, fileName);
    }
 #endif
@@ -538,7 +538,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenRoundRobinManyBuckets) {
    for (auto loop = 0; loop < max; ++loop) {
       std::string uuid = generator.GetMsgUuid();
       std::string fileName = {};
-      EXPECT_NO_THROW(fileName = DiskPacketCapture::BuildFilenameWithPath(uuid, conf));
+      EXPECT_NO_THROW(fileName = DiskPcapPath::BuildFilenameWithPath(uuid, conf));
 
       // Re-create the bucket and partition ID
       const size_t hashed = CityHash32(uuid.data(), uuid.size());
@@ -606,7 +606,7 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesEvenMoreRoundRobin) {
    for (auto loop = 0; loop < numberOfSessions; ++loop) {
       std::string uuid = generator.GetMsgUuid();
       std::string fileName = {};
-      EXPECT_NO_THROW(fileName = DiskPacketCapture::BuildFilenameWithPath(uuid, conf));
+      EXPECT_NO_THROW(fileName = DiskPcapPath::BuildFilenameWithPath(uuid, conf));
 
       // Re-create the bucket and partition ID
       const size_t hashed = CityHash32(uuid.data(), uuid.size());
@@ -681,9 +681,9 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesAvoidDuplicates) {
    ASSERT_EQ(locations.size(), 1);
    EXPECT_EQ(locations[0], tempFile.mTestDir.str() + "/testLocation/");
 
-   std::string fileName1 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
-   std::string fileName2 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
-   std::string fileName3 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
+   std::string fileName1 = DiskPcapPath::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
+   std::string fileName2 = DiskPcapPath::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
+   std::string fileName3 = DiskPcapPath::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
 
    // Make sure the filenames goes in the same hashed buckets since no file exists in 
    // buckets
@@ -695,9 +695,9 @@ TEST_F(DiskPacketCaptureTest, GetFilenamesAvoidDuplicates) {
    std::string touch = {"touch "};
    touch.append(fileName1);
    EXPECT_EQ(0, system(touch.c_str()));
-   fileName1 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
-   fileName2 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
-   fileName3 = DiskPacketCapture::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
+   fileName1 = DiskPcapPath::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
+   fileName2 = DiskPcapPath::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
+   fileName3 = DiskPcapPath::BuildFilenameWithPath("DoesNotHaveHexButWorks", conf);
    EXPECT_EQ(fileName1, fileName2);
    EXPECT_EQ(fileName1, fileName3);
    EXPECT_EQ(fileName2, fileName3);
