@@ -131,8 +131,63 @@ TEST_F(TestFileIO, DirectoryReader_ExistingDirectory) {
 }
 
 
-// An empty directory will only contain "." and ".." which we ignores
 
+TEST_F(TestFileIO,  RemoveEmptyDirectories_FakeDirectoriesAreIgnored) {
+   EXPECT_TRUE(FileIO::RemoveEmptyDirectories({}).result); // invalids are ignored
+   EXPECT_TRUE(FileIO::RemoveEmptyDirectories({{""}}).result); // invalids are ignored
+
+   std::vector<std::string> doNotExist({{}, {" "}, {"/does/not/exist"}});
+   EXPECT_TRUE(FileIO::RemoveEmptyDirectories(doNotExist).result); // invalids are ignored
+   
+   CreateSubDirectory("some_directory");
+   std::string real = {mTestDirectory+"/"+"some_directory"};
+   EXPECT_TRUE(FileIO::DoesDirectoryExist(real));
+   EXPECT_TRUE(FileIO::RemoveEmptyDirectories({{"does_not_exist"},real}).result); // the one invalid is ignored
+   
+}
+
+TEST_F(TestFileIO, RemoveDirectories__ExpectNonEmptyToStay) {
+   CreateSubDirectory("some_directory");
+   CreateFile({mTestDirectory + "/some_directory/"}, "some_file");
+   EXPECT_TRUE(FileIO::DoesFileExist({mTestDirectory + "/some_directory/some_file"}));
+   EXPECT_FALSE(FileIO::RemoveEmptyDirectories({{mTestDirectory + "/some_directory"}}).result);
+   EXPECT_TRUE(FileIO::DoesFileExist({mTestDirectory + "/some_directory/some_file"}));   
+}
+
+TEST_F(TestFileIO, CleanDirectoryOfFileContents_BogusDirectory) {
+   std::vector<std::string> newDirectories;
+   size_t removedFiles{0};   
+   EXPECT_FALSE(FileIO::CleanDirectoryOfFileContents("", removedFiles, newDirectories).result);
+   EXPECT_FALSE(FileIO::CleanDirectoryOfFileContents("/does/not/exist/", removedFiles, newDirectories).result);
+}
+
+TEST_F(TestFileIO, CleanDirectoryOfFileContents) {   
+   std::vector<std::string> newDirectories;
+   size_t removedFiles{0};  
+   CreateSubDirectory("some_directory");
+   EXPECT_TRUE(FileIO::DoesDirectoryExist({mTestDirectory + "/some_directory"}));
+   EXPECT_EQ(removedFiles, 0);
+   
+   CreateFile(mTestDirectory, "some_file");  
+   EXPECT_TRUE(FileIO::CleanDirectoryOfFileContents(mTestDirectory, removedFiles, newDirectories).result);
+   EXPECT_EQ(removedFiles, 1);
+   ASSERT_EQ(newDirectories.size(), 1);
+   EXPECT_EQ(std::string{mTestDirectory + "/some_directory"}, newDirectories[0]);
+   // directories are not removed
+   EXPECT_TRUE(FileIO::DoesDirectoryExist({mTestDirectory + "/some_directory"})); 
+}
+
+
+
+
+
+
+
+
+
+
+
+// An empty directory will only contain "." and ".." which we ignores
 TEST_F(TestFileIO, DirectoryReader_NoFilesInDirectory) {
    FileIO::DirectoryReader reader{mTestDirectory};
    EXPECT_FALSE(reader.Valid().HasFailed());
