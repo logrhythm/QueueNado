@@ -1,3 +1,9 @@
+#include <future>
+#include <thread>
+#include <atomic>
+#include <tuple>
+#include <algorithm>
+
 #include "DiskCleanupTest.h"
 #include "DiskCleanup.h"
 #include "DiskPacketCapture.h"
@@ -8,11 +14,7 @@
 #include "MockElasticSearch.h"
 #include "MockSendStats.h"
 #include "UuidHash.h"
-#include <future>
-#include <thread>
-#include <atomic>
-#include <tuple>
-#include <algorithm>
+#include "MockStopWatch.h"
 
 #ifdef LR_DEBUG
 static MockConfMaster mConfMaster;
@@ -712,10 +714,10 @@ TEST_F(DiskCleanupTest, TimeToForceAClean) {
    ProcessClient processClient(mConf.GetConf());
    ASSERT_TRUE(processClient.Initialize());
    MockDiskCleanup cleanup(mConf, processClient);
-   time_t lastClean(0);
-   cleanup.SetLastForcedClean(std::time(NULL), lastClean);
+   MockStopWatch lastClean;
+   cleanup.SetLastForcedClean(lastClean);
    EXPECT_FALSE(cleanup.TimeForBruteForceCleanup(lastClean));
-   cleanup.SetLastForcedClean(std::time(NULL) - 20 * 60 - 1, lastClean);
+   lastClean.SetTimeForwardSeconds((20*60) + 1);
    EXPECT_TRUE(cleanup.TimeForBruteForceCleanup(lastClean));
 }
 

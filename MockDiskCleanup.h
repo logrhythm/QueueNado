@@ -153,12 +153,12 @@ public:
       return DiskCleanup::BruteForceCleanupOfOldFiles(path, theOldestTime, additionalSizeRemoved);
    }
 
-   bool TimeForBruteForceCleanup(const std::time_t& lastForcedDiskClean) LR_OVERRIDE {
-      return DiskCleanup::TimeForBruteForceCleanup(lastForcedDiskClean);
+   bool TimeForBruteForceCleanup(const StopWatch& lastForcedDiskWatch) LR_OVERRIDE {
+      return DiskCleanup::TimeForBruteForceCleanup(lastForcedDiskWatch);
    }
 
-   void SetLastForcedClean(const time_t newTime,std::time_t& lastForcedDiskClean) LR_OVERRIDE{
-      DiskCleanup::SetLastForcedClean(newTime,lastForcedDiskClean);
+   void SetLastForcedClean(StopWatch& lastForcedDiskWatch) LR_OVERRIDE{
+      DiskCleanup::SetLastForcedClean(lastForcedDiskWatch);
    }
 
    bool WayTooManyFiles(const StatInfo& stats) LR_OVERRIDE {
