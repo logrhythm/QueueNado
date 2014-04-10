@@ -8,6 +8,7 @@
 #include <g2log.hpp>
 
 
+#ifdef LR_DEBUG
 
 TEST_F(DiskPcapMoveTest, GetPcapCaptureFolderPerPartitionLimit) {
    MockConfSlave slave;
@@ -73,6 +74,27 @@ TEST_F(DiskPcapMoveTest, DirectoryNoOverflow) {
    EXPECT_TRUE(mover.DirectoryNoOverflow(mTestDirectory)); 
 }
 
+TEST_F(DiskPcapMoveTest, DoesDirectoryHaveUnhashedFiles) {
+   MockConf conf;
+   MockDiskPcapMover mover(conf);
+   mover.mOverrideProbePcapOriginalLocation = true; // using GetFirstPcapCaptureLocation from MockConf
+
+   conf.mPcapCaptureFolderPerPartitionLimit = 10;
+   conf.mOverrideGetPcapCaptureLocations = true;
+   conf.mPCapCaptureLocations.clear();
+   conf.mPCapCaptureLocations.push_back(mTestDirectory);
+
+   
+   mover.CreatePcapSubDirectories(mTestDirectory);
+   EXPECT_TRUE(mover.HasNoUnhashedFiles(mTestDirectory));
+   EXPECT_TRUE(FileIO::DoesDirectoryExist({mTestDirectory + "/9/"}));
+   CreateFile({mTestDirectory + "/9/"}, "some_file_1");
+   EXPECT_TRUE(mover.HasNoUnhashedFiles(mTestDirectory));
+
+   // add unhashed file   
+   CreateFile(mTestDirectory, "some_file_2");
+   EXPECT_FALSE(mover.HasNoUnhashedFiles(mTestDirectory));
+}
 
 TEST_F(DiskPcapMoveTest, DoesDirectoryHaveContent_CheckFile) {
    MockConf conf;
@@ -270,3 +292,4 @@ TEST_F(DiskPcapMoveTest,TheWholeShebang__FilesButNoDirectories) {
    EXPECT_TRUE(mover.DiskPcapMover::FixUpPcapStorage());
    EXPECT_TRUE(mover.IsPcapStorageSetupAlready());
 }
+#endif // LR_DEBUG

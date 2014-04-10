@@ -17,6 +17,9 @@ struct MockDiskPcapMover : public DiskPcapMover {
        return DiskPcapMover::IsPcapStorageValid(location);
     }
     
+   bool HasNoUnhashedFiles(const std::string& location) LR_OVERRIDE {
+      return DiskPcapMover::HasNoUnhashedFiles(location);
+   }
   
     bool DeleteOldPcapStorage() {
        return DiskPcapMover::DeleteOldPcapStorage();
