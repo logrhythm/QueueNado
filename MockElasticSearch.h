@@ -25,7 +25,7 @@ public:
 class MockElasticSearch : public ElasticSearch {
 public:
 
-   static std::string CreateFileNameWithPath(const std::string& id, Conf& conf) {
+   static std::string CreateFileNameWithPath(const std::string& id, const Conf& conf) {
       return DiskPacketCapture::BuildFilenameWithPath(id, conf);
    }
 
@@ -185,7 +185,8 @@ public:
    }
 
    PathAndFileNames GetOldestNFiles(const unsigned int numberOfFiles,
-           Conf& conf, ElasticSearch::ConstructPathWithFilename fileConstructor, IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits) {
+           const Conf& conf, ElasticSearch::ConstructPathWithFilename fileConstructor, 
+           IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits) LR_OVERRIDE {
       if (mFakeGetOldestNFiles) {
          oldestTime = mOldestTime;
          return mOldestFiles;
@@ -350,7 +351,7 @@ public:
    MOCK_METHOD0(Initialize, bool());
    MOCK_METHOD1(GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored, bool(time_t&));
    MOCK_METHOD6(GetOldestNFiles, PathAndFileNames(const unsigned int numberOfFiles,
-           Conf& conf, ElasticSearch::ConstructPathWithFilename fileConstructor,
+           const Conf& conf, ElasticSearch::ConstructPathWithFilename fileConstructor,
            IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits));
    MOCK_METHOD2(SendAndGetReplyCommandToWorker, bool (const std::string& command, std::string& reply));
 
