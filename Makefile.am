@@ -184,6 +184,7 @@ CommandProcessorTests_SOURCES=main.cpp \
         UpgradeCommandTest.h  \
         ShutdownCommandTest.cpp  \
         DriveInfoCommandTest.cpp  \
+        PCapFilePathCommandTest.cpp  \
         NetworkConfigCommandTest.h  \
         TestProtoDefaultsMethods.cpp \
         MockProtoDefaults.h \
@@ -338,6 +339,7 @@ nmTest_SOURCES=main.cpp \
  ElasticSearchTest.cpp \
  ThreadContainerTest.cpp \
  DriveInfoCommandTest.cpp \
+ PCapFilePathCommandTest.cpp \
  ToolsTestMakeUnique.cpp \
  ToolsTestStringFix.cpp \
  ToolsTestStopWatch.cpp \

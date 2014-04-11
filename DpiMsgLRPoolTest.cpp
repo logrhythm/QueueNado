@@ -63,35 +63,27 @@ TEST_F(DpiMsgLRPoolTest, GetStatsSender) {
 
 TEST_F(DpiMsgLRPoolTest, GetStatsTimers) {
    auto pool = new MockDpiMsgLRPool;
-   auto a = pool->GetStatsTimer(1);
-   auto b = pool->GetStatsTimer(1);
-   ASSERT_EQ(a, b);
+   ASSERT_EQ(&pool->GetStatsTimer(1), &pool->GetStatsTimer(1));
    std::this_thread::sleep_for(std::chrono::seconds(1));
-   auto c = pool->GetStatsTimer(2);
-   ASSERT_NE(a, c);
+   ASSERT_NE(&pool->GetStatsTimer(1), &pool->GetStatsTimer(2));
    delete pool;
 
 }
 
 TEST_F(DpiMsgLRPoolTest, SetStatsTimers) {
    auto pool = new MockDpiMsgLRPool;
-   auto a = pool->GetStatsTimer(1);
+   pool->GetStatsTimer(1);
    std::this_thread::sleep_for(std::chrono::seconds(1));
-   auto time = std::time(NULL);
-   pool->SetStatsTimer(1, time);
-   a = pool->GetStatsTimer(1);
-   ASSERT_EQ(time, a);
+   ASSERT_TRUE(pool->GetStatsTimer(1).ElapsedSec() >= 1);
+   pool->SetStatsTimer(1);
+   ASSERT_FALSE(pool->GetStatsTimer(1).ElapsedSec() >= 1);
    delete pool;
 }
 
 TEST_F(DpiMsgLRPoolTest, SetStatsTimersThatDoesntExist) {
    auto pool = new MockDpiMsgLRPool;
-   auto time = std::time(NULL);
-   pool->SetStatsTimer(1, time);
-   std::this_thread::sleep_for(std::chrono::seconds(1));
-   auto a = pool->GetStatsTimer(1);
    //we should always get something before it's ever set.
-   ASSERT_NE(time, a);
+   ASSERT_TRUE(pool->GetStatsTimer(1).ElapsedSec() <= 1);
    delete pool;
 }
 
