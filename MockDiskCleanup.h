@@ -86,7 +86,7 @@ public:
          mockStatvs.f_files = 1;
          mockStatvs.f_ffree = 1;
          mockStatvs.f_favail = 1;
-         MockDiskUsage disk(mockStatvs,mProcessClient);
+         MockDiskUsage disk(mockStatvs);
 
          disk.Update();
          stats.pcapDiskInGB.Free = disk.DiskFree(size);
@@ -110,7 +110,7 @@ public:
             mockStatvs.f_files = 1;
             mockStatvs.f_ffree = 1;
             mockStatvs.f_favail = 1;
-            MockDiskUsage disk(mockStatvs,mProcessClient);
+            MockDiskUsage disk(mockStatvs);
 
             disk.Update();
             stats.probeDiskInGB.Free = disk.DiskFree(size);
