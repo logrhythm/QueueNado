@@ -113,7 +113,7 @@ public:
 
    void SetValidNames(const std::set<std::string>& names) {
       ElasticSearch::mKnownIndexNames = names;
-      ElasticSearch::mLastIndexListUpdateTime = std::time(NULL);
+      ElasticSearch::mLastIndexListUpdateTimer.Restart();
    }
 
    LR_VIRTUAL std::set<std::string> GetListOfIndexeNames() {

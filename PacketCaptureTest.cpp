@@ -296,14 +296,14 @@ TEST_F(PacketCaptureTest, TimeToReportInterfaceStats) {
    if (geteuid() == 0) {
       MockPacketCapturePCap capturer(t_clientAddr, t_interface, mConf);
       struct timeval tv = {5, 0};
-      time_t time = std::time(NULL) + 5;
-      EXPECT_TRUE(capturer.InterfaceStatsTime(time));
-      time = time + 6;
-      EXPECT_TRUE(capturer.InterfaceStatsTime(time));
-      time = time + 4;
-      EXPECT_FALSE(capturer.InterfaceStatsTime(time));
-      time = time + 1;
-      EXPECT_TRUE(capturer.InterfaceStatsTime(time));
+      std::this_thread::sleep_for(std::chrono::seconds(5));
+      EXPECT_TRUE(capturer.InterfaceStatsTime());
+      std::this_thread::sleep_for(std::chrono::seconds(6));
+      EXPECT_TRUE(capturer.InterfaceStatsTime());
+      std::this_thread::sleep_for(std::chrono::seconds(4));
+      EXPECT_FALSE(capturer.InterfaceStatsTime());
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      EXPECT_TRUE(capturer.InterfaceStatsTime());
       capturer.Shutdown(true);
    }
 #endif
