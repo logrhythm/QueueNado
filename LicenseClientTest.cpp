@@ -72,6 +72,7 @@ TEST_F(LicenseClientTest, InitializeListeningServer) {
    Headcrab listener("ipc:///tmp/licenseServer.ipc");
    ASSERT_TRUE(listener.ComeToLife());
    EXPECT_TRUE(client.Initialize());
+   EXPECT_TRUE(client.Initialize());
 }
 
 TEST_F(LicenseClientTest, ServerThatReturnsGarbage) {
