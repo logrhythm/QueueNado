@@ -88,7 +88,7 @@ TEST_F(PCapFilePathCommandTest, InvalidUUID) {
 
 }
 #else 
-TEST_F(DriveInfoCommandTest, NullTest) {
+TEST_F(PCapFilePathCommandTest, NullTest) {
    EXPECT_TRUE(true);
 }
 

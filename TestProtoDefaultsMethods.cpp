@@ -121,7 +121,7 @@ TEST(TestProtoDefaults, FailedReadingWillTriggerNewReading){
    MockProcessClientCommand processClient(conf);
    ASSERT_TRUE(processClient.Initialize());
    PcapDiskUsage pcapDisk ({"/usr/local/probe"},processClient);
-   auto totalUsage = pcapDisk.GetTotalDiskUsage(MemorySize::MB);
+   auto totalUsage = pcapDisk.GetTotalDiskUsageRecursive(MemorySize::MB);
    const int64_t pcapLimitInPercentUnits{80};
    auto maxPcapStorageLimit = (pcapLimitInPercentUnits * totalUsage.total) / 100;
    EXPECT_EQ(rangePtr->StringifyMax(), std::to_string(maxPcapStorageLimit));
