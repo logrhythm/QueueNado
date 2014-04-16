@@ -112,9 +112,7 @@ TEST_F(ConfProcessorTests, ConfNtp_WProtoBufUpdateTriggerWriteToFile) {
 
 
    ASSERT_EQ(conf.GetMasterServer(), master);
-   ASSERT_NE(conf.mContent.find(master), std::string::npos);
    ASSERT_EQ(conf.GetBackupServer(), backup);
-   ASSERT_NE(conf.mContent.find(backup), std::string::npos);
 }
 #endif 
 
