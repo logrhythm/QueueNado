@@ -190,7 +190,7 @@ TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
    dm.GetSrcIP6(rIPV6Src);
 
    // Expect the values in the two arrays to match
-   for (int tInd = 0; tInd < IPV6_ADDR_SIZE; tInd++) {
+   for (int tInd = 0; tInd < IPV6_NUM_QUADS; tInd++) {
       EXPECT_EQ(rIPV6Src[tInd], inpIp6Src[tInd]);
    }
 }
@@ -239,7 +239,7 @@ TEST_F(DpiMsgLRTests, setIPV6DstSuccess) {
    dm.GetDstIP6(rIPV6Dst);
 
    // Expect the values in the two arrays to match
-   for (int tInd = 0; tInd < IPV6_ADDR_SIZE; tInd++) {
+   for (int tInd = 0; tInd < IPV6_NUM_QUADS; tInd++) {
       EXPECT_EQ(rIPV6Dst[tInd], inpIp6Dst[tInd]);
    }
 }
