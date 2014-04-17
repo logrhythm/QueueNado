@@ -273,7 +273,9 @@ ToolsTestFileIO.cpp \
 ToolsTestHashing.cpp \
 EthInfoTest.cpp \
 WorkerThreadTest.cpp \
-ToolsRangeTest.cpp
+ToolsRangeTest.cpp \
+Death.cpp \
+Death.h
 ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 JSONEncoderTest_LDADD=${DYNAMIC_LIBS}
