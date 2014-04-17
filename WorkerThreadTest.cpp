@@ -1,6 +1,8 @@
 #include "WorkerThreadTest.h"
 #include "WorkerThread.h"
+#include <g2log.hpp>
 #include <thread>
+#include "Death.h"
 
 void ClassWithAWorker::WaitLoop() {
    mRunning = true;
@@ -49,15 +51,20 @@ TEST_F(WorkerThreadTest, RIAAWorks) {
    hasWorker.mRunning = false;
    std::this_thread::sleep_for(std::chrono::milliseconds(2));
    EXPECT_FALSE(hasWorker.mRunning);
-   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
-   ASSERT_DEATH({
-
+   
+   RaiiDeathCleanup deathCleaner;
+   Death::SetupExitHandler();
+   EXPECT_FALSE(Death::WasKilled());
+   {
       WorkerThread testThread(&ClassWithAWorker::LoopThatThrowsInt, &hasWorker, 100);
-      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      size_t counter{0};
+      while(hasWorker.mRunning == false && ++counter < 100) {
+         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      }  
       testThread.Stop();
-
-   },"EXIT trigger caused by broken Contract: CHECK");
-
+   }
+   EXPECT_TRUE(Death::WasKilled());
+   EXPECT_TRUE(Death::mMessage.find("EXIT trigger caused by broken Contract: CHECK") != std::string::npos);
 }
 
 #else 

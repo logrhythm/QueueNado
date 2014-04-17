@@ -21,15 +21,18 @@
 #include <map>
 #include <algorithm>
 #include <g2log.hpp>
-
+#include "include/global.h"
 #include "StopWatch.h"
 #include "MurMurHash.h"
 
 
+#if 0 
+// We don't really need to run this. It is more of a performance and std dev comparison
+// it is saved for later in case we want to compare with another hashing algorithm
 namespace {
    typedef long long NumberType;
 
-   const NumberType gNumberOfFiles = 200000; //. 2 000 000
+   const NumberType gNumberOfFiles = 2000; //. 20 000
    const NumberType gNumberOfFoldersPerPartition = 32; //16 000;
    const NumberType gNumberOfPartitions = 4; // 23;   // i.e6400000
    const NumberType gNumberOfBuckets = gNumberOfFoldersPerPartition * gNumberOfPartitions;
@@ -192,3 +195,5 @@ TEST(TestCityHash, DISABLED_Murmur3Hash) {
 }
 // just generate tons of stuff
 //    
+
+#endif //  if 0

@@ -13,6 +13,8 @@
 #include "MockProcessClientCommand.h"
 #include "include/global.h"
 #include "ProcessClient.h"
+#include "StopWatch.h"
+#include "FileIO.h"
 #include <cmath>
 using ::testing::_;
 using ::testing::Invoke;
@@ -37,10 +39,7 @@ namespace {
 #ifdef LR_DEBUG
 TEST(PcapDiskUsage, DoCalculateARealMountPoint) {
 
-   std::vector<std::string> locations{
-      {"/"},
-      {"/boot"}
-   };
+   std::vector<std::string> locations{{"/"}, {"/boot"} };
    MockConfMaster confMaster;
    ProcessManager::InstanceWithConfMaster(confMaster);
    ProcessClient processClient(confMaster.GetConf());
@@ -65,20 +64,16 @@ TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_MB) {
    make1MFileFile += testDir.str();
    make1MFileFile += "/1MFile";
    EXPECT_EQ(0, system(make1MFileFile.c_str()));
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   DiskUsage usage(testDir.str(),processClient);
+
+   DiskUsage usage(testDir.str());
    size_t usedMB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte);
-   EXPECT_EQ(usedMB, 1024 + 4); // overhead
+   EXPECT_EQ(usedMB, 1024+4); // only the file, the size of the folder we are "in" overhead
    usedMB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB);
    EXPECT_EQ(usedMB, 1);
 }
 
 TEST(DiskUsage, FailedReading) {
-   MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   DiskUsage usage("abc",processClient);
+   DiskUsage usage("abc");
    auto bytesUsed = usage.DiskUsed(MemorySize::Byte);
    auto bytesTotal = usage.DiskTotal(MemorySize::Byte);
    auto bytesFree = usage.DiskFree(MemorySize::Byte);
@@ -100,10 +95,8 @@ TEST(DiskUsage, ReadAtStartup) {
    stat.f_files = 4841472;
    stat.f_ffree = 4798215;
    stat.f_favail = 4798215;
-   MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskUsage usage(stat,processClient);
+
+   MockDiskUsage usage(stat);
    usage.Update();
    auto bytesUsed = usage.DiskUsed(MemorySize::Byte);
    auto bytesTotal = usage.DiskTotal(MemorySize::Byte);
@@ -136,10 +129,7 @@ TEST(DiskUsage, ReadAtStartup) {
 }
 
 TEST(DiskUsage, ByteToKByteToMBToGB) {
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskUsage usage(GetDefaultMockStatvs(),processClient);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    usage.Update();
    auto bytesUsed = usage.DiskUsed(MemorySize::Byte);
    auto bytesTotal = usage.DiskTotal(MemorySize::Byte);
@@ -176,10 +166,7 @@ TEST(DiskUsage, ByteToKByteToMBToGB) {
 }
 
 TEST(DiskUsage, PercentageUsed) {
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskUsage usage(GetDefaultMockStatvs(),processClient);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    usage.Update();
 
    double usePercentage = usage.DiskUsedPercentage();
@@ -188,10 +175,7 @@ TEST(DiskUsage, PercentageUsed) {
 }
 
 TEST(DiskUsage, CheckValuesByte) {
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskUsage usage(GetDefaultMockStatvs(),processClient);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(MemorySize::Byte);
    auto total = usage.DiskTotal(MemorySize::Byte);
    auto free = usage.DiskFree(MemorySize::Byte);
@@ -207,10 +191,7 @@ TEST(DiskUsage, CheckValuesByte) {
 }
 
 TEST(DiskUsage, CheckValuesKByte) {
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskUsage usage(GetDefaultMockStatvs(),processClient);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(MemorySize::KByte);
    auto total = usage.DiskTotal(MemorySize::KByte);
    auto free = usage.DiskFree(MemorySize::KByte);
@@ -226,11 +207,7 @@ TEST(DiskUsage, CheckValuesKByte) {
 }
 
 TEST(DiskUsage, CheckValuesMB) {
-   
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskUsage usage(GetDefaultMockStatvs(),processClient);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(MemorySize::MB);
    auto total = usage.DiskTotal(MemorySize::MB);
    auto free = usage.DiskFree(MemorySize::MB);
@@ -246,10 +223,7 @@ TEST(DiskUsage, CheckValuesMB) {
 }
 
 TEST(DiskUsage, CheckValuesGB) {
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   MockDiskUsage usage(GetDefaultMockStatvs(),processClient);
+   MockDiskUsage usage(GetDefaultMockStatvs());
    auto used = usage.DiskUsed(MemorySize::GB);
    auto total = usage.DiskTotal(MemorySize::GB);
    auto free = usage.DiskFree(MemorySize::GB);
@@ -271,12 +245,9 @@ TEST(DiskUsage, CheckValuesGB) {
 //     disk partitions and "/mnt" will always be on the "/" partition
 
 TEST(DiskUsage, FileSystemID) {
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   DiskUsage root("/",processClient);
-   DiskUsage home("/home",processClient);
-   DiskUsage mnt("/mnt",processClient);
+   DiskUsage root("/");
+   DiskUsage home("/home");
+   DiskUsage mnt("/mnt");
    EXPECT_NE(root.FileSystemID(), home.FileSystemID());
    EXPECT_EQ(root.FileSystemID(), mnt.FileSystemID());
    LOG(INFO) << "\n/home\t\t" << home.FileSystemID()
@@ -285,13 +256,11 @@ TEST(DiskUsage, FileSystemID) {
 }
 
 TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_GB) {
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
    std::string make1GFileFile = "dd bs=1024 count=1048576 if=/dev/zero of=";
    make1GFileFile += testDir.str();
    make1GFileFile += "/1MFile";
    EXPECT_EQ(0, system(make1GFileFile.c_str()));
-   DiskUsage usage(testDir.str(),processClient);
+   DiskUsage usage(testDir.str());
    size_t usedGB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte);
    EXPECT_EQ(usedGB, 1048576 + 4); // 4: overhead?
    usedGB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB);
@@ -302,7 +271,6 @@ TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_GB) {
 #ifdef LR_DEBUG
 
 TEST(PcapDiskUsage, DoCalculateEmptyMountPoint) {
-
    MockConf conf;
    std::vector<std::string> locations{
       {""},
@@ -465,10 +433,7 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateREALFolderUsage) {
 }
 
 TEST(DiskUsage, DISABLED_doPrintouts) {
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   DiskUsage usage("/home/pcap",processClient);
+   DiskUsage usage("/home/pcap");
    auto used = usage.DiskUsed(MemorySize::MB);
    auto total = usage.DiskTotal(MemorySize::MB);
    auto free = usage.DiskFree(MemorySize::MB);
@@ -488,10 +453,7 @@ TEST(DiskUsage, DISABLED_doPrintouts) {
 // df giving the higher answer
 
 TEST(DiskUsage, DISABLED_ToWaysToCheck) {
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   DiskUsage home{"/home/",processClient};
+   DiskUsage home{"/home/"};
    auto homeUsed = home.DiskUsed(MemorySize::KByte);
 
    auto homeAsFolder = home.RecursiveFolderDiskUsed("/home/", MemorySize::KByte);
@@ -502,19 +464,82 @@ TEST(DiskUsage, DISABLED_ToWaysToCheck) {
 }
 
 TEST(FolderUsage, FolderDoesNotExist) {
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   DiskUsage notThere{"abc123",processClient};
+   DiskUsage notThere{"abc123"};
    auto result = notThere.RecursiveFolderDiskUsed("abc123", MemorySize::GB);
    EXPECT_EQ(result, 0);
 }
 
-TEST(FolderUsage, DISABLED_FolderDoesExist) {
-      MockConfMaster mConf;
-   ProcessClient processClient(mConf.GetConf());
-   ASSERT_TRUE(processClient.Initialize());
-   DiskUsage notThere{"/usr/local/probe/pcap/",processClient};
+
+TEST_F(RaIIFolderUsage, GetDirectoryDiskUsage__NonExistingDirectory) {
+   DiskUsage usage{""};
+   auto duByte = usage.RecursiveFolderDiskUsed("/does/not/exist", MemorySize::Byte);
+   EXPECT_EQ(duByte, 0);
+}
+
+TEST_F(RaIIFolderUsage, GetDirectoryDiskUsage__ExistingEmptyDirectory) {
+   DiskUsage usage{""};
+   auto path = CreateSubDirectory("empty_dir");
+   EXPECT_TRUE(FileIO::DoesDirectoryExist(path));
+   auto duByte = usage.RecursiveFolderDiskUsed(path, MemorySize::Byte);
+   EXPECT_EQ(duByte, 4096); // the actual empty directory is counted as well
+}
+
+
+TEST_F(RaIIFolderUsage, GetDirectoryDiskUsage__OneLevelWithOneEmptyDirectory) {
+   DiskUsage usage{""};
+   auto path = CreateSubDirectory("empty_dir1");
+   CreateSubDirectory("/empty_dir1/empty_dir2");
+   EXPECT_TRUE(FileIO::DoesDirectoryExist(path));
+   auto duByte = usage.RecursiveFolderDiskUsed(path, MemorySize::Byte);
+   size_t sizeOfDirectory_Byte = 4096;
+   EXPECT_EQ(duByte, 2* sizeOfDirectory_Byte);
+
+   size_t sizeOfDirectory_KByte = 4;
+   auto duKByte = usage.RecursiveFolderDiskUsed(path, MemorySize::KByte);
+   EXPECT_EQ(duKByte, 2 * sizeOfDirectory_KByte);
+   
+   auto duMB = usage.RecursiveFolderDiskUsed(path, MemorySize::MB);
+   EXPECT_EQ(duMB, 0);
+
+   auto duGB = usage.RecursiveFolderDiskUsed(path, MemorySize::GB); 
+   EXPECT_EQ(duGB, 0);
+}
+
+TEST_F(RaIIFolderUsage, GetDirectoryDiskUsage__OneLevelWithOneFileDirectory) {
+   DiskUsage usage{""};
+   auto path = CreateSubDirectory("empty_dir1");
+   auto path2 = CreateSubDirectory("/empty_dir1/empty_dir2");
+   EXPECT_TRUE(FileIO::DoesDirectoryExist(path));
+   EXPECT_TRUE(FileIO::DoesDirectoryExist(path2));
+   auto filePath = CreateFile(path2, "some_file");
+   EXPECT_TRUE(FileIO::DoesFileExist(filePath));
+
+   auto du = usage.RecursiveFolderDiskUsed(path, MemorySize::Byte);
+   size_t sizeOfDirectory_Byte = 4096;
+   EXPECT_EQ(du, 2* sizeOfDirectory_Byte);
+}
+
+
+
+
+
+// Measure the actual time to do DU recursively on the /usr/local/probe/pcap directory
+TEST_F(RaIIFolderUsage, GetDirectoryDiskUsageRealPcapDirectory) {
+   DiskUsage usage{"/usr/local/probe/pcap/"};
+   StopWatch watch;
+   std::string path = {"/usr/local/probe/pcap/"};
+   
+   std::string duCmd = {"du -bc " + path + " > /tmp/out.txt"};
+   int res = system(duCmd.c_str());
+   LOG(INFO) << "****** /usr/local/probe/pcap SYSTEM(DU) took: " << watch.ElapsedSec() << " seconds. Result: " << res;
+
+   watch.Restart();
+   auto du2 = usage.RecursiveFolderDiskUsed(path, MemorySize::Byte);
+   LOG(INFO) << "****** Homemade DU COMMAND ON /usr/local/probe/pcap : " << watch.ElapsedSec() << " seconds. Size was: " << du2 << " byte";   
+}
+
+TEST_F(RaIIFolderUsage, DISABLED_FolderDoesExist) {
+   DiskUsage notThere{"/usr/local/probe/pcap/"};
    auto result_0 = notThere.RecursiveFolderDiskUsed("/usr/local/probe/pcap/", MemorySize::GB);
    EXPECT_TRUE(result_0 > 0);
    LOG(INFO) << "GB usage was: " << result_0;

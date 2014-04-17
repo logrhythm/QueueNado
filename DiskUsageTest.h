@@ -41,6 +41,22 @@ protected:
       ASSERT_EQ(0, system(makeADir.c_str()));
    };
 
+   virtual std::string CreateSubDirectory(const std::string& directory) {
+      std::string mkTestSubDir{"mkdir -p " + testDir.str() + "/" + directory};
+      if (0 != system(mkTestSubDir.c_str())) {
+         return {};
+      }
+      return { testDir.str() + "/" + directory };
+   }
+
+   virtual std::string CreateFile(const std::string& directory, const std::string& filename) {
+      std::string mkFile{"touch " + directory + "/" + filename};
+      if (0 != system(mkFile.c_str())) {
+         return  {};
+      }
+      return {directory + "/" + filename };
+   }
+
    std::stringstream testDir;
    MockConfMaster mConf;
 private:
