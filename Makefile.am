@@ -97,7 +97,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
 
 DYNAMIC_LIBS=-ltcmalloc \
              -llib_g2log \
-             -lsyslog -lZMQ -llrdpi -lstats -lprocessclient -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lpcap -lzmq -lczmq -lcommand \
+             -lsyslog -lZMQ -llrdpi -lstats -lprocessclient -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lcityhash -lpcap -lzmq -lczmq -lcommand \
              -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
              -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -lconfmaster \
              -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal -lfork -lforkmother -lremap
@@ -272,6 +272,7 @@ ToolsTestStopWatch.cpp \
 ToolsTestFileIO.cpp \
 ToolsTestUuidHash.cpp \
 Death.cpp Death.h \
+ToolsTestHashing.cpp \
 EthInfoTest.cpp \
 WorkerThreadTest.cpp \
 ToolsRangeTest.cpp
