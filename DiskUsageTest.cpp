@@ -337,9 +337,11 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateFolderUsage__ExpectingOnlyONEFol
    EXPECT_CALL(pcapUsage, GetFolderUsage(_, _, _)).Times(1);
    EXPECT_CALL(pcapUsage, GetDiskUsage(_, _)).Times(0);
 
-   auto value = pcapUsage.GetTotalDiskUsage(MemorySize::GB);
+   auto value = pcapUsage.GetTotalDiskUsageRecursive(MemorySize::GB);
    EXPECT_EQ(value.used, 100);
 }
+
+
 
 TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDuplicateFolderUsage__ExpectingOnlyFolder) {
    MockConf conf;
@@ -367,7 +369,7 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDuplicateFolderUsage__ExpectingO
    EXPECT_CALL(pcapUsage, GetFolderUsage(_, _, _)).Times(1);
    EXPECT_CALL(pcapUsage, GetDiskUsage(_, _)).Times(0);
 
-   auto value = pcapUsage.GetTotalDiskUsage(MemorySize::GB);
+   auto value = pcapUsage.GetTotalDiskUsageRecursive(MemorySize::GB);
    EXPECT_EQ(value.used, 100);
 }
 
@@ -378,6 +380,36 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDiskUsage__ExpectingOnlyDisk) {
    ASSERT_TRUE(processClient.Initialize());
    GMockPcapDiskUsage pcapUsage{
       {"/"}, processClient
+   };
+
+   // Forward the DoCalculateMountPoints to the real object's DoCalculateMountPoints
+   ON_CALL(pcapUsage, DoCalculateMountPoints(_))
+           .WillByDefault(Invoke(&pcapUsage, &GMockPcapDiskUsage::CallConcrete__DoCalculateMountPoints));
+
+   ON_CALL(pcapUsage, GetFolderUsage(_, _, _))
+           .WillByDefault(Return(100));
+   ON_CALL(pcapUsage, GetDiskUsage(_, _))
+           .WillByDefault(Return(1000000)); // should not be called
+
+   EXPECT_CALL(pcapUsage, DoCalculateMountPoints(_)).Times(1);
+   EXPECT_CALL(pcapUsage, GetFolderUsage(_, _, _)).Times(0);
+   EXPECT_CALL(pcapUsage, GetDiskUsage(_, _)).Times(1); // Only the Disk usage should be called
+
+   auto value = pcapUsage.GetTotalDiskUsageRecursive(MemorySize::GB);
+   EXPECT_EQ(value.used, 1000000);
+}
+
+/** Calculate disk usage, validate that even when checking a location that is not a 
+ * mountpoint we don't call getFolderUsage. getFolderUsage is really slow, we don't want 
+ * to run that just to get the total size.
+ */
+TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateDiskUsage) {
+   MockConfMaster confMaster;
+   ProcessManager::InstanceWithConfMaster(confMaster);
+   ProcessClient processClient(confMaster.GetConf());
+   ASSERT_TRUE(processClient.Initialize());
+   GMockPcapDiskUsage pcapUsage{
+      {"/usr"}, processClient 
    };
 
    // Forward the DoCalculateMountPoints to the real object's DoCalculateMountPoints
@@ -428,7 +460,7 @@ TEST_F(RaIIFolderUsage, PcapDiskUsage__CalculateREALFolderUsage) {
    EXPECT_CALL(pcapUsage, GetFolderUsage(_, _, _)).Times(1); // Only the folder check should be called
    EXPECT_CALL(pcapUsage, GetDiskUsage(_, _)).Times(0);
 
-   auto value = pcapUsage.GetTotalDiskUsage(MemorySize::MB);
+   auto value = pcapUsage.GetTotalDiskUsageRecursive(MemorySize::MB);
    EXPECT_EQ(value.used, 2);
 }
 

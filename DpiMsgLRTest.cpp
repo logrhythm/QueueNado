@@ -146,6 +146,148 @@ TEST_F(DpiMsgLRTests, enablePasswordScrubbing) {
    delete dm;
 }
 
+TEST_F(DpiMsgLRTests, setIPV6SrcSuccess) {
+   uint8_t ipv6Addr[16];
+
+   ipv6Addr[0] = 0xfe;
+   ipv6Addr[1] = 0x80;
+   ipv6Addr[2] = 0x00;
+   ipv6Addr[3] = 0x00;
+   ipv6Addr[4] = 0x00;
+   ipv6Addr[5] = 0x00;
+   ipv6Addr[6] = 0x00;
+   ipv6Addr[7] = 0x00;
+   ipv6Addr[8] = 0x38;
+   ipv6Addr[9] = 0xff;
+   ipv6Addr[10] = 0x05;
+   ipv6Addr[11] = 0xfa;
+   ipv6Addr[12] = 0x6b;
+   ipv6Addr[13] = 0x76;
+   ipv6Addr[14] = 0x87;
+   ipv6Addr[15] = 0x0c;
+
+   DpiMsgLR dm;
+   uint32_t outVal;
+   vector<uint32_t> inpIp6Src;
+   for (int i = 0, j = 0; i < 16 && j < 8 ; i = i + 2, ++j) {
+      outVal = ipv6Addr[i];
+      outVal = outVal << 8;
+      outVal |= ipv6Addr[i + 1];
+      inpIp6Src.push_back(outVal);
+   }
+   dm.SetSrcIP6(inpIp6Src);
+
+   vector<uint32_t> rIPV6Src;
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x00);
+
+   dm.GetSrcIP6(rIPV6Src);
+
+   // Expect the values in the two arrays to match
+   for (int tInd = 0; tInd < IPV6_NUM_QUADS; tInd++) {
+      EXPECT_EQ(rIPV6Src[tInd], inpIp6Src[tInd]);
+   }
+}
+
+TEST_F(DpiMsgLRTests, setIPV6DstSuccess) {
+   uint8_t ipv6Addr[16];
+
+   ipv6Addr[0] = 0xfe;
+   ipv6Addr[1] = 0x80;
+   ipv6Addr[2] = 0x00;
+   ipv6Addr[3] = 0x00;
+   ipv6Addr[4] = 0x00;
+   ipv6Addr[5] = 0x00;
+   ipv6Addr[6] = 0x00;
+   ipv6Addr[7] = 0x00;
+   ipv6Addr[8] = 0x38;
+   ipv6Addr[9] = 0xff;
+   ipv6Addr[10] = 0x05;
+   ipv6Addr[11] = 0xfa;
+   ipv6Addr[12] = 0x6b;
+   ipv6Addr[13] = 0x76;
+   ipv6Addr[14] = 0x87;
+   ipv6Addr[15] = 0x0c;
+
+   DpiMsgLR dm;
+   uint32_t outVal;
+   vector<uint32_t> inpIp6Dst;
+   for (int i = 0, j = 0; i < 16 && j < 8 ; i = i + 2, ++j) {
+      outVal = ipv6Addr[i];
+      outVal = outVal << 8;
+      outVal |= ipv6Addr[i + 1];
+      inpIp6Dst.push_back(outVal);
+   }
+   dm.SetDstIP6(inpIp6Dst);
+
+   vector<uint32_t> rIPV6Dst;
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x00);
+
+   dm.GetDstIP6(rIPV6Dst);
+
+   // Expect the values in the two arrays to match
+   for (int tInd = 0; tInd < IPV6_NUM_QUADS; tInd++) {
+      EXPECT_EQ(rIPV6Dst[tInd], inpIp6Dst[tInd]);
+   }
+}
+
+TEST_F(DpiMsgLRTests, compareIpV6Addr) {
+   vector<uint32_t> rIPV6Src;
+   vector<uint32_t> rIPV6Dst, rIPV6Dst1;
+
+   rIPV6Src.push_back(0x00);
+   rIPV6Src.push_back(0x01);
+   rIPV6Src.push_back(0x02);
+   rIPV6Src.push_back(0x03);
+   rIPV6Src.push_back(0x04);
+   rIPV6Src.push_back(0x05);
+   rIPV6Src.push_back(0x06);
+   rIPV6Src.push_back(0x07);
+
+
+   rIPV6Dst.push_back(0x00);
+   rIPV6Dst.push_back(0x01);
+   rIPV6Dst.push_back(0x02);
+   rIPV6Dst.push_back(0x03);
+   rIPV6Dst.push_back(0x04);
+   rIPV6Dst.push_back(0x05);
+   rIPV6Dst.push_back(0x06);
+   rIPV6Dst.push_back(0x07);
+
+
+   rIPV6Dst1.push_back(0x07);
+   rIPV6Dst1.push_back(0x06);
+   rIPV6Dst1.push_back(0x05);
+   rIPV6Dst1.push_back(0x04);
+   rIPV6Dst1.push_back(0x03);
+   rIPV6Dst1.push_back(0x02);
+   rIPV6Dst1.push_back(0x01);
+   rIPV6Dst1.push_back(0x00);
+
+   EXPECT_EQ(rIPV6Src.size(), rIPV6Dst.size());
+   EXPECT_EQ(rIPV6Src.size(), rIPV6Dst1.size());
+   bool is_equal = false;
+
+   is_equal = std::equal(rIPV6Src.begin(), rIPV6Src.end(), rIPV6Dst.begin());
+   EXPECT_TRUE(is_equal);
+
+   is_equal = std::equal(rIPV6Src.begin(), rIPV6Src.end(), rIPV6Dst1.begin());
+   EXPECT_FALSE(is_equal);
+}
+
 TEST_F(DpiMsgLRTests, setEthSrcSuccess) {
    // Set the Ethernet Source
    vector<unsigned char> ethSrc;
@@ -325,6 +467,43 @@ TEST_F(DpiMsgLRTests, GetIpDstPair) {
    EXPECT_EQ("IpDst", tDpiMessage.GetIpDstPair().first);
    EXPECT_EQ("4.3.2.1", tDpiMessage.GetIpDstPair().second);
 
+}
+
+TEST_F(DpiMsgLRTests, GetIp6SrcPair) {
+   EXPECT_EQ("0000:0000:0000:0000:0000:0000:0000:0000", tDpiMessage.GetDstIP6Pair().second);
+   vector<uint32_t> ipv6Addr;
+   ipv6Addr.push_back(0x0102);
+   ipv6Addr.push_back(0x0203);
+   ipv6Addr.push_back(0x0405);
+   ipv6Addr.push_back(0x0607);
+   ipv6Addr.push_back(0x0809);
+   ipv6Addr.push_back(0x1011);
+   ipv6Addr.push_back(0x1112);
+   ipv6Addr.push_back(0x1314);
+
+   tDpiMessage.SetSrcIP6(ipv6Addr);
+
+   EXPECT_EQ("Ip6Src", tDpiMessage.GetSrcIP6Pair().first);
+   EXPECT_EQ("0102:0203:0405:0607:0809:1011:1112:1314", tDpiMessage.GetSrcIP6Pair().second);
+}
+
+TEST_F(DpiMsgLRTests, GetIp6DstPair) {
+   EXPECT_EQ("0000:0000:0000:0000:0000:0000:0000:0000", tDpiMessage.GetDstIP6Pair().second);
+   vector<uint32_t> ipv6Addr;
+   ipv6Addr.push_back(0x0001);
+   ipv6Addr.push_back(0x0002);
+   ipv6Addr.push_back(0x0003);
+   ipv6Addr.push_back(0x0004);
+   ipv6Addr.push_back(0x0005);
+   ipv6Addr.push_back(0x0006);
+   ipv6Addr.push_back(0x0007);
+   ipv6Addr.push_back(0x0008);
+
+   std::cout << "Setting Dest IP6 " << std::endl;
+   tDpiMessage.SetDstIP6(ipv6Addr);
+
+   EXPECT_EQ("Ip6Dst", tDpiMessage.GetDstIP6Pair().first);
+   EXPECT_EQ("0001:0002:0003:0004:0005:0006:0007:0008", tDpiMessage.GetDstIP6Pair().second);
 }
 
 TEST_F(DpiMsgLRTests, GetPacketPathPair) {

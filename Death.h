@@ -13,25 +13,11 @@ struct Death {
    static bool mReceived;
    static std::string mMessage;
 
-   /// @param death message with any captured death details
-   static void Received(g2::internal::FatalMessage death) {
-      mReceived = true;
-      mMessage = death.message_;
-   }
+   static void Received(g2::internal::FatalMessage death);
+   static bool WasKilled();
 
-   static bool WasKilled() {
-      return mReceived;
-   }
-
-   /// Please call this if you plan on doing DEATH tests. 
-   static void SetupExitHandler() {
-      g2::internal::changeFatalInitHandlerForUnitTesting(Death::Received);
-   }
-
-   static void ClearExits() {
-      mReceived = false;
-      mMessage = "";
-   }
+   static void SetupExitHandler();
+   static void ClearExits();
 };
 
 /** Makes sure that any Death tests will be cleaned up at test exit

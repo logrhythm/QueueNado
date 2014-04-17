@@ -45,7 +45,15 @@ TEST_F(LuaFunctionsTest, BasicFunctions) {
    ASSERT_EQ(registered["GetSourceIPFromFlow"], LuaFunctions::GetSourceIPFromDpi);
    ASSERT_TRUE(registered.end() != registered.find("GetDestIPFromFlow"));
    ASSERT_EQ(registered["GetDestIPFromFlow"], LuaFunctions::GetDestIPFromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetSourceIP6FromFlow"));
+   ASSERT_EQ(registered["GetSourceIP6FromFlow"], LuaFunctions::GetSourceIP6FromDpi);
+   ASSERT_TRUE(registered.end() != registered.find("GetDestIP6FromFlow"));
+   ASSERT_EQ(registered["GetDestIP6FromFlow"], LuaFunctions::GetDestIP6FromDpi);
    ASSERT_TRUE(registered.end() != registered.find("GetSourceMACFromFlow"));
+   ASSERT_EQ(registered["IsSourceIP6"], LuaFunctions::IsSrcIP6);
+   ASSERT_TRUE(registered.end() != registered.find("IsSourceIP6"));
+   ASSERT_EQ(registered["IsDestIP6"], LuaFunctions::IsDstIP6);
+   ASSERT_TRUE(registered.end() != registered.find("IsDestIP6"));
    ASSERT_EQ(registered["GetSourceMACFromFlow"], LuaFunctions::GetSourceMACFromDpi);
    ASSERT_TRUE(registered.end() != registered.find("GetDestMACFromFlow"));
    ASSERT_EQ(registered["GetDestMACFromFlow"], LuaFunctions::GetDestMACFromDpi);
@@ -131,6 +139,87 @@ TEST_F(LuaFunctionsTest, LuaGetIpInfoFromDpi) {
    LuaFunctions::GetDestIPFromDpi(luaState);
    result = lua_tostring(luaState, -1);
    EXPECT_EQ("10.1.0.75", result);
+   lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, LuaCheckIPV6Addr) {
+   networkMonitor::DpiMsgLR dpiMsg;
+   uint32_t ipSrc = 0x6401A8C0; // 192.168.1.100
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_session("uuid");
+   dpiMsg.set_srcip(ipSrc);
+
+   lua_State *luaState;
+   int result;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaFunctions::IsSrcIP6(luaState);
+   result = lua_tointeger(luaState, -1);
+   EXPECT_EQ(0, result);
+   lua_close(luaState);
+
+   networkMonitor::DpiMsgLR testDpiMsg;
+   std::vector<uint32_t> srcIpV6Addr;
+   srcIpV6Addr.push_back(0x0001);
+   srcIpV6Addr.push_back(0x0002);
+   srcIpV6Addr.push_back(0x0003);
+   srcIpV6Addr.push_back(0x0004);
+   srcIpV6Addr.push_back(0x0005);
+   srcIpV6Addr.push_back(0x0006);
+   srcIpV6Addr.push_back(0x0007);
+   srcIpV6Addr.push_back(0x0008);
+
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &testDpiMsg);
+   testDpiMsg.SetSrcIP6(srcIpV6Addr);
+
+   LuaFunctions::IsSrcIP6(luaState);
+   result = lua_tointeger(luaState, -1);
+   EXPECT_EQ(1, result);
+   lua_close(luaState);
+}
+
+TEST_F(LuaFunctionsTest, LuaGetIp6InfoFromDpi) {
+   networkMonitor::DpiMsgLR dpiMsg;
+
+   std::vector<uint32_t> srcIpV6Addr;
+   srcIpV6Addr.push_back(0x0001);
+   srcIpV6Addr.push_back(0x0002);
+   srcIpV6Addr.push_back(0x0003);
+   srcIpV6Addr.push_back(0x0004);
+   srcIpV6Addr.push_back(0x0005);
+   srcIpV6Addr.push_back(0x0006);
+   srcIpV6Addr.push_back(0x0007);
+   srcIpV6Addr.push_back(0x0008);
+
+   std::vector<uint32_t> dstIpV6Addr;
+   dstIpV6Addr.push_back(0xfe80);
+   dstIpV6Addr.push_back(0x0000);
+   dstIpV6Addr.push_back(0x0000);
+   dstIpV6Addr.push_back(0x0000);
+   dstIpV6Addr.push_back(0x38ff);
+   dstIpV6Addr.push_back(0x05fa);
+   dstIpV6Addr.push_back(0x6b76);
+   dstIpV6Addr.push_back(0x870c);
+
+   dpiMsg.add_accept_encodingq_proto_http("test1");
+   dpiMsg.add_accept_encodingq_proto_http("test2");
+   dpiMsg.set_session("uuid");
+   dpiMsg.SetDstIP6(dstIpV6Addr);
+   dpiMsg.SetSrcIP6(srcIpV6Addr);
+
+   lua_State *luaState;
+   luaState = luaL_newstate();
+   lua_pushlightuserdata(luaState, &dpiMsg);
+   LuaFunctions::GetSourceIP6FromDpi(luaState);
+   std::string result = lua_tostring(luaState, -1);
+   EXPECT_EQ("0001:0002:0003:0004:0005:0006:0007:0008", result);
+
+   LuaFunctions::GetDestIP6FromDpi(luaState);
+   result = lua_tostring(luaState, -1);
+   EXPECT_EQ("fe80:0000:0000:0000:38ff:05fa:6b76:870c", result);
+   result = lua_tostring(luaState, -1);
    lua_close(luaState);
 }
 

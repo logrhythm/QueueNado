@@ -8,6 +8,7 @@
 #include "gmock/gmock.h"
 #include "MockPcapDiskUsage.h"
 #include "include/global.h"
+#include "FileIO.h"
 #include <vector>
 
 class MockDiskCleanup : public DiskCleanup {
@@ -45,15 +46,23 @@ public:
 
    LR_VIRTUAL bool GetFileCountFromES(ElasticSearch& es, size_t& totalFiles) {
       auto pcapLocations = mConf.GetPcapCaptureLocations();
+      auto directories = mConf.GetPcapCaptureFolderPerPartitionLimit();
+      
       totalFiles = 0;
-      for (const auto& path : pcapLocations) {
-
-         for (boost::filesystem::directory_iterator it(path);
+      for (const auto& location : pcapLocations) {
+         for (size_t dir = 0; dir < directories; ++dir) {
+            std::string path {location + "/" + std::to_string(dir) };
+            for (boost::filesystem::directory_iterator it(path);
                  it != boost::filesystem::directory_iterator(); it++) {
-            if (IsShutdown()) {
-               return false; //caught shutdown;
+                 if (IsShutdown()) {
+                    return false; //caught shutdown;
+                 }
+            
+               // Each iterator look will find "file" or "directory" or end. Only files are counted 
+               if(false == FileIO::DoesDirectoryExist(it->path().string())) {
+                  totalFiles++;
+               }
             }
-            totalFiles++;
          }
       }
       return true;
@@ -144,12 +153,12 @@ public:
       return DiskCleanup::BruteForceCleanupOfOldFiles(path, theOldestTime, additionalSizeRemoved);
    }
 
-   bool TimeForBruteForceCleanup(const std::time_t& lastForcedDiskClean) LR_OVERRIDE {
-      return DiskCleanup::TimeForBruteForceCleanup(lastForcedDiskClean);
+   bool TimeForBruteForceCleanup(const StopWatch& lastForcedDiskWatch) LR_OVERRIDE {
+      return DiskCleanup::TimeForBruteForceCleanup(lastForcedDiskWatch);
    }
 
-   void SetLastForcedClean(const time_t newTime,std::time_t& lastForcedDiskClean) LR_OVERRIDE{
-      DiskCleanup::SetLastForcedClean(newTime,lastForcedDiskClean);
+   void SetLastForcedClean(StopWatch& lastForcedDiskWatch) LR_OVERRIDE{
+      DiskCleanup::SetLastForcedClean(lastForcedDiskWatch);
    }
 
    bool WayTooManyFiles(const StatInfo& stats) LR_OVERRIDE {
