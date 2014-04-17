@@ -345,6 +345,8 @@ TEST_F(DiskCleanupTest, TooMuchPCapPrecursor) {
    ProcessClient processClient(mConf.GetConf());
    ASSERT_TRUE(processClient.Initialize());
    DiskUsage usage(testDir.str());
+   std::string dirToCheck = {testDir.str() + "/0/"};
+   
    // Empty folder:
    EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::Byte), 4096); // empty folder eq 4 KByte
    EXPECT_EQ(usage.RecursiveFolderDiskUsed(dirToCheck, MemorySize::KByte), 4); // empty folder eq 4 KByte
