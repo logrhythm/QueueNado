@@ -16,7 +16,7 @@ private:
 
 class ClassWithAWorker {
 public:
-   ClassWithAWorker() : mRunning(false), mRun(false){}
+   ClassWithAWorker() : mRunning(false), mRun(false), mHasThrownAlready(false){}
    ~ClassWithAWorker() { EXPECT_FALSE(mRunning); }
    void WaitLoop();
    void WaitLoopWithArgs(unsigned int msSleep);
@@ -24,4 +24,12 @@ public:
    std::string What();
    std::atomic<bool> mRunning;
    std::atomic<bool> mRun;
+   std::atomic<bool> mHasThrownAlready;
+   
+  struct RaiiTrownWasMade {
+     std::atomic<bool> &trigger;
+     explicit RaiiTrownWasMade(std::atomic<bool>& t) : trigger(t){}
+     ~RaiiTrownWasMade() { trigger = true; }
+  };
+
 };
