@@ -35,7 +35,7 @@ TEST_F(NtpConfigCommandTest, InValidCommand) {
    cmd.set_stringargone(ntp.SerializeAsString());
    MockNtpConfigCommand doIt(cmd, autoManagedManager);
    auto reply = doIt.Execute(conf);
-   ASSERT_FALSE(reply.success());
+   ASSERT_TRUE(reply.success()); //Empty arguments are valid (to disable NTP)
 }
 
 TEST_F(NtpConfigCommandTest, DisableNTP__ExpectingValidCmd) {
@@ -65,7 +65,7 @@ TEST_F(NtpConfigCommandTest, EnableNTPWithNoServer__ExpectingInvalidCmd) {
    cmd.set_stringargone(ntp.SerializeAsString());
    MockNtpConfigCommand doIt(cmd, autoManagedManager);
    auto reply = doIt.Execute(conf);
-   ASSERT_FALSE(reply.success());
+   ASSERT_TRUE(reply.success()); //Empty arguments are valid (to disable NTP)
    
    const auto& allCmds = autoManagedManager.getTotalRunCommands();   
    const auto& allArgs = autoManagedManager.getTotalRunArgs();
@@ -399,8 +399,8 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageConditionalLogic) {
    ASSERT_FALSE(ntp.has_master_server());
    ASSERT_FALSE(ntp.has_backup_server());
    
-   //Check that an empty master server and empty backup server is invalid:
-   EXPECT_THROW(ntp.valid(), ConfInvalidException);
+   //Check that an empty master server and empty backup server is valid:
+   EXPECT_NO_THROW(ntp.valid());
    ASSERT_FALSE(ntp.has_master_server());
    ASSERT_FALSE(ntp.has_backup_server());
    
@@ -624,7 +624,7 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageThrowWhats) {
    std::string b{ "Ntp master server either uses invalid characters or is more than 255 characters long." };
    std::string c{ "Ntp backup server either uses invalid characters or is more than 255 characters long." };
    
-   //Check message for empty master server:
+   //Check message for empty master server, This SHOULD NOT throw:
    try {
       ntp.valid();
    } catch (const ConfInvalidException& e) {
@@ -632,7 +632,7 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageThrowWhats) {
       counter++;
    };
    
-   //Check message for invalid master server:
+   //Check message for invalid master server. this SHOULD throw:
    try {
       ntp.set_master_server("test.com; /bin/evil");
       ntp.valid();
@@ -642,7 +642,7 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageThrowWhats) {
    }
    ntp.clear_master_server();
    
-   //Check message for invalid backup server:
+   //Check message for invalid backup server. this SHOULD throw:
    try {
       ntp.set_master_server("test.com");
       ntp.set_backup_server("test2.com; /bin/evil");
@@ -652,6 +652,6 @@ TEST_F(NtpConfigCommandTest, ValidateNTPMessageThrowWhats) {
       counter++;
    } 
    
-   EXPECT_EQ(3, counter);
+   EXPECT_EQ(2, counter); //One for second try and another for third try.
    
 }

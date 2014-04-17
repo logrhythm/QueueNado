@@ -10,6 +10,7 @@
 #include <functional>
 #include <algorithm>
 #include <boost/filesystem.hpp>
+#include <g2log.hpp>
 
 #include "ToolsTestFileIO.h"
 #include "FileIO.h"
@@ -28,14 +29,14 @@ namespace {
    }
    struct ScopedFileCleanup {
       const std::string file;
+
       explicit ScopedFileCleanup(const std::string& name) : file(name) { }
+
       ~ScopedFileCleanup() {
          remove(file.c_str());
       }
    };
-   
-   
-}
+} // anonymous
 
 TEST_F(TestFileIO, CannotOpenFileToRead) {
    auto fileRead = FileIO::ReadAsciiFileContent({"/xyz/*&%/x.y.z"});
@@ -119,7 +120,6 @@ TEST_F(TestFileIO, DirectoryExistance) {
    EXPECT_FALSE(FileIO::DoesDirectoryExist(directory));
 }
 
-
 TEST_F(TestFileIO, DirectoryReader_NotExistingDirectory) {
    FileIO::DirectoryReader reader{mTestDirectory + "/_#Does_not+_exist"};
    EXPECT_TRUE(reader.Valid().HasFailed()) << reader.Valid().error;
@@ -131,52 +131,107 @@ TEST_F(TestFileIO, DirectoryReader_ExistingDirectory) {
 }
 
 
+
+TEST_F(TestFileIO,  RemoveEmptyDirectories_FakeDirectoriesAreIgnored) {
+   EXPECT_TRUE(FileIO::RemoveEmptyDirectories({}).result); // invalids are ignored
+   EXPECT_TRUE(FileIO::RemoveEmptyDirectories({{""}}).result); // invalids are ignored
+
+   std::vector<std::string> doNotExist({{}, {" "}, {"/does/not/exist"}});
+   EXPECT_TRUE(FileIO::RemoveEmptyDirectories(doNotExist).result); // invalids are ignored
+   
+   CreateSubDirectory("some_directory");
+   std::string real = {mTestDirectory+"/"+"some_directory"};
+   EXPECT_TRUE(FileIO::DoesDirectoryExist(real));
+   EXPECT_TRUE(FileIO::RemoveEmptyDirectories({{"does_not_exist"},real}).result); // the one invalid is ignored
+   
+}
+
+TEST_F(TestFileIO, RemoveDirectories__ExpectNonEmptyToStay) {
+   CreateSubDirectory("some_directory");
+   CreateFile({mTestDirectory + "/some_directory/"}, "some_file");
+   EXPECT_TRUE(FileIO::DoesFileExist({mTestDirectory + "/some_directory/some_file"}));
+   EXPECT_FALSE(FileIO::RemoveEmptyDirectories({{mTestDirectory + "/some_directory"}}).result);
+   EXPECT_TRUE(FileIO::DoesFileExist({mTestDirectory + "/some_directory/some_file"}));   
+}
+
+TEST_F(TestFileIO, CleanDirectoryOfFileContents_BogusDirectory) {
+   std::vector<std::string> newDirectories;
+   size_t removedFiles{0};   
+   EXPECT_FALSE(FileIO::CleanDirectoryOfFileContents("", removedFiles, newDirectories).result);
+   EXPECT_FALSE(FileIO::CleanDirectoryOfFileContents("/does/not/exist/", removedFiles, newDirectories).result);
+}
+
+TEST_F(TestFileIO, CleanDirectoryOfFileContents) {   
+   std::vector<std::string> newDirectories;
+   size_t removedFiles{0};  
+   CreateSubDirectory("some_directory");
+   EXPECT_TRUE(FileIO::DoesDirectoryExist({mTestDirectory + "/some_directory"}));
+   EXPECT_EQ(removedFiles, 0);
+   
+   CreateFile(mTestDirectory, "some_file");  
+   EXPECT_TRUE(FileIO::CleanDirectoryOfFileContents(mTestDirectory, removedFiles, newDirectories).result);
+   EXPECT_EQ(removedFiles, 1);
+   ASSERT_EQ(newDirectories.size(), 1);
+   EXPECT_EQ(std::string{mTestDirectory + "/some_directory"}, newDirectories[0]);
+   // directories are not removed
+   EXPECT_TRUE(FileIO::DoesDirectoryExist({mTestDirectory + "/some_directory"})); 
+}
+
+
+
+
+
+
+
+
+
+
+
 // An empty directory will only contain "." and ".." which we ignores
 TEST_F(TestFileIO, DirectoryReader_NoFilesInDirectory) {
    FileIO::DirectoryReader reader{mTestDirectory};
    EXPECT_FALSE(reader.Valid().HasFailed());
-   
+
    FileIO::DirectoryReader::Entry fileAndType = reader.Next();
    EXPECT_EQ(fileAndType.first, FileIO::FileType::End);
    EXPECT_EQ(fileAndType.second, "");
 }
 
-
 TEST_F(TestFileIO, DirectoryReader_HasFilesInDirectory__AfterReset) {
-   using namespace FileIO;  
-   
+   using namespace FileIO;
+
    DirectoryReader reader{mTestDirectory};
-   DirectoryReader::Entry fileAndType = reader.Next(); 
-   
+   DirectoryReader::Entry fileAndType = reader.Next();
+
    EXPECT_EQ(fileAndType.first, FileType::End);
    EXPECT_EQ(fileAndType.second, "");
-      
+
    // We have already reached the end. This must be reset before reading successfully
    CreateFile(mTestDirectory, "some_file");
    fileAndType = reader.Next();
    EXPECT_EQ(fileAndType.first, FileType::End);
    EXPECT_EQ(fileAndType.second, "");
-   
+
    // After the reset we can find the file
    reader.Reset();
-   fileAndType = reader.Next();   
+   fileAndType = reader.Next();
    EXPECT_EQ(fileAndType.first, FileType::File);
    EXPECT_EQ(fileAndType.second, "some_file");
-  
+
 
    // has reached the end again
    fileAndType = reader.Next();
    EXPECT_EQ(fileAndType.second, "");
    EXPECT_EQ(fileAndType.first, FileType::End);
-   
-   
+
+
    CreateSubDirectory("some_directory");
    EXPECT_TRUE(FileIO::DoesDirectoryExist({mTestDirectory + "/some_directory"}));
    reader.Reset();
-   
+
    fileAndType = reader.Next();
    EXPECT_NE(fileAndType.first, FileType::End);
-   
+
    std::string filename;
    std::string directoryname;
 
@@ -190,51 +245,56 @@ TEST_F(TestFileIO, DirectoryReader_HasFilesInDirectory__AfterReset) {
          filename = fileAndType.second;
          reader.Next();
       }
-   }   
-   
+   }
+
    EXPECT_EQ(filename, "some_file");
    EXPECT_EQ(directoryname, "some_directory");
    fileAndType = reader.Next();
-   
+
    EXPECT_EQ(fileAndType.first, FileType::End);
    EXPECT_EQ(fileAndType.second, "");
 }
 
-   //   for (size_t index = 0; index < 1000; ++index) {
-   //  CreateSubDirectory(std::to_string(index));      
-  // }
+
+
 TEST_F(TestFileIO, AThousandFiles) {
-   using namespace FileIO;  
-     
+   using namespace FileIO;
    for (size_t index = 0; index < 1000; ++index) {
       CreateFile(mTestDirectory, std::to_string(index));
    }
-   
-   
+
    std::vector<std::string> files;
    DirectoryReader::Entry entry;
-   
-   DirectoryReader reader(mTestDirectory);  
+
+   DirectoryReader reader(mTestDirectory);
    StopWatch timeToFind;
    entry = reader.Next();
-   while(entry.first != FileType::End) {
+   while (entry.first != FileType::End) {
       ASSERT_NE(entry.first, FileType::Directory);
       ASSERT_NE(entry.first, FileType::Unknown);
       files.push_back(entry.second);
       entry = reader.Next();
    }
-   
-   ASSERT_EQ(files.size(), 1000);
-   std::cout << "Time to find 1000 files and save them took: " << timeToFind.ElapsedUs() << " us" << std::endl;
 
-   std::sort(files.begin(), files.end(), [](const std::string& lh, const std::string& rh){
+   ASSERT_EQ(files.size(), 1000);
+   LOG(INFO) << "Time to find 1000 files and save them took: " << timeToFind.ElapsedUs() << " us";
+
+   std::sort(files.begin(), files.end(), [](const std::string& lh, const std::string & rh) {
       return std::stoul(lh) < std::stoul(rh);
    });
-   for(size_t index = 0; index < 1000; ++index) {
+   for (size_t index = 0; index < 1000; ++index) {
       EXPECT_EQ(files[index], std::to_string(index));
    }
 }
 
+
+// FileIO #files   time
+//        63,8841  761 ms
+//        994,080  1 sec
+
+// Boost #files   time
+//       63,8841  3199 ms
+//       985,524  5 sec
 TEST_F(TestFileIO, DISABLED_System_Performance_FileIO__vs_Boost) {
    using namespace FileIO;
 
@@ -254,9 +314,8 @@ TEST_F(TestFileIO, DISABLED_System_Performance_FileIO__vs_Boost) {
       entry = reader.Next();
    }
 
-   // 65, 4841 took: 0 se
-   std::cout << "FileIO Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec" << std::endl;
-
+  
+   LOG(INFO) << "FileIO Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec";
    timeToFind.Restart();
    boost::filesystem::path boostPath = path;
    boost::filesystem::directory_iterator end;
@@ -266,5 +325,5 @@ TEST_F(TestFileIO, DISABLED_System_Performance_FileIO__vs_Boost) {
          ++filecounter;
       }
    }
-   std::cout << "Boost Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec" << std::endl;
+   LOG(INFO)<< "Boost Time to find " << filecounter << "took: " << timeToFind.ElapsedSec() << " sec";
 }

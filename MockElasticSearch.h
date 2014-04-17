@@ -5,6 +5,7 @@
 #include "MockBoomStick.h"
 #include "gmock/gmock.h"
 #include "BoolReturns.h"
+#include "DiskPcapPath.h"
 #include "include/global.h"
 class BoomStick;
 #ifdef LR_DEBUG
@@ -25,8 +26,8 @@ public:
 class MockElasticSearch : public ElasticSearch {
 public:
 
-   static std::string CreateFileNameWithPath(const std::vector<std::string>& paths, const std::string& id) {
-      return DiskPacketCapture::BuildFilenameWithPath(paths, id);
+   static std::string CreateFileNameWithPath(const std::string& id, const Conf& conf) {
+      return DiskPcapPath::BuildFilenameWithPath(id, conf);
    }
 
    MockElasticSearch(bool async) : mMyTransport(""), ElasticSearch(mMyTransport, async), mFakeIndexList(true),
@@ -185,13 +186,14 @@ public:
    }
 
    PathAndFileNames GetOldestNFiles(const unsigned int numberOfFiles,
-           const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor, IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits) {
+           const Conf& conf, ElasticSearch::ConstructPathWithFilename fileConstructor, 
+           IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits) LR_OVERRIDE {
       if (mFakeGetOldestNFiles) {
          oldestTime = mOldestTime;
          return mOldestFiles;
       }
 
-      return ElasticSearch::GetOldestNFiles(numberOfFiles, paths, fileConstructor, relevantRecords, oldestTime, totalHits);
+      return ElasticSearch::GetOldestNFiles(numberOfFiles, conf, fileConstructor, relevantRecords, oldestTime, totalHits);
    }
 
    bool BulkUpdate(const IdsAndIndexes& idsAndIndex, const std::string& indexType, const std::string& jsonData) {
@@ -350,7 +352,7 @@ public:
    MOCK_METHOD0(Initialize, bool());
    MOCK_METHOD1(GetLatestDateOfUpgradeWhereIndexesShouldBeIgnored, bool(time_t&));
    MOCK_METHOD6(GetOldestNFiles, PathAndFileNames(const unsigned int numberOfFiles,
-           const std::vector<std::string>& paths, ElasticSearch::ConstructPathWithFilename fileConstructor,
+           const Conf& conf, ElasticSearch::ConstructPathWithFilename fileConstructor,
            IdsAndIndexes& relevantRecords, time_t& oldestTime, size_t& totalHits));
    MOCK_METHOD2(SendAndGetReplyCommandToWorker, bool (const std::string& command, std::string& reply));
 
