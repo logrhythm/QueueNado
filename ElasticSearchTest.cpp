@@ -3,8 +3,10 @@
 #include "MockElasticSearch.h"
 #include "include/global.h"
 #include "MockBoomStick.h"
-
+#include "MockConf.h"
 #include "MockSkelleton.h"
+#include "city.h"
+
 #ifdef LR_DEBUG
 TEST_F(ElasticSearchTest, FailedToFindMappingForField) {
 // In the case we are querying for a new field in an old index.  In this case the expectation
@@ -1281,9 +1283,11 @@ TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
    MockElasticSearch es(transport, false);
    PathAndFileNames oldestFiles;
    const unsigned int numberOfFiles(100);
-   const std::vector<std::string> paths = {
-      {"/tmp"}
-   };
+   const std::vector<std::string> paths = {{"/tmp"} };
+   MockConf conf;
+   conf.mOverrideGetPcapCaptureLocations = true;
+   conf.mPCapCaptureLocations = paths;
+           
    IdsAndIndexes relevantRecords;
    time_t oldestTime = 123456789;
    es.mRealSendAndGetReplyCommandToWorker = false;
@@ -1292,7 +1296,7 @@ TEST_F(ElasticSearchTest, GetOldestNFilesFailed) {
    PathAndFileName element("foo", "bar");
    oldestFiles.insert(element);
    relevantRecords.emplace_back("foo", "bar");
-   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
+   oldestFiles = es.GetOldestNFiles(numberOfFiles, conf, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
    EXPECT_TRUE(oldestFiles.empty());
    EXPECT_TRUE(relevantRecords.empty());
@@ -1304,9 +1308,11 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    MockElasticSearch es(transport, false);
    PathAndFileNames oldestFiles;
    const unsigned int numberOfFiles(100);
-   const std::vector<std::string> paths = {
-      {"/tmp"}
-   };
+   const std::vector<std::string> paths = {{"/tmp"}};
+   MockConf conf;
+   conf.mOverrideGetPcapCaptureLocations = true;
+   conf.mPCapCaptureLocations = paths;
+   
    IdsAndIndexes relevantRecords;
    time_t oldestTime = 123456789;
    es.mRealSendAndGetReplyCommandToWorker = false;
@@ -1316,7 +1322,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    PathAndFileName element("foo", "bar");
    oldestFiles.insert(element);
    relevantRecords.emplace_back("foo", "bar");
-   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
+   oldestFiles = es.GetOldestNFiles(numberOfFiles, conf, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
    EXPECT_TRUE(oldestFiles.empty());
    EXPECT_TRUE(relevantRecords.empty());
@@ -1324,7 +1330,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
    es.mSendAndGetReplyReply.clear();
    oldestFiles.insert(element);
    relevantRecords.emplace_back("foo", "bar");
-   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
+   oldestFiles = es.GetOldestNFiles(numberOfFiles, conf, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
    EXPECT_TRUE(oldestFiles.empty());
    EXPECT_TRUE(relevantRecords.empty());
@@ -1345,10 +1351,16 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
            "}"
            "}";
 
-   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
+   oldestFiles = es.GetOldestNFiles(numberOfFiles, conf, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(1380495600, oldestTime);
    ASSERT_FALSE(oldestFiles.empty());
-   EXPECT_EQ("/tmp/f4d63941-af67-4b76-8e68-ba0f0b5366ff",
+   // the directory is calculated from the uuid
+   std::string uuid{"f4d63941-af67-4b76-8e68-ba0f0b5366ff"};
+   auto hashed = CityHash32(uuid.data(), uuid.size());
+   auto numberOfBuckets = conf.GetPcapCaptureFolderPerPartitionLimit() * conf.GetPcapCaptureLocations().size();
+   auto bucket = hashed % numberOfBuckets;
+   
+   EXPECT_EQ("/tmp/" + std::to_string(bucket) + "/f4d63941-af67-4b76-8e68-ba0f0b5366ff",
            std::get<0>(*oldestFiles.begin()));
    EXPECT_EQ("f4d63941-af67-4b76-8e68-ba0f0b5366ff",
            std::get<1>(*oldestFiles.begin()));
@@ -1373,7 +1385,7 @@ TEST_F(ElasticSearchTest, GetOldestNFiles) {
            "]"
            "}"
            "}";
-   oldestFiles = es.GetOldestNFiles(numberOfFiles, paths, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
+   oldestFiles = es.GetOldestNFiles(numberOfFiles, conf, MockElasticSearch::CreateFileNameWithPath, relevantRecords, oldestTime, totalHits);
    EXPECT_EQ(0, oldestTime);
 }
 

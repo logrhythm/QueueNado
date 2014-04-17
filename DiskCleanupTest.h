@@ -55,6 +55,14 @@ protected:
       auto result = system(makeADir.c_str());
       LOG_IF(WARNING, 0 != result) << "Could not create directory with command: " << makeADir;
       totalHits = 0;
+      
+      std::string mkPcapDir = "mkdir -p ";
+      mkPcapDir.append(testDir.str());
+      mkPcapDir.append("/0/");
+      result = system(mkPcapDir.c_str());
+      LOG_IF(WARNING, 0 != result) << "Could not create directory with command: " << mkPcapDir;
+      
+      
    };
 
    virtual void TearDown() {
@@ -62,6 +70,7 @@ protected:
       makeADir = "rm -rf ";
       makeADir += testDir.str();
       ASSERT_EQ(0, system(makeADir.c_str()));
+      LOG(INFO) << "location is: " << testDir.str();
    };
 
    void StartTimedSection(const double expectedTimePerTransaction, const unsigned int totalTransactions) {

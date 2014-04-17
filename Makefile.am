@@ -30,6 +30,7 @@ ThreadContainerTest \
 ToolsTest \
 AttributeRenamerTest \
 ForkerPipeTest \
+LicenseClientTest \
 SyslogReporterTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
@@ -50,6 +51,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libglobal/ \
           -Wl,-R${abs_top_srcdir}/source/libsystem/ \
           -Wl,-R${abs_top_srcdir}/source/libremap/ \
+          -Wl,-R${abs_top_srcdir}/source/liblicense/ \
           -Wl,-R/usr/local/probe/lib/ \
           -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
@@ -69,6 +71,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libglobal/ \
           -L${abs_top_srcdir}/source/libsystem/ \
           -L${abs_top_srcdir}/source/libremap/ \
+          -L${abs_top_srcdir}/source/liblicense/ \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
@@ -92,15 +95,54 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libglobal \
          -I${abs_top_srcdir}/source/libsystem \
          -I${abs_top_srcdir}/source/libremap \
+         -I${abs_top_srcdir}/source/liblicense \
          -I/usr/local/probe/include \
          -include /usr/include/fenv.h
 
 DYNAMIC_LIBS=-ltcmalloc \
              -llib_g2log \
-             -lsyslog -lZMQ -llrdpi -lstats -lprocessclient -lprocess -lgmock -lgtest -lpthread -ldl -lstdc++ -lcityhash -lpcap -lzmq -lczmq -lcommand \
-             -lz -lprotobuf -lqmengine -lqmprotocols -lqmctl -lqmdata -lqmsecurity  \
-             -lqosmosauto -lboost_regex -lboost_thread -lboost_system -lcapture -lyaml-cpp -lconf -lconfmaster \
-             -lluajit-5.1 -llua -ljansson -lelasticsearch -ltools -lsystem -ltcmalloc_minimal -lfork -lforkmother -lremap
+             -lsyslog \
+             -lZMQ \
+             -llrdpi \
+             -lstats \
+             -lprocessclient \
+             -lprocess \
+             -lgmock \
+             -lgtest \
+             -lpthread \
+             -ldl \
+             -lstdc++ \
+             -lcityhash \
+             -lpcap \
+             -lzmq \
+             -lczmq \
+             -lcommand \
+             -lz \
+             -lprotobuf \
+             -lqmengine \
+             -lqmprotocols \
+             -lqmctl \
+             -lqmdata \
+             -lqmsecurity  \
+             -lqosmosauto \
+             -lboost_regex \
+             -lboost_thread \
+             -lboost_system \
+             -lcapture \
+             -lyaml-cpp \
+             -lconf \
+             -lconfmaster \
+             -lluajit-5.1 \
+             -llua \
+             -ljansson \
+             -lelasticsearch \
+             -ltools \
+             -lsystem \
+             -ltcmalloc_minimal \
+             -lfork \
+             -lforkmother \
+             -lremap \
+             -llicense
 
 ForkerPipeTest_LDADD=${DYNAMIC_LIBS} -lfork
 ForkerPipeTest_LDFLAGS=${BASE_LIBS}
@@ -145,7 +187,7 @@ QosmosProtocolCaptureTest.cpp
 DiskPacketCaptureTest_LDADD=${DYNAMIC_LIBS}
 DiskPacketCaptureTest_LDFLAGS=${BASE_LIBS}
 DiskPacketCaptureTest_SOURCES=main.cpp \
-DiskPacketCaptureTest.cpp 
+DiskPacketCaptureTest.cpp DiskPcapMoveTest.cpp
 
 DiskCleanupTest_LDADD=${DYNAMIC_LIBS}
 DiskCleanupTest_LDFLAGS=${BASE_LIBS}
@@ -270,6 +312,8 @@ ToolsTestMakeUnique.cpp \
 ToolsTestStringFix.cpp \
 ToolsTestStopWatch.cpp \
 ToolsTestFileIO.cpp \
+ToolsTestUuidHash.cpp \
+Death.cpp Death.h \
 ToolsTestHashing.cpp \
 EthInfoTest.cpp \
 WorkerThreadTest.cpp \
@@ -347,8 +391,11 @@ nmTest_SOURCES=main.cpp \
  ToolsTestMakeUnique.cpp \
  ToolsTestStringFix.cpp \
  ToolsTestStopWatch.cpp \
+ LicenseClientTest.cpp \
  TestProtoDefaultsMethods.cpp
-#	SysLoggerTest.cpp \  conflicts with Rule Engine
+
+# SysLoggerTest.cpp \  conflicts with Rule Engine
+
 
 SyslogReporterTest_LDADD=${DYNAMIC_LIBS}
 SyslogReporterTest_LDFLAGS=${BASE_LIBS}
@@ -359,3 +406,8 @@ AttributeRenamerTest_LDADD=${DYNAMIC_LIBS}
 AttributeRenamerTest_LDFLAGS=${BASE_LIBS}
 AttributeRenamerTest_SOURCES=main.cpp AttributeRenamerTest.cpp MockAttributeRenamer.h
 AttributeRenamerTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
+
+LicenseClientTest_LDADD=${DYNAMIC_LIBS}
+LicenseClientTest_LDFLAGS=${BASE_LIBS}
+LicenseClientTest_SOURCES=main.cpp LicenseClientTest.cpp
+LicenseClientTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
