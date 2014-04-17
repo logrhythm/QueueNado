@@ -28,6 +28,7 @@ public:
    mPCapCaptureFileLimit(999999),
    mPCapCaptureSizeLimit(999999),
    mPCapCaptureMemoryLimit(999999),
+   mPcapCaptureFolderPerPartitionLimit(16000),
    mOverrideGetPcapCaptureLocations(true),
    mOverrideGetFirstCaptureLocation(true),
    mSyslogEnabled(true),
@@ -282,6 +283,10 @@ public:
       return mPCapCaptureMemoryLimit;
    }
 
+   size_t GetPcapCaptureFolderPerPartitionLimit() const LR_OVERRIDE {
+      return mPcapCaptureFolderPerPartitionLimit;
+   }
+   
    std::vector<std::string> GetPcapCaptureLocations() const LR_OVERRIDE {
       if (mOverrideGetPcapCaptureLocations) {
          return mPCapCaptureLocations;
@@ -355,6 +360,7 @@ public:
    int mPCapCaptureFileLimit;
    int mPCapCaptureSizeLimit;
    int mPCapCaptureMemoryLimit;
+   size_t mPcapCaptureFolderPerPartitionLimit;
    std::vector<std::string> mPCapCaptureLocations;
    bool mOverrideGetPcapCaptureLocations;
    bool mOverrideGetFirstCaptureLocation;
