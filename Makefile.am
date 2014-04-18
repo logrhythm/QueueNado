@@ -52,6 +52,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libsystem/ \
           -Wl,-R${abs_top_srcdir}/source/libremap/ \
           -Wl,-R${abs_top_srcdir}/source/liblicense/ \
+          -Wl,-R${abs_top_srcdir}/source/libdeath/ \
           -Wl,-R/usr/local/probe/lib/ \
           -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
@@ -72,6 +73,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libsystem/ \
           -L${abs_top_srcdir}/source/libremap/ \
           -L${abs_top_srcdir}/source/liblicense/ \
+          -L${abs_top_srcdir}/source/libdeath/ \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
@@ -96,6 +98,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libsystem \
          -I${abs_top_srcdir}/source/libremap \
          -I${abs_top_srcdir}/source/liblicense \
+         -I${abs_top_srcdir}/source/libdeath \
          -I/usr/local/probe/include \
          -include /usr/include/fenv.h
 
@@ -142,7 +145,8 @@ DYNAMIC_LIBS=-ltcmalloc \
              -lfork \
              -lforkmother \
              -lremap \
-             -llicense
+             -llicense \
+             -ldeath
 
 ForkerPipeTest_LDADD=${DYNAMIC_LIBS} -lfork
 ForkerPipeTest_LDFLAGS=${BASE_LIBS}
@@ -316,8 +320,7 @@ ToolsTestUuidHash.cpp \
 ToolsTestHashing.cpp \
 EthInfoTest.cpp \
 WorkerThreadTest.cpp \
-ToolsRangeTest.cpp \
-Death.cpp
+ToolsRangeTest.cpp
 ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 JSONEncoderTest_LDADD=${DYNAMIC_LIBS}
@@ -395,7 +398,7 @@ nmTest_SOURCES=main.cpp \
 
 SyslogReporterTest_LDADD=${DYNAMIC_LIBS}
 SyslogReporterTest_LDFLAGS=${BASE_LIBS}
-SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp MockSyslogReporter.h Death.cpp Death.h
+SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp MockSyslogReporter.h 
 SyslogReporterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 AttributeRenamerTest_LDADD=${DYNAMIC_LIBS}
