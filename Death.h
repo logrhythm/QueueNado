@@ -2,6 +2,9 @@
 
 #include <string>
 #include <g2log.hpp>
+#include <mutex>
+#include <vector>
+#include <functional>
 
 /**
  * By calling @ref UseDeathHandler all CHECK, LOG(FATAL) or fatal signals will be caught by g2log
@@ -10,15 +13,31 @@
  * The reason for using this instead of Google's gtest DEATH framework is that the DEATH framework
  *  will do popen/fork which clashes with our use of the MotherForker.
  */
-struct Death {
-   static bool mReceived;
-   static std::string mMessage;
+class Death {
+public:
+   typedef std::string DeathCallbackArg;
+   typedef void (*DeathCallbackType)(const DeathCallbackArg& arg);
 
-   static void Received(g2::internal::FatalMessage death);
-   static bool WasKilled();
-
-   static void SetupExitHandler();
+   static Death& Instance();
    static void ClearExits();
+   static bool WasKilled();
+   static void SetupExitHandler();
+   static std::string Message();
+   static void RegisterDeathEvent(DeathCallbackType deathFunction, const DeathCallbackArg& deathArg);
+   static void EnableDefaultFatalCall(g2LogWorker* loggerWorker);
+   
+private:
+   Death();
+   Death(Death&) = delete;
+   Death& operator=(Death&) = delete;
+   static void Received(g2::internal::FatalMessage death);
+   
+   bool mReceived;
+   std::string mMessage;
+   std::mutex mListLock;
+   std::vector<std::pair<DeathCallbackType,DeathCallbackArg> > mShutdownFunctions;
+   bool mEnableDefaultFatal;
+   g2LogWorker* mWorker;
 };
 
 /** Makes sure that any Death tests will be cleaned up at test exit
