@@ -1,4 +1,5 @@
 #include <thread>
+#include <future>
 
 #include "DeathTest.h"
 #include "Death.h"
@@ -15,11 +16,12 @@ void DeathTest::EchoTheString(const std::string& theString) {
 
 void DeathTest::RaceTest(const Death::DeathCallbackArg& theString) {
    if (!ranEcho) {
-      std::this_thread::sleep_for(std::chrono::nanoseconds(rand()%16000));
+      std::this_thread::sleep_for(std::chrono::nanoseconds(rand() % 16000));
       ranEcho = !ranEcho;
-      ranTimes++;
+      stringsEchoed.push_back(theString);
+      
    }
-   stringsEcho.push_back(theString);
+   ranTimes++;
 }
 
 TEST(DeathTest, VerifySingleton) {
@@ -71,15 +73,32 @@ TEST(DeathTest, RegisterSomething) {
 }
 
 TEST(DeathTest, ThreadSafeTest) {
+   DeathTest::ranEcho = false;
+   DeathTest::ranTimes = 0;
+   DeathTest::stringsEchoed.clear();
    RaiiDeathCleanup cleanup;
    Death::Instance().SetupExitHandler();
-   Death::Instance().RegisterDeathEvent(&DeathTest::EchoTheString, "test");
+   
    EXPECT_FALSE(DeathTest::ranEcho);
    EXPECT_TRUE(DeathTest::stringsEchoed.empty());
+   
+   auto ManyThreads = [&]() {
+      Death::Instance().RegisterDeathEvent(&DeathTest::RaceTest, "race");
+   };
+   std::vector<std::future<void>> waitingPromises;
+   for (int i = 0; i < 10000; i++) {
+      waitingPromises.push_back(std::async(std::launch::async, ManyThreads));
+   }
+
    CHECK(false);
+   for (auto& waitFor : waitingPromises) {
+      waitFor.get();
+   }
    EXPECT_TRUE(DeathTest::ranEcho);
    EXPECT_FALSE(DeathTest::stringsEchoed.empty());
-   EXPECT_EQ("test", DeathTest::stringsEchoed[0]);
+   EXPECT_EQ(10000, DeathTest::ranTimes);
+   EXPECT_EQ(1,DeathTest::stringsEchoed.size());
+   EXPECT_EQ("race", DeathTest::stringsEchoed[0]);
 }
 //TEST(DeathTest, ReEnableFatalExit) {
 

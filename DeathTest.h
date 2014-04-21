@@ -23,11 +23,13 @@ protected:
       srand(std::time(NULL));
       ranEcho = false;
       ranTimes = 0;
-      
+      stringsEchoed.clear();
    };
 
    virtual void TearDown() {
-      stringsEchoed.clear();
+      std::this_thread::sleep_for(std::chrono::seconds(2));
+      Death::Instance().ClearExits();
+      
    };
 
 private:
