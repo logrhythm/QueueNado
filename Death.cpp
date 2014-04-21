@@ -66,6 +66,8 @@ void Death::ClearExits() {
    Death& instance = Instance();
    instance.mReceived = false;
    instance.mMessage = "";
+   std::lock_guard<std::mutex> glock(instance.mListLock);
+   instance.mShutdownFunctions.clear();
 }
 
  std::string Death::Message() {
