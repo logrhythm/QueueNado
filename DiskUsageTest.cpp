@@ -524,7 +524,7 @@ TEST_F(RaIIFolderUsage, GetDirectoryDiskUsage__OneLevelWithOneFileDirectory) {
 
 
 // Measure the actual time to do DU recursively on the /usr/local/probe/pcap directory
-TEST_F(RaIIFolderUsage, GetDirectoryDiskUsageRealPcapDirectory) {
+TEST_F(RaIIFolderUsage, DISABLED_GetDirectoryDiskUsageRealPcapDirectory) {
    DiskUsage usage{"/usr/local/probe/pcap/"};
    StopWatch watch;
    std::string path = {"/usr/local/probe/pcap/"};
