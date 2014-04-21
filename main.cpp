@@ -11,6 +11,7 @@
 #include "include/global.h"
 
 std::string gProgramName;
+std::unique_ptr<g2LogWorker> g2logger(nullptr);
 
 int main(int argc, char *argv[])
 {
@@ -23,8 +24,8 @@ int main(int argc, char *argv[])
    srand(time(NULL));
    std::stringstream fileName;
    fileName << "UnitTest" << geteuid();
-   g2LogWorker g2logger(fileName.str(), "/tmp/" );
-   g2::initializeLogging(&g2logger);
+   g2logger.reset(new g2LogWorker(fileName.str(), "/tmp/" ));
+   g2::initializeLogging(g2logger.get());
 
    ::testing::InitGoogleTest(&argc, argv);
    int retval = RUN_ALL_TESTS();

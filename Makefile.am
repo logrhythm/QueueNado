@@ -31,6 +31,7 @@ ToolsTest \
 AttributeRenamerTest \
 ForkerPipeTest \
 LicenseClientTest \
+DeathTest \
 SyslogReporterTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
@@ -391,6 +392,7 @@ nmTest_SOURCES=main.cpp \
  ToolsTestStringFix.cpp \
  ToolsTestStopWatch.cpp \
  LicenseClientTest.cpp \
+ DeathTest.cpp \
  TestProtoDefaultsMethods.cpp
 
 # SysLoggerTest.cpp \  conflicts with Rule Engine
@@ -410,3 +412,8 @@ LicenseClientTest_LDADD=${DYNAMIC_LIBS}
 LicenseClientTest_LDFLAGS=${BASE_LIBS}
 LicenseClientTest_SOURCES=main.cpp LicenseClientTest.cpp
 LicenseClientTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
+
+DeathTest_LDADD=${DYNAMIC_LIBS}
+DeathTest=${BASE_LIBS}
+DeathTest_SOURCES=main.cpp DeathTest.cpp
+DeathTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
