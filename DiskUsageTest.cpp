@@ -525,25 +525,25 @@ TEST_F(RaIIFolderUsage, GetDirectoryDiskUsage__OneLevelWithOneFileDirectory) {
 
 // Measure the actual time to do DU recursively on the /usr/local/probe/pcap directory
 TEST_F(RaIIFolderUsage, GetDirectoryDiskUsageRealPcapDirectory) {
-   DiskUsage usage{"/usr/local/probe/pcap/"};
+   std::string path = {"/usr/local/probe/pcap/"};
+
+   DiskUsage usage{path};
    StopWatch watch;
-   std::string path = {"/other"};
    
    std::string duCmd = {"du -bc " + path + " > /tmp/out.txt"};
    int res = system(duCmd.c_str());
-   LOG(INFO) << "****** /usr/local/probe/pcap SYSTEM(DU) took: " << watch.ElapsedSec() << " seconds. Result: " << res;
+   LOG(INFO) << "****** " << path << " SYSTEM(DU) took: " << watch.ElapsedSec() << " seconds. Result: " << res;
 
    watch.Restart();
    auto du2 = usage.RecursiveFolderDiskUsed(path, MemorySize::Byte);
-   LOG(INFO) << "****** Homemade DU COMMAND ON /usr/local/probe/pcap : " << watch.ElapsedSec() << " seconds. Size was: " << du2 << " byte";   
+   LOG(INFO) << "****** Homemade DU COMMAND ON " << path << " : " << watch.ElapsedSec() << " seconds. Size was: " << du2 << " byte";   
 
    watch.Restart();
-   const int maxTraversal = 20;
-   auto du3 = usage.RecursiveFolderDiskUsed2(path, MemorySize::Byte, maxTraversal);
-   LOG(INFO) << "****** Homemade NEW  DU COMMAND ON /usr/local/probe/pcap : " << watch.ElapsedSec() << " seconds. Size was: " << du3 << " byte";   
-
-
+   auto du3 = usage.RecursiveFolderDiskUsed2(path, MemorySize::Byte);
+   LOG(INFO) << "****** Homemade NEW  DU COMMAND ON " << path << " : " << watch.ElapsedSec() << " seconds. Size was: " << du3 << " byte";   
 }
+
+
 
 TEST_F(RaIIFolderUsage, DISABLED_FolderDoesExist) {
    DiskUsage notThere{"/usr/local/probe/pcap/"};
