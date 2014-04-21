@@ -317,6 +317,7 @@ ToolsTestHashing.cpp \
 EthInfoTest.cpp \
 WorkerThreadTest.cpp \
 ToolsRangeTest.cpp \
+ToolsTestFileSystemWalker.cpp \
 ToolsConcurrentLambdaTest.cpp \
 ToolsConcurrentTest.cpp \
 ToolsConcurrentTestHelper.cpp \
