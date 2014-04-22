@@ -26,7 +26,9 @@ public:
       return {directory + "/" + filename};
    }
     
+   void ThreeDirectoriesThreeFiles();
 
+   
 protected:
 
    virtual void SetUp() {
@@ -39,5 +41,6 @@ protected:
       EXPECT_EQ(0, system(removeDir.c_str()));
    }
 
+   
    const std::string mTestDirectory;
 };

@@ -457,22 +457,6 @@ TEST(DiskUsage, DISABLED_doPrintouts) {
    LOG(INFO) << "/home/pcap percentage: " << percentage;
 }
 
-// df and DiskUsage give very similar answers
-// du and FolderUsage give very similar answers
-// BUT: df and du differ in answer with about 5.8% or more ?? with 
-// df giving the higher answer
-
-TEST(DiskUsage, DISABLED_ToWaysToCheck) {
-   DiskUsage home{"/home/"};
-   auto homeUsed = home.DiskUsed(MemorySize::KByte);
-
-   auto homeAsFolder = home.RecursiveFolderDiskUsed("/home/", MemorySize::KByte);
-
-   ASSERT_GE(homeUsed, homeAsFolder);
-   size_t percentUnitsx10 = (1000 * (homeUsed - homeAsFolder)) / homeAsFolder;
-   EXPECT_EQ(percentUnitsx10, 58);
-}
-
 TEST(FolderUsage, FolderDoesNotExist) {
    DiskUsage notThere{"abc123"};
    auto result = notThere.RecursiveFolderDiskUsed("abc123", MemorySize::GB);
