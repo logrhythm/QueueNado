@@ -11,7 +11,7 @@
 #include "include/global.h"
 
 std::string gProgramName;
-std::unique_ptr<g2LogWorker> g2logger(nullptr);
+std::shared_ptr<g2LogWorker> g2logger(nullptr);
 
 int main(int argc, char *argv[])
 {

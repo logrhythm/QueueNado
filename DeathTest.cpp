@@ -4,7 +4,7 @@
 #include "DeathTest.h"
 #include "Death.h"
 
-extern std::unique_ptr<g2LogWorker> g2logger;
+extern std::shared_ptr<g2LogWorker> g2logger;
 bool DeathTest::ranEcho(false);
 std::vector<Death::DeathCallbackArg> DeathTest::stringsEchoed;
 int DeathTest::ranTimes(0);
@@ -107,7 +107,7 @@ TEST(DeathTest, DISABLED_ReEnableFatalExit) {
    Death::Instance().SetupExitHandler();
 
    EXPECT_FALSE(Death::Instance().WasKilled());
-   Death::Instance().EnableDefaultFatalCall(g2logger.get());
+   Death::Instance().EnableDefaultFatalCall(g2logger);
    CHECK(false);
    std::this_thread::sleep_for(std::chrono::seconds(2));
 }
