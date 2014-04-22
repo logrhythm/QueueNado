@@ -1,5 +1,8 @@
-#include "Death.h"
+
 #include <g2logworker.hpp>
+#include <unistd.h>
+
+#include "Death.h"
 
 /**
  * Singleton Instance Method
@@ -16,6 +19,17 @@ Death::Death() : mReceived(false), mMessage {
 }, mEnableDefaultFatal(false)
 {
 
+}
+
+/**
+ * The most common use case is for ZMQ sockets to want their files cleared on 
+ *   fatal exits
+ * @param binding
+ */
+void Death::DeleteIpcFiles(const DeathCallbackArg& binding) {
+   if (binding.find(".ipc") != std::string::npos) {
+      unlink(binding.c_str());
+   }
 }
 
 /**

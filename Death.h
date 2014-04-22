@@ -25,7 +25,7 @@ public:
    static std::string Message();
    static void RegisterDeathEvent(DeathCallbackType deathFunction, const DeathCallbackArg& deathArg);
    static void EnableDefaultFatalCall(std::shared_ptr<g2LogWorker> loggerWorker);
-   
+   static void DeleteIpcFiles(const DeathCallbackArg& binding);
 private:
    Death();
    Death(Death&) = delete;
