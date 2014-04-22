@@ -1192,9 +1192,10 @@ TEST_F(DiskCleanupTest, CleanupOldPcapFiles) {
       es.mOldestFiles.clear();
       EXPECT_FALSE(cleanup.TooMuchPCap(stats));
       EXPECT_EQ(1, stats.aTotalFiles);
-      size_t ByteTotalLeft = 1052672;
+      size_t ByteUsedForPcapRootFolder = 4096;
+      size_t ByteTotalLeft = 1052672; 
       DiskUsage usage(testDir.str());
-      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte), ByteTotalLeft);
+      EXPECT_EQ(usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte), ByteTotalLeft + ByteUsedForPcapRootFolder);
 
       mConf.mConfLocation = "resources/test.yaml.DiskCleanup9";
       cleanup.ResetConf();
