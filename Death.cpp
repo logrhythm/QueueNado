@@ -23,21 +23,20 @@ Death::Death() : mReceived(false), mMessage {
  * @param loggerWorker
  */
 void Death::EnableDefaultFatalCall(g2LogWorker* loggerWorker) {
-   Instance().mEnableDefaultFatal = true;
-   Instance().mWorker = loggerWorker;
+   Death::Instance().mEnableDefaultFatal = true;
+   Death::Instance().mWorker = loggerWorker;
 }
 /// @param death message with any captured death details
 
 void Death::Received(g2::internal::FatalMessage death) {
-   Death& instance = Instance();
-   instance.mReceived = true;
-   instance.mMessage = death.message_;
-   std::lock_guard<std::mutex> glock(instance.mListLock);
-   for (const auto& deathFunction : instance.mShutdownFunctions) {
+   Death::Instance().mReceived = true;
+   Death::Instance().mMessage = death.message_;
+   std::lock_guard<std::mutex> glock(Death::Instance().mListLock);
+   for (const auto& deathFunction : Death::Instance().mShutdownFunctions) {
       (deathFunction.first)(deathFunction.second);
    }
-   if (instance.mEnableDefaultFatal && nullptr != instance.mWorker ) {
-      instance.mWorker->fatal(death);
+   if (Death::Instance().mEnableDefaultFatal && nullptr != Death::Instance().mWorker ) {
+      Death::Instance().mWorker->fatal(death);
    }
 }
 
@@ -46,14 +45,12 @@ void Death::Received(g2::internal::FatalMessage death) {
  * @return 
  */
 void Death::RegisterDeathEvent(DeathCallbackType deathFunction, const DeathCallbackArg& deathArg) {
-   Death& instance = Instance();
-   std::lock_guard<std::mutex> glock(instance.mListLock);
-   instance.mShutdownFunctions.push_back(std::make_pair(deathFunction,deathArg));
+   std::lock_guard<std::mutex> glock(Death::Instance().mListLock);
+   Death::Instance().mShutdownFunctions.push_back(std::make_pair(deathFunction,deathArg));
 }
 
 bool Death::WasKilled() {
-   Death& instance = Instance();
-   return instance.mReceived;
+   return Death::Instance().mReceived;
 }
 
 /// Please call this if you plan on doing DEATH tests. 
@@ -63,14 +60,13 @@ void Death::SetupExitHandler() {
 }
 
 void Death::ClearExits() {
-   Death& instance = Instance();
-   instance.mReceived = false;
-   instance.mMessage = "";
-   std::lock_guard<std::mutex> glock(instance.mListLock);
-   instance.mShutdownFunctions.clear();
+   Death::Instance().mReceived = false;
+   Death::Instance().mMessage = "";
+   std::lock_guard<std::mutex> glock(Death::Instance().mListLock);
+   Death::Instance().mShutdownFunctions.clear();
 }
 
  std::string Death::Message() {
-    return Instance().mMessage;
+    return Death::Instance().mMessage;
  }
 
