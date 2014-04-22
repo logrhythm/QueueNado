@@ -3,12 +3,42 @@
 
 #include "DeathTest.h"
 #include "Death.h"
+#include "FileIO.h"
 
 extern std::shared_ptr<g2LogWorker> g2logger;
 bool DeathTest::ranEcho(false);
 std::vector<Death::DeathCallbackArg> DeathTest::stringsEchoed;
 int DeathTest::ranTimes(0);
+TEST(DeathTest, DeleteIpcFilesRemovesIPCFiles) {
+   DeathTest::ranEcho = false;
+   DeathTest::ranTimes = 0;
+   DeathTest::stringsEchoed.clear();
+   RaiiDeathCleanup cleanup;
+   Death::Instance().SetupExitHandler();
+   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, "ipc:///tmp/test.ipc");
+   unlink("/tmp/test.ipc");
+   ASSERT_FALSE(FileIO::DoesFileExist("/tmp/test.ipc"));
+   ASSERT_FALSE(FileIO::WriteAsciiFileContent("/tmp/test.ipc", "test").HasFailed());
+   ASSERT_TRUE(FileIO::DoesFileExist("/tmp/test.ipc"));
+   CHECK(false);
+   ASSERT_FALSE(FileIO::DoesFileExist("/tmp/test.ipc"));
+}
 
+TEST(DeathTest, DeleteIpcFilesDoesntRemoveNonIPCFiles) {
+   DeathTest::ranEcho = false;
+   DeathTest::ranTimes = 0;
+   DeathTest::stringsEchoed.clear();
+   RaiiDeathCleanup cleanup;
+   Death::Instance().SetupExitHandler();
+   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, "tcp:///tmp/test.deathtest");
+   unlink("/tmp/test.deathtest");
+   ASSERT_FALSE(FileIO::DoesFileExist("/tmp/test.deathtest"));
+   ASSERT_FALSE(FileIO::WriteAsciiFileContent("/tmp/test.deathtest", "test").HasFailed());
+   ASSERT_TRUE(FileIO::DoesFileExist("/tmp/test.deathtest"));
+   CHECK(false);
+   ASSERT_TRUE(FileIO::DoesFileExist("/tmp/test.deathtest"));
+   unlink("/tmp/test.deathtest");
+}
 void DeathTest::EchoTheString(const std::string& theString) {
    stringsEchoed.push_back(theString);
    ranEcho = true;
@@ -89,17 +119,19 @@ TEST(DeathTest, ThreadSafeTest) {
    for (int i = 0; i < 10000; i++) {
       waitingPromises.push_back(std::async(std::launch::async, ManyThreads));
    }
-
-   CHECK(false);
    for (auto& waitFor : waitingPromises) {
       waitFor.get();
    }
+   CHECK(false);
+
    EXPECT_TRUE(DeathTest::ranEcho);
    EXPECT_FALSE(DeathTest::stringsEchoed.empty());
    EXPECT_EQ(10000, DeathTest::ranTimes);
    EXPECT_EQ(1,DeathTest::stringsEchoed.size());
    EXPECT_EQ("race", DeathTest::stringsEchoed[0]);
 }
+
+
 //TEST(DeathTest, ReEnableFatalExit) {
 
 TEST(DeathTest, DISABLED_ReEnableFatalExit) {
