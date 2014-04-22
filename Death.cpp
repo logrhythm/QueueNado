@@ -27,8 +27,10 @@ Death::Death() : mReceived(false), mMessage {
  * @param binding
  */
 void Death::DeleteIpcFiles(const DeathCallbackArg& binding) {
-   if (binding.find(".ipc") != std::string::npos) {
-      unlink(binding.c_str());
+   auto realPathStart = binding.find("ipc://");
+   if (realPathStart != std::string::npos) {
+      std::string realPath(binding,realPathStart+6);
+      unlink(realPath.c_str());
    }
 }
 
