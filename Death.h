@@ -24,7 +24,7 @@ public:
    static void SetupExitHandler();
    static std::string Message();
    static void RegisterDeathEvent(DeathCallbackType deathFunction, const DeathCallbackArg& deathArg);
-   static void EnableDefaultFatalCall(g2LogWorker* loggerWorker);
+   static void EnableDefaultFatalCall(std::shared_ptr<g2LogWorker> loggerWorker);
    
 private:
    Death();
@@ -37,7 +37,7 @@ private:
    std::mutex mListLock;
    std::vector<std::pair<DeathCallbackType,DeathCallbackArg> > mShutdownFunctions;
    bool mEnableDefaultFatal;
-   g2LogWorker* mWorker;
+   std::weak_ptr<g2LogWorker> mWorker;
 };
 
 /** Makes sure that any Death tests will be cleaned up at test exit

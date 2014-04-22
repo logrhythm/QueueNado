@@ -13,7 +13,7 @@ Death& Death::Instance() {
 
 Death::Death() : mReceived(false), mMessage {
    ""
-}, mEnableDefaultFatal(false), mWorker(nullptr)
+}, mEnableDefaultFatal(false)
 {
 
 }
@@ -22,7 +22,7 @@ Death::Death() : mReceived(false), mMessage {
  * In order to re-enable the default handler you must re-supply the worker 
  * @param loggerWorker
  */
-void Death::EnableDefaultFatalCall(g2LogWorker* loggerWorker) {
+void Death::EnableDefaultFatalCall(std::shared_ptr<g2LogWorker> loggerWorker) {
    Death::Instance().mEnableDefaultFatal = true;
    Death::Instance().mWorker = loggerWorker;
 }
@@ -35,8 +35,8 @@ void Death::Received(g2::internal::FatalMessage death) {
    for (const auto& deathFunction : Death::Instance().mShutdownFunctions) {
       (deathFunction.first)(deathFunction.second);
    }
-   if (Death::Instance().mEnableDefaultFatal && nullptr != Death::Instance().mWorker ) {
-      Death::Instance().mWorker->fatal(death);
+   if (Death::Instance().mEnableDefaultFatal && !Death::Instance().mWorker.expired() ) {
+      Death::Instance().mWorker.lock()->fatal(death);
    }
 }
 
