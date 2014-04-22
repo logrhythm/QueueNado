@@ -1,4 +1,3 @@
-#include "BoomStick.h"
 #include "g2log.hpp"
 #include <czmq.h>
 #include <zctx.h>
@@ -12,6 +11,9 @@
 #include "boost/uuid/uuid_io.hpp"
 #include <thread>
 #include <chrono>
+
+#include "BoomStick.h"
+#include "Death.h"
 namespace {
 
    void ShrinkToFit(std::map<std::string, std::string>& map) {
@@ -186,6 +188,7 @@ bool BoomStick::ConnectToBinding(void* socket, const std::string& binding) {
    }
    zsocket_set_sndhwm(socket, mSendHWM);
    zsocket_set_rcvhwm(socket, mRecvHWM);
+   
    return (zsocket_connect(socket, binding.c_str()) >= 0);
 }
 
@@ -231,6 +234,7 @@ bool BoomStick::Initialize() {
       mCtx = nullptr;
       return false;
    }
+   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, mBinding);
    return true;
 }
 

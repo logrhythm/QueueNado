@@ -1,12 +1,14 @@
-#include "Headcrab.h"
 #include <zmq.h>
 #include <zlib.h>
 #include <czmq.h>
-
-#include "boost/thread.hpp"
-#include "g2log.hpp"
 #define _OPEN_SYS
 #include <sys/stat.h>
+
+#include "Headcrab.h"
+#include "boost/thread.hpp"
+#include "g2log.hpp"
+#include "Death.h"
+
 
 /**
  * Construct a headcrab at the given ZMQ binding
@@ -64,6 +66,7 @@ void* Headcrab::GetFace(zctx_t* context) {
 
          zclock_sleep(100);
       }
+      Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, GetBinding());
       if (connectRetries <= 0) {
          return NULL;
       }

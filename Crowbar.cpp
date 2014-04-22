@@ -1,10 +1,12 @@
-#include "Crowbar.h"
 #include <zmq.h>
 #include <zlib.h>
 #include <czmq.h>
 #include <zframe.h>
+
+#include "Crowbar.h"
 #include "boost/thread.hpp"
 #include "g2log.hpp"
+#include "Death.h"
 
 /**
  * Construct a crowbar for beating things at the binding location
@@ -14,7 +16,7 @@
  */
 Crowbar::Crowbar(const std::string& binding) : mContext(NULL),
 mBinding(binding), mTip(NULL), mOwnsContext(true) {
-
+   
 }
 
 /**
@@ -28,6 +30,7 @@ mBinding(target.GetBinding()), mTip(NULL), mOwnsContext(false) {
    if (mContext == NULL) {
       mOwnsContext = true;
    }
+   
 }
 
 /**
@@ -72,6 +75,7 @@ void* Crowbar::GetTip() {
    if (!tip) {
       return NULL;
    }
+   
    zsocket_set_sndhwm(tip, GetHighWater());
    zsocket_set_rcvhwm(tip, GetHighWater());
    zsocket_set_linger(tip, 0);
@@ -88,6 +92,7 @@ void* Crowbar::GetTip() {
       LOG(WARNING) << "Could not connect to " << mBinding << ":" << error;
       zclock_sleep(100);
    }
+   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, mBinding);
    if (zctx_interrupted) {
       LOG(INFO) << "Caught Interrupt Signal";
    }
@@ -114,6 +119,7 @@ bool Crowbar::Wield() {
          mContext = NULL;
       }
    }
+   
    return ((mContext != NULL) && (mTip != NULL));
 }
 

@@ -1,9 +1,12 @@
-#include "Vampire.h"
-#include "czmq.h"
-#include "g2log.hpp"
 #include <boost/thread.hpp>
 #define _OPEN_SYS
 #include <sys/stat.h>
+
+#include "Vampire.h"
+#include "czmq.h"
+#include "g2log.hpp"
+#include "Death.h"
+
 
 /**
  * Construct our Vampire which is a pull in our ZMQ push pull.
@@ -113,6 +116,7 @@ bool Vampire::PrepareToBeShot() {
             return false;
          }
       }
+      Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, mLocation);
       CZMQToolkit::PrintCurrentHighWater(mBody, "Vampire: body");
    }
    return ((mContext != NULL) && (mBody != NULL));

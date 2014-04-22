@@ -1,8 +1,10 @@
-#include "ZeroMQ.h"
 #include <iostream>
+
+#include "ZeroMQ.h"
 #include "boost/thread.hpp"
 #include "CZMQToolkit.h"
 #include "g2log.hpp"
+#include "Death.h"
 
 /*
  * An overload of the normal free call that would clear message data
@@ -174,6 +176,7 @@ void ZeroMQ<void*>::ServerSetup(const std::string& binding,
       zmq_close(socket);
       socket = NULL;
    }
+   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, binding);
 }
 
 /**
@@ -191,7 +194,7 @@ void ZeroMQ<void*>::ClientSetup(const std::string& binding,
       zmq_close(socket);
       socket = NULL;
    }
-
+   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, binding);
 }
 
 /**

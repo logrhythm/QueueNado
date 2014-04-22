@@ -1,9 +1,10 @@
-#include "Shotgun.h"
-#include "g2log.hpp"
 #define _OPEN_SYS
 #include <sys/stat.h>
-#include "czmq.h"
 
+#include "Shotgun.h"
+#include "g2log.hpp"
+#include "czmq.h"
+#include "Death.h"
 /**
  * Shotgun class is a ZeroMQ Publisher.
  */
@@ -29,6 +30,7 @@ void Shotgun::Aim(const std::string& location) {
       throw std::string("Failed to connect to bind socket");
    }
    setIpcFilePermissions(location);
+   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, location);
 }
 
 /**

@@ -1,9 +1,10 @@
-#include "Rifle.h"
-#include "czmq.h"
-#include "g2log.hpp"
 #define _OPEN_SYS
 #include <sys/stat.h>
 
+#include "Rifle.h"
+#include "czmq.h"
+#include "g2log.hpp"
+#include "Death.h"
 /**
  * Construct our Rifle which is a push in our ZMQ push pull.
  */
@@ -111,6 +112,7 @@ bool Rifle::Aim() {
             return false;
          }
       }
+      Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, mLocation);
       //CZMQToolkit::PrintCurrentHighWater(mChamber, "Rifle: chamber");
    }
    return ((mContext != NULL) && (mChamber != NULL));

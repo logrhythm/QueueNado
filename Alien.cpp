@@ -1,8 +1,11 @@
+#include <memory>
+
 #include "Alien.h"
 #include "czmq.h"
 #include "boost/thread.hpp"
 #include "g2log.hpp"
-#include <memory>
+#include "Death.h"
+
 
 /**
  * Alien is a ZeroMQ Sub socket.
@@ -30,6 +33,7 @@ void Alien::PrepareToBeShot(const std::string& location) {
       LOG(WARNING) << "connect socket rc == " << rc;
       throw std::string("Failed to connect to socket");
    }
+   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, location);
 
 }
 
