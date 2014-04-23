@@ -119,7 +119,17 @@ TEST_F(ConversionTest, convertIPv6ToString) {
    EXPECT_EQ("fe80:0000:0000:0000:38ff:05fa:6b76:870c", ipv6Str);
 #endif
 }
+TEST_F(ConversionTest, convertIPv6ToStringInvalid) {
+#ifdef LR_DEBUG
+   Conversion mockDpi;
 
+   std::vector<uint32_t> ipv6Addr =
+   {0xfe80,0x00,0x00,0x00,0x38ff,0x05fa};
+
+   std::string ipv6Str = mockDpi.ConvertIP6ValToString(ipv6Addr);
+   EXPECT_EQ("fe80:0000:0000:0000:38ff:05fa", ipv6Str);
+#endif
+}
 TEST_F(ConversionTest, ReadShortFromString) {
 #ifdef LR_DEBUG
    char charbuffer[100];
