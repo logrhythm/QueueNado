@@ -1,11 +1,10 @@
 #include <memory>
-
-#include "Alien.h"
 #include "czmq.h"
 #include "boost/thread.hpp"
 #include "g2log.hpp"
-#include "Death.h"
 
+#include "Death.h"
+#include "Alien.h"
 
 /**
  * Alien is a ZeroMQ Sub socket.
