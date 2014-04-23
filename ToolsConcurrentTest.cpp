@@ -137,7 +137,6 @@ TEST(TestOfConcurrent, VerifyDestruction) {
 }
 
 
-
 TEST(TestOfConcurrent, VerifyImmediateReturnForSlowFunctionCalls) {
    auto start = clock::now();
    {
@@ -148,13 +147,15 @@ TEST(TestOfConcurrent, VerifyImmediateReturnForSlowFunctionCalls) {
       EXPECT_LT(std::chrono::duration_cast<std::chrono::seconds>(clock::now() - start).count(), 1);
    } // at destruction all 1 second calls will be executed before we quit
 
-   EXPECT_TRUE(std::chrono::duration_cast<std::chrono::seconds>(clock::now() - start).count() >= 10); // 
+   EXPECT_TRUE(std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - start).count() >= (10*200)); // 
 }
 
 
 
+
+
 TEST(TestOfConcurrent, IsConcurrentReallyAsyncWithFifoGuarantee__AtomicInside_Wait1Minute) {
-   std::cout << "100 thread runs. Please wait a minute" << std::endl;
+   std::cout << "100 thread runs. Please wait a bit" << std::endl;
    std::vector<std::future<void>> result;
 
    std::atomic<size_t> count_of_flip{0};

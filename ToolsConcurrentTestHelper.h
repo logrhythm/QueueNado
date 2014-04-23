@@ -88,7 +88,7 @@ namespace TestOfConcurrentHelper {
    /** Verify concurrent runs,. "no" delay for the caller. */
    struct DelayedCaller {
       void DoDelayedCall() {
-         std::this_thread::sleep_for(std::chrono::seconds(1));
+         std::this_thread::sleep_for(std::chrono::milliseconds(200));
       }
    };
 

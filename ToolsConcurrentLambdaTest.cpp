@@ -131,7 +131,7 @@ TEST(TestOfSutterConcurrent, VerifyImmediateReturnForSlowFunctionCalls) {
       EXPECT_LT(std::chrono::duration_cast<std::chrono::seconds>(clock::now() - start).count(), 1);
    } // at destruction all 1 second calls will be executed before we quit
 
-   EXPECT_TRUE(std::chrono::duration_cast<std::chrono::seconds>(clock::now() - start).count() >= 10); // 
+  EXPECT_TRUE(std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - start).count() >= (10*200)); // 
 }
 
 TEST(TestOfSutterConcurrent, unique_ptr_wrapps_concurrent) {
