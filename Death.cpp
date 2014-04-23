@@ -14,9 +14,7 @@ Death& Death::Instance() {
    return gInstance;
 }
 
-Death::Death() : mReceived(false), mMessage {
-   ""
-}, mEnableDefaultFatal(false)
+Death::Death() : mReceived(false), mMessage {""}, mEnableDefaultFatal(false)
 {
 
 }
@@ -29,7 +27,7 @@ Death::Death() : mReceived(false), mMessage {
 void Death::DeleteIpcFiles(const DeathCallbackArg& binding) {
    auto realPathStart = binding.find("ipc://");
    if (realPathStart != std::string::npos) {
-      std::string realPath(binding,realPathStart+6);
+      std::string realPath(binding,realPathStart+6); // start at the end of the matched string
       unlink(realPath.c_str());
    }
 }
@@ -40,7 +38,7 @@ void Death::DeleteIpcFiles(const DeathCallbackArg& binding) {
  */
 void Death::EnableDefaultFatalCall(std::shared_ptr<g2LogWorker> loggerWorker) {
    Death::Instance().mEnableDefaultFatal = true;
-   Death::Instance().mWorker = loggerWorker;
+   Death::Instance().mWorker = loggerWorker; // weak pointer constructed from shared
 }
 /// @param death message with any captured death details
 
@@ -51,8 +49,9 @@ void Death::Received(g2::internal::FatalMessage death) {
    for (const auto& deathFunction : Death::Instance().mShutdownFunctions) {
       (deathFunction.first)(deathFunction.second);
    }
-   if (Death::Instance().mEnableDefaultFatal && !Death::Instance().mWorker.expired() ) {
-      Death::Instance().mWorker.lock()->fatal(death);
+   auto lockedWorkerPointer = Death::Instance().mWorker.lock();
+   if (Death::Instance().mEnableDefaultFatal && nullptr != lockedWorkerPointer.get() ) {
+      lockedWorkerPointer->fatal(death);
    }
 }
 
