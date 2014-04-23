@@ -202,31 +202,16 @@ TEST_F(ToolsTestFileSystemWalker, ThreeDirectoriesThreeFiles_100Threads) {
    EXPECT_TRUE(FileIO::DoesDirectoryExist(dir3));
    EXPECT_EQ(dir2, "/tmp/TempFileSystemWalker/dir1/dir2");
    
-   EXPECT_TRUE(FileIO::DoesFileExist(file1)); ///tmp/TempFileSystemWalker/dir1/file_0
-   EXPECT_TRUE(FileIO::DoesFileExist(file2)); //tmp/TempFileSystemWalker/dir2/file_11
-   EXPECT_TRUE(FileIO::DoesFileExist(file3)); //tmp/TempFileSystemWalker/dir2/file_11
+   EXPECT_TRUE(FileIO::DoesFileExist(file1)); 
+   EXPECT_TRUE(FileIO::DoesFileExist(file2)); 
+   EXPECT_TRUE(FileIO::DoesFileExist(file3)); 
    
+   std::vector<std::future<void>> futures;
    for (size_t index = 0; index < 100; ++index) {
-      auto future0 = std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this);
-      auto future1 = std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this);
-      auto future2 = std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this);
-      auto future3 = std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this);
-      auto future4 = std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this);
-      auto future5 = std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this);
-      auto future6 = std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this);
-      auto future7 = std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this);
-      auto future8 = std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this);
-      auto future9 = std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this);
-
-      future9.wait();
-      future8.wait();
-      future7.wait();
-      future6.wait();
-      future5.wait();
-      future4.wait();
-      future3.wait();
-      future2.wait();
-      future1.wait();
-      future0.wait();
+      futures.push_back(std::async(std::launch::async, &ToolsTestFileSystemWalker::ThreeDirectoriesThreeFiles, this));
+   }
+   
+   for(auto& result : futures) {
+      result.get();
    }
 }

@@ -516,6 +516,9 @@ TEST_F(RaIIFolderUsage, GetDirectoryDiskUsage__OneLevelWithOneFileDirectory) {
 
 
 
+// 
+//   Run the disabled tests with  --gtest_also_run_disabled_tests
+//
 
 // Measure the actual time to do DU recursively on the /usr/local/probe/pcap directory
 TEST_F(RaIIFolderUsage, DISABLED_GetDirectoryDiskUsageRealPcapDirectory) {
