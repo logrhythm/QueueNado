@@ -27,7 +27,6 @@ protected:
    };
 
    virtual void TearDown() {
-      std::this_thread::sleep_for(std::chrono::seconds(2));
       Death::Instance().ClearExits();
       
    };
