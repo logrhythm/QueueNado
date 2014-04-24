@@ -6,7 +6,7 @@
 #include "MockConfSlave.h"
 #include <vector>
 #include <g2log.hpp>
-
+#include <sys/stat.h>
 
 #ifdef LR_DEBUG
 
@@ -110,6 +110,70 @@ TEST_F(DiskPcapMoveTest, CreatePcapSubDirectories_FailForBogusLocation){
    MockConf conf;
    MockDiskPcapMover mover(conf);
    EXPECT_FALSE(mover.CreatePcapSubDirectories({"does/not/exist"}));
+}
+
+
+
+TEST_F(DiskPcapMoveTest, FixupPermissions__SanityCheck) {
+   auto dir = CreateSubDirectory("testing");
+   EXPECT_TRUE(FileIO::DoesDirectoryExist(dir));
+   
+   MockConf conf;
+   MockDiskPcapMover mover(conf);
+   const mode_t permissions = mover.GetPcapPermissions();
+   int changed = chmod(dir.c_str(), permissions);
+   
+   struct stat buf;
+   EXPECT_TRUE(0 == stat(dir.c_str(), &buf));
+   EXPECT_EQ(permissions, (buf.st_mode & permissions));
+   
+   EXPECT_NE(permissions, (buf.st_mode & 777));
+}
+
+
+TEST_F(DiskPcapMoveTest, FixupPermissions) {
+   MockConf conf;
+   MockDiskPcapMover mover(conf);
+   mover.mOverrideProbePcapOriginalLocation = true; // using GetFirstPcapCaptureLocation from MockConf
+
+   conf.mPcapCaptureFolderPerPartitionLimit = 10;
+   conf.mOverrideGetPcapCaptureLocations = true;
+   conf.mPCapCaptureLocations.clear();
+   conf.mPCapCaptureLocations.push_back(mTestDirectory);
+   mover.CreatePcapSubDirectories(mTestDirectory);
+
+   
+  
+   
+   const mode_t permissions = mover.GetPcapPermissions();
+   EXPECT_EQ(permissions, mode_t{(S_IRWXU | S_IXGRP | S_IXOTH | S_IROTH)});
+   
+   for (size_t index = 0; index < 10; ++index) {
+      const std::string directory = {mTestDirectory + "/" + std::to_string(index)};
+      EXPECT_TRUE(FileIO::DoesDirectoryExist(directory));
+
+      struct stat buf;
+      EXPECT_TRUE(0 == stat(directory.c_str(), &buf));
+      EXPECT_EQ(permissions, buf.st_mode & permissions);
+
+      // as a last step. set the permissions to something ELSE
+      // and verify that they are  now false
+      EXPECT_TRUE(0 == chmod(directory.c_str(), 777)) << "error: " << std::strerror(errno);
+      EXPECT_TRUE(0 == stat(directory.c_str(), &buf));
+      EXPECT_NE(permissions, buf.st_mode & permissions);
+   }
+
+   // Verify that they are fixed back again at starup
+   mover.FixupPermissions(mTestDirectory);
+   for (size_t index = 0; index < 10; ++index) {
+      const std::string directory = {mTestDirectory + "/" + std::to_string(index)};
+      EXPECT_TRUE(FileIO::DoesDirectoryExist(directory));
+
+      const mode_t permissions = mover.GetPcapPermissions();
+      struct stat buf;
+      EXPECT_TRUE(0 == stat(directory.c_str(), &buf));
+      EXPECT_EQ(permissions, buf.st_mode & permissions);
+   }
 }
 
 
