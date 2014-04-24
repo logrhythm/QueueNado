@@ -14,8 +14,15 @@ void ClassWithAWorker::WaitLoopWithArgs(unsigned int msSleep) {
    std::this_thread::sleep_for(std::chrono::milliseconds(msSleep));
 }
 
+
 void ClassWithAWorker::LoopThatThrowsInt(const int throwMe) {
-   throw throwMe;
+   RaiiTrownWasMade flag(mHasThrownAlready);
+   std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+   // skip annoying printouts
+   if (!mHasThrownAlready) {
+      throw throwMe;
+   }    
 }
 
 std::string ClassWithAWorker::What() {
@@ -59,7 +66,10 @@ TEST_F(WorkerThreadTest, RIAAWorks) {
       WorkerThread testThread(&ClassWithAWorker::LoopThatThrowsInt, &hasWorker, 100);
       size_t counter{0};
       while(hasWorker.mRunning == false && ++counter < 100) {
-         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+         if (hasWorker.mHasThrownAlready) {
+           testThread.Stop();
+         }
+         std::this_thread::yield;
       }  
       testThread.Stop();
    }
