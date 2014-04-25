@@ -320,6 +320,7 @@ ToolsRangeTest.cpp \
 ToolsConcurrentLambdaTest.cpp \
 ToolsConcurrentTest.cpp \
 ToolsConcurrentTestHelper.cpp \
+ToolsTestFileSystemWalker.cpp \
 Death.cpp
 ToolsTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
