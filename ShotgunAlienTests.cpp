@@ -1,7 +1,11 @@
-#include "ShotgunAlienTests.h"
+
 #include "boost/pointer_cast.hpp"
 #include <czmq.h>
 #include <boost/thread.hpp>
+
+#include "ShotgunAlienTests.h"
+#include "Death.h"
+#include "FileIO.h"
 void * ShotgunAlienTests::ShotgunThread(void * arg) {
    ShotgunAmmo* ammo = static_cast<ShotgunAmmo*> (arg);
    printf("shooting %d bullet(s) at %s\n", ammo->count, ammo->location.c_str());
@@ -57,7 +61,18 @@ std::string ShotgunAlienTests::GetInprocLocation() {
    inprocLocation.append(boost::lexical_cast<std::string > (pid));
    return inprocLocation;
 }
-
+TEST_F(ShotgunAlienTests, ipcFilesCleanedOnFatal) {
+   std::string target("ipc:///ShotgunAlienTestsDeath");
+   Shotgun stick;
+   Alien alien;
+   std::string addressRealPath(target,target.find("ipc://")+6);
+   Death::SetupExitHandler();
+   stick.Aim(target);
+   alien.PrepareToBeShot(target);
+   ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath));
+   CHECK(false);
+   ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath));
+}
 TEST_F(ShotgunAlienTests, ShotInTheDark) {
    Shotgun shotgun;
    std::string location = ShotgunAlienTests::GetTcpLocation();
