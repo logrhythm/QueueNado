@@ -49,10 +49,18 @@ struct MockDiskPcapMover : public DiskPcapMover {
       return DiskPcapMover::DirectoryExistsUpToLimit(location);
    }
    
-  bool DirectoryNoOverflow(const std::string& location) {
+  bool DirectoryNoOverflow(const std::string& location) LR_OVERRIDE {
      return DiskPcapMover::DirectoryNoOverflow(location);
   }
   
+   bool FixupPermissions(const std::string& location) LR_OVERRIDE {
+      return DiskPcapMover::FixupPermissions(location);
+   }
+  
+   mode_t GetPcapPermissions() const LR_OVERRIDE {
+      return DiskPcapMover::GetPcapPermissions();      
+   }
+   
   bool mOverrideProbePcapOriginalLocation;
 };
 

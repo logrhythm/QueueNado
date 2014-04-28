@@ -23,14 +23,20 @@ protected:
    }  
    
    
-   virtual bool CreateSubDirectory(const std::string& directory){
+   virtual std::string CreateSubDirectory(const std::string& directory){
       std::string mkTestSubDir{"mkdir -p " + mTestDirectory + "/" + directory};
-      return (0 == system(mkTestSubDir.c_str()));      
+      if (0 != system(mkTestSubDir.c_str())) {
+         return {};
+      }      
+      return {mTestDirectory + "/" + directory};
    }
    
-   virtual bool CreateFile(const std::string& directory, const std::string& filename){
+   virtual std::string CreateFile(const std::string& directory, const std::string& filename){
       std::string mkTestSubDir{"touch " + directory + "/" + filename};
-      return (0 == system(mkTestSubDir.c_str()));    
+      if (0 != system(mkTestSubDir.c_str())) {
+         return {};
+      }
+      return {directory + "/" + filename};
    }
    
    

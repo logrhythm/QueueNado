@@ -74,7 +74,7 @@ TEST_F(WorkerThreadTest, RIAAWorks) {
       testThread.Stop();
    }
    EXPECT_TRUE(Death::WasKilled());
-   EXPECT_TRUE(Death::mMessage.find("EXIT trigger caused by broken Contract: CHECK") != std::string::npos);
+   EXPECT_TRUE(Death::Message().find("EXIT trigger caused by broken Contract: CHECK") != std::string::npos);
 }
 
 #else 

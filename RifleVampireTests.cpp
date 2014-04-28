@@ -1,7 +1,9 @@
-#include "RifleVampireTests.h"
 
 #include <czmq.h>
 #include <boost/thread.hpp>
+#include "RifleVampireTests.h"
+#include "Death.h"
+#include "FileIO.h"
 std::atomic<int> RifleVampireTests::mShotsDeleted;
 
 void TestDeleteString(void*, void* data) {
@@ -386,6 +388,19 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
 }
+TEST_F(RifleVampireTests, ipcFilesCleanedOnFatal) {
+   std::string target("ipc:///rifleVampireDeath");
+   Rifle stick{target};
+   Vampire vamp{target};
+   std::string addressRealPath(target,target.find("ipc://")+6);
+   Death::SetupExitHandler();
+   ASSERT_TRUE(stick.Aim());
+   ASSERT_TRUE(vamp.PrepareToBeShot());
+   ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath));
+   CHECK(false);
+   ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath));
+}
+
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCLargeSize) {
    if (geteuid() == 0) {
       std::string location = GetIpcLocation();

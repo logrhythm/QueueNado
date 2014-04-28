@@ -2,6 +2,8 @@
 #include "BoomStickTest.h"
 #include "MockSkelleton.h"
 #include "MockBoomStick.h"
+#include "FileIO.h"
+#include "Death.h"
 #include <set>
 #include <memory>
 #include <future>
@@ -63,7 +65,17 @@ namespace {
       runAsync(stick, 100);
    }
 }
-
+TEST_F(BoomStickTest, ipcFilesCleanedOnFatal) {
+   BoomStick stick{mAddress};
+   MockSkelleton target{mAddress};
+   std::string addressRealPath(mAddress,mAddress.find("ipc://")+6);
+   Death::SetupExitHandler();
+   ASSERT_TRUE(stick.Initialize());
+   ASSERT_TRUE(target.Initialize());
+   ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath));
+   CHECK(false);
+   ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath));
+}
 TEST_F(BoomStickTest, SharedSocketTest) {
    //https://code.google.com/p/googletest/wiki/AdvancedGuide#Death_Tests
    // give the socket to a running Skelleton then run a send and verify Death
@@ -462,3 +474,4 @@ TEST_F(BoomStickTest, emptyTest) {
    EXPECT_TRUE(true);
 }
 #endif
+

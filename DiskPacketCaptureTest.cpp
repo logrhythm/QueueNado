@@ -141,6 +141,83 @@ TEST_F(DiskPacketCaptureTest, ConfCreatesCorrectCaptureLocations) {
    EXPECT_TRUE(std::equal(putLocations.begin(), putLocations.end(), locations.begin()));
 }
 
+TEST_F(DiskPacketCaptureTest, IntegrationTestWithFileRemovedBetweenWrites) {
+   MockConf conf;
+   conf.mUnknownCaptureEnabled = true;
+   conf.mPCapCaptureLocations.push_back(testDir.str());
+   conf.mPcapCaptureFolderPerPartitionLimit = 1;
+   conf.mMaxIndividualPCap = 10; // MB
+   conf.mPCapCaptureMemoryLimit = 99999;
+   conf.mPcapCaptureMaxPackets = 99999999;
+   conf.mPCapCaptureSizeLimit = 999999999;
+   const size_t testPacketSize = 1024 * 1024;
+   MockDiskPacketCapture capture(conf);
+
+   ASSERT_TRUE(capture.Initialize());
+   DpiMsgLRPool& pool = DpiMsgLRPool::Instance();
+   networkMonitor::DpiMsgLR* testMessage = pool.GetDpiMsg();
+   struct upacket packet;
+   
+   testMessage->set_session("123456789012345678901234567890123456");
+   auto pathForMessage = DiskPcapPath::BuildFilenameWithPath(testMessage->session(), conf);
+   std::string pathForFile = {testDir.str() + "/0/" + testMessage->session()};
+   EXPECT_EQ(pathForMessage, pathForFile);
+
+   testMessage->set_totalpackets(0);
+   testMessage->set_packetsdelta(0);
+   testMessage->set_srcbytes(0);
+   testMessage->set_destbytes(0);
+   testMessage->set_totalbytes(0);
+   testMessage->set_totalbytesdelta(0);
+   testMessage->set_captured(false);
+   EXPECT_FALSE(testMessage->has_written() && testMessage->written());
+   packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
+   packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
+   packet.p->len = (testPacketSize);
+   for (int i = 0; i < conf.mMaxIndividualPCap - 2; i++) {
+      testMessage->set_totalpackets(testMessage->totalpackets() + 1);
+      testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
+      if (i % 2 == 0) {
+         testMessage->set_srcbytes(testMessage->srcbytes() + packet.p->len);
+      } else {
+         testMessage->set_destbytes(testMessage->destbytes() + packet.p->len);
+      }
+      capture.SavePacket(testMessage, &packet);
+      
+   }
+   EXPECT_FALSE(testMessage->has_written() && testMessage->written());
+   EXPECT_FALSE(testMessage->captured());
+   EXPECT_TRUE(capture.WriteSavedSessionToDisk(testMessage));
+   EXPECT_TRUE(testMessage->written());
+   testMessage->set_captured(true);
+   struct stat statbuf;
+
+   std::string testFile = DiskPcapPath::BuildFilenameWithPath(testMessage->session(), conf);
+   std::string path1{testDir.str() + "/0/" + testMessage->session()};
+   EXPECT_EQ(testFile, path1);
+   ASSERT_EQ(0, stat(testFile.c_str(), &statbuf));
+
+   remove(testFile.c_str());
+   for (int i = 0; i < 2; i++) {
+      testMessage->set_totalpackets(testMessage->totalpackets() + 1);
+      testMessage->set_packetsdelta(testMessage->packetsdelta() + 1);
+      if (i % 2 == 0) {
+         testMessage->set_srcbytes(testMessage->srcbytes() + packet.p->len);
+      } else {
+         testMessage->set_destbytes(testMessage->destbytes() + packet.p->len);
+      }
+      capture.SavePacket(testMessage, &packet);
+      EXPECT_FALSE(capture.WriteSavedSessionToDisk(testMessage));
+   }
+   EXPECT_FALSE(testMessage->written());
+   EXPECT_FALSE(testMessage->captured());
+
+   ASSERT_NE(0, stat(testFile.c_str(), &statbuf));
+
+   free(packet.p->data);
+   free(packet.p);
+}
+
 TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    MockConf conf;
    conf.mUnknownCaptureEnabled = true;
@@ -169,8 +246,8 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
    testMessage->set_destbytes(0);
    testMessage->set_totalbytes(0);
    testMessage->set_totalbytesdelta(0);
-   testMessage->set_captured(true);
-
+   testMessage->set_captured(false);
+   EXPECT_FALSE(testMessage->has_written() && testMessage->written());
    packet.p = reinterpret_cast<ctb_ppacket> (malloc(sizeof (ctb_pkt))); // 1MB packet
    packet.p->data = reinterpret_cast<ctb_uint8*> (malloc(testPacketSize)); // 1MB packet
    packet.p->len = (testPacketSize);
@@ -183,7 +260,9 @@ TEST_F(DiskPacketCaptureTest, IntegrationTestWithSizeLimitNothingPrior) {
          testMessage->set_destbytes(testMessage->destbytes() + packet.p->len);
       }
       capture.SavePacket(testMessage, &packet);
+      
    }
+   EXPECT_FALSE(testMessage->has_written() && testMessage->written());
    EXPECT_TRUE(capture.WriteSavedSessionToDisk(testMessage));
    EXPECT_EQ(conf.mMaxIndividualPCap + 2, testMessage->totalpackets());
    EXPECT_EQ((conf.mMaxIndividualPCap + 2)*(testPacketSize), testMessage->srcbytes() + testMessage->destbytes());
@@ -253,7 +332,7 @@ TEST_F(DiskPacketCaptureTest, DeleteLongPcapCaptureFalse) {
    testMessage->set_destbytes(0);
    testMessage->set_totalbytes(0);
    testMessage->set_totalbytesdelta(0);
-   testMessage->set_captured(true);
+   testMessage->set_captured(false);
 
    std::string testFile = testDir.str() + "/" + std::to_string(bucketDirectoryIndex) +"/" + testMessage->session();
 

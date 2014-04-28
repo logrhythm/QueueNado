@@ -1,8 +1,11 @@
-#include "CrowbarHeadcrabTests.h"
-#include "QosmosFileCallbacks.h"
+
 #include <czmq.h>
 #include <boost/thread.hpp>
 
+#include "CrowbarHeadcrabTests.h"
+#include "QosmosFileCallbacks.h"
+#include "Death.h"
+#include "FileIO.h"
 TEST_F(CrowbarHeadcrabTests, CrowbarBrokenSocket) {
    Crowbar firstCrowbar(mTarget);
    
@@ -11,6 +14,17 @@ TEST_F(CrowbarHeadcrabTests, CrowbarBrokenSocket) {
    EXPECT_TRUE(firstCrowbar.Swing("foo"));
    EXPECT_FALSE(firstCrowbar.Swing("foo"));
 
+}
+TEST_F(CrowbarHeadcrabTests, ipcFilesCleanedOnFatal) {
+   Crowbar stick{mTarget};
+   Headcrab target{mTarget};
+   std::string addressRealPath(mTarget,mTarget.find("ipc://")+6);
+   Death::SetupExitHandler();
+   ASSERT_TRUE(stick.Wield());
+   ASSERT_TRUE(target.ComeToLife());
+   ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath));
+   CHECK(false);
+   ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath));
 }
 TEST_F(CrowbarHeadcrabTests, SimpleConstructAndWieldCrowbar) {
 

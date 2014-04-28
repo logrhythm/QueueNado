@@ -32,7 +32,9 @@ AttributeRenamerTest \
 ForkerPipeTest \
 LicenseClientTest \
 SyslogReporterTest \ 
-SystemSanityTest
+SystemSanityTest \
+DeathTest \
+SyslogReporterTest
 
 BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/ \
@@ -53,6 +55,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -Wl,-R${abs_top_srcdir}/source/libsystem/ \
           -Wl,-R${abs_top_srcdir}/source/libremap/ \
           -Wl,-R${abs_top_srcdir}/source/liblicense/ \
+          -Wl,-R${abs_top_srcdir}/source/libdeath/ \
           -Wl,-R/usr/local/probe/lib/ \
           -Wl,-R/usr/local/probe/lib64/ \
           -Wl,-R${prefix}/lib \
@@ -73,6 +76,7 @@ BASE_LIBS=-Wl,-z -Wl,now \
           -L${abs_top_srcdir}/source/libsystem/ \
           -L${abs_top_srcdir}/source/libremap/ \
           -L${abs_top_srcdir}/source/liblicense/ \
+          -L${abs_top_srcdir}/source/libdeath/ \
           -L${abs_top_srcdir}/source/ \
           -L/usr/local/probe/lib/ \
           -L/usr/local/probe/lib64/ \
@@ -97,6 +101,7 @@ INCLUDES=-I${abs_top_srcdir}/source/ \
          -I${abs_top_srcdir}/source/libsystem \
          -I${abs_top_srcdir}/source/libremap \
          -I${abs_top_srcdir}/source/liblicense \
+         -I${abs_top_srcdir}/source/libdeath \
          -I/usr/local/probe/include \
          -include /usr/include/fenv.h
 
@@ -143,7 +148,8 @@ DYNAMIC_LIBS=-ltcmalloc \
              -lfork \
              -lforkmother \
              -lremap \
-             -llicense
+             -llicense \
+             -ldeath
 
 ForkerPipeTest_LDADD=${DYNAMIC_LIBS} -lfork
 ForkerPipeTest_LDFLAGS=${BASE_LIBS}
@@ -392,6 +398,7 @@ nmTest_SOURCES=main.cpp \
  ToolsTestStringFix.cpp \
  ToolsTestStopWatch.cpp \
  LicenseClientTest.cpp \
+ DeathTest.cpp \
  TestProtoDefaultsMethods.cpp
 
 # SysLoggerTest.cpp \  conflicts with Rule Engine
@@ -399,7 +406,7 @@ nmTest_SOURCES=main.cpp \
 
 SyslogReporterTest_LDADD=${DYNAMIC_LIBS}
 SyslogReporterTest_LDFLAGS=${BASE_LIBS}
-SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp MockSyslogReporter.h Death.cpp Death.h
+SyslogReporterTest_SOURCES=main.cpp SyslogReporterTest.cpp MockSyslogReporter.h 
 SyslogReporterTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 AttributeRenamerTest_LDADD=${DYNAMIC_LIBS}
@@ -412,6 +419,7 @@ LicenseClientTest_LDFLAGS=${BASE_LIBS}
 LicenseClientTest_SOURCES=main.cpp LicenseClientTest.cpp
 LicenseClientTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
+<<<<<<< HEAD
 SystemSanityTest_LDADD=${DYNAMIC_LIBS}
 SystemSanityTest_LDFLAGS=${BASE_LIBS}
 SystemSanityTest_SOURCES=main.cpp SystemSanityTest.cpp
@@ -419,3 +427,9 @@ SystemSanityTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@
 
 
 
+=======
+DeathTest_LDADD=${DYNAMIC_LIBS}
+DeathTest=${BASE_LIBS}
+DeathTest_SOURCES=main.cpp DeathTest.cpp
+DeathTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
+>>>>>>> 6915865f9ff849546256813ee6f8c7304fb5b6bf

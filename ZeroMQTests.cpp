@@ -1,8 +1,10 @@
-#include "ZeroMQTests.h"
-#include "MockZeroMQ.h"
+
 #include "zlib.h"
 #include <time.h>
 #include "boost/thread.hpp"
+
+#include "ZeroMQTests.h"
+#include "MockZeroMQ.h"
 
 using namespace std;
 int ZeroMQTests::gCurrentPacketSize(0);
