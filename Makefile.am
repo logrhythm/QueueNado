@@ -419,17 +419,12 @@ LicenseClientTest_LDFLAGS=${BASE_LIBS}
 LicenseClientTest_SOURCES=main.cpp LicenseClientTest.cpp
 LicenseClientTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
-<<<<<<< HEAD
 SystemSanityTest_LDADD=${DYNAMIC_LIBS}
 SystemSanityTest_LDFLAGS=${BASE_LIBS}
 SystemSanityTest_SOURCES=main.cpp SystemSanityTest.cpp
 SystemSanityTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
-
-
-=======
 DeathTest_LDADD=${DYNAMIC_LIBS}
 DeathTest=${BASE_LIBS}
 DeathTest_SOURCES=main.cpp DeathTest.cpp
 DeathTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
->>>>>>> 6915865f9ff849546256813ee6f8c7304fb5b6bf
