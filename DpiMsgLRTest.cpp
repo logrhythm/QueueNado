@@ -11,7 +11,30 @@ using namespace networkMonitor;
 using namespace google::protobuf;
 using namespace std;
 
-
+TEST_F(DpiMsgLRTests, BadBoundsOnIp6Addrs) {
+   DpiMsgLR testMsg;
+   testMsg.set_session("123456789012345678901234567890123456");
+   std::vector<uint32_t> badInputVector;
+   for (int i = 0 ; i < 1000 ; i++) {
+      testMsg.add_srcip6(i);
+      testMsg.add_destip6(i);
+      badInputVector.push_back(i);
+   }
+   std::vector<uint32_t> outputVector;
+   testMsg.GetSrcIP6(outputVector);
+   EXPECT_EQ(IPV6_NUM_QUADS,outputVector.size());
+   EXPECT_FALSE(testMsg.HasSrcIP6()); // it isn't valid
+   outputVector.clear();
+   testMsg.GetDstIP6(outputVector);
+   EXPECT_EQ(IPV6_NUM_QUADS,outputVector.size());
+   EXPECT_FALSE(testMsg.HasDstIP6()); // it isn't valid
+   testMsg.SetSrcIP6(badInputVector);
+   testMsg.SetDstIP6(badInputVector);
+   EXPECT_TRUE(testMsg.HasSrcIP6()); 
+   EXPECT_TRUE(testMsg.HasDstIP6()); 
+   EXPECT_EQ(IPV6_NUM_QUADS,testMsg.srcip6_size());
+   EXPECT_EQ(IPV6_NUM_QUADS,testMsg.destip6_size());
+}
 TEST_F(DpiMsgLRTests, EstimatePCapFileSize) {
    DpiMsgLR testMsg;
    
