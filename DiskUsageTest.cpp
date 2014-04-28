@@ -59,18 +59,6 @@ TEST(PcapDiskUsage, DoCalculateARealMountPoint) {
    //  EXPECT_EQ(true, storage1["/boot/"]); 
 }
 #endif
-TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_MB) {
-   std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
-   make1MFileFile += testDir.str();
-   make1MFileFile += "/1MFile";
-   EXPECT_EQ(0, system(make1MFileFile.c_str()));
-
-   DiskUsage usage(testDir.str());
-   size_t usedMB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte);
-   EXPECT_EQ(usedMB, 1024+4); // only the file, the size of the folder we are "in" overhead
-   usedMB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB);
-   EXPECT_EQ(usedMB, 1);
-}
 
 TEST(DiskUsage, FailedReading) {
    DiskUsage usage("abc");
@@ -254,6 +242,28 @@ TEST(DiskUsage, FileSystemID) {
            << "\n/\t\t" << root.FileSystemID()
            << "\n/mnt\t\t" << mnt.FileSystemID();
 }
+
+
+TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_MB) {
+   ASSERT_FALSE(FileIO::DoesFileExist({testDir.str() + "/1MFile"}));
+
+   std::string make1MFileFile = "dd bs=1024 count=1024 if=/dev/zero of=";
+   make1MFileFile += testDir.str();
+   make1MFileFile += "/1MFile";
+   EXPECT_EQ(0, system(make1MFileFile.c_str()));
+
+   DiskUsage usage(testDir.str());
+   size_t usedbyte = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::Byte);
+   EXPECT_EQ(usedbyte, 1024 * (1024+4)); // only the file, the size of the folder we are "in" overhead
+
+   size_t usedKbyte = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::KByte);
+   EXPECT_EQ(usedKbyte, 1024+4); 
+
+   size_t usedMB = usage.RecursiveFolderDiskUsed(testDir.str(), MemorySize::MB);
+   EXPECT_EQ(usedMB, 1);
+}
+
+
 
 TEST_F(RaIIFolderUsage, CreateFilesAndCheckSizes_GB) {
    std::string make1GFileFile = "dd bs=1024 count=1048576 if=/dev/zero of=";
@@ -447,22 +457,6 @@ TEST(DiskUsage, DISABLED_doPrintouts) {
    LOG(INFO) << "/home/pcap percentage: " << percentage;
 }
 
-// df and DiskUsage give very similar answers
-// du and FolderUsage give very similar answers
-// BUT: df and du differ in answer with about 5.8% or more ?? with 
-// df giving the higher answer
-
-TEST(DiskUsage, DISABLED_ToWaysToCheck) {
-   DiskUsage home{"/home/"};
-   auto homeUsed = home.DiskUsed(MemorySize::KByte);
-
-   auto homeAsFolder = home.RecursiveFolderDiskUsed("/home/", MemorySize::KByte);
-
-   ASSERT_GE(homeUsed, homeAsFolder);
-   size_t percentUnitsx10 = (1000 * (homeUsed - homeAsFolder)) / homeAsFolder;
-   EXPECT_EQ(percentUnitsx10, 58);
-}
-
 TEST(FolderUsage, FolderDoesNotExist) {
    DiskUsage notThere{"abc123"};
    auto result = notThere.RecursiveFolderDiskUsed("abc123", MemorySize::GB);
@@ -522,21 +516,27 @@ TEST_F(RaIIFolderUsage, GetDirectoryDiskUsage__OneLevelWithOneFileDirectory) {
 
 
 
+// 
+//   Run the disabled tests with  --gtest_also_run_disabled_tests
+//
 
 // Measure the actual time to do DU recursively on the /usr/local/probe/pcap directory
 TEST_F(RaIIFolderUsage, DISABLED_GetDirectoryDiskUsageRealPcapDirectory) {
-   DiskUsage usage{"/usr/local/probe/pcap/"};
-   StopWatch watch;
    std::string path = {"/usr/local/probe/pcap/"};
+   DiskUsage usage{path};
+   StopWatch watch;
    
    std::string duCmd = {"du -bc " + path + " > /tmp/out.txt"};
    int res = system(duCmd.c_str());
-   LOG(INFO) << "****** /usr/local/probe/pcap SYSTEM(DU) took: " << watch.ElapsedSec() << " seconds. Result: " << res;
+   LOG(INFO) << "****** " << path << " SYSTEM(DU) took: " << watch.ElapsedSec() << " seconds. Result: " << res;
 
    watch.Restart();
    auto du2 = usage.RecursiveFolderDiskUsed(path, MemorySize::Byte);
-   LOG(INFO) << "****** Homemade DU COMMAND ON /usr/local/probe/pcap : " << watch.ElapsedSec() << " seconds. Size was: " << du2 << " byte";   
+   LOG(INFO) << "****** Homemade DU COMMAND ON " << path << " : " << watch.ElapsedSec() << " seconds. Size was: " << du2 << " byte";   
+
 }
+
+
 
 TEST_F(RaIIFolderUsage, DISABLED_FolderDoesExist) {
    DiskUsage notThere{"/usr/local/probe/pcap/"};
