@@ -31,6 +31,8 @@ ToolsTest \
 AttributeRenamerTest \
 ForkerPipeTest \
 LicenseClientTest \
+SyslogReporterTest \ 
+SystemSanityTest \
 DeathTest \
 SyslogReporterTest
 
@@ -417,6 +419,11 @@ LicenseClientTest_LDADD=${DYNAMIC_LIBS}
 LicenseClientTest_LDFLAGS=${BASE_LIBS}
 LicenseClientTest_SOURCES=main.cpp LicenseClientTest.cpp
 LicenseClientTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
+
+SystemSanityTest_LDADD=${DYNAMIC_LIBS}
+SystemSanityTest_LDFLAGS=${BASE_LIBS}
+SystemSanityTest_SOURCES=main.cpp SystemSanityTest.cpp
+SystemSanityTest_CPPFLAGS =  -DINSTALL_PREFIX=\"$(prefix)\"  -DBUILD_VERSION=\"@PROBE_BUILD_VERSION@\"  -DGTEST_LINKED_AS_SHARED_LIBRARY=1
 
 DeathTest_LDADD=${DYNAMIC_LIBS}
 DeathTest=${BASE_LIBS}
