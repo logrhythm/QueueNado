@@ -242,7 +242,8 @@ TEST_F(ProcessManagerTest, CheckPidTrue) {
    MockProcessManager processManager(conf);
    processManager.SetPidDir("/tmp");
    int pid = getpid();
-   EXPECT_TRUE(processManager.CheckPidExists(pid));
+   Result<bool> result = processManager.CheckPidExists(pid);
+   EXPECT_TRUE(result.result);
 }
 
 TEST_F(ProcessManagerTest, CheckPidFalse) {
@@ -251,7 +252,9 @@ TEST_F(ProcessManagerTest, CheckPidFalse) {
    processManager.SetPidDir("/tmp");
    int maxPid = 32768;
    LOG(INFO) << "checking for pid that can't exist";
-   EXPECT_FALSE(processManager.CheckPidExists(maxPid + 1));
+   Result<bool> result = processManager.CheckPidExists(maxPid + 1);
+   EXPECT_FALSE(result.result);
+   EXPECT_FALSE(result.HasFailed());
 }
 #endif
 
