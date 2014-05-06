@@ -6,6 +6,7 @@
 #include <pcap/pcap.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/generated_message_reflection.h>
+#include "StringFix.h"
 
 using namespace networkMonitor;
 using namespace google::protobuf;
@@ -156,12 +157,13 @@ TEST_F(DpiMsgLRTests, enablePasswordScrubbing) {
    IndexedFieldPairs::const_iterator it;
    for (it = pairs.begin(); it != pairs.end(); ++it) {
       const std::string key((*it).second.first);
+      std::string keyToLower(stringfix::to_lower(key));
       const std::string value((*it).second.second);
       LOG(DEBUG) << "Key: " << key;
       LOG(DEBUG) << "Value: " << value;
       if (key.find("uuid") != std::string::npos) {
          ASSERT_EQ("01234567-89ab-cdef-0123456789abcdef", value);
-      } else if (key.find("Passwd") != std::string::npos) {
+      } else if (keyToLower.find("Passwd") != std::string::npos) {
          ASSERT_EQ("********", value);
       }
    }
