@@ -34,7 +34,7 @@ public:
       return ProcessManager::KillPid(pid);
    }
 
-   virtual bool CheckPidExists(const int pid) override {
+   virtual Result<bool> CheckPidExists(const int pid) override {
       return ProcessManager::CheckPidExists(pid);
    }
 
