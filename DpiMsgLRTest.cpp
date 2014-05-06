@@ -161,7 +161,7 @@ TEST_F(DpiMsgLRTests, enablePasswordScrubbing) {
       LOG(DEBUG) << "Value: " << value;
       if (key.find("uuid") != std::string::npos) {
          ASSERT_EQ("01234567-89ab-cdef-0123456789abcdef", value);
-      } else if (key.find("password") != std::string::npos) {
+      } else if (key.find("Passwd") != std::string::npos) {
          ASSERT_EQ("********", value);
       }
    }
