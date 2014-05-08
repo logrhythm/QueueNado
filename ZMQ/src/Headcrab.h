@@ -9,7 +9,7 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "include/global.h"
+#include "global.h"
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
 class Headcrab {

@@ -46,7 +46,6 @@ ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
        set(PLATFORM_LINK_LIBRIES rt)
        set(CMAKE_CXX_FLAGS "-Wall -rdynamic -Wunused -std=c++11 -pthread -D_GLIBCXX_USE_NANOSLEEP")
    endif()
-   set(PLATFORM_LINK_LIBRIES -llib_g2log)
 
 ELSEIF(MSVC)
       # VC11 bug: http://code.google.com/p/googletest/issues/detail?id=408
@@ -99,4 +98,4 @@ file(GLOB TEST_SRC_FILES ${DIR_UNIT_TEST}/*.h ${DIR_UNIT_TEST}/*.hpp ${DIR_UNIT_
 IF( NOT(MSVC))
   set_target_properties(${test} PROPERTIES COMPILE_FLAGS "-isystem -pthread ")
 ENDIF( NOT(MSVC))
-target_link_libraries(UnitTestRunner Death gtest_170_lib ${PLATFORM_LINK_LIBRIES})
+target_link_libraries(UnitTestRunner Death gtest_170_lib -lboost_thread -lboost_system -llib_g2log ${PLATFORM_LINK_LIBRIES})
