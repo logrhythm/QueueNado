@@ -13,4 +13,15 @@
 /ZMQ/cmake_install.cmake
 /ZMQ/compile_commands.json
 /rpms/
-
+/Death/CMakeFiles/
+/Death/CTestTestfile.cmake
+/Death/Makefile
+/Death/UnitTestRunner
+/Death/cmake_install.cmake
+/Death/libDeath.so
+/Death/libDeath_shared.so
+/Death/libgtest_170_lib.so
+/ZMQ/UnitTestRunner
+/ZMQ/libZMQ.so
+/ZMQ/libZMQ_shared.so
+/ZMQ/libgtest_170_lib.so
