@@ -66,17 +66,3 @@
 
 #define UUID_SIZE (36)
 
-enum class MemorySize: unsigned int {Byte, KByte, MB, GB};
-
-/**
- * Global simle values
- */
-namespace global {
-   /// @return the programName or "NOT_SET" if previously not set
-   std::string GetProgramName();
-  
-   /// @param name to be set for the global programname
-   void SetProgramName(const std::string& name);
-}
-
-
