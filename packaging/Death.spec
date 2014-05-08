@@ -1,10 +1,10 @@
-Name:          ZMQ
+Name:          Death
 Version:       1.0
 Release:       1%{?dist}
-Summary:       An implemnetation of ZMQ patterns for C++
+Summary:       An implemnetation of a on death callback structure built from g2log
 Group:         Development/Tools
 License:       MIT
-BuildRequires: probecmake >= 2.8, Death, czmq >= 2.0.3
+BuildRequires: probecmake >= 2.8, g2log-dev
 ExclusiveArch: x86_64
 
 %description

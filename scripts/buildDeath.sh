@@ -1,18 +1,18 @@
 #!/bin/bash
 set -e
 
-PACKAGE=ZMQ
+PACKAGE=Death
 VERSION=1.0
 
 PWD=`pwd`
-CWD=$PWD/ZMQ
-DISTDIR=$CWD/dist/ZMQ
+CWD=$PWD/$PACKAGE
+DISTDIR=$CWD/dist/$PACKAGE
 PATH=$PATH:/usr/local/probe/bin:$PATH
 
 rm -rf ~/rpmbuild
 rpmdev-setuptree
 cp packaging/$PACKAGE.spec ~/rpmbuild/SPECS
-tar czf $PACKAGE-$VERSION.tar.gz ZMQ
+tar czf $PACKAGE-$VERSION.tar.gz $PACKAGE
 cp $PACKAGE-$VERSION.tar.gz ~/rpmbuild/SOURCES
 cd ~/rpmbuild
 rpmbuild -v -bb --target=x86_64 ~/rpmbuild/SPECS/$PACKAGE.spec
