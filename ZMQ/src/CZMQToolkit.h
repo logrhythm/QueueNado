@@ -11,7 +11,6 @@
 #include <map>
 #include <string>
 #include <set>
-#include "include/global.h"
 #include <zlib.h>
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
