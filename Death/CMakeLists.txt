@@ -10,10 +10,10 @@ cmake_minimum_required (VERSION 2.6)
 ENABLE_LANGUAGE(CXX)
 #set(CMAKE_BUILD_TYPE Release)
 
-project (ZMQ)
-set(PROJECT_SRC ${ZMQ_SOURCE_DIR}/src)
-set(DIR_UNIT_TEST ${ZMQ_SOURCE_DIR}/test)
-set(DIR_3RDPARTY ${ZMQ_SOURCE_DIR}/3rdparty)
+project (Death)
+set(PROJECT_SRC ${Death_SOURCE_DIR}/src)
+set(DIR_UNIT_TEST ${Death_SOURCE_DIR}/test)
+set(DIR_3RDPARTY ${Death_SOURCE_DIR}/3rdparty)
 
 
 MESSAGE(" PROJECT_SRC = : ${PROJECT_SRC}")
@@ -46,7 +46,7 @@ ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
        set(PLATFORM_LINK_LIBRIES rt)
        set(CMAKE_CXX_FLAGS "-Wall -rdynamic -Wunused -std=c++11 -pthread -D_GLIBCXX_USE_NANOSLEEP")
    endif()
-   set(PLATFORM_LINK_LIBRARIES -llib_g2log -lDeath)
+   set(PLATFORM_LINK_LIBRIES -llib_g2log)
 
 ELSEIF(MSVC)
       # VC11 bug: http://code.google.com/p/googletest/issues/detail?id=408
@@ -58,8 +58,8 @@ ELSEIF(MSVC)
       # "set_target_properties(unit_test PROPERTIES COMPILE_DEFINITIONS "GTEST_USE_OWN_TR1_TUPLE=0")
    MESSAGE("")
    MESSAGE("Windows: Please run the command [cmake -DCMAKE_BUILD_TYPE=Release -G \"Visual Studio 11\" ..]")
-   MESSAGE("if cmake finishes OK, do 'msbuild TestOfZMQ.sln /p:Configuration=Release'")
-   MESSAGE("then run 'Release\\TestOfZMQ.exe'")
+   MESSAGE("if cmake finishes OK, do 'msbuild TestOfDeath.sln /p:Configuration=Release'")
+   MESSAGE("then run 'Release\\TestOfDeath.exe'")
    MESSAGE("")
 ENDIF()
 
@@ -67,12 +67,12 @@ ENDIF()
 # GENERIC STEPS
 file(GLOB SRC_FILES ${PROJECT_SRC}/*.h ${PROJECT_SRC}/*.hpp ${PROJECT_SRC}/*.cpp ${PROJECT_SRC}/*.ipp)
  
-# Create the ZMQ library
+# Create the Death library
 include_directories(${PROJECT_SRC})
-add_library(ZMQ ${SRC_FILES})
-set_target_properties(ZMQ PROPERTIES LINKER_LANGUAGE CXX)
-add_library(ZMQ_shared SHARED ${SRC_FILES})
-set_target_properties(ZMQ_shared PROPERTIES LINKER_LANGUAGE CXX)
+add_library(Death ${SRC_FILES})
+set_target_properties(Death PROPERTIES LINKER_LANGUAGE CXX)
+add_library(Death_shared SHARED ${SRC_FILES})
+set_target_properties(Death_shared PROPERTIES LINKER_LANGUAGE CXX)
 
 
 # create the unit tests
@@ -99,4 +99,4 @@ file(GLOB TEST_SRC_FILES ${DIR_UNIT_TEST}/*.h ${DIR_UNIT_TEST}/*.hpp ${DIR_UNIT_
 IF( NOT(MSVC))
   set_target_properties(${test} PROPERTIES COMPILE_FLAGS "-isystem -pthread ")
 ENDIF( NOT(MSVC))
-target_link_libraries(UnitTestRunner ZMQ gtest_170_lib ${PLATFORM_LINK_LIBRIES})
+target_link_libraries(UnitTestRunner Death gtest_170_lib ${PLATFORM_LINK_LIBRIES})
