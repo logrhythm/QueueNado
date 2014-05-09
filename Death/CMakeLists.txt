@@ -98,4 +98,4 @@ file(GLOB TEST_SRC_FILES ${DIR_UNIT_TEST}/*.h ${DIR_UNIT_TEST}/*.hpp ${DIR_UNIT_
 IF( NOT(MSVC))
   set_target_properties(${test} PROPERTIES COMPILE_FLAGS "-isystem -pthread ")
 ENDIF( NOT(MSVC))
-target_link_libraries(UnitTestRunner Death gtest_170_lib -lboost_thread -lboost_system -llib_g2log ${PLATFORM_LINK_LIBRIES})
+target_link_libraries(UnitTestRunner Death gtest_170_lib -lboost_thread -lboost_system -llib_g2log -lstdc++ -ltcmalloc ${PLATFORM_LINK_LIBRIES})
