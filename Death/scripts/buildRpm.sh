@@ -12,7 +12,9 @@ PATH=$PATH:/usr/local/probe/bin:$PATH
 rm -rf ~/rpmbuild
 rpmdev-setuptree
 cp packaging/$PACKAGE.spec ~/rpmbuild/SPECS
-tar czf $PACKAGE-$VERSION.tar.gz $PACKAGE
+rm -f $PACKAGE-$VERSION.tar.gz
+tar czf $PACKAGE-$VERSION.tar.gz ./*
+mkdir -p ~/rpmbuild/SOURCES
 cp $PACKAGE-$VERSION.tar.gz ~/rpmbuild/SOURCES
 cd ~/rpmbuild
 rpmbuild -v -bb --target=x86_64 ~/rpmbuild/SPECS/$PACKAGE.spec

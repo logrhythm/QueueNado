@@ -1,10 +1,10 @@
-Name:          Death
+Name:          ZMQ
 Version:       1.0
 Release:       1%{?dist}
-Summary:       An implemnetation of a on death callback structure built from g2log
+Summary:       An implemnetation of ZMQ patterns for C++
 Group:         Development/Tools
 License:       MIT
-BuildRequires: probecmake >= 2.8, g2log-dev
+BuildRequires: probecmake >= 2.8, Death, czmq >= 2.0.3
 ExclusiveArch: x86_64
 
 %description
@@ -12,6 +12,8 @@ ExclusiveArch: x86_64
 %prep
 cd ~/rpmbuild/BUILD
 rm -rf %{name}
+mkdir %{name}
+cd %{name}
 tar xzf ~/rpmbuild/SOURCES/%{name}-%{version}.tar.gz
 if [ $? -ne 0 ]; then
    exit $?
