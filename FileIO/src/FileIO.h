@@ -16,7 +16,6 @@
 #include <unistd.h>
 #include <pwd.h>
 
-#include "include/global.h"
 #include "Result.h"
 namespace FileIO {
    Result<bool> IsMountPoint(const std::string& pathToDirectory);

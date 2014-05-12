@@ -18,7 +18,6 @@
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
-#include <czmq.h> // zctx_interrupted
 
 namespace FileIO {
    std::mutex mPermissionsMutex;
@@ -217,7 +216,7 @@ namespace FileIO {
             }
          }
          // FileIO::FileSystem::Unknown is ignored
-      } while (!zctx_interrupted && entry.first != FileIO::FileType::End);
+      } while (entry.first != FileIO::FileType::End);
 
       std::string report;
       if (failures > 0) {
@@ -343,7 +342,6 @@ namespace FileIO {
       auto DirectoryInit = [](DIR** directory, const std::string pathToDirectory) -> Result<bool> {
          *directory = opendir(pathToDirectory.c_str());
           std::string error{""};
-          bool success = true;
 
          if (nullptr == *directory) {
             std::string error{std::strerror(errno)};
@@ -382,7 +380,7 @@ namespace FileIO {
       Entry entry = std::make_pair(FileType::Unknown, "");
       bool found = false;
       while (!found && (entry.first != FileType::End)) {
-         auto ignoredError = readdir64_r(mDirectory, &mEntry, &mResult); // readdir_r is reentrant 
+         //auto ignoredError = readdir64_r(mDirectory, &mEntry, &mResult); // readdir_r is reentrant 
 
          found = true; // abort immediately unless we hit "." or ".."
 
