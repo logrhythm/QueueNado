@@ -32,15 +32,15 @@ public:
    void* GetPointer(long timeout);
    bool SendPointer(void* packet);
 protected:
-   LR_VIRTUAL void* GetContext();
-   LR_VIRTUAL void* GetSocket(void* context);
-   LR_VIRTUAL void ServerSetup(const std::string& binding, void*& socket);
-   LR_VIRTUAL void ClientSetup(const std::string& binding, void*& socket);
-   LR_VIRTUAL bool SetSendHWM(void *socket, int highWaterMark);
-   LR_VIRTUAL bool SetReceiveHWM(void *socket, int highWaterMark);
-   LR_VIRTUAL void CloseSocket();
-   LR_VIRTUAL void CloseContext();
-   LR_VIRTUAL bool InitializeMsg(zmq_msg_t& msg);
+   _VIRTUAL void* GetContext();
+   _VIRTUAL void* GetSocket(void* context);
+   _VIRTUAL void ServerSetup(const std::string& binding, void*& socket);
+   _VIRTUAL void ClientSetup(const std::string& binding, void*& socket);
+   _VIRTUAL bool SetSendHWM(void *socket, int highWaterMark);
+   _VIRTUAL bool SetReceiveHWM(void *socket, int highWaterMark);
+   _VIRTUAL void CloseSocket();
+   _VIRTUAL void CloseContext();
+   _VIRTUAL bool InitializeMsg(zmq_msg_t& msg);
 
    unsigned int mId;
    std::string mBinding;

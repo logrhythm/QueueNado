@@ -1,31 +1,31 @@
 #pragma once
 #include <string>
 
-#ifndef LR_VIRTUAL
-#ifdef LR_DEBUG
-#define LR_VIRTUAL virtual
+#ifndef _VIRTUAL
+#ifdef _DEBUG
+#define _VIRTUAL virtual
 #else
-#define LR_VIRTUAL
+#define _VIRTUAL
 #endif
 #endif
 
-#ifndef LR_OVERRIDE
-#ifdef LR_DEBUG
-#define LR_OVERRIDE override
+#ifndef _OVERRIDE
+#ifdef _DEBUG
+#define _OVERRIDE override
 #else
-#define LR_OVERRIDE
+#define _OVERRIDE
 #endif
 #endif
 
-#ifndef LR_FINAL
-#ifdef LR_DEBUG
-#define LR_FINAL 
+#ifndef _FINAL
+#ifdef _DEBUG
+#define _FINAL 
 #else
-#define LR_FINAL final
+#define _FINAL final
 #endif
 #endif
 
-#ifdef LR_DEBUG
+#ifdef _DEBUG
 #ifndef RIFLE_VAMPIRE_PRODUCTION
 #define RIFLE_VAMPIRE_PRODUCTION (0)
 #endif
