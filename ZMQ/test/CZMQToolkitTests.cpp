@@ -126,7 +126,6 @@ TEST_F(CZMQToolkitTests, GetSizeTFromSocketShutdownMsg) {
 TEST_F(CZMQToolkitTests, SendBlankMessageFailures) {
    ASSERT_TRUE(mRepSocket != NULL);
    ASSERT_TRUE(mReqSocket != NULL);
-   size_t testVal = 1023456;
    ASSERT_FALSE(CZMQToolkit::SendBlankMessage(NULL));
    ASSERT_FALSE(CZMQToolkit::PopAndDiscardMessage(NULL));
 

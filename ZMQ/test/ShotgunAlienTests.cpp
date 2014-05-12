@@ -21,6 +21,7 @@ void * ShotgunAlienTests::ShotgunThread(void * arg) {
    }
    delete shotgun;
    std::cout << "Shotgun deleted" << std::endl;
+   return nullptr;
 }
 void * ShotgunAlienTests::Buckshothread(void * arg) {
    ShotgunAmmo* ammo = static_cast<ShotgunAmmo*> (arg);
@@ -36,6 +37,7 @@ void * ShotgunAlienTests::Buckshothread(void * arg) {
    for (int i = 0; i <= ammo->count && !zctx_interrupted; i++) {
       shotgun.Fire(fullShot);
    }
+   return nullptr;
 }
 std::string ShotgunAlienTests::GetTcpLocation() {
    int max = 15000;

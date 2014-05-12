@@ -14,6 +14,12 @@ project (ZMQ)
 set(PROJECT_SRC ${ZMQ_SOURCE_DIR}/src)
 set(DIR_UNIT_TEST ${ZMQ_SOURCE_DIR}/test)
 set(DIR_3RDPARTY ${ZMQ_SOURCE_DIR}/3rdparty)
+find_library(G2LOG lib_g2log PATHS /usr/local/probe/lib )
+find_library(BOOST_THREAD boost_thread PATHS /usr/local/probe/lib )
+find_library(BOOST_SYSTEM boost_thread PATHS /usr/local/probe/lib )
+find_library(CZMQ czmq PATHS /usr/local/probe/lib )
+find_library(ZMQ zmq PATHS /usr/local/probe/lib )
+find_library(TCMALLOC tcmalloc PATHS /usr/local/probe/lib )
 
 
 MESSAGE(" PROJECT_SRC = : ${PROJECT_SRC}")
@@ -98,4 +104,4 @@ file(GLOB TEST_SRC_FILES ${DIR_UNIT_TEST}/*.h ${DIR_UNIT_TEST}/*.hpp ${DIR_UNIT_
 IF( NOT(MSVC))
   set_target_properties(${test} PROPERTIES COMPILE_FLAGS "-isystem -pthread ")
 ENDIF( NOT(MSVC))
-target_link_libraries(UnitTestRunner ZMQ gtest_170_lib -lboost_thread -lboost_system -llib_g2log -lDeath -lstdc++ -lzmq -lczmq -ltcmalloc ${PLATFORM_LINK_LIBRIES})
+target_link_libraries(UnitTestRunner  -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/probe/lib64 ZMQ gtest_170_lib -lboost_thread -lboost_system -llib_g2log -lFileIO -lDeath -lstdc++ -lzmq -lczmq -ltcmalloc ${PLATFORM_LINK_LIBRIES})

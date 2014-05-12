@@ -10,6 +10,10 @@ touch /tmp/bootstrap.out
 set -e
 set -x
 
+cd FileIO
+sh scripts/buildRpm.sh >> /tmp/bootstrap.out 2>&1
+$RPMCOMMAND $RPMARGS /root/rpmbuild/RPMS/x86_64/*.rpm >> /tmp/bootstrap.out 2>&1
+cd ..
 cd Death
 sh scripts/buildRpm.sh >> /tmp/bootstrap.out 2>&1
 $RPMCOMMAND $RPMARGS /root/rpmbuild/RPMS/x86_64/*.rpm >> /tmp/bootstrap.out 2>&1

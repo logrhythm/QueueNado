@@ -131,15 +131,3 @@ TEST(DeathTest, ThreadSafeTest) {
    EXPECT_EQ("race", DeathTest::stringsEchoed[0]);
 }
 
-
-//TEST(DeathTest, ReEnableFatalExit) {
-
-TEST(DeathTest, DISABLED_ReEnableFatalExit) {
-   RaiiDeathCleanup cleanup;
-   Death::Instance().SetupExitHandler();
-
-   EXPECT_FALSE(Death::Instance().WasKilled());
-   Death::Instance().EnableDefaultFatalCall(g2logger);
-   CHECK(false);
-   std::this_thread::sleep_for(std::chrono::seconds(2));
-}
