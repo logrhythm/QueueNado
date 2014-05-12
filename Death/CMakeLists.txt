@@ -92,8 +92,10 @@ enable_testing(true)
 
 # obs see this: http://stackoverflow.com/questions/9589192/how-do-i-change-the-number-of-template-arguments-supported-by-msvcs-stdtupl
 # and this: http://stackoverflow.com/questions/2257464/google-test-and-visual-studio-2010-rc
-include_directories(${DIR_UNIT_TEST})
-file(GLOB TEST_SRC_FILES ${DIR_UNIT_TEST}/*.h ${DIR_UNIT_TEST}/*.hpp ${DIR_UNIT_TEST}/*.cpp ${DIR_UNIT_TEST}/*.ipp)
+#include_directories(${DIR_UNIT_TEST})
+include_directories(test)
+#file(GLOB TEST_SRC_FILES ${DIR_UNIT_TEST}"/*.h" ${DIR_UNIT_TEST}"/*.hpp" ${DIR_UNIT_TEST}"/*.cpp" ${DIR_UNIT_TEST}"/*.ipp")
+  file(GLOB TEST_SRC_FILES "test/*.cpp")
 
   add_executable(UnitTestRunner 3rdparty/test_main.cpp ${TEST_SRC_FILES} )
   target_link_libraries(UnitTestRunner gtest_170_lib boost_thread boost_system lib_g2log stdc++ tcmalloc FileIO ${PLATFORM_LINK_LIBRIES} Death)
