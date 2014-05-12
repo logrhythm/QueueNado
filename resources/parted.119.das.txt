@@ -1,35 +1,0 @@
-BYT;
-/dev/sda:299GB:scsi:512:512:msdos:DELL PERC H710;
-1:1049kB:525MB:524MB:ext4::boot;
-2:525MB:299GB:299GB:::lvm;
-
-BYT;
-/dev/sdb:1799GB:scsi:512:512:msdos:DELL PERC H710;
-1:1049kB:1799GB:1799GB:::lvm;
-
-BYT;
-/dev/sdc:26.4TB:scsi:512:512:gpt:DELL PERC H810;
-1:1049kB:26.4TB:26.4TB:::lvm;
-
-BYT;
-/dev/mapper/vg_probe00-lv_home:53.7GB:dm:512:512:loop:Linux device-mapper (linear);
-1:0.00B:53.7GB:53.7GB:ext4::;
-
-BYT;
-/dev/mapper/vg_probe01-lv_data:1799GB:dm:512:512:loop:Linux device-mapper (linear);
-1:0.00B:1799GB:1799GB:ext4::;
-
-                                                                          Error: partition length of 25773449216 sectors exceeds the
-loop-partition-table-imposed maximum of 4294967295
-
-                                                                          Error: partition length of 25773457408 sectors exceeds the
-loop-partition-table-imposed maximum of 4294967295
-
-BYT;
-/dev/mapper/vg_probe00-lv_swap:33.8GB:dm:512:512:loop:Linux device-mapper (linear);
-1:0.00B:33.8GB:33.8GB:linux-swap(v1)::;
-
-BYT;
-/dev/mapper/vg_probe00-lv_root:211GB:dm:512:512:loop:Linux device-mapper (linear);
-1:0.00B:211GB:211GB:ext4::;
-

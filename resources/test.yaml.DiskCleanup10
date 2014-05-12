@@ -1,7 +1,0 @@
-captureFileLimit: 3
-captureLocation: /tmp/TooMuchPcap
-captureSizeLimit: 2
-sendStatsQueue: ipc:///tmp/sendStatsQ.ipc
-statsAccumulatorQueue: ipc:///tmp/statsAccumulatorQ.ipc
-statsAggregationQueue: ipc:///tmp/statsAggregationQ.ipc
-
