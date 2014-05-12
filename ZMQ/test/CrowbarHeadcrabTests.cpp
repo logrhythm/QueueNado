@@ -3,7 +3,6 @@
 #include <boost/thread.hpp>
 
 #include "CrowbarHeadcrabTests.h"
-#include "QosmosFileCallbacks.h"
 #include "Death.h"
 #include "FileIO.h"
 TEST_F(CrowbarHeadcrabTests, CrowbarBrokenSocket) {

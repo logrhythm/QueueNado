@@ -97,7 +97,6 @@ void RifleVampireTests::ShootStakeThread(int numberOfMessages,
    }
    rifle.Aim();
    std::stringstream ss;
-   unsigned int hash(0);
    for (int i = 0; i < numberOfMessages; i++) {
       bool result = rifle.FireStakes(exampleData);
       if (!result) {
@@ -126,8 +125,6 @@ void RifleVampireTests::ShootZeroCopyThread(int numberOfMessages,
    }
    rifle.Aim();
    std::stringstream ss;
-   unsigned int hash(0);
-   std::string* zero = new std::string(exampleData);
    for (int i = 0; i < numberOfMessages && !zctx_interrupted; i++) {
       std::string* zero = new std::string(exampleData);
       bool result = rifle.FireZeroCopy(zero, zero->size(), TestDeleteString, 10000);
@@ -161,7 +158,7 @@ void RifleVampireTests::VampireThread(int numberOfMessages,
    vampire.SetIOThreads(ioThreads);
    vampire.SetOwnSocket(ownSocket);
    ASSERT_TRUE(vampire.PrepareToBeShot());
-   for (int i; i < numberOfMessages && !zctx_interrupted; i++) {
+   for (int i=0; i < numberOfMessages && !zctx_interrupted; i++) {
       std::string bullet;
       if (vampire.GetShot(bullet, 2000)) {
          EXPECT_EQ(bullet, exampleData);
@@ -183,7 +180,7 @@ void RifleVampireTests::StakeAVampireThread(int numberOfMessages,
    vampire.SetHighWater(hwm);
    vampire.SetIOThreads(ioThreads);
    ASSERT_TRUE(vampire.PrepareToBeShot());
-   for (int i; i < numberOfMessages && !zctx_interrupted; i++) {
+   for (int i=0; i < numberOfMessages && !zctx_interrupted; i++) {
       std::vector<std::pair<void*, unsigned int> > data;
 
       if (vampire.GetStakes(data, 2000)) {

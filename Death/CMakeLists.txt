@@ -20,6 +20,10 @@ MESSAGE(" PROJECT_SRC = : ${PROJECT_SRC}")
 include_directories(${PROJECT_SRC})
 SET(ACTIVE_CPP0xx_DIR "Release")
 
+find_library(G2LOG lib_g2log PATHS /usr/local/probe/lib )
+find_library(BOOST_THREAD boost_thread PATHS /usr/local/probe/lib )
+find_library(BOOST_SYSTEM boost_thread PATHS /usr/local/probe/lib )
+find_library(TCMALLOC tcmalloc PATHS /usr/local/probe/lib )
 
 #cmake -DCMAKE_CXX_COMPILER=clang++ ..
   # WARNING: If Clang for Linux does not work with full C++11 support it might be your
@@ -73,7 +77,6 @@ set_target_properties(Death PROPERTIES LINKER_LANGUAGE CXX)
 add_library(Death_shared SHARED ${SRC_FILES})
 set_target_properties(Death_shared PROPERTIES LINKER_LANGUAGE CXX)
 
-
 # create the unit tests
 # =========================
 
@@ -93,9 +96,9 @@ include_directories(${DIR_UNIT_TEST})
 file(GLOB TEST_SRC_FILES ${DIR_UNIT_TEST}/*.h ${DIR_UNIT_TEST}/*.hpp ${DIR_UNIT_TEST}/*.cpp ${DIR_UNIT_TEST}/*.ipp)
 
   add_executable(UnitTestRunner 3rdparty/test_main.cpp ${TEST_SRC_FILES} )
+  target_link_libraries(UnitTestRunner gtest_170_lib boost_thread boost_system lib_g2log stdc++ tcmalloc FileIO ${PLATFORM_LINK_LIBRIES} Death)
   set_target_properties(${test} PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_TR1_TUPLE=0")
   set_target_properties(${test} PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_RTTI=0")
 IF( NOT(MSVC))
   set_target_properties(${test} PROPERTIES COMPILE_FLAGS "-isystem -pthread ")
 ENDIF( NOT(MSVC))
-target_link_libraries(UnitTestRunner Death gtest_170_lib -lboost_thread -lboost_system -llib_g2log -lstdc++ -ltcmalloc ${PLATFORM_LINK_LIBRIES})
