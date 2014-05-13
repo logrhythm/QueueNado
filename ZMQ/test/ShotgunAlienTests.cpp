@@ -77,7 +77,7 @@ TEST_F(ShotgunAlienTests, ShotInTheDark) {
 TEST_F(ShotgunAlienTests, ShootOneAlienOnce) {
    Alien alien;
    ShotgunAmmo* ammo = new ShotgunAmmo();
-   ammo->count = 100;
+   ammo->count = 1;
    ammo->location.assign(ShotgunAlienTests::GetTcpLocation());
    ammo->delay = 10;
    alien.PrepareToBeShot(ammo->location);
