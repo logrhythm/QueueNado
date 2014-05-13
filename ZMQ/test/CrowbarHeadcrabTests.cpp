@@ -308,6 +308,7 @@ void CrowbarHeadcrabTests::Sender(std::string& baseData, int numberOfHits, std::
    Crowbar shooter(binding);
    assert(shooter.Wield());
    for (int i = 0; i < numberOfHits; i++) {
+      std::cout << "Shoot " << binding << std::endl;
       assert(shooter.Swing(baseData));
       std::string killData;
 
@@ -323,8 +324,8 @@ void CrowbarHeadcrabTests::Sender(std::string& baseData, int numberOfHits, std::
    }
 }
 
-TEST_F(CrowbarHeadcrabTests, CrowbarSpeedTest) {
-
+TEST_F(CrowbarHeadcrabTests, DISABLED_CrowbarSpeedTest) {
+   unlink(mTargetPath.c_str());
    Headcrab target(mTarget);
    EXPECT_EQ(mTarget, target.GetBinding());
    EXPECT_EQ(NULL, target.GetContext());
@@ -341,9 +342,12 @@ TEST_F(CrowbarHeadcrabTests, CrowbarSpeedTest) {
    for (int i = 0; i < numberOfHits; i++) {
       std::string foundData;
       std::vector<std::string> allFoundData;
+      std::cout << "Pull " << mTarget << std::endl;
       ASSERT_TRUE(target.GetHitBlock(allFoundData));
+      std::cout << "Got " << mTarget << std::endl;
       ASSERT_FALSE(allFoundData.empty());
       ASSERT_TRUE(allFoundData[0] == sentData);
+      std::cout << "Splat " << mTarget << std::endl;
       ASSERT_TRUE(target.SendSplatter(allFoundData));
    }
    EndTimedSection();
