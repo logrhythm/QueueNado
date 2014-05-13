@@ -1,6 +1,7 @@
 
 #include "boost/pointer_cast.hpp"
 #include <czmq.h>
+#include <thread>
 #include <boost/thread.hpp>
 
 #include "ShotgunAlienTests.h"
@@ -63,20 +64,10 @@ std::string ShotgunAlienTests::GetInprocLocation() {
    inprocLocation.append(boost::lexical_cast<std::string > (pid));
    return inprocLocation;
 }
-TEST_F(ShotgunAlienTests, ipcFilesCleanedOnFatal) {
-   std::string target("ipc:///ShotgunAlienTestsDeath");
-   Shotgun stick;
-   Alien alien;
-   std::string addressRealPath(target,target.find("ipc://")+6);
-   Death::SetupExitHandler();
-   stick.Aim(target);
-   alien.PrepareToBeShot(target);
-   ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath));
-   CHECK(false);
-   ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath));
-}
+
 TEST_F(ShotgunAlienTests, ShotInTheDark) {
    Shotgun shotgun;
+   
    std::string location = ShotgunAlienTests::GetTcpLocation();
    shotgun.Aim(location);
    std::string msg("Fire!");
@@ -86,11 +77,17 @@ TEST_F(ShotgunAlienTests, ShotInTheDark) {
 TEST_F(ShotgunAlienTests, ShootOneAlienOnce) {
    Alien alien;
    ShotgunAmmo* ammo = new ShotgunAmmo();
-   ammo->count = 1;
+   ammo->count = 100;
    ammo->location.assign(ShotgunAlienTests::GetTcpLocation());
+   ammo->delay = 10;
    alien.PrepareToBeShot(ammo->location);
    zthread_new(ShotgunAlienTests::ShotgunThread, ammo);
    std::vector<std::string> reply = alien.GetShot();
+   int count=0;
+   while (reply.empty() && count++ < 100 && !zctx_interrupted) {
+      reply = alien.GetShot();
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+   }
    ASSERT_EQ(2,reply.size());
    EXPECT_FALSE(reply[0].empty());
    EXPECT_FALSE(reply[1].empty());
@@ -171,4 +168,16 @@ TEST_F(ShotgunAlienTests, ShotgunBadAim) {
       ASSERT_TRUE(true);
    }
 
+}
+TEST_F(ShotgunAlienTests, ipcFilesCleanedOnFatal) {
+   std::string target("ipc:///ShotgunAlienTestsDeath");
+   Shotgun stick;
+   Alien alien;
+   std::string addressRealPath(target,target.find("ipc://")+6);
+   Death::SetupExitHandler();
+   stick.Aim(target);
+   alien.PrepareToBeShot(target);
+   ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath));
+   CHECK(false);
+   ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath));
 }

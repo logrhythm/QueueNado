@@ -31,8 +31,10 @@ protected:
 
    virtual void SetUp() {
       std::stringstream makeATarget;
-      makeATarget << "ipc:///tmp/ipc.test" << boost::this_thread::get_id();
-      mTarget = makeATarget.str();
+      makeATarget << "/tmp/ipc.test" << boost::this_thread::get_id();
+      mTarget = "ipc://";
+      mTarget += makeATarget.str();
+      mTargetPath = makeATarget.str();
       srandom((unsigned) time(NULL));
       zctx_interrupted = false;
    }
@@ -41,4 +43,5 @@ protected:
       raise(SIGTERM);
    }
    std::string mTarget;
+   std::string mTargetPath;
 };

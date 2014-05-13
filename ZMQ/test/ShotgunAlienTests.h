@@ -9,9 +9,9 @@ class ShotgunAlienTests : public ::testing::Test {
 public:
 
    ShotgunAlienTests() {
-       srand(std::time(NULL));
+      srand(std::time(NULL));
    };
-   
+
    int mPid;
    std::string mIpcLocation;
    std::string mTcpLocation;
@@ -36,7 +36,7 @@ public:
 protected:
 
    virtual void SetUp() {
-
+      zctx_interrupted = false;
 
    };
 
