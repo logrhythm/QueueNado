@@ -1,0 +1,17 @@
+/3rdparty/gtest-1.7.0/
+/CMakeCache.txt
+/nbproject
+/QueueNado-1.0.tar.gz
+/CMakeFiles/
+/CTestTestfile.cmake
+/Makefile
+/cmake_install.cmake
+/compile_commands.json
+/rpms/
+/UnitTestRunner
+/libQueueNado.so
+/libQueueNado.so
+/libgtest_170_lib.so
+/dist/
+/QueueNado-1.0.tar.gz
+/QueueNado/
