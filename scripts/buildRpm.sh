@@ -1,12 +1,12 @@
 #!/bin/bash
 set -e
 
-PACKAGE=ZMQ
+PACKAGE=QueueNado
 VERSION=1.0
 
 PWD=`pwd`
-CWD=$PWD/ZMQ
-DISTDIR=$CWD/dist/ZMQ
+CWD=$PWD/$PACKAGE
+DISTDIR=$CWD/dist/$PACKAGE
 PATH=$PATH:/usr/local/probe/bin:$PATH
 
 rm -rf ~/rpmbuild
