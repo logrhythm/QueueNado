@@ -14,10 +14,10 @@ public:
    virtual ~BoomStick();
 
    BoomStick& operator=(BoomStick&& other);
-   _VIRTUAL bool Initialize();
-   _VIRTUAL std::string Send(const std::string& command);
-   _VIRTUAL bool SendAsync(const std::string& uuid, const std::string& command);
-   _VIRTUAL bool GetAsyncReply(const std::string& uuid, const unsigned int msToWait, std::string& reply);
+   virtual bool Initialize();
+   virtual std::string Send(const std::string& command);
+   virtual bool SendAsync(const std::string& uuid, const std::string& command);
+   virtual bool GetAsyncReply(const std::string& uuid, const unsigned int msToWait, std::string& reply);
    std::string GetUuid();
    void Swap(BoomStick& other);
    void SetBinding(const std::string& binding);
@@ -25,18 +25,18 @@ public:
    void SetRecvHWM(const int hwm);
    zctx_t* GetContext();
 protected:
-   _VIRTUAL zctx_t* GetNewContext();
-   _VIRTUAL void* GetNewSocket(zctx_t* ctx);
-   _VIRTUAL bool ConnectToBinding(void* socket, const std::string& binding);
-   _VIRTUAL bool FindPendingUuid(const std::string& uuid) const;
+   virtual zctx_t* GetNewContext();
+   virtual void* GetNewSocket(zctx_t* ctx);
+   virtual bool ConnectToBinding(void* socket, const std::string& binding);
+   virtual bool FindPendingUuid(const std::string& uuid) const;
    bool FindUnreadUuid(const std::string& uuid) const;
-   _VIRTUAL void CleanOldPendingData();
-   _VIRTUAL void CleanPendingReplies();
-   _VIRTUAL void CleanUnreadReplies();
-   _VIRTUAL bool GetReplyFromSocket(const std::string& uuid, const unsigned int msToWait, std::string& reply);
-   _VIRTUAL bool GetReplyFromCache(const std::string& uuid, std::string& reply);
-   _VIRTUAL bool CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply);
-   _VIRTUAL bool ReadFromReadySocket(std::string& foundId, std::string& foundReply);
+   virtual void CleanOldPendingData();
+   virtual void CleanPendingReplies();
+   virtual void CleanUnreadReplies();
+   virtual bool GetReplyFromSocket(const std::string& uuid, const unsigned int msToWait, std::string& reply);
+   virtual bool GetReplyFromCache(const std::string& uuid, std::string& reply);
+   virtual bool CheckForMessagePending(const std::string& messageHash, const unsigned int msToWait, std::string& reply);
+   virtual bool ReadFromReadySocket(std::string& foundId, std::string& foundReply);
 
    std::map<std::string, std::string> mUnreadReplies;
    time_t mLastGCTime;
