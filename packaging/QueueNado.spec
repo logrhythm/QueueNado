@@ -32,6 +32,7 @@ make
 ./UnitTestRunner
 mkdir -p $RPM_BUILD_ROOT/usr/local/probe/lib
 cp *.so $RPM_BUILD_ROOT/usr/local/probe/lib
+rm $RPM_BUILD_ROOT/usr/local/probe/lib/libgtest_170_lib.so
 mkdir -p $RPM_BUILD_ROOT/usr/local/probe/include
 cp src/*.h $RPM_BUILD_ROOT/usr/local/probe/include
 
