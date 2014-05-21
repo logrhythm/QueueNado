@@ -485,7 +485,7 @@ bool BoomStick::GetReplyFromSocket(const std::string& uuid, const unsigned int m
    }
    bool found = false;
    reply = "Timed out searching for reply";
-   while (!found && CheckForMessagePending(uuid, msToWait, reply)) {
+   while (!zctx_interrupted && !found && CheckForMessagePending(uuid, msToWait, reply)) {
       std::string foundId;
       if (!ReadFromReadySocket(foundId, reply)) {
          break;
