@@ -64,7 +64,7 @@ void Alien::GetShot(const unsigned int timeout, std::vector<std::string>& bullet
 
    if (zsocket_poll(mBody, timeout)) {
       zmsg_t* msg = zmsg_recv(mBody);
-      if (msg && zmsg_size(msg) == 3) {
+      if (msg && zmsg_size(msg) >= 2) {
          zframe_t* data = zmsg_pop(msg);
          if (data) {
             //remove the first frame
