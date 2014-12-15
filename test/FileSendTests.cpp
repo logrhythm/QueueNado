@@ -1,13 +1,12 @@
-#include "boost/pointer_cast.hpp"
 #include <czmq.h>
 #include <thread>
 #include <boost/thread.hpp>
+#include <boost/lexical_cast.hpp>
 #include "FileSendTests.h"
 #include "MockFileRecv.h"
 #include "MockFileSend.h"
 #include "FileSend.h"
 #include "Death.h"
-#include "FileIO.h"
 
 void * FileSendTests::RecvThreadNextChunkIdDie(void * arg) {
    std::string address = *((std::string*) arg);

@@ -1,9 +1,8 @@
 #pragma once
 
-#include <stdlib.h>
-#include <stdint.h>
+#include <cstdlib>
+#include <cstdint>
 #include <string>
-#include <vector>
 
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;

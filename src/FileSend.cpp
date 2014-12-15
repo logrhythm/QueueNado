@@ -1,11 +1,8 @@
-#include <stdlib.h>
-#include <stdint.h>
-#include <vector>
+#include <cstdlib>
+#include <cstdint>
 #include <memory>
-#include <iostream>
-#include "czmq.h"
-#include "boost/thread.hpp"
-#include "g2log.hpp"
+#include <czmq.h>
+#include <g2log.hpp>
 
 #include "FileSend.h"
 

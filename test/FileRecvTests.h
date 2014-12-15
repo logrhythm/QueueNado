@@ -1,7 +1,6 @@
 #pragma once
 
-#include "gtest/gtest.h"
-#include "boost/lexical_cast.hpp"
+#include <gtest/gtest.h>
 
 class FileRecvTests : public ::testing::Test {
 public:
