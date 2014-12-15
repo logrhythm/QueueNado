@@ -7,8 +7,8 @@
 #include "FileRecv.h"
 #include "Death.h"
 
-void * FileRecvTests::SendThreadNextChunkIdDie(void * arg) {
-   std::string address = *((std::string*) arg);
+void* FileRecvTests::SendThreadNextChunkIdDie(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
    MockFileSend *server = new MockFileSend();
    server->SetLocation(address);
    server->SetTimeout(1000);
@@ -18,8 +18,8 @@ void * FileRecvTests::SendThreadNextChunkIdDie(void * arg) {
    return nullptr;
 }
 
-void * FileRecvTests::SendThreadSendOneDie(void * arg) {
-   std::string address = *((std::string*) arg);
+void* FileRecvTests::SendThreadSendOneDie(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
    uint8_t first[] = {10,20,30};
 
    MockFileSend* server = new MockFileSend();
@@ -32,8 +32,8 @@ void * FileRecvTests::SendThreadSendOneDie(void * arg) {
    return nullptr;
 }
 
-void * FileRecvTests::SendThreadSendThirtyDie(void * arg) {
-   std::string address = *((std::string*) arg);
+void* FileRecvTests::SendThreadSendThirtyDie(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
    FileSend* server = new FileSend();
    server->SetTimeout(1000);
    server->SetLocation(address);
@@ -47,8 +47,8 @@ void * FileRecvTests::SendThreadSendThirtyDie(void * arg) {
    return nullptr;
 }
 
-void * FileRecvTests::SendThreadSendThirtyTwoEnd(void * arg) {
-   std::string address = *((std::string*) arg);
+void* FileRecvTests::SendThreadSendThirtyTwoEnd(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
    FileSend* server = new FileSend();
    server->SetLocation(address);
    server->SetTimeout(1000);
@@ -106,7 +106,7 @@ TEST_F(FileRecvTests, SendDataGetNextChunkIdMethods) {
    //  Client therefore will timeout:
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(FileRecvTests::SendThreadNextChunkIdDie, (void*)&location);
+   zthread_new(FileRecvTests::SendThreadNextChunkIdDie, reinterpret_cast<void*>(&location));
 
    FileRecv client;
    client.SetTimeout(1000);
@@ -127,7 +127,7 @@ TEST_F(FileRecvTests, SendDataOneChunkReceivedMethods) {
    //  Client therefore will timeout:
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(FileRecvTests::SendThreadSendOneDie, (void*)&location);
+   zthread_new(FileRecvTests::SendThreadSendOneDie, reinterpret_cast<void*>(&location));
 
    FileRecv client;
    client.SetTimeout(1000);
@@ -152,7 +152,7 @@ TEST_F(FileRecvTests, SendThirtyDataChunksReceivedMethods) {
 
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(FileRecvTests::SendThreadSendThirtyDie, (void*)&location);
+   zthread_new(FileRecvTests::SendThreadSendThirtyDie, reinterpret_cast<void*>(&location));
 
    FileRecv client;
    client.SetTimeout(1000);
@@ -177,7 +177,7 @@ TEST_F(FileRecvTests, SendThirtyTwoDataChunksReceivedMethods) {
 
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(FileRecvTests::SendThreadSendThirtyTwoEnd, (void*)&location);
+   zthread_new(FileRecvTests::SendThreadSendThirtyTwoEnd, reinterpret_cast<void*>(&location));
 
    FileRecv client;
    client.SetTimeout(1000);

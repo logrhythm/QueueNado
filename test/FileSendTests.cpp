@@ -8,8 +8,8 @@
 #include "FileSend.h"
 #include "Death.h"
 
-void * FileSendTests::RecvThreadNextChunkIdDie(void * arg) {
-   std::string address = *((std::string*) arg);
+void* FileSendTests::RecvThreadNextChunkIdDie(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
    MockFileRecv *client = new MockFileRecv();
    client->SetLocation(address);
    if (client->SetLocation(address) < 0){
@@ -23,8 +23,8 @@ void * FileSendTests::RecvThreadNextChunkIdDie(void * arg) {
    return nullptr;
 }
 
-void * FileSendTests::RecvThreadNextChunkIdWait(void * arg) {
-   std::string address = *((std::string*) arg);
+void* FileSendTests::RecvThreadNextChunkIdWait(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
    MockFileRecv *client = new MockFileRecv();
    client->SetLocation(address);
    if (client->SetLocation(address) < 0){
@@ -38,8 +38,8 @@ void * FileSendTests::RecvThreadNextChunkIdWait(void * arg) {
    return nullptr;
 }
 
-void * FileSendTests::RecvThreadGetThreeWait(void * arg) {
-   std::string address = *((std::string*) arg);
+void* FileSendTests::RecvThreadGetThreeWait(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
 
    MockFileRecv *client = new MockFileRecv();
    client->SetLocation(address);
@@ -58,8 +58,8 @@ void * FileSendTests::RecvThreadGetThreeWait(void * arg) {
    return nullptr;
 }
 
-void * FileSendTests::RecvThreadGetFileDie(void * arg) {
-   std::string address = *((std::string*) arg);
+void* FileSendTests::RecvThreadGetFileDie(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
    
    MockFileRecv *client = new MockFileRecv();
    if (client->SetLocation(address) < 0){
@@ -120,7 +120,7 @@ TEST_F(FileSendTests, SendDataGetNextChunkIdDieMethods) {
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
 
-   zthread_new(FileSendTests::RecvThreadNextChunkIdDie, (void*)&location);
+   zthread_new(FileSendTests::RecvThreadNextChunkIdDie, reinterpret_cast<void*>(&location));
 
    MockFileSend server;
    int status = server.SetLocation(location);
@@ -141,7 +141,7 @@ TEST_F(FileSendTests, SendDataGetNextChunkIdWaitMethods) {
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
 
-   zthread_new(FileSendTests::RecvThreadNextChunkIdWait, (void*)&location);
+   zthread_new(FileSendTests::RecvThreadNextChunkIdWait, reinterpret_cast<void*>(&location));
 
    MockFileSend server;
    int status = server.SetLocation(location);
@@ -163,7 +163,7 @@ TEST_F(FileSendTests, SendDataGetResultingWaitsMethods) {
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
 
-   zthread_new(FileSendTests::RecvThreadGetThreeWait, (void*)&location);
+   zthread_new(FileSendTests::RecvThreadGetThreeWait, reinterpret_cast<void*>(&location));
 
    MockFileSend server;
    int status = server.SetLocation(location);
@@ -196,7 +196,7 @@ TEST_F(FileSendTests, SendEntireFileMethods2) {
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
 
-   zthread_new(FileSendTests::RecvThreadGetFileDie, (void*)&location);
+   zthread_new(FileSendTests::RecvThreadGetFileDie, reinterpret_cast<void*>(&location));
 
    MockFileSend server;
    int status = server.SetLocation(location);
