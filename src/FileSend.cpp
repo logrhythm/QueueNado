@@ -12,7 +12,7 @@ mQueueLength(10),
 mNextChunk(nullptr), 
 mNextChunkId(0), 
 mIdentity(nullptr), 
-mTimeout(30000), //5 Minutes
+mTimeoutMs(30000), //5 Minutes
 mChunk(nullptr) {
 	mCtx = zctx_new();
 	CHECK(mCtx);
@@ -27,8 +27,8 @@ int FileSend::SetLocation(const std::string& location){
     return zsocket_bind(mRouter, mLocation.c_str());
 }
 
-void FileSend::SetTimeout(const int timeout){
-	mTimeout = timeout;
+void FileSend::SetTimeout(const int timeoutMs){
+	mTimeoutMs = timeoutMs;
 }
 
 void FileSend::FreeOldRequests(){
@@ -55,7 +55,7 @@ int FileSend::NextChunkId(){
 	FreeOldRequests();
 
 	//Poll to see if anything is available on the pipeline:
-    if(zsocket_poll(mRouter, mTimeout)){
+    if(zsocket_poll(mRouter, mTimeoutMs)){
 
     	// First frame is the identity of the client
 		mIdentity = zframe_recv (mRouter);
@@ -69,7 +69,7 @@ int FileSend::NextChunkId(){
 	}
 
 	//Poll to see if anything is available on the pipeline:
-    if(zsocket_poll(mRouter, mTimeout)){
+    if(zsocket_poll(mRouter, mTimeoutMs)){
 
 		// Second frame is next chunk requested of the file
     	mNextChunk = zstr_recv (mRouter);

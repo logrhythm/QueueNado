@@ -28,6 +28,6 @@ private:
    char * mNextChunk;
    size_t mNextChunkId;
    zframe_t * mIdentity;
-   int mTimeout;
+   int mTimeoutMs;
    zframe_t * mChunk;
 };

@@ -11,7 +11,7 @@ class FileRecv {
 public:
    explicit FileRecv();
    int SetLocation(const std::string& location);
-   void SetTimeout(const int timeout);
+   void SetTimeout(const int timeoutMs);
    size_t Monitor();
    uint8_t* GetChunkData();
    size_t GetChunkSize();
@@ -26,7 +26,7 @@ private:
    void *mDealer;
    zctx_t *mCtx;
    size_t mQueueLength;
-   int mTimeout;
+   int mTimeoutMs;
    size_t mCredit;
    size_t mOffset;
    size_t mSize;

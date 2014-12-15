@@ -8,7 +8,7 @@
 
 FileRecv::FileRecv(): 
 mQueueLength(10),
-mTimeout(30000), //5 minutes
+mTimeoutMs(30000), //5 minutes
 mOffset(0),
 mSize(0),
 mData(nullptr),
@@ -24,8 +24,8 @@ int FileRecv::SetLocation(const std::string& location){
 	return zsocket_connect(mDealer, location.c_str());
 }
 
-void FileRecv::SetTimeout(const int timeout){
-    mTimeout = timeout;
+void FileRecv::SetTimeout(const int timeoutMs){
+    mTimeoutMs = timeoutMs;
 }
 
 
@@ -47,7 +47,7 @@ size_t FileRecv::Monitor(){
     RequestChunks();
 
     //Poll to see if anything is available on the pipeline:
-    if(zsocket_poll(mDealer, mTimeout)){
+    if(zsocket_poll(mDealer, mTimeoutMs)){
 
     	mChunk = zframe_recv (mDealer);
     	if(!mChunk) {
