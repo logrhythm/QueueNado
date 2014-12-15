@@ -61,7 +61,7 @@ size_t FileRecv::Monitor(){
     		return 0;
     	}
     	
-    	mData = (uint8_t *) malloc(mSize);	
+    	mData = reinterpret_cast<uint8_t*>(malloc(mSize));	
 		memcpy(mData, (void*) zframe_data(mChunk), mSize);
 
 		mCredit++;

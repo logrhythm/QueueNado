@@ -9,7 +9,7 @@ typedef struct _zctx_t zctx_t;
 
 class FileSend {
 public:
-   explicit FileSend();
+   FileSend();
    int SetLocation(const std::string& location);
    void SetTimeout(const int timeout);
    int SendData(uint8_t* data, size_t size);

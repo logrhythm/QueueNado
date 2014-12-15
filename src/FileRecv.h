@@ -9,7 +9,7 @@ typedef struct _zctx_t zctx_t;
 
 class FileRecv {
 public:
-   explicit FileRecv();
+   FileRecv();
    int SetLocation(const std::string& location);
    void SetTimeout(const int timeoutMs);
    size_t Monitor();
