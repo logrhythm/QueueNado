@@ -13,7 +13,6 @@ void* FileSendTests::RecvThreadNextChunkIdDie(void* arg) {
    MockFileRecv *client = new MockFileRecv();
    client->SetLocation(address);
    if (client->SetLocation(address) < 0){
-      std::cout << "Location unable to set" << std::endl;
       delete client;
       return nullptr;
    }
@@ -25,10 +24,9 @@ void* FileSendTests::RecvThreadNextChunkIdDie(void* arg) {
 
 void* FileSendTests::RecvThreadNextChunkIdWait(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
-   MockFileRecv *client = new MockFileRecv();
+   MockFileRecv* client = new MockFileRecv();
    client->SetLocation(address);
    if (client->SetLocation(address) < 0){
-      std::cout << "Location unable to set" << std::endl;
       delete client;
       return nullptr;
    }
@@ -41,10 +39,9 @@ void* FileSendTests::RecvThreadNextChunkIdWait(void* arg) {
 void* FileSendTests::RecvThreadGetThreeWait(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
 
-   MockFileRecv *client = new MockFileRecv();
+   MockFileRecv* client = new MockFileRecv();
    client->SetLocation(address);
    if (client->SetLocation(address) < 0){
-      std::cout << "Location unable to set" << std::endl;
       delete client;
       return nullptr;
    }
@@ -61,9 +58,8 @@ void* FileSendTests::RecvThreadGetThreeWait(void* arg) {
 void* FileSendTests::RecvThreadGetFileDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
    
-   MockFileRecv *client = new MockFileRecv();
+   MockFileRecv* client = new MockFileRecv();
    if (client->SetLocation(address) < 0){
-      std::cout << "Location unable to set" << std::endl;
       delete client;
       return nullptr;
    }

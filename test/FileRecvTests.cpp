@@ -38,9 +38,8 @@ void* FileRecvTests::SendThreadSendThirtyDie(void* arg) {
    server->SetTimeout(1000);
    server->SetLocation(address);
 
-   for (int i = 0; i < 30; i++) {
-      uint8_t data = (uint8_t) i;
-      server->SendData(&data, 1);
+   for (uint8_t i = 0; i < 30; i++) {
+      server->SendData(&i, 1);
    }
 
    delete server;
@@ -53,9 +52,8 @@ void* FileRecvTests::SendThreadSendThirtyTwoEnd(void* arg) {
    server->SetLocation(address);
    server->SetTimeout(1000);
 
-   for (int i = 0; i < 30; i++) {
-      uint8_t data = (uint8_t) i;
-      server->SendData(&data, 1);
+   for (uint8_t i = 0; i < 30; i++) {
+      server->SendData(&i, 1);
    }
    server->SendData(nullptr, 0);
 
