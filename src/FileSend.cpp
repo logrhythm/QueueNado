@@ -78,6 +78,7 @@ int FileSend::NextChunkId(){
          return -1;
       }
     	
+    	mNextChunkId = std::stoi(mNextChunk);
       mNextChunkId = atoi(mNextChunk);
       return mNextChunkId;
 
@@ -92,7 +93,7 @@ int FileSend::SendData(uint8_t* data, size_t size){
    FreeChunk();
    FreeOldRequests();
 
-   size_t next = NextChunkId();
+   const auto next = NextChunkId();
    if(next < 0){
       //Interrupt or client has terminated
       return next;
