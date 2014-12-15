@@ -23,13 +23,13 @@ protected:
    void FreeData();
    
 private:
-   void *mDealer;
-   zctx_t *mCtx;
+   void* mDealer;
+   zctx_t* mCtx;
    size_t mQueueLength;
    int mTimeoutMs;
    size_t mCredit;
    size_t mOffset;
    size_t mSize;
-   uint8_t *mData;
+   uint8_t* mData;
    zframe_t *mChunk;
 };

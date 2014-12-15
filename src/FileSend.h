@@ -21,13 +21,13 @@ protected:
    void FreeChunk();
 
 private:
-   void * mRouter;
-   zctx_t * mCtx;
+   void* mRouter;
+   zctx_t* mCtx;
    std::string mLocation;
    size_t mQueueLength;
-   char * mNextChunk;
+   char* mNextChunk;
    size_t mNextChunkId;
-   zframe_t * mIdentity;
+   zframe_t* mIdentity;
    int mTimeoutMs;
-   zframe_t * mChunk;
+   zframe_t* mChunk;
 };
