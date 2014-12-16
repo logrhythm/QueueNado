@@ -1,5 +1,3 @@
-#include <cstdlib>
-#include <cstdint>
 #include <memory>
 #include <czmq.h>
 #include <g2log.hpp>
@@ -82,7 +80,7 @@ void FileRecv::FreeChunk(){
 
 void FileRecv::FreeData(){
    if(mData != nullptr){
-      free(mData);
+      free(mData);  // delete [] mData;
       mData = nullptr;
    }
 }

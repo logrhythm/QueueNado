@@ -1,6 +1,3 @@
-#include <cstdlib>
-#include <cstdint>
-#include <memory>
 #include <czmq.h>
 #include <g2log.hpp>
 
@@ -78,8 +75,7 @@ int FileSend::NextChunkId(){
          return -1;
       }
     	
-    	mNextChunkId = std::stoi(mNextChunk);
-      mNextChunkId = atoi(mNextChunk);
+      mNextChunkId = std::stoi(mNextChunk);
       return mNextChunkId;
 
    } else {
