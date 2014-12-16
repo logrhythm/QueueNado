@@ -1,7 +1,6 @@
 #include <czmq.h>
 #include <thread>
 #include <boost/thread.hpp>
-#include <boost/lexical_cast.hpp>
 #include "FileRecvTests.h"
 #include "MockFileSend.h"
 #include "FileRecv.h"
@@ -63,7 +62,7 @@ int FileRecvTests::GetTcpPort() {
 
 std::string FileRecvTests::GetTcpLocation(int port) {
    std::string tcpLocation("tcp://127.0.0.1:");
-   tcpLocation.append(boost::lexical_cast<std::string > (port));
+   tcpLocation.append(std::to_string(port));
    return tcpLocation;
 }
 
@@ -71,7 +70,7 @@ std::string FileRecvTests::GetIpcLocation() {
    int pid = getpid();
    std::string ipcLocation("ipc:///tmp/");
    ipcLocation.append("FileRecvTests");
-   ipcLocation.append(boost::lexical_cast<std::string > (pid));
+   ipcLocation.append(std::to_string(pid));
    ipcLocation.append(".ipc");
    return ipcLocation;
 }
@@ -79,7 +78,7 @@ std::string FileRecvTests::GetIpcLocation() {
 std::string FileRecvTests::GetInprocLocation() {
    int pid = getpid();
    std::string inprocLocation("inproc://FileRecvTests");
-   inprocLocation.append(boost::lexical_cast<std::string > (pid));
+   inprocLocation.append(std::to_string(pid));
    return inprocLocation;
 }
 
