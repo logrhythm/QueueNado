@@ -18,8 +18,9 @@ mChunk(nullptr) {
    mCredit = mQueueLength;
 }
 
-int FileRecv::SetLocation(const std::string& location){
-   return zsocket_connect(mDealer, location.c_str());
+FileRecv::Socket FileRecv::SetLocation(const std::string& location){
+   int result = zsocket_connect(mDealer, location.c_str());
+   return (0 == result) ? FileRecv::Socket::OK : FileRecv::Socket::INVALID;
 }
 
 void FileRecv::SetTimeout(const int timeoutMs){
@@ -36,7 +37,7 @@ void FileRecv::RequestChunks(){
    }   
 }
 
-FileRecv::Result FileRecv::Receive(){
+FileRecv::Stream FileRecv::Receive(){
     
    //Erase any previous data from the last Monitor()
    FreeChunk();
@@ -50,24 +51,24 @@ FileRecv::Result FileRecv::Receive(){
       mChunk = zframe_recv (mDealer);
       if(!mChunk) {
          //Interrupt or end of stream
-         return FileRecv::Result::INTERRUPT;
+         return FileRecv::Stream::INTERRUPT;
       }
 
       mSize = zframe_size (mChunk);
       if(mSize <= 0){
          //End of Stream
-         return FileRecv::Result::END_OF_STREAM;
+         return FileRecv::Stream::END_OF_STREAM;
       }
         
       mData = reinterpret_cast<uint8_t*>(malloc(mSize));  
       memcpy(mData, reinterpret_cast<void*>(zframe_data(mChunk)), mSize);
 
       mCredit++;
-      return FileRecv::Result::CONTINUE;
+      return FileRecv::Stream::CONTINUE;
 
    } else {
       //timeout
-      return FileRecv::Result::TIMEOUT;
+      return FileRecv::Stream::TIMEOUT;
    }
 }
 

@@ -8,12 +8,13 @@ typedef struct _zctx_t zctx_t;
 class FileRecv {
 public:
 
-   enum Result : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, END_OF_STREAM = 0, CONTINUE = 1 };
+   enum Socket : std::int8_t { INVALID = -1, OK = 0 };
+   enum Stream : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, END_OF_STREAM = 0, CONTINUE = 1 };
 
    FileRecv();
-   int SetLocation(const std::string& location);
+   Socket SetLocation(const std::string& location);
    void SetTimeout(const int timeoutMs);
-   Result Receive();
+   Stream Receive();
    uint8_t* GetChunkData();
    size_t GetChunkSize();
    virtual ~FileRecv();

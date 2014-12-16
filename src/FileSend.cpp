@@ -7,7 +7,6 @@ FileSend::FileSend():
 mLocation(""), 
 mQueueLength(10),
 mNextChunk(nullptr), 
-mNextChunkId(0), 
 mIdentity(nullptr), 
 mTimeoutMs(30000), //5 Minutes
 mChunk(nullptr) {
@@ -17,11 +16,12 @@ mChunk(nullptr) {
    CHECK(mRouter);
 }
 
-int FileSend::SetLocation(const std::string& location){
+FileSend::Socket FileSend::SetLocation(const std::string& location){
    mLocation = location;
    zsocket_set_hwm(mRouter, mQueueLength * 2);
 
-   return zsocket_bind(mRouter, mLocation.c_str());
+   int result = zsocket_bind(mRouter, mLocation.c_str());
+   return result ? FileSend::Socket::OK : FileSend::Socket::INVALID;
 }
 
 void FileSend::SetTimeout(const int timeoutMs){
@@ -46,7 +46,7 @@ void FileSend::FreeChunk(){
    }
 }
 
-int FileSend::NextChunkId(){
+FileSend::Stream FileSend::NextChunkId(){
 
    FreeChunk();
    FreeOldRequests();
@@ -57,12 +57,11 @@ int FileSend::NextChunkId(){
       // First frame is the identity of the client
       mIdentity = zframe_recv (mRouter);
       if (!mIdentity) {
-         //Interrupt or client has terminated
-         return -1;
+         return FileSend::Stream::INTERRUPT;
       }
 
    } else {
-      return -2;
+      return FileSend::Stream::TIMEOUT;
    }
 
    //Poll to see if anything is available on the pipeline:
@@ -71,27 +70,23 @@ int FileSend::NextChunkId(){
       // Second frame is next chunk requested of the file
       mNextChunk = zstr_recv (mRouter);
       if(!mNextChunk){
-         //Interrupt or client has terminated
-         return -1;
+         return FileSend::Stream::INTERRUPT;
       }
-    	
-      mNextChunkId = std::stoi(mNextChunk);
-      return mNextChunkId;
+
+      return FileSend::Stream::CONTINUE;
 
    } else {
-      //timeout
-      return -2;
+      return FileSend::Stream::TIMEOUT;
    }
 }
 
-int FileSend::SendData(uint8_t* data, size_t size){
+FileSend::Stream FileSend::SendData(uint8_t* data, size_t size){
 	
    FreeChunk();
    FreeOldRequests();
 
    const auto next = NextChunkId();
-   if(next < 0){
-      //Interrupt or client has terminated
+   if(FileSend::Stream::CONTINUE != next){
       return next;
    }
 
@@ -101,7 +96,7 @@ int FileSend::SendData(uint8_t* data, size_t size){
    zframe_send (&mIdentity, mRouter, ZFRAME_REUSE + ZFRAME_MORE);
    zframe_send (&mChunk, mRouter, 0);
 
-   return 0;
+   return FileSend::Stream::CONTINUE;
 }
 
 FileSend::~FileSend(){

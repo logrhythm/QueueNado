@@ -83,9 +83,9 @@ TEST_F(FileSendTests, FileSendSetLocation) {
 
    int port = GetTcpPort();
    std::string location = FileSendTests::GetTcpLocation(port);
-   int status = server.SetLocation(location);
 
-   EXPECT_EQ(status, port);   
+   FileSend::Socket socket = server.SetLocation(location);
+   EXPECT_EQ(socket, FileSend::Socket::OK);  
 }
 
 TEST_F(FileSendTests, SendDataGetNextChunkIdDieMethods) {
@@ -97,13 +97,14 @@ TEST_F(FileSendTests, SendDataGetNextChunkIdDieMethods) {
    zthread_new(FileSendTests::RecvThreadNextChunkIdDie, reinterpret_cast<void*>(&location));
 
    MockFileSend server;
-   int status = server.SetLocation(location);
    server.SetTimeout(500);
-   EXPECT_EQ(status, port);
+
+   FileSend::Socket socket = server.SetLocation(location);
+   EXPECT_EQ(socket, FileSend::Socket::OK);    
    
    for(int i = 0; i < 10; i++){
-      int nextChunk = server.CallNextChunkId(); 
-      EXPECT_EQ(nextChunk, -2);  
+      FileSend::Stream stream = server.CallNextChunkId(); 
+      EXPECT_EQ(stream, FileSend::Stream::TIMEOUT);  
    }
 }
 
@@ -118,13 +119,14 @@ TEST_F(FileSendTests, SendDataGetNextChunkIdWaitMethods) {
    zthread_new(FileSendTests::RecvThreadNextChunkIdWait, reinterpret_cast<void*>(&location));
 
    MockFileSend server;
-   int status = server.SetLocation(location);
    server.SetTimeout(500);
-   EXPECT_EQ(status, port);
+   
+   FileSend::Socket socket = server.SetLocation(location);
+   EXPECT_EQ(socket, FileSend::Socket::OK);   
    
    for(int i = 0; i < 10; i++){
-      int nextChunk = server.CallNextChunkId(); 
-      EXPECT_TRUE(nextChunk >= 0);  
+      FileSend::Stream stream = server.CallNextChunkId(); 
+      EXPECT_EQ(stream, FileSend::Stream::CONTINUE);  
    }
 }
 
@@ -140,25 +142,26 @@ TEST_F(FileSendTests, SendDataGetResultingWaitsMethods) {
    zthread_new(FileSendTests::RecvThreadGetThreeWait, reinterpret_cast<void*>(&location));
 
    MockFileSend server;
-   int status = server.SetLocation(location);
    server.SetTimeout(500);
-   EXPECT_EQ(status, port);
+   
+   FileSend::Socket socket = server.SetLocation(location);
+   EXPECT_EQ(socket, FileSend::Socket::OK);  
 
    uint8_t data[] = {10,20,30};
-   status = server.SendData(data, 3);
-   EXPECT_EQ(status, 0);
-   status = server.SendData(data, 3);
-   EXPECT_EQ(status, 0);
-   status = server.SendData(data, 3);
-   EXPECT_EQ(status, 0);
+   FileSend::Stream stream = server.SendData(data, 3);
+   EXPECT_EQ(stream, FileSend::Stream::CONTINUE);
+   stream = server.SendData(data, 3);
+   EXPECT_EQ(stream, FileSend::Stream::CONTINUE);
+   stream = server.SendData(data, 3);
+   EXPECT_EQ(stream, FileSend::Stream::CONTINUE);
 
    for(int i = 0; i < 10; i++){
-      int nextChunk = server.CallNextChunkId(); 
-      EXPECT_TRUE(nextChunk >= 0);  
+      stream = server.CallNextChunkId(); 
+      EXPECT_EQ(stream, FileSend::Stream::CONTINUE);
    }
 
-   int nextChunk = server.CallNextChunkId(); 
-   EXPECT_EQ(nextChunk, -2);  
+   stream = server.CallNextChunkId(); 
+   EXPECT_EQ(stream, FileSend::Stream::TIMEOUT);   
 }
 
 TEST_F(FileSendTests, SendEntireFileMethods2) {
@@ -173,16 +176,17 @@ TEST_F(FileSendTests, SendEntireFileMethods2) {
    zthread_new(FileSendTests::RecvThreadGetFileDie, reinterpret_cast<void*>(&location));
 
    MockFileSend server;
-   int status = server.SetLocation(location);
    server.SetTimeout(500);
-   EXPECT_EQ(status, port);
+   
+   FileSend::Socket socket = server.SetLocation(location);
+   EXPECT_EQ(socket, FileSend::Socket::OK);  
 
    uint8_t data[] = {10,20,30};
    for (int i = 0; i < 30; i++){
-      int status = server.SendData(data, 3);
-      EXPECT_EQ(status, 0);
+      FileSend::Stream stream = server.SendData(data, 3);
+      EXPECT_EQ(stream, FileSend::Stream::CONTINUE); 
    }
 
-   status = server.SendData(nullptr, 0);
-   EXPECT_EQ(status, 0);
+   FileSend::Stream stream = server.SendData(nullptr, 0);
+   EXPECT_EQ(stream, FileSend::Stream::CONTINUE); 
 }

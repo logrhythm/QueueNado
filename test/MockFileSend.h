@@ -10,7 +10,7 @@ public:
    virtual ~MockFileSend() {
    }
 
-   int CallNextChunkId() {
+   FileSend::Stream CallNextChunkId() {
       return NextChunkId();
    }
 
