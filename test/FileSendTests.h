@@ -6,7 +6,7 @@ class FileSendTests : public ::testing::Test {
 public:
 
    FileSendTests() {
-      srand(std::time(NULL));
+      srand(std::time(nullptr));
    };
 
    int mPid;

@@ -6,7 +6,7 @@ class FileRecvTests : public ::testing::Test {
 public:
 
    FileRecvTests() {
-      srand(std::time(NULL));
+      srand(std::time(nullptr));
    };
 
    int mPid;
