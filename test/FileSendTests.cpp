@@ -20,7 +20,7 @@ void* FileSendTests::RecvThreadNextChunkIdWait(void* arg) {
    MockFileRecv client;
    client.SetLocation(address);
    client.SetTimeout(500);
-   client.Monitor();
+   client.Receive();
    return nullptr;
 }
 
@@ -30,10 +30,10 @@ void* FileSendTests::RecvThreadGetThreeWait(void* arg) {
    MockFileRecv client;
    client.SetLocation(address);
    client.SetTimeout(500);
-   client.Monitor();
-   client.Monitor();
-   client.Monitor();
-   client.Monitor();
+   client.Receive();
+   client.Receive();
+   client.Receive();
+   client.Receive();
    return nullptr;
 }
 
@@ -44,7 +44,7 @@ void* FileSendTests::RecvThreadGetFileDie(void* arg) {
    client.SetTimeout(500);
    client.SetLocation(address);
 
-   while(client.Monitor() > 0){
+   while(client.Receive() > 0){
 
    }
    return nullptr;

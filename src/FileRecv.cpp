@@ -36,7 +36,7 @@ void FileRecv::RequestChunks(){
    }   
 }
 
-size_t FileRecv::Monitor(){
+FileRecv::Result FileRecv::Receive(){
     
    //Erase any previous data from the last Monitor()
    FreeChunk();
@@ -50,24 +50,24 @@ size_t FileRecv::Monitor(){
       mChunk = zframe_recv (mDealer);
       if(!mChunk) {
          //Interrupt or end of stream
-         return -1;
+         return FileRecv::Result::INTERRUPT;
       }
 
       mSize = zframe_size (mChunk);
       if(mSize <= 0){
          //End of Stream
-         return 0;
+         return FileRecv::Result::END_OF_STREAM;
       }
         
       mData = reinterpret_cast<uint8_t*>(malloc(mSize));  
       memcpy(mData, reinterpret_cast<void*>(zframe_data(mChunk)), mSize);
 
       mCredit++;
-      return mSize;
+      return FileRecv::Result::CONTINUE;
 
    } else {
       //timeout
-      return -2;
+      return FileRecv::Result::TIMEOUT;
    }
 }
 
