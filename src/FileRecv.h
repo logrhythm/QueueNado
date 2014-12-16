@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdlib>
-#include <cstdint>
 #include <string>
 
 struct _zctx_t;
