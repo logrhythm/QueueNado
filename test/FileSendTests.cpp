@@ -10,65 +10,45 @@
 
 void* FileSendTests::RecvThreadNextChunkIdDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
-   MockFileRecv *client = new MockFileRecv();
-   client->SetLocation(address);
-   if (client->SetLocation(address) < 0){
-      delete client;
-      return nullptr;
-   }
-   client->SetTimeout(500);
-   client->CallRequestChunks();
-   delete client;
+   MockFileRecv client;
+   client.SetLocation(address);
+   client.SetTimeout(500);
+   client.CallRequestChunks();
    return nullptr;
 }
 
 void* FileSendTests::RecvThreadNextChunkIdWait(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
-   MockFileRecv* client = new MockFileRecv();
-   client->SetLocation(address);
-   if (client->SetLocation(address) < 0){
-      delete client;
-      return nullptr;
-   }
-   client->SetTimeout(500);
-   client->Monitor();
-   delete client;
+   MockFileRecv client;
+   client.SetLocation(address);
+   client.SetTimeout(500);
+   client.Monitor();
    return nullptr;
 }
 
 void* FileSendTests::RecvThreadGetThreeWait(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
 
-   MockFileRecv* client = new MockFileRecv();
-   client->SetLocation(address);
-   if (client->SetLocation(address) < 0){
-      delete client;
-      return nullptr;
-   }
-   client->SetTimeout(500);
-   client->Monitor();
-   client->Monitor();
-   client->Monitor();
-   client->Monitor();
-
-   delete client;
+   MockFileRecv client;
+   client.SetLocation(address);
+   client.SetTimeout(500);
+   client.Monitor();
+   client.Monitor();
+   client.Monitor();
+   client.Monitor();
    return nullptr;
 }
 
 void* FileSendTests::RecvThreadGetFileDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
    
-   MockFileRecv* client = new MockFileRecv();
-   if (client->SetLocation(address) < 0){
-      delete client;
-      return nullptr;
-   }
-   client->SetTimeout(500);
+   MockFileRecv client;
+   client.SetTimeout(500);
+   client.SetLocation(address);
 
-   while(client->Monitor() > 0){
+   while(client.Monitor() > 0){
 
    }
-   delete client;
    return nullptr;
 }
 

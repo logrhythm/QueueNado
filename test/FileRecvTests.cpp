@@ -9,12 +9,10 @@
 
 void* FileRecvTests::SendThreadNextChunkIdDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
-   MockFileSend *server = new MockFileSend();
-   server->SetLocation(address);
-   server->SetTimeout(1000);
-   server->CallNextChunkId();
-
-   delete server;
+   MockFileSend server;
+   server.SetLocation(address);
+   server.SetTimeout(1000);
+   server.CallNextChunkId();
    return nullptr;
 }
 
@@ -22,42 +20,38 @@ void* FileRecvTests::SendThreadSendOneDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
    uint8_t first[] = {10,20,30};
 
-   MockFileSend* server = new MockFileSend();
-   server->SetLocation(address);
-   server->SetTimeout(1000);
-   server->SendData(first, 3);
-
-   delete server;
+   MockFileSend server;
+   server.SetLocation(address);
+   server.SetTimeout(1000);
+   server.SendData(first, 3);
 
    return nullptr;
 }
 
 void* FileRecvTests::SendThreadSendThirtyDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
-   FileSend* server = new FileSend();
-   server->SetTimeout(1000);
-   server->SetLocation(address);
+   MockFileSend server;
+   server.SetLocation(address);
+   server.SetTimeout(1000);
 
    for (uint8_t i = 0; i < 30; i++) {
-      server->SendData(&i, 1);
+      server.SendData(&i, 1);
    }
 
-   delete server;
    return nullptr;
 }
 
 void* FileRecvTests::SendThreadSendThirtyTwoEnd(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
-   FileSend* server = new FileSend();
-   server->SetLocation(address);
-   server->SetTimeout(1000);
+   MockFileSend server;
+   server.SetLocation(address);
+   server.SetTimeout(1000);
 
    for (uint8_t i = 0; i < 30; i++) {
-      server->SendData(&i, 1);
+      server.SendData(&i, 1);
    }
-   server->SendData(nullptr, 0);
+   server.SendData(nullptr, 0);
 
-   delete server;
    return nullptr;
 }
 
