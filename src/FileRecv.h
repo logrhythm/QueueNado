@@ -24,8 +24,8 @@ class FileRecv {
 public: 
 
    typedef std::unique_ptr<DataChunk, void(*)(DataChunk*)> DataPacket;
-   enum Socket : std::int8_t { INVALID = -1, OK = 0 };
-   enum Stream : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, END_OF_STREAM = 0, CONTINUE = 1 };
+   enum class Socket : std::int8_t { INVALID = -1, OK = 0 };
+   enum class Stream : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, END_OF_STREAM = 0, CONTINUE = 1 };
 
    FileRecv();
 

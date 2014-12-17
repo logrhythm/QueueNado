@@ -8,8 +8,8 @@ typedef struct _zctx_t zctx_t;
 class FileSend {
 public:
 
-   enum Socket : std::int8_t { INVALID = -1, OK = 0 };
-   enum Stream : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, CONTINUE = 0 };
+   enum class Socket : std::int8_t { INVALID = -1, OK = 0 };
+   enum class Stream : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, CONTINUE = 0 };
 
    FileSend();
    Socket SetLocation(const std::string& location);

@@ -47,7 +47,7 @@ void* FileSendTests::RecvThreadGetFileDie(void* arg) {
    client.SetTimeout(500);
    client.SetLocation(address);
 
-   while(client.Receive(p) > 0){
+   while(FileRecv::Stream::CONTINUE == client.Receive(p)){
 
    }
    return nullptr;
