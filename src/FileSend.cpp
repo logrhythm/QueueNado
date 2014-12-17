@@ -34,7 +34,7 @@ void FileSend::FreeOldRequests(){
       mIdentity = nullptr;
    }
    if(mNextChunk != nullptr){
-      free(mNextChunk);
+      delete [] mNextChunk;
       mNextChunk = nullptr;
    }
 }
@@ -75,9 +75,9 @@ FileSend::Stream FileSend::NextChunkId(){
 
       return FileSend::Stream::CONTINUE;
 
-   } else {
-      return FileSend::Stream::TIMEOUT;
-   }
+   } 
+   
+   return FileSend::Stream::TIMEOUT;
 }
 
 FileSend::Stream FileSend::SendData(uint8_t* data, size_t size){

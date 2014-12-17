@@ -61,16 +61,15 @@ FileRecv::Stream FileRecv::Receive(DataPacket& chunk){
          return FileRecv::Stream::END_OF_STREAM;
       }
 
-      chunk->data = reinterpret_cast<uint8_t*>(malloc(chunk->size));
+      chunk->data = new uint8_t[chunk->size];
       memcpy(chunk->data, reinterpret_cast<void*>(zframe_data(mChunk)), chunk->size);
 
       mCredit++;
       return FileRecv::Stream::CONTINUE;
 
-   } else {
-      //timeout
-      return FileRecv::Stream::TIMEOUT;
-   }
+   } 
+
+   return FileRecv::Stream::TIMEOUT;
 }
 
 void FileRecv::FreeChunk(){
