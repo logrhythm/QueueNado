@@ -1,5 +1,6 @@
 #include <czmq.h>
 #include <thread>
+#include <iostream>
 #include "FileRecvTests.h"
 #include "MockFileSend.h"
 #include "FileRecv.h"
@@ -104,13 +105,12 @@ TEST_F(FileRecvTests, SendDataGetNextChunkIdMethods) {
    FileRecv::Socket status = client.SetLocation(location);
    EXPECT_EQ(status, FileRecv::Socket::OK);   
    
-   FileRecv::Stream res = client.Receive();
-   size_t size = client.GetChunkSize();
-   uint8_t* data = client.GetChunkData();
+   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
+   FileRecv::Stream res = client.Receive(p);
 
    EXPECT_EQ(res, FileRecv::Stream::TIMEOUT);
-   EXPECT_EQ(size, 0);
-   EXPECT_EQ(data, nullptr);
+   EXPECT_EQ(p->size, 0);
+   EXPECT_EQ(p->data, nullptr);
 }
 
 TEST_F(FileRecvTests, SendDataOneChunkReceivedMethods) {
@@ -125,18 +125,17 @@ TEST_F(FileRecvTests, SendDataOneChunkReceivedMethods) {
    
    FileRecv::Socket status = client.SetLocation(location);
    EXPECT_EQ(status, FileRecv::Socket::OK); 
-   
-   FileRecv::Stream res = client.Receive();
-   size_t size = client.GetChunkSize();
-   uint8_t* data = client.GetChunkData();
+
+   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
+   FileRecv::Stream res = client.Receive(p);
 
    EXPECT_EQ(res, FileRecv::Stream::CONTINUE);
-   EXPECT_EQ(size, 3);
-   EXPECT_EQ(data[0], 10);
-   EXPECT_EQ(data[1], 20);
-   EXPECT_EQ(data[2], 30);
+   EXPECT_EQ(p->size, 3);
+   EXPECT_EQ(p->data[0], 10);
+   EXPECT_EQ(p->data[1], 20);
+   EXPECT_EQ(p->data[2], 30);
 
-   res = client.Receive();  
+   res = client.Receive(p);  
    EXPECT_EQ(res, FileRecv::Stream::TIMEOUT);
 }
 
@@ -147,23 +146,24 @@ TEST_F(FileRecvTests, SendThirtyDataChunksReceivedMethods) {
    zthread_new(FileRecvTests::SendThreadSendThirtyDie, reinterpret_cast<void*>(&location));
 
    FileRecv client;
-   client.SetTimeout(1000);
+   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
    
+   client.SetTimeout(1000);
    FileRecv::Socket status = client.SetLocation(location);
    EXPECT_EQ(status, FileRecv::Socket::OK); 
 
    for (int i = 0; i < 30; ++i){
-      FileRecv::Stream res = client.Receive(); 
-      size_t size = client.GetChunkSize();
-      uint8_t* data = client.GetChunkData();
+      FileRecv::Stream res = client.Receive(p); 
 
       EXPECT_EQ(res, FileRecv::Stream::CONTINUE); 
-      EXPECT_EQ(data[0], i);
-      EXPECT_EQ(size, 1);
+      EXPECT_EQ(p->data[0], i);
+      EXPECT_EQ(p->size, 1);
    }
    
-   FileRecv::Stream res = client.Receive();  
+   FileRecv::Stream res = client.Receive(p);  
    EXPECT_EQ(res, FileRecv::Stream::TIMEOUT);
+   EXPECT_EQ(p->data, nullptr);
+   EXPECT_EQ(p->size, 0);
 }
 
 TEST_F(FileRecvTests, SendThirtyTwoDataChunksReceivedMethods) {
@@ -173,28 +173,24 @@ TEST_F(FileRecvTests, SendThirtyTwoDataChunksReceivedMethods) {
    zthread_new(FileRecvTests::SendThreadSendThirtyTwoEnd, reinterpret_cast<void*>(&location));
 
    FileRecv client;
+   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
    client.SetTimeout(1000);
    
    FileRecv::Socket status = client.SetLocation(location);
    EXPECT_EQ(status, FileRecv::Socket::OK); 
 
    for (int i = 0; i < 30; ++i){
-      FileRecv::Stream res = client.Receive(); 
-      size_t size = client.GetChunkSize();
-      uint8_t* data = client.GetChunkData();
+      FileRecv::Stream res = client.Receive(p); 
 
-      EXPECT_EQ(res, FileRecv::Stream::CONTINUE);
-      EXPECT_EQ(data[0], i);
-      EXPECT_EQ(size, 1);
+      EXPECT_EQ(res, FileRecv::Stream::CONTINUE); 
+      EXPECT_EQ(p->data[0], i);
+      EXPECT_EQ(p->size, 1);
    }
    
    //Should now receive an empty chucnk to indicate end of stream:
-   FileRecv::Stream res = client.Receive();
-   uint8_t* data = client.GetChunkData();
-   size_t size = client.GetChunkSize();
-
+   FileRecv::Stream res = client.Receive(p);  
    EXPECT_EQ(res, FileRecv::Stream::END_OF_STREAM);
-   EXPECT_EQ(size, 0);
-   EXPECT_EQ(data, nullptr);
+   EXPECT_EQ(p->data, nullptr);
+   EXPECT_EQ(p->size, 0);
 }
 

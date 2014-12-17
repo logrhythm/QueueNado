@@ -17,34 +17,37 @@ void* FileSendTests::RecvThreadNextChunkIdDie(void* arg) {
 
 void* FileSendTests::RecvThreadNextChunkIdWait(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
+   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
    MockFileRecv client;
    client.SetLocation(address);
    client.SetTimeout(500);
-   client.Receive();
+   client.Receive(p);
    return nullptr;
 }
 
 void* FileSendTests::RecvThreadGetThreeWait(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
 
+   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
    MockFileRecv client;
    client.SetLocation(address);
    client.SetTimeout(500);
-   client.Receive();
-   client.Receive();
-   client.Receive();
-   client.Receive();
+   client.Receive(p);
+   client.Receive(p);
+   client.Receive(p);
+   client.Receive(p);
    return nullptr;
 }
 
 void* FileSendTests::RecvThreadGetFileDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
    
+   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
    MockFileRecv client;
    client.SetTimeout(500);
    client.SetLocation(address);
 
-   while(client.Receive() > 0){
+   while(client.Receive(p) > 0){
 
    }
    return nullptr;
