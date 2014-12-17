@@ -1,6 +1,5 @@
 #include <czmq.h>
 #include <thread>
-#include <iostream>
 #include "FileRecvTests.h"
 #include "MockFileSend.h"
 #include "FileRecv.h"

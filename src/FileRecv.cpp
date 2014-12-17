@@ -1,4 +1,3 @@
-#include <memory>
 #include <czmq.h>
 #include <g2log.hpp>
 

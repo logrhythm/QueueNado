@@ -1,8 +1,6 @@
 #pragma once
 
 #include <string>
-#include <memory>
-#include <iostream>
 
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
