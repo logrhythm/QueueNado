@@ -5,12 +5,12 @@
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
 
-typedef struct DataChunk {
+struct DataChunk {
    uint8_t* data = nullptr;
    size_t size = 0;
    void Reset(){
       if(data != nullptr){
-         free(data);
+         delete [] data;
       }
       data = nullptr;
       size = 0;
@@ -18,7 +18,7 @@ typedef struct DataChunk {
    ~DataChunk(){
       Reset();
    }
-} DataChunk;
+};
 
 class FileRecv {
 public: 
