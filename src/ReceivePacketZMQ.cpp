@@ -21,11 +21,11 @@ bool ReceivePacketZMQ::Initialize() {
    return Vampire::PrepareToBeShot();
 }
 
-bool ReceivePacketZMQ::ReceiveDataBlockPointer(ctb_ppacket& dataReceived, const int milliseconds) {
+bool ReceivePacketZMQ::ReceiveDataBlockPointer(data_ppacket& dataReceived, const int milliseconds) {
    void* data;
    bool returnVal = Vampire::GetStake(data,milliseconds);
    if ( returnVal) {
-      dataReceived = reinterpret_cast<ctb_ppacket>(data);
+      dataReceived = reinterpret_cast<data_ppacket>(data);
    } else { 
       dataReceived = NULL;
    }

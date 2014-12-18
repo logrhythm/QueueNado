@@ -7,6 +7,8 @@
 #include <iostream>
 #include "boost/thread/locks.hpp"
 #include "boost/thread/recursive_mutex.hpp"
+#include "ReceivePacketZMQ.h"
+
 #ifndef PACKETS_TO_TEST
 #define PACKETS_TO_TEST 400000
 #endif
@@ -28,13 +30,13 @@ public:
     		delete[] t_bigData;
     	}
     }
-    void PacketBroadcasterReceiver(ZeroMQ <void*>* clientQueue, ctb_ppacket targetPacket) {
+    void PacketBroadcasterReceiver(ZeroMQ <void*>* clientQueue, data_ppacket targetPacket) {
     	if (!clientQueue->SendClientReady()) {
     		std::cout << "Could not notify server" << std::endl;
     		return;
     	}
     	while (mPacketsToTest > mPacketsSeen) {
-    		ctb_ppacket packet = (ctb_ppacket)clientQueue->GetPointer(1);
+    		data_ppacket packet = (data_ppacket)clientQueue->GetPointer(1);
     		if (packet == NULL) {
     		    boost::this_thread::sleep(boost::posix_time::microseconds(1));
     		} else {

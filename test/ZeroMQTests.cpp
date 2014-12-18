@@ -182,7 +182,7 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterSendReadyFromClientToServer) {
    ASSERT_TRUE(serverQueue.Initialize());
    MockZeroMQPacket clientQueue(serverQueue);
 
-   boost::thread clientThread = boost::thread(&ZeroMQTests::PacketBroadcasterReceiver, this, &clientQueue, (ctb_ppacket) NULL);
+   boost::thread clientThread = boost::thread(&ZeroMQTests::PacketBroadcasterReceiver, this, &clientQueue, (data_pkt) NULL);
    ASSERT_TRUE(serverQueue.WaitForClient(20000));
    ASSERT_TRUE(clientQueue.SocketSet());
    clientThread.interrupt();
@@ -196,7 +196,7 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterSendDataToReadyClient) {
    ASSERT_TRUE(serverQueue.Initialize());
    MockZeroMQPacket clientQueue(serverQueue);
 
-   ctb_ppacket packet = (ctb_ppacket) malloc(sizeof (ctb_pkt));
+   data_ppacket packet = (data_pkt) malloc(sizeof (data_pkt));
 
    boost::thread clientThread = boost::thread(&ZeroMQTests::PacketBroadcasterReceiver, this, &clientQueue, packet);
    ASSERT_TRUE(serverQueue.WaitForClient(20000));
@@ -234,13 +234,13 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterSendDataToReadyClientPerformanceTes
    ASSERT_TRUE(serverQueue.Initialize());
    ZeroMQ<void*> clientQueue(serverQueue);
 
-   ctb_ppacket packet = (ctb_ppacket) malloc(sizeof (ctb_pkt));
+   data_ppacket packet = (data_ppacket) malloc(sizeof (data_pkt));
    mPacketsToTest = PACKETS_TO_TEST << 2;
    boost::thread clientThread = boost::thread(
            &ZeroMQTests::PacketBroadcasterReceiver, this, &clientQueue, packet);
    ASSERT_TRUE(serverQueue.WaitForClient(20000));
 
-   SetExpectedTime(mPacketsToTest, sizeof (ctb_pkt), 300, 500000L);
+   SetExpectedTime(mPacketsToTest, sizeof (data_pkt), 300, 500000L);
 
    int packetsSent(0);
    StartTimedSection();
