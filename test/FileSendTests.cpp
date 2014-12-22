@@ -17,7 +17,7 @@ void* FileSendTests::RecvThreadNextChunkIdDie(void* arg) {
 
 void* FileSendTests::RecvThreadNextChunkIdWait(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
-   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
+   std::vector<uint8_t> p;
    MockFileRecv client;
    client.SetLocation(address);
    client.SetTimeout(500);
@@ -28,7 +28,7 @@ void* FileSendTests::RecvThreadNextChunkIdWait(void* arg) {
 void* FileSendTests::RecvThreadGetThreeWait(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
 
-   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
+   std::vector<uint8_t> p;
    MockFileRecv client;
    client.SetLocation(address);
    client.SetTimeout(500);
@@ -42,7 +42,7 @@ void* FileSendTests::RecvThreadGetThreeWait(void* arg) {
 void* FileSendTests::RecvThreadGetFileDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
    
-   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
+   std::vector<uint8_t> p;
    MockFileRecv client;
    client.SetTimeout(500);
    client.SetLocation(address);
@@ -150,12 +150,12 @@ TEST_F(FileSendTests, SendDataGetResultingWaitsMethods) {
    FileSend::Socket socket = server.SetLocation(location);
    EXPECT_EQ(socket, FileSend::Socket::OK);  
 
-   uint8_t data[] = {10,20,30};
-   FileSend::Stream stream = server.SendData(data, 3);
+   std::vector<uint8_t> data = {10,20,30};
+   FileSend::Stream stream = server.SendData(data);
    EXPECT_EQ(stream, FileSend::Stream::CONTINUE);
-   stream = server.SendData(data, 3);
+   stream = server.SendData(data);
    EXPECT_EQ(stream, FileSend::Stream::CONTINUE);
-   stream = server.SendData(data, 3);
+   stream = server.SendData(data);
    EXPECT_EQ(stream, FileSend::Stream::CONTINUE);
 
    for(int i = 0; i < 10; i++){
@@ -184,12 +184,12 @@ TEST_F(FileSendTests, SendEntireFileMethods2) {
    FileSend::Socket socket = server.SetLocation(location);
    EXPECT_EQ(socket, FileSend::Socket::OK);  
 
-   uint8_t data[] = {10,20,30};
+   std::vector<uint8_t> data = {10,20,30};
    for (int i = 0; i < 30; i++){
-      FileSend::Stream stream = server.SendData(data, 3);
+      FileSend::Stream stream = server.SendData(data);
       EXPECT_EQ(stream, FileSend::Stream::CONTINUE); 
    }
 
-   FileSend::Stream stream = server.SendData(nullptr, 0);
+   FileSend::Stream stream = server.SendFinal();
    EXPECT_EQ(stream, FileSend::Stream::CONTINUE); 
 }

@@ -16,12 +16,12 @@ void* FileRecvTests::SendThreadNextChunkIdDie(void* arg) {
 
 void* FileRecvTests::SendThreadSendOneDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
-   uint8_t first[] = {10,20,30};
+   std::vector<uint8_t> v = {10,20,30};
 
    MockFileSend server;
    server.SetLocation(address);
    server.SetTimeout(1000);
-   server.SendData(first, 3);
+   server.SendData(v);
 
    return nullptr;
 }
@@ -33,7 +33,7 @@ void* FileRecvTests::SendThreadSendThirtyDie(void* arg) {
    server.SetTimeout(1000);
 
    for (uint8_t i = 0; i < 30; i++) {
-      server.SendData(&i, 1);
+      server.SendData({i});
    }
 
    return nullptr;
@@ -46,9 +46,9 @@ void* FileRecvTests::SendThreadSendThirtyTwoEnd(void* arg) {
    server.SetTimeout(1000);
 
    for (uint8_t i = 0; i < 30; i++) {
-      server.SendData(&i, 1);
+      server.SendData({i});
    }
-   server.SendData(nullptr, 0);
+   server.SendFinal();
 
    return nullptr;
 }
@@ -104,12 +104,11 @@ TEST_F(FileRecvTests, SendDataGetNextChunkIdMethods) {
    FileRecv::Socket status = client.SetLocation(location);
    EXPECT_EQ(status, FileRecv::Socket::OK);   
    
-   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
+   std::vector<uint8_t> p;
    FileRecv::Stream res = client.Receive(p);
 
    EXPECT_EQ(res, FileRecv::Stream::TIMEOUT);
-   EXPECT_EQ(p->size, 0);
-   EXPECT_EQ(p->data, nullptr);
+   EXPECT_EQ(p.size(), 0);
 }
 
 TEST_F(FileRecvTests, SendDataOneChunkReceivedMethods) {
@@ -125,14 +124,14 @@ TEST_F(FileRecvTests, SendDataOneChunkReceivedMethods) {
    FileRecv::Socket status = client.SetLocation(location);
    EXPECT_EQ(status, FileRecv::Socket::OK); 
 
-   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
+   std::vector<uint8_t> p;
    FileRecv::Stream res = client.Receive(p);
 
    EXPECT_EQ(res, FileRecv::Stream::CONTINUE);
-   EXPECT_EQ(p->size, 3);
-   EXPECT_EQ(p->data[0], 10);
-   EXPECT_EQ(p->data[1], 20);
-   EXPECT_EQ(p->data[2], 30);
+   ASSERT_EQ(p.size(), 3);
+   EXPECT_EQ(p[0], 10);
+   EXPECT_EQ(p[1], 20);
+   EXPECT_EQ(p[2], 30);
 
    res = client.Receive(p);  
    EXPECT_EQ(res, FileRecv::Stream::TIMEOUT);
@@ -145,7 +144,7 @@ TEST_F(FileRecvTests, SendThirtyDataChunksReceivedMethods) {
    zthread_new(FileRecvTests::SendThreadSendThirtyDie, reinterpret_cast<void*>(&location));
 
    FileRecv client;
-   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
+   std::vector<uint8_t> p;
    
    client.SetTimeout(1000);
    FileRecv::Socket status = client.SetLocation(location);
@@ -155,14 +154,13 @@ TEST_F(FileRecvTests, SendThirtyDataChunksReceivedMethods) {
       FileRecv::Stream res = client.Receive(p); 
 
       EXPECT_EQ(res, FileRecv::Stream::CONTINUE); 
-      EXPECT_EQ(p->data[0], i);
-      EXPECT_EQ(p->size, 1);
+      ASSERT_EQ(p.size(), 1);
+      EXPECT_EQ(p[0], i);
    }
    
    FileRecv::Stream res = client.Receive(p);  
    EXPECT_EQ(res, FileRecv::Stream::TIMEOUT);
-   EXPECT_EQ(p->data, nullptr);
-   EXPECT_EQ(p->size, 0);
+   EXPECT_EQ(p.size(), 0);
 }
 
 TEST_F(FileRecvTests, SendThirtyTwoDataChunksReceivedMethods) {
@@ -172,7 +170,7 @@ TEST_F(FileRecvTests, SendThirtyTwoDataChunksReceivedMethods) {
    zthread_new(FileRecvTests::SendThreadSendThirtyTwoEnd, reinterpret_cast<void*>(&location));
 
    FileRecv client;
-   FileRecv::DataPacket p = FileRecv::DataPacketFactory();
+   std::vector<uint8_t> p;
    client.SetTimeout(1000);
    
    FileRecv::Socket status = client.SetLocation(location);
@@ -182,14 +180,13 @@ TEST_F(FileRecvTests, SendThirtyTwoDataChunksReceivedMethods) {
       FileRecv::Stream res = client.Receive(p); 
 
       EXPECT_EQ(res, FileRecv::Stream::CONTINUE); 
-      EXPECT_EQ(p->data[0], i);
-      EXPECT_EQ(p->size, 1);
+      ASSERT_EQ(p.size(), 1);
+      EXPECT_EQ(p[0], i);
    }
    
    //Should now receive an empty chucnk to indicate end of stream:
    FileRecv::Stream res = client.Receive(p);  
    EXPECT_EQ(res, FileRecv::Stream::END_OF_STREAM);
-   EXPECT_EQ(p->data, nullptr);
-   EXPECT_EQ(p->size, 0);
+   EXPECT_EQ(p.size(), 0);
 }
 

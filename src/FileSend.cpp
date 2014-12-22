@@ -80,8 +80,15 @@ FileSend::Stream FileSend::NextChunkId(){
    return FileSend::Stream::TIMEOUT;
 }
 
-FileSend::Stream FileSend::SendData(uint8_t* data, size_t size){
-	
+FileSend::Stream FileSend::SendData(const std::vector<uint8_t>& dataToSend){
+   return SendRawData(dataToSend.data(), dataToSend.size());
+}
+
+FileSend::Stream FileSend::SendFinal(){
+   return SendRawData(nullptr, 0);
+}
+
+FileSend::Stream FileSend::SendRawData(const uint8_t* data, int size) {
    FreeChunk();
    FreeOldRequests();
 
@@ -97,7 +104,9 @@ FileSend::Stream FileSend::SendData(uint8_t* data, size_t size){
    zframe_send (&mChunk, mRouter, 0);
 
    return FileSend::Stream::CONTINUE;
+
 }
+
 
 FileSend::~FileSend(){
    zsocket_unbind(mRouter, mLocation.c_str());

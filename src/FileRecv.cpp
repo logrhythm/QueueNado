@@ -1,5 +1,6 @@
 #include <czmq.h>
 #include <g2log.hpp>
+#include <algorithm>
 
 #include "FileRecv.h"
 
@@ -14,10 +15,6 @@ mChunk(nullptr) {
    CHECK(mDealer);
    mCredit = mQueueLength;
 }
-
-FileRecv::DataPacket FileRecv::DataPacketFactory(){
-   return DataPacket(new DataChunk, [&](DataChunk* chunk){ delete chunk; });
-};
 
 FileRecv::Socket FileRecv::SetLocation(const std::string& location){
    int result = zsocket_connect(mDealer, location.c_str());
@@ -38,38 +35,41 @@ void FileRecv::RequestChunks(){
    }   
 }
 
-FileRecv::Stream FileRecv::Receive(DataPacket& chunk){
-    
+FileRecv::Stream FileRecv::Receive(std::vector<uint8_t>& data){
    //Erase any previous data from the last Monitor()
    FreeChunk();
-   chunk->Reset();
-
    RequestChunks();
+   static const std::vector<uint8_t> emptyOnError;
 
    //Poll to see if anything is available on the pipeline:
    if(zsocket_poll(mDealer, mTimeoutMs)){
 
       mChunk = zframe_recv (mDealer);
       if(!mChunk) {
+         data = emptyOnError;
          //Interrupt or end of stream
          return FileRecv::Stream::INTERRUPT;
       }
 
-      chunk->size = zframe_size (mChunk);
-      if(chunk->size <= 0){
+
+      //chunk->size = zframe_size (mChunk);
+      int size = zframe_size (mChunk);
+      data.resize(size);
+      if(size <= 0){
          //End of Stream
          return FileRecv::Stream::END_OF_STREAM;
       }
 
-      chunk->data = new uint8_t[chunk->size];
-      memcpy(chunk->data, reinterpret_cast<void*>(zframe_data(mChunk)), chunk->size);
+      uint8_t* raw = reinterpret_cast<uint8_t*>(zframe_data(mChunk));
+      std::copy(raw, raw + size, data.begin());
 
       mCredit++;
       return FileRecv::Stream::CONTINUE;
 
    } 
 
-   return FileRecv::Stream::TIMEOUT;
+   data = emptyOnError;
+   return FileRecv::Stream::TIMEOUT;   
 }
 
 void FileRecv::FreeChunk(){

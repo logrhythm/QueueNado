@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
@@ -14,10 +15,12 @@ public:
    FileSend();
    Socket SetLocation(const std::string& location);
    void SetTimeout(const int timeout);
-   Stream SendData(uint8_t* data, size_t size);
+   Stream SendFinal();
+   Stream SendData(const std::vector<uint8_t>& data);
    virtual ~FileSend();
     
 protected:
+   Stream SendRawData(const uint8_t*, int size);
    Stream NextChunkId(); 
    void FreeOldRequests();
    void FreeChunk();

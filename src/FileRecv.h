@@ -5,35 +5,17 @@
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
 
-struct DataChunk {
-   uint8_t* data = nullptr;
-   size_t size = 0;
-   void Reset(){
-      if(data != nullptr){
-         delete [] data;
-      }
-      data = nullptr;
-      size = 0;
-   }
-   ~DataChunk(){
-      Reset();
-   }
-};
-
 class FileRecv {
 public: 
 
-   typedef std::unique_ptr<DataChunk, void(*)(DataChunk*)> DataPacket;
    enum class Socket : std::int8_t { INVALID = -1, OK = 0 };
    enum class Stream : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, END_OF_STREAM = 0, CONTINUE = 1 };
 
    FileRecv();
 
-   static DataPacket DataPacketFactory();
-
    Socket SetLocation(const std::string& location);
    void SetTimeout(const int timeoutMs);
-   Stream Receive(DataPacket& chunk);
+   Stream Receive(std::vector<uint8_t>& data);
    virtual ~FileRecv();
 
 protected:
