@@ -71,7 +71,7 @@ protected:
 	void MakeBigData(size_t size) {
 		t_bigDataSize = size - (size%4);
 		if (t_bigData)
-			delete t_bigData;
+			delete[] t_bigData;
 		t_bigData = new u_char[t_bigDataSize];
 		for (unsigned int i = 0 ; i < t_bigDataSize/4 ; i ++) {
 			long data = random();
@@ -85,7 +85,7 @@ protected:
 		long bigNumber = 1500;
 		t_bigDataSize = bigNumber - (bigNumber%4);
 		if (t_bigData)
-			delete t_bigData;
+			delete[] t_bigData;
 		t_bigData = new u_char[t_bigDataSize];
 		for (unsigned int i = 0 ; i < t_bigDataSize/4 ; i ++) {
 			long data = random();
