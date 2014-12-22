@@ -6,7 +6,7 @@
 
 FileRecv::FileRecv(): 
 mQueueLength(10),
-mTimeoutMs(30000), //5 minutes
+mTimeoutMs(300000), //5 minutes
 mOffset(0),
 mChunk(nullptr) {
    mCtx = zctx_new();
@@ -16,16 +16,21 @@ mChunk(nullptr) {
    mCredit = mQueueLength;
 }
 
+/// Set location of the queue (TCP location)
 FileRecv::Socket FileRecv::SetLocation(const std::string& location){
    int result = zsocket_connect(mDealer, location.c_str());
    return (0 == result) ? FileRecv::Socket::OK : FileRecv::Socket::INVALID;
 }
 
+/// Set the amount of time in MS the client should wait for new data.
 void FileRecv::SetTimeout(const int timeoutMs){
    mTimeoutMs = timeoutMs;
 }
 
-
+/// Send out ACKSs to the Server that request new chunks. The server will only fill up the 
+/// queue with a number of responses equal to the number of ACKs in the queue in order
+/// to ensure the queue doesn't get overloaded. Max around of chunks is equal to mCredit
+/// default to 10 max.
 void FileRecv::RequestChunks(){
    // Send enough data requests to fill pipeline:
    while (mCredit && !zctx_interrupted) {
@@ -35,6 +40,7 @@ void FileRecv::RequestChunks(){
    }   
 }
 
+/// Block until timeout or if there is new data to be received.
 FileRecv::Stream FileRecv::Receive(std::vector<uint8_t>& data){
    //Erase any previous data from the last Monitor()
    FreeChunk();
@@ -47,16 +53,12 @@ FileRecv::Stream FileRecv::Receive(std::vector<uint8_t>& data){
       mChunk = zframe_recv (mDealer);
       if(!mChunk) {
          data = emptyOnError;
-         //Interrupt or end of stream
          return FileRecv::Stream::INTERRUPT;
       }
 
-
-      //chunk->size = zframe_size (mChunk);
       int size = zframe_size (mChunk);
       data.resize(size);
       if(size <= 0){
-         //End of Stream
          return FileRecv::Stream::END_OF_STREAM;
       }
 
@@ -72,6 +74,7 @@ FileRecv::Stream FileRecv::Receive(std::vector<uint8_t>& data){
    return FileRecv::Stream::TIMEOUT;   
 }
 
+///Free the chunk of data struct used by ZMQ
 void FileRecv::FreeChunk(){
    if(mChunk != nullptr){
       zframe_destroy(&mChunk);

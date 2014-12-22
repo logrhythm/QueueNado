@@ -8,7 +8,7 @@ mLocation(""),
 mQueueLength(10),
 mNextChunk(nullptr), 
 mIdentity(nullptr), 
-mTimeoutMs(30000), //5 Minutes
+mTimeoutMs(300000), //5 Minutes
 mChunk(nullptr) {
    mCtx = zctx_new();
    CHECK(mCtx);
@@ -16,6 +16,7 @@ mChunk(nullptr) {
    CHECK(mRouter);
 }
 
+/// Set location of the queue (TCP location)
 FileSend::Socket FileSend::SetLocation(const std::string& location){
    mLocation = location;
    zsocket_set_hwm(mRouter, mQueueLength * 2);
@@ -24,10 +25,12 @@ FileSend::Socket FileSend::SetLocation(const std::string& location){
    return result ? FileSend::Socket::OK : FileSend::Socket::INVALID;
 }
 
+/// Set the amount of time in MS the server should wait for client ACKs
 void FileSend::SetTimeout(const int timeoutMs){
    mTimeoutMs = timeoutMs;
 }
 
+//Free the chunk of data struct used by ZMQ in ACKs from the client
 void FileSend::FreeOldRequests(){
    if(mIdentity != nullptr){
       zframe_destroy(&mIdentity);
@@ -39,6 +42,7 @@ void FileSend::FreeOldRequests(){
    }
 }
 
+//Free the chunk of data struct used by ZMQ
 void FileSend::FreeChunk(){
    if(mChunk != nullptr){
       zframe_destroy(&mChunk);
@@ -46,6 +50,9 @@ void FileSend::FreeChunk(){
    }
 }
 
+/// Internally used to get an ACK from the client asking for another chunk.
+/// We use this so that the sender does not send more data to the client than what the
+/// client can consume and therefore overloading the queue.
 FileSend::Stream FileSend::NextChunkId(){
 
    FreeChunk();
@@ -80,14 +87,18 @@ FileSend::Stream FileSend::NextChunkId(){
    return FileSend::Stream::TIMEOUT;
 }
 
+/// Send data to client
 FileSend::Stream FileSend::SendData(const std::vector<uint8_t>& dataToSend){
    return SendRawData(dataToSend.data(), dataToSend.size());
 }
 
+/// Signals the end of the stream. This HAS TO BE CALLED by the Client
+/// when transfer is finished.
 FileSend::Stream FileSend::SendFinal(){
    return SendRawData(nullptr, 0);
 }
 
+/// Internal call to send a data array to the client.
 FileSend::Stream FileSend::SendRawData(const uint8_t* data, int size) {
    FreeChunk();
    FreeOldRequests();
@@ -106,7 +117,6 @@ FileSend::Stream FileSend::SendRawData(const uint8_t* data, int size) {
    return FileSend::Stream::CONTINUE;
 
 }
-
 
 FileSend::~FileSend(){
    zsocket_unbind(mRouter, mLocation.c_str());
