@@ -174,7 +174,6 @@ TEST_F(ShotgunAlienTests, ipcFilesCleanedOnFatal) {
    Shotgun stick;
    Alien alien;
    std::string addressRealPath(target,target.find("ipc://")+6);
-   std::cout << "Address Real Path: " << addressRealPath << std::endl;
    Death::SetupExitHandler();
    stick.Aim(target);
    alien.PrepareToBeShot(target);
