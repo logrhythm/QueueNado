@@ -28,7 +28,7 @@ void FileRecv::SetTimeout(const int timeoutMs){
 
 void FileRecv::RequestChunks(){
    // Send enough data requests to fill pipeline:
-   while (mCredit) {
+   while (mCredit && !zctx_interrupted) {
       zstr_sendf (mDealer, "%ld", mOffset);
       mOffset++;
       mCredit--;
