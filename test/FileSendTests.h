@@ -19,8 +19,6 @@ public:
    static void* RecvThreadGetFileDie(void* arg);
    static int GetTcpPort();
    static std::string GetTcpLocation(int port);
-   static std::string GetIpcLocation();
-   static std::string GetInprocLocation();
 
 protected:
 

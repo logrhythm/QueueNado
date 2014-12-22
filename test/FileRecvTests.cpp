@@ -65,22 +65,6 @@ std::string FileRecvTests::GetTcpLocation(int port) {
    return tcpLocation;
 }
 
-std::string FileRecvTests::GetIpcLocation() {
-   int pid = getpid();
-   std::string ipcLocation("ipc:///tmp/");
-   ipcLocation.append("FileRecvTests");
-   ipcLocation.append(std::to_string(pid));
-   ipcLocation.append(".ipc");
-   return ipcLocation;
-}
-
-std::string FileRecvTests::GetInprocLocation() {
-   int pid = getpid();
-   std::string inprocLocation("inproc://FileRecvTests");
-   inprocLocation.append(std::to_string(pid));
-   return inprocLocation;
-}
-
 TEST_F(FileRecvTests, FileRecvSetLocation) {
    FileRecv client;
 

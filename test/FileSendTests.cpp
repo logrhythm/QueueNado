@@ -65,22 +65,6 @@ std::string FileSendTests::GetTcpLocation(int port) {
    return tcpLocation;
 }
 
-std::string FileSendTests::GetIpcLocation() {
-   int pid = getpid();
-   std::string ipcLocation("ipc:///tmp/");
-   ipcLocation.append("FileSendTests");
-   ipcLocation.append(std::to_string(pid));
-   ipcLocation.append(".ipc");
-   return ipcLocation;
-}
-
-std::string FileSendTests::GetInprocLocation() {
-   int pid = getpid();
-   std::string inprocLocation("inproc://FileSendTests");
-   inprocLocation.append(std::to_string(pid));
-   return inprocLocation;
-}
-
 TEST_F(FileSendTests, FileSendSetLocation) {
    FileSend server;
 
