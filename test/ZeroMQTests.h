@@ -52,7 +52,7 @@ public:
     	}
     	while (mPacketsToTest > mPacketsSeen) {
     		data_ppacket packet = (data_ppacket)clientQueue->GetPointer(1);
-    		if (packet == nullptr) {
+    		if (nullptr == packet) {
     		    boost::this_thread::sleep(boost::posix_time::microseconds(1));
     		} else {
     			ASSERT_EQ(targetPacket,packet); // SAME ADDRESS!!!
