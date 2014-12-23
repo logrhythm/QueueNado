@@ -1,27 +1,26 @@
 #pragma once
-//#include "Zombie.h"
 #include "Vampire.h"
-
-/**
- *  * Defines a packet to be passed to afc_process function.
- *   */
-typedef struct data_pkt {
-	struct data_pkt* next;  
-	void* user_handle;          
-	void* buffer;              
-	struct timeval timestamp;  
-	unsigned int len;          
-	unsigned char* data;        
-} data_pkt_t;
-
-typedef struct data_pkt* data_ppacket;
+#include <type_traits>
 
 class ReceivePacketZMQ : public Vampire {
 public:
    explicit ReceivePacketZMQ(const std::string& binding);
    bool Initialize();
    bool ReceiveDataBlock(std::string& dataReceived, const int nSecs);
-   bool ReceiveDataBlockPointer(data_ppacket& dataReceived, const int milliseconds);
+
+   template<typename T>
+   bool ReceiveDataBlockPointer(T& dataReceived, const int milliseconds) {
+      static_assert(std::is_pointer<T>::value, "T must be of pointer type");
+
+      void *data = nullptr;
+      bool returnVal = Vampire::GetStake(data, milliseconds);
+      if ( returnVal) {
+         dataReceived = reinterpret_cast<T>(data);
+      } else {
+         dataReceived = NULL;
+      }
+      return returnVal;
+   }
    void SetQueueSize(const int size);
 protected:
 };
