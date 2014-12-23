@@ -17,7 +17,7 @@ public:
       if ( returnVal) {
          dataReceived = reinterpret_cast<T>(data);
       } else {
-         dataReceived = NULL;
+         dataReceived = nullptr;
       }
       return returnVal;
    }
