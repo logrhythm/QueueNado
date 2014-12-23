@@ -10,9 +10,6 @@ using namespace std;
 int ZeroMQTests::gCurrentPacketSize(0);
 
 
-
-
-
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterConstruct) {
 #ifdef LR_DEBUG
    MockZeroMQPacket fastCopyQueue(1);

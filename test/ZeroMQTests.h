@@ -18,10 +18,25 @@
 #ifndef TEST_THREADS
 #define TEST_THREADS 10
 #endif
+
+/// Defines a packet to be passed to afc_process function.
+/// This is instead of including lots of our ThirdParty Engine header files
+typedef struct data_pkt {
+   struct data_pkt *next;
+   void *user_handle;
+   void *buffer;
+   struct timeval timestamp;
+   unsigned int len;
+   unsigned char *data;
+} data_pkt_t;
+typedef struct data_pkt *data_ppacket;
+
+
+
 class ZeroMQTests : public ::testing::Test
 {
 public:
-    ZeroMQTests() : mPacketsSeen(0),mPacketsToTest(1),t_smallData(NULL), t_bigData(NULL), t_bigDataSize(0)  {}
+    ZeroMQTests() : mPacketsSeen(0),mPacketsToTest(1),t_smallData(nullptr), t_bigData(nullptr), t_bigDataSize(0)  {}
     virtual ~ZeroMQTests() {
     	if (t_smallData){
     		delete[] t_smallData;
@@ -37,7 +52,7 @@ public:
     	}
     	while (mPacketsToTest > mPacketsSeen) {
     		data_ppacket packet = (data_ppacket)clientQueue->GetPointer(1);
-    		if (packet == NULL) {
+    		if (nullptr == packet) {
     		    boost::this_thread::sleep(boost::posix_time::microseconds(1));
     		} else {
     			ASSERT_EQ(targetPacket,packet); // SAME ADDRESS!!!
@@ -52,7 +67,7 @@ public:
     static int gCurrentPacketSize;
 protected:
 	virtual void SetUp() {
-		srandom ((unsigned) time (NULL));
+		srandom ((unsigned) time (nullptr));
 	}
 	virtual void TearDown() {}
 
@@ -106,10 +121,10 @@ protected:
     	std::cout << "Expected Time :" << t_expectedTime/1000000.0 << "s at "<< RateInMbps << "Mbps" <<std::endl;
     }
     void StartTimedSection() {
-       gettimeofday(&t_startTime,NULL);
+       gettimeofday(&t_startTime,nullptr);
     }
     void EndTimedSection() {
-       gettimeofday(&t_endTime,NULL);
+       gettimeofday(&t_endTime,nullptr);
        t_elapsedUS = (t_endTime.tv_sec-t_startTime.tv_sec)*1000000L + (t_endTime.tv_usec - t_startTime.tv_usec);
        std::cout <<std::dec << "Elapsed Time :" << t_elapsedUS/1000000L << "." << std::setfill('0') << std::setw(6) <<  t_elapsedUS % 1000000<<  "s" << std::endl;
        double totalTransactionsPS = (t_totalTransactions*1.0)/(t_elapsedUS*1.0/1000000.0);
