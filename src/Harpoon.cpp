@@ -10,6 +10,8 @@
 #include <algorithm>
 #include "Harpoon.h"
 
+
+/// Creates the client that is to connect to the server/Kraken
 Harpoon::Harpoon(): 
 mQueueLength(10),
 mTimeoutMs(300000), //5 minutes
@@ -88,6 +90,8 @@ void Harpoon::FreeChunk(){
    }
 }
 
+
+/// Destruction and frees of internal zmq memory 
 Harpoon::~Harpoon(){
    FreeChunk();
    zsocket_destroy(mCtx, mDealer);

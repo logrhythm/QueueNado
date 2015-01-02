@@ -10,6 +10,8 @@
 
 #include "Kraken.h"
 
+
+/// Constructing the server/Kraken that is about to be connected/impaled by the client/Harpoon
 Kraken::Kraken():
 mLocation(""), 
 mQueueLength(10),
@@ -125,6 +127,8 @@ Kraken::Battling Kraken::SendRawData(const uint8_t* data, int size) {
 
 }
 
+
+/// Destruction of the Kraken and zmq socket and memory cleanup
 Kraken::~Kraken(){
    zsocket_unbind(mRouter, mLocation.c_str());
    zsocket_destroy(mCtx, mRouter);
