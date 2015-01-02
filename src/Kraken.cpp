@@ -1,9 +1,16 @@
+/*
+ * File:   Harpoon.h
+ * Author: Ryan Kophs
+ *
+ * Created on December, 2014
+ */
+
 #include <czmq.h>
 #include <g2log.hpp>
 
-#include "FileSend.h"
+#include "Kraken.h"
 
-FileSend::FileSend():
+Kraken::Kraken():
 mLocation(""), 
 mQueueLength(10),
 mNextChunk(nullptr), 
@@ -17,21 +24,21 @@ mChunk(nullptr) {
 }
 
 /// Set location of the queue (TCP location)
-FileSend::Socket FileSend::SetLocation(const std::string& location){
+Kraken::Spear Kraken::SetLocation(const std::string& location){
    mLocation = location;
    zsocket_set_hwm(mRouter, mQueueLength * 2);
 
    int result = zsocket_bind(mRouter, mLocation.c_str());
-   return result ? FileSend::Socket::OK : FileSend::Socket::INVALID;
+   return result ? Kraken::Spear::IMPALED : Kraken::Spear::MISS;
 }
 
 /// Set the amount of time in MS the server should wait for client ACKs
-void FileSend::SetTimeout(const int timeoutMs){
+void Kraken::MaxWaitInMs(const int timeoutMs){
    mTimeoutMs = timeoutMs;
 }
 
 //Free the chunk of data struct used by ZMQ in ACKs from the client
-void FileSend::FreeOldRequests(){
+void Kraken::FreeOldRequests(){
    if(mIdentity != nullptr){
       zframe_destroy(&mIdentity);
       mIdentity = nullptr;
@@ -43,7 +50,7 @@ void FileSend::FreeOldRequests(){
 }
 
 //Free the chunk of data struct used by ZMQ
-void FileSend::FreeChunk(){
+void Kraken::FreeChunk(){
    if(mChunk != nullptr){
       zframe_destroy(&mChunk);
       mChunk = nullptr;
@@ -53,7 +60,7 @@ void FileSend::FreeChunk(){
 /// Internally used to get an ACK from the client asking for another chunk.
 /// We use this so that the sender does not send more data to the client than what the
 /// client can consume and therefore overloading the queue.
-FileSend::Stream FileSend::NextChunkId(){
+Kraken::Battling Kraken::NextChunkId(){
 
    FreeChunk();
    FreeOldRequests();
@@ -64,11 +71,11 @@ FileSend::Stream FileSend::NextChunkId(){
       // First frame is the identity of the client
       mIdentity = zframe_recv (mRouter);
       if (!mIdentity) {
-         return FileSend::Stream::INTERRUPT;
+         return Kraken::Battling::INTERRUPT;
       }
 
    } else {
-      return FileSend::Stream::TIMEOUT;
+      return Kraken::Battling::TIMEOUT;
    }
 
    //Poll to see if anything is available on the pipeline:
@@ -77,34 +84,34 @@ FileSend::Stream FileSend::NextChunkId(){
       // Second frame is next chunk requested of the file
       mNextChunk = zstr_recv (mRouter);
       if(!mNextChunk){
-         return FileSend::Stream::INTERRUPT;
+         return Kraken::Battling::INTERRUPT;
       }
 
-      return FileSend::Stream::CONTINUE;
+      return Kraken::Battling::CONTINUE;
 
    } 
    
-   return FileSend::Stream::TIMEOUT;
+   return Kraken::Battling::TIMEOUT;
 }
 
 /// Send data to client
-FileSend::Stream FileSend::SendData(const std::vector<uint8_t>& dataToSend){
+Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
    return SendRawData(dataToSend.data(), dataToSend.size());
 }
 
-/// Signals the end of the stream. This HAS TO BE CALLED by the Client
+/// Signals the end of the Battling. This HAS TO BE CALLED by the Client
 /// when transfer is finished.
-FileSend::Stream FileSend::SendFinal(){
+Kraken::Battling Kraken::FinalBreach(){
    return SendRawData(nullptr, 0);
 }
 
 /// Internal call to send a data array to the client.
-FileSend::Stream FileSend::SendRawData(const uint8_t* data, int size) {
+Kraken::Battling Kraken::SendRawData(const uint8_t* data, int size) {
    FreeChunk();
    FreeOldRequests();
 
    const auto next = NextChunkId();
-   if(FileSend::Stream::CONTINUE != next){
+   if(Kraken::Battling::CONTINUE != next){
       return next;
    }
 
@@ -114,11 +121,11 @@ FileSend::Stream FileSend::SendRawData(const uint8_t* data, int size) {
    zframe_send (&mIdentity, mRouter, ZFRAME_REUSE + ZFRAME_MORE);
    zframe_send (&mChunk, mRouter, 0);
 
-   return FileSend::Stream::CONTINUE;
+   return Kraken::Battling::CONTINUE;
 
 }
 
-FileSend::~FileSend(){
+Kraken::~Kraken(){
    zsocket_unbind(mRouter, mLocation.c_str());
    zsocket_destroy(mCtx, mRouter);
    zctx_destroy(&mCtx);
