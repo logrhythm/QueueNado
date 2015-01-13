@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <czmq.h>
 
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
