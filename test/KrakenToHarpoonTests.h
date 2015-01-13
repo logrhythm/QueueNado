@@ -2,10 +2,10 @@
 
 #include <gtest/gtest.h>
 
-class FileRecvTests : public ::testing::Test {
+class KrakenToHarpoonTests : public ::testing::Test {
 public:
 
-   FileRecvTests() {
+   KrakenToHarpoonTests() {
       srand(std::time(nullptr));
    };
 
@@ -13,10 +13,10 @@ public:
    std::string mIpcLocation;
    std::string mTcpLocation;
    std::string mInprocLocation;
-   static void* SendThreadNextChunkIdDie(void* arg);
-   static void* SendThreadSendOneDie(void* arg);
-   static void* SendThreadSendThirtyDie(void* arg);
-   static void* SendThreadSendThirtyTwoEnd(void* arg);
+   static void* RecvThreadNextChunkIdDie(void* arg);
+   static void* RecvThreadNextChunkIdWait(void* arg);
+   static void* RecvThreadGetThreeWait(void* arg);
+   static void* RecvThreadGetFileDie(void* arg);
    static int GetTcpPort();
    static std::string GetTcpLocation(int port);
 
