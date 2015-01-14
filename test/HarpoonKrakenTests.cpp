@@ -4,6 +4,40 @@
 #include "MockKraken.h"
 #include "Harpoon.h"
 #include "Death.h"
+#include <future>
+#include <atomic>
+
+namespace {
+
+   std::atomic<bool> gBreaking{false};
+
+   void SendHello(std::string address) {
+   Kraken server;
+   server.SetLocation(address);
+   server.MaxWaitInMs(1000); // 1 second
+
+   uint8_t h = 'h';
+   uint8_t e = 'e';
+   uint8_t l = 'l';
+   uint8_t o = 'o';
+   uint8_t end = '\0';   
+   std::vector<uint8_t> hello{h,e,l,l,o,end};
+
+   for (auto c : hello) {
+      auto status = server.SendTidalWave({c});
+      LOG(INFO) << "SendTidalWave returned: " << static_cast<int> (status);
+
+      if (gBreaking.load()) {
+         return;
+      }
+   }
+   server.FinalBreach();
+   return;
+}
+
+
+}
+
 
 void* HarpoonKrakenTests::SendThreadNextChunkIdDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
@@ -52,6 +86,9 @@ void* HarpoonKrakenTests::SendThreadSendThirtyTwoEnd(void* arg) {
 
    return nullptr;
 }
+
+
+
 
 int HarpoonKrakenTests::GetTcpPort() {
    int max = 15000;
@@ -172,5 +209,47 @@ TEST_F(HarpoonKrakenTests, SendThirtyTwoDataChunksReceivedMethods) {
    Harpoon::Battling res = client.Heave(p);  
    EXPECT_EQ(res, Harpoon::Battling::VICTORIOUS);
    EXPECT_EQ(p.size(), 0);
+}
+
+
+TEST_F(HarpoonKrakenTests, SendThreadSendThirtyTwoEndWithIpc) {
+
+
+   // IF THIS mIPC line is removed then we use
+   // a real ipc file,.. but that doesn't work
+   // mIpc = "ipc:///tmp/HarpoonKrakenTests.ipc"
+   mIpc = "tcp://127.0.0.1:13123";
+   auto done = std::async(std::launch::async, &SendHello, mIpc);
+
+   Harpoon client;
+   std::vector<uint8_t> p;
+   client.MaxWaitInMs(1000); // on purpose not the same timeout
+   
+   Harpoon::Spear status = client.Aim(mIpc);
+   EXPECT_EQ(status, Harpoon::Spear::IMPALED) << "1st: " << static_cast<int>(status) << ", IMPALED: " << static_cast<int>(Harpoon::Spear::IMPALED);
+
+   uint8_t h = 'h';
+   uint8_t e = 'e';
+   uint8_t l = 'l';
+   uint8_t o = 'o';
+   uint8_t end = '\0';
+   const std::vector<uint8_t> expected{h,e,l,l,o,end};
+   
+   for (const auto c: expected){
+      std::vector<uint8_t> p;
+      Harpoon::Battling res = client.Heave(p); 
+      EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
+      ASSERT_EQ(p.size(), 1);
+      EXPECT_EQ(p[0], c);
+   }
+   gBreaking = true;
+   done.wait();
+   
+   //Should now receive an empty chucnk to indicate end of stream:
+   Harpoon::Battling res = client.Heave(p);  
+   EXPECT_EQ(res, Harpoon::Battling::VICTORIOUS) << "result: " << static_cast<int>(res) << ", VICTORIOUS: " << static_cast<int>(Harpoon::Battling::VICTORIOUS);
+
+   EXPECT_EQ(p.size(), 0);
+
 }
 
