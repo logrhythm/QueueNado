@@ -126,7 +126,8 @@ Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
 /// when transfer is finished.
 Kraken::Battling Kraken::FinalBreach(){
    auto complete = SendRawData(nullptr, 0);
-
+   
+   //Clean out any previous packets in the channel before initializing
    while(zsocket_poll(mRouter, 1)){
       FreeOldRequests();
       mIdentity = zframe_recv(mRouter);
