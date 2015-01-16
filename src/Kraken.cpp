@@ -13,7 +13,7 @@
 /// Constructing the server/Kraken that is about to be connected/impaled by the client/Harpoon
 Kraken::Kraken():
 mLocation(""), 
-mQueueLength(1),
+mQueueLength(1), //Number of allowed messages in queue
 mMaxChunkSize(10485760), //10MB
 mNextChunk(nullptr), 
 mIdentity(nullptr), 
