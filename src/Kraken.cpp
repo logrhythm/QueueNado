@@ -7,14 +7,13 @@
 
 #include <czmq.h>
 #include <g2log.hpp>
-
 #include "Kraken.h"
 
 
 /// Constructing the server/Kraken that is about to be connected/impaled by the client/Harpoon
 Kraken::Kraken():
 mLocation(""), 
-mQueueLength(10),
+mQueueLength(1),
 mNextChunk(nullptr), 
 mIdentity(nullptr), 
 mTimeoutMs(300000), //5 Minutes
@@ -23,6 +22,7 @@ mChunk(nullptr) {
    CHECK(mCtx);
    mRouter = zsocket_new(mCtx, ZMQ_ROUTER);
    CHECK(mRouter);
+   //zctx_set_linger(mCtx, 0); // linger for a millisecond on close
 }
 
 /// Set location of the queue (TCP location)
@@ -98,17 +98,29 @@ Kraken::Battling Kraken::NextChunkId(){
 
 /// Send data to client
 Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
+   const size_t size = dataToSend.size();
+
+   if(size == 0){
+      return Kraken::Battling::CONTINUE;   
+   }
    return SendRawData(dataToSend.data(), dataToSend.size());
 }
 
 /// Signals the end of the Battling. This HAS TO BE CALLED by the Client
 /// when transfer is finished.
 Kraken::Battling Kraken::FinalBreach(){
-   return SendRawData(nullptr, 0);
+   auto complete = SendRawData(nullptr, 0);
+
+   while(zsocket_poll(mRouter, 1)){
+      FreeOldRequests();
+      mIdentity = zframe_recv(mRouter);
+   }
+   return complete;
 }
 
 /// Internal call to send a data array to the client.
 Kraken::Battling Kraken::SendRawData(const uint8_t* data, int size) {
+   
    FreeChunk();
    FreeOldRequests();
 
@@ -133,6 +145,7 @@ Kraken::~Kraken(){
    zsocket_unbind(mRouter, mLocation.c_str());
    zsocket_destroy(mCtx, mRouter);
    zctx_destroy(&mCtx);
+   mCtx = nullptr;
    FreeOldRequests();
    FreeChunk();
 }

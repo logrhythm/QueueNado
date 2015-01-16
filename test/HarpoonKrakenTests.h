@@ -19,6 +19,7 @@ public:
    static void* SendThreadSendOneDie(void* arg);
    static void* SendThreadSendThirtyDie(void* arg);
    static void* SendThreadSendThirtyTwoEnd(void* arg);
+   static void* SendHello(void* arg);
    static int GetTcpPort();
    static std::string GetTcpLocation(int port);
 

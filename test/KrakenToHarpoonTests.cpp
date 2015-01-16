@@ -111,7 +111,7 @@ TEST_F(KrakenToHarpoonTests, SendTidalWaveGetNextChunkIdWaitMethods) {
    Kraken::Spear spear = server.SetLocation(location);
    EXPECT_EQ(spear, Kraken::Spear::IMPALED);   
    
-   for(int i = 0; i < 10; i++){
+   for(int i = 0; i < 1; i++){
       Kraken::Battling Battling = server.CallNextChunkId(); 
       EXPECT_EQ(Battling, Kraken::Battling::CONTINUE);  
    }
@@ -142,7 +142,7 @@ TEST_F(KrakenToHarpoonTests, SendTidalWaveGetResultingWaitsMethods) {
    Battling = server.SendTidalWave(data);
    EXPECT_EQ(Battling, Kraken::Battling::CONTINUE);
 
-   for(int i = 0; i < 10; i++){
+   for(int i = 0; i < 1; i++){
       Battling = server.CallNextChunkId(); 
       EXPECT_EQ(Battling, Kraken::Battling::CONTINUE);
    }

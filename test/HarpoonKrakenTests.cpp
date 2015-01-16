@@ -7,11 +7,8 @@
 #include <future>
 #include <atomic>
 
-namespace {
-
-   std::atomic<bool> gBreaking{false};
-
-   void SendHello(std::string address) {
+void* HarpoonKrakenTests::SendHello(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
    Kraken server;
    server.SetLocation(address);
    server.MaxWaitInMs(1000); // 1 second
@@ -26,16 +23,9 @@ namespace {
    for (auto c : hello) {
       auto status = server.SendTidalWave({c});
       LOG(INFO) << "SendTidalWave returned: " << static_cast<int> (status);
-
-      if (gBreaking.load()) {
-         return;
-      }
    }
    server.FinalBreach();
-   return;
-}
-
-
+   return nullptr;
 }
 
 
@@ -218,14 +208,15 @@ TEST_F(HarpoonKrakenTests, SendThreadSendThirtyTwoEndWithIpc) {
    // IF THIS mIPC line is removed then we use
    // a real ipc file,.. but that doesn't work
    // mIpc = "ipc:///tmp/HarpoonKrakenTests.ipc"
-   mIpc = "tcp://127.0.0.1:13123";
-   auto done = std::async(std::launch::async, &SendHello, mIpc);
+   int port = GetTcpPort();
+   std::string location = GetTcpLocation(port);
+   zthread_new(HarpoonKrakenTests::SendHello, reinterpret_cast<void*>(&location));
 
    Harpoon client;
    std::vector<uint8_t> p;
    client.MaxWaitInMs(1000); // on purpose not the same timeout
    
-   Harpoon::Spear status = client.Aim(mIpc);
+   Harpoon::Spear status = client.Aim(location);
    EXPECT_EQ(status, Harpoon::Spear::IMPALED) << "1st: " << static_cast<int>(status) << ", IMPALED: " << static_cast<int>(Harpoon::Spear::IMPALED);
 
    uint8_t h = 'h';
@@ -242,8 +233,6 @@ TEST_F(HarpoonKrakenTests, SendThreadSendThirtyTwoEndWithIpc) {
       ASSERT_EQ(p.size(), 1);
       EXPECT_EQ(p[0], c);
    }
-   gBreaking = true;
-   done.wait();
    
    //Should now receive an empty chucnk to indicate end of stream:
    Harpoon::Battling res = client.Heave(p);  
