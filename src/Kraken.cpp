@@ -7,7 +7,6 @@
 
 #include <czmq.h>
 #include <g2log.hpp>
-
 #include "Kraken.h"
 
 
@@ -24,6 +23,7 @@ mChunk(nullptr) {
    CHECK(mCtx);
    mRouter = zsocket_new(mCtx, ZMQ_ROUTER);
    CHECK(mRouter);
+   //zctx_set_linger(mCtx, 0); // linger for a millisecond on close
 }
 
 /// Set location of the queue (TCP location)
@@ -103,25 +103,25 @@ Kraken::Battling Kraken::NextChunkId(){
 
 /// Send data to client
 Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
-   // size_t size = dataToSend.size();
-   // if(size == 0){
-   //    return Kraken::Battling::CONTINUE;   
-   // }
+   size_t size = dataToSend.size();
+   if(size == 0){
+      return Kraken::Battling::CONTINUE;   
+   }
 
-   // const uint8_t* data = dataToSend.data();
-   // Kraken::Battling status;
+   const uint8_t* data = dataToSend.data();
+   Kraken::Battling status;
 
-   // if(size < mMaxChunkSize){
+   if(size < mMaxChunkSize){
 
-   //    for(size_t i = 0; i < size; i += mMaxChunkSize){
-   //       size_t chunkSize = std::min(size - i, mMaxChunkSize);
+      for(size_t i = 0; i < size; i += mMaxChunkSize){
+         size_t chunkSize = std::min(size - i, mMaxChunkSize);
 
-   //       status = SendRawData(&data[i], chunkSize);
-   //       if (Kraken::Battling::CONTINUE != status) {
-   //          return status;
-   //       }
-   //    }
-   // }
+         status = SendRawData(&data[i], chunkSize);
+         if (Kraken::Battling::CONTINUE != status) {
+            return status;
+         }
+      }
+   }
 
    return SendRawData(dataToSend.data(), dataToSend.size());
 }
