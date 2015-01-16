@@ -39,7 +39,7 @@ void Kraken::MaxWaitInMs(const int timeoutMs){
    mTimeoutMs = timeoutMs;
 }
 
-void Kraken::MaxChunkSizeInBytes(const size_t bytes){
+void Kraken::ChangeDefaultMaxChunkSizeInBytes(const size_t bytes){
    mMaxChunkSize = bytes;
 }
 

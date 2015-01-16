@@ -31,7 +31,7 @@ void* HarpoonKrakenTests::SendHello(void* arg) {
 void* HarpoonKrakenTests::SendSmallChunks(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
    Kraken server;
-   server.MaxChunkSizeInBytes(2);
+   server.ChangeDefaultMaxChunkSizeInBytes(2);
    server.SetLocation(address);
    server.MaxWaitInMs(1000); // 1 second
 
@@ -88,7 +88,7 @@ void* HarpoonKrakenTests::SendThreadSendThirtyDie(void* arg) {
    server.SetLocation(address);
    server.MaxWaitInMs(1000);
 
-   for (uint8_t i = 0; i < 30; i++) {
+   for (uint8_t i = 0; i < 30; ++i) {
       server.SendTidalWave({i});
    }
 
@@ -101,7 +101,7 @@ void* HarpoonKrakenTests::SendThreadSendThirtyTwoEnd(void* arg) {
    server.SetLocation(address);
    server.MaxWaitInMs(1000);
 
-   for (uint8_t i = 0; i < 30; i++) {
+   for (uint8_t i = 0; i < 30; ++i) {
       server.SendTidalWave({i});
    }
    server.FinalBreach();
@@ -193,7 +193,7 @@ TEST_F(HarpoonKrakenTests, SendThirtyDataChunksReceivedMethods) {
    Harpoon::Spear status = client.Aim(location);
    EXPECT_EQ(status, Harpoon::Spear::IMPALED); 
 
-   for (int i = 0; i < 30; i++){
+   for (int i = 0; i < 30; ++i){
       Harpoon::Battling res = client.Heave(p); 
 
       EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
@@ -219,7 +219,7 @@ TEST_F(HarpoonKrakenTests, SendThirtyTwoDataChunksReceivedMethods) {
    Harpoon::Spear status = client.Aim(location);
    EXPECT_EQ(status, Harpoon::Spear::IMPALED); 
 
-   for (int i = 0; i < 30; i++){
+   for (int i = 0; i < 30; ++i){
       Harpoon::Battling res = client.Heave(p); 
 
       EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
