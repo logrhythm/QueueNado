@@ -109,21 +109,18 @@ Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
    }
 
    const uint8_t* data = dataToSend.data();
-   Kraken::Battling status;
+   Kraken::Battling status = Kraken::Battling::CONTINUE;
 
-   if(size < mMaxChunkSize){
+   for(size_t i = 0; i < size; i += mMaxChunkSize){
+      size_t chunkSize = std::min(size - i, mMaxChunkSize);
 
-      for(size_t i = 0; i < size; i += mMaxChunkSize){
-         size_t chunkSize = std::min(size - i, mMaxChunkSize);
-
-         status = SendRawData(&data[i], chunkSize);
-         if (Kraken::Battling::CONTINUE != status) {
-            return status;
-         }
+      status = SendRawData(&data[i], chunkSize);
+      if (Kraken::Battling::CONTINUE != status) {
+         return status;
       }
    }
 
-   return SendRawData(dataToSend.data(), dataToSend.size());
+   return status;
 }
 
 /// Signals the end of the Battling. This HAS TO BE CALLED by the Client
