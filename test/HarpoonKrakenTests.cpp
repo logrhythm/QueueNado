@@ -234,12 +234,8 @@ TEST_F(HarpoonKrakenTests, SendThirtyTwoDataChunksReceivedMethods) {
 }
 
 
-TEST_F(HarpoonKrakenTests, SendThreadSendThirtyTwoEndWithIpc) {
+TEST_F(HarpoonKrakenTests, SendThreadSendHello) {
 
-
-   // IF THIS mIPC line is removed then we use
-   // a real ipc file,.. but that doesn't work
-   // mIpc = "ipc:///tmp/HarpoonKrakenTests.ipc"
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
    zthread_new(HarpoonKrakenTests::SendHello, reinterpret_cast<void*>(&location));

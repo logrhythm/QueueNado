@@ -127,10 +127,10 @@ Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
 Kraken::Battling Kraken::FinalBreach(){
    auto complete = SendRawData(nullptr, 0);
 
-   // while(zsocket_poll(mRouter, 1)){
-   //    FreeOldRequests();
-   //    mIdentity = zframe_recv(mRouter);
-   // }
+   while(zsocket_poll(mRouter, 1)){
+      FreeOldRequests();
+      mIdentity = zframe_recv(mRouter);
+   }
    return complete;
 }
 
