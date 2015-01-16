@@ -14,7 +14,8 @@
 /// Constructing the server/Kraken that is about to be connected/impaled by the client/Harpoon
 Kraken::Kraken():
 mLocation(""), 
-mQueueLength(10),
+mQueueLength(1),
+mMaxChunkSize(10485760), //10MB
 mNextChunk(nullptr), 
 mIdentity(nullptr), 
 mTimeoutMs(300000), //5 Minutes
@@ -37,6 +38,10 @@ Kraken::Spear Kraken::SetLocation(const std::string& location){
 /// Set the amount of time in MS the server should wait for client ACKs
 void Kraken::MaxWaitInMs(const int timeoutMs){
    mTimeoutMs = timeoutMs;
+}
+
+void Kraken::MaxChunkSizeInBytes(const size_t bytes){
+   mMaxChunkSize = bytes;
 }
 
 //Free the chunk of data struct used by ZMQ in ACKs from the client
@@ -98,17 +103,44 @@ Kraken::Battling Kraken::NextChunkId(){
 
 /// Send data to client
 Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
+   // size_t size = dataToSend.size();
+   // if(size == 0){
+   //    return Kraken::Battling::CONTINUE;   
+   // }
+
+   // const uint8_t* data = dataToSend.data();
+   // Kraken::Battling status;
+
+   // if(size < mMaxChunkSize){
+
+   //    for(size_t i = 0; i < size; i += mMaxChunkSize){
+   //       size_t chunkSize = std::min(size - i, mMaxChunkSize);
+
+   //       status = SendRawData(&data[i], chunkSize);
+   //       if (Kraken::Battling::CONTINUE != status) {
+   //          return status;
+   //       }
+   //    }
+   // }
+
    return SendRawData(dataToSend.data(), dataToSend.size());
 }
 
 /// Signals the end of the Battling. This HAS TO BE CALLED by the Client
 /// when transfer is finished.
 Kraken::Battling Kraken::FinalBreach(){
-   return SendRawData(nullptr, 0);
+   auto complete = SendRawData(nullptr, 0);
+
+   // while(zsocket_poll(mRouter, 1)){
+   //    FreeOldRequests();
+   //    mIdentity = zframe_recv(mRouter);
+   // }
+   return complete;
 }
 
 /// Internal call to send a data array to the client.
 Kraken::Battling Kraken::SendRawData(const uint8_t* data, int size) {
+   
    FreeChunk();
    FreeOldRequests();
 
@@ -133,6 +165,7 @@ Kraken::~Kraken(){
    zsocket_unbind(mRouter, mLocation.c_str());
    zsocket_destroy(mCtx, mRouter);
    zctx_destroy(&mCtx);
+   mCtx = nullptr;
    FreeOldRequests();
    FreeChunk();
 }
