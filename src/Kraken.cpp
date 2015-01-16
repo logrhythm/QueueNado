@@ -23,7 +23,6 @@ mChunk(nullptr) {
    CHECK(mCtx);
    mRouter = zsocket_new(mCtx, ZMQ_ROUTER);
    CHECK(mRouter);
-   //zctx_set_linger(mCtx, 0); // linger for a millisecond on close
 }
 
 /// Set location of the queue (TCP location)
