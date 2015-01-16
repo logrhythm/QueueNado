@@ -13,7 +13,7 @@
 
 /// Creates the client that is to connect to the server/Kraken
 Harpoon::Harpoon(): 
-mQueueLength(10),
+mQueueLength(1), //Number of allowed messages in queue
 mTimeoutMs(300000), //5 minutes
 mOffset(0),
 mChunk(nullptr) {
