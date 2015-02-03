@@ -9,11 +9,16 @@
 #include <future>
 #include <atomic>
 
+namespace {
+   std::atomic<bool> gSendSmallChunks{false};
+}
 void* HarpoonKrakenTests::SendHello(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
    Kraken server;
    server.SetLocation(address);
    server.MaxWaitInMs(1000); // 1 second
+
+   gSendSmallChunks = true;
 
    uint8_t h = 'h';
    uint8_t e = 'e';
@@ -36,6 +41,8 @@ void* HarpoonKrakenTests::SendSmallChunks(void* arg) {
    server.ChangeDefaultMaxChunkSizeInBytes(2);
    server.SetLocation(address);
    server.MaxWaitInMs(1000); // 1 second
+
+   gSendSmallChunks = true;
 
    uint8_t h = 'h';
    uint8_t e = 'e';
@@ -259,13 +266,18 @@ TEST_F(HarpoonKrakenTests, SendThirtyTwoDataChunksReceivedMethods) {
 
 TEST_F(HarpoonKrakenTests, SendThreadSendHello) {
 
+   gSendSmallChunks = false;
+
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
    zthread_new(HarpoonKrakenTests::SendHello, reinterpret_cast<void*>(&location));
 
+
    Harpoon client;
    std::vector<uint8_t> p;
    client.MaxWaitInMs(1000); // on purpose not the same timeout
+
+   while (!gSendSmallChunks) { }
    
    Harpoon::Spear status = client.Aim(location);
    EXPECT_EQ(status, Harpoon::Spear::IMPALED) << "1st: " << static_cast<int>(status) << ", IMPALED: " << static_cast<int>(Harpoon::Spear::IMPALED);
@@ -295,6 +307,7 @@ TEST_F(HarpoonKrakenTests, SendThreadSendHello) {
 
 TEST_F(HarpoonKrakenTests, SendInSmallChunks) {
 
+   gSendSmallChunks = false;
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
    zthread_new(HarpoonKrakenTests::SendSmallChunks, reinterpret_cast<void*>(&location));
@@ -302,6 +315,8 @@ TEST_F(HarpoonKrakenTests, SendInSmallChunks) {
    Harpoon client;
    std::vector<uint8_t> p;
    client.MaxWaitInMs(1000);
+
+   while (!gSendSmallChunks) { }
 
    uint8_t h = 'h';
    uint8_t e = 'e';
