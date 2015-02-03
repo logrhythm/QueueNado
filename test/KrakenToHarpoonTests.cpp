@@ -132,7 +132,7 @@ TEST_F(KrakenToHarpoonTests, GetNextChunkIdWaitMethods) {
 
    zthread_new(KrakenToHarpoonTests::RecvThreadNextChunkIdWait, reinterpret_cast<void*>(&location));
    
-   for(int i = 0; i < 10; i++){
+   for(int i = 0; i < 1; i++){
       Kraken::Battling Battling = server.CallNextChunkId(); 
       EXPECT_EQ(Battling, Kraken::Battling::CONTINUE);  
    }
@@ -166,7 +166,7 @@ TEST_F(KrakenToHarpoonTests, SendTidalWaveGetResultingWaitsMethods) {
    Battling = server.SendTidalWave(data);
    EXPECT_EQ(Battling, Kraken::Battling::CONTINUE);
 
-   for(int i = 0; i < 10; i++){
+   for(int i = 0; i < 1; i++){
       Battling = server.CallNextChunkId(); 
       EXPECT_EQ(Battling, Kraken::Battling::CONTINUE);
    }
