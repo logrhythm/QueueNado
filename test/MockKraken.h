@@ -14,8 +14,8 @@ public:
       return Kraken::NextChunkId();
    }
 
-   Kraken::Battling CallPollTimeout() {
-      return Kraken::PollTimeout();
+   Kraken::Battling CallPollTimeout(int timeoutMs) {
+      return Kraken::PollTimeout(timeoutMs);
    }
 
 };

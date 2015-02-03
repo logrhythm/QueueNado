@@ -9,16 +9,11 @@
 #include <future>
 #include <atomic>
 
-namespace {
-   std::atomic<bool> gSendSmallChunks{false};
-}
 void* HarpoonKrakenTests::SendHello(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
    Kraken server;
    server.SetLocation(address);
    server.MaxWaitInMs(1000); // 1 second
-
-   gSendSmallChunks = true;
 
    uint8_t h = 'h';
    uint8_t e = 'e';
@@ -41,8 +36,6 @@ void* HarpoonKrakenTests::SendSmallChunks(void* arg) {
    server.ChangeDefaultMaxChunkSizeInBytes(2);
    server.SetLocation(address);
    server.MaxWaitInMs(1000); // 1 second
-
-   gSendSmallChunks = true;
 
    uint8_t h = 'h';
    uint8_t e = 'e';
@@ -155,10 +148,9 @@ TEST_F(HarpoonKrakenTests, PollTimeoutReturnsTimeout) {
    EXPECT_EQ(status, Harpoon::Spear::IMPALED);
 
    int kWaitMs(21);
-   client.MaxWaitInMs(kWaitMs);
 
    steady_clock::time_point pollStartMs = steady_clock::now();
-   Harpoon::Battling Battling = client.CallPollTimeout();
+   Harpoon::Battling Battling = client.CallPollTimeout(kWaitMs);
    int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
    EXPECT_EQ(Battling, Harpoon::Battling::TIMEOUT);
    EXPECT_EQ(kWaitMs, pollElapsedMs);
@@ -169,7 +161,7 @@ TEST_F(HarpoonKrakenTests, SendTidalWaveGetNextChunkIdMethods) {
    //  Client therefore will timeout:
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(HarpoonKrakenTests::SendThreadNextChunkIdDie, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &SendThreadNextChunkIdDie, &location);
 
    Harpoon client;
    client.MaxWaitInMs(1000);
@@ -182,6 +174,7 @@ TEST_F(HarpoonKrakenTests, SendTidalWaveGetNextChunkIdMethods) {
 
    EXPECT_EQ(res, Harpoon::Battling::TIMEOUT);
    EXPECT_EQ(p.size(), 0);
+   done.wait();
 }
 
 TEST_F(HarpoonKrakenTests, SendTidalWaveOneChunkReceivedMethods) {
@@ -189,7 +182,7 @@ TEST_F(HarpoonKrakenTests, SendTidalWaveOneChunkReceivedMethods) {
    //  Client therefore will timeout:
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(HarpoonKrakenTests::SendThreadSendOneDie, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &SendThreadSendOneDie, &location);
 
    Harpoon client;
    client.MaxWaitInMs(1000);
@@ -208,13 +201,14 @@ TEST_F(HarpoonKrakenTests, SendTidalWaveOneChunkReceivedMethods) {
 
    res = client.Heave(p);  
    EXPECT_EQ(res, Harpoon::Battling::TIMEOUT);
+   done.wait();
 }
 
 TEST_F(HarpoonKrakenTests, SendThirtyDataChunksReceivedMethods) {
 
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(HarpoonKrakenTests::SendThreadSendThirtyDie, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &SendThreadSendThirtyDie, &location);
 
    Harpoon client;
    std::vector<uint8_t> p;
@@ -234,13 +228,14 @@ TEST_F(HarpoonKrakenTests, SendThirtyDataChunksReceivedMethods) {
    Harpoon::Battling res = client.Heave(p);  
    EXPECT_EQ(res, Harpoon::Battling::TIMEOUT);
    EXPECT_EQ(p.size(), 0);
+   done.wait();
 }
 
 TEST_F(HarpoonKrakenTests, SendThirtyTwoDataChunksReceivedMethods) {
 
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(HarpoonKrakenTests::SendThreadSendThirtyTwoEnd, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &SendThreadSendThirtyTwoEnd, &location);
 
    Harpoon client;
    std::vector<uint8_t> p;
@@ -261,24 +256,20 @@ TEST_F(HarpoonKrakenTests, SendThirtyTwoDataChunksReceivedMethods) {
    Harpoon::Battling res = client.Heave(p);  
    EXPECT_EQ(res, Harpoon::Battling::VICTORIOUS);
    EXPECT_EQ(p.size(), 0);
+   done.wait();
 }
 
 
 TEST_F(HarpoonKrakenTests, SendThreadSendHello) {
 
-   gSendSmallChunks = false;
-
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(HarpoonKrakenTests::SendHello, reinterpret_cast<void*>(&location));
-
+   auto done = std::async(std::launch::async, &SendHello, &location);
 
    Harpoon client;
    std::vector<uint8_t> p;
    client.MaxWaitInMs(1000); // on purpose not the same timeout
 
-   while (!gSendSmallChunks) { }
-   
    Harpoon::Spear status = client.Aim(location);
    EXPECT_EQ(status, Harpoon::Spear::IMPALED) << "1st: " << static_cast<int>(status) << ", IMPALED: " << static_cast<int>(Harpoon::Spear::IMPALED);
 
@@ -302,21 +293,18 @@ TEST_F(HarpoonKrakenTests, SendThreadSendHello) {
    EXPECT_EQ(res, Harpoon::Battling::VICTORIOUS) << "result: " << static_cast<int>(res) << ", VICTORIOUS: " << static_cast<int>(Harpoon::Battling::VICTORIOUS);
 
    EXPECT_EQ(p.size(), 0);
-
+   done.wait();
 }
 
 TEST_F(HarpoonKrakenTests, SendInSmallChunks) {
 
-   gSendSmallChunks = false;
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(HarpoonKrakenTests::SendSmallChunks, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &SendSmallChunks, &location);
 
    Harpoon client;
    std::vector<uint8_t> p;
    client.MaxWaitInMs(1000);
-
-   while (!gSendSmallChunks) { }
 
    uint8_t h = 'h';
    uint8_t e = 'e';
@@ -377,5 +365,6 @@ TEST_F(HarpoonKrakenTests, SendInSmallChunks) {
    res = client.Heave(p); 
    EXPECT_EQ(res, Harpoon::Battling::VICTORIOUS);
    EXPECT_EQ(p.size(), 0);
+   done.wait();
 }
 

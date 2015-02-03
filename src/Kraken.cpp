@@ -68,13 +68,13 @@ void Kraken::FreeChunk(){
 // NOTE: zsocket_poll returns true only when the ZMQ_POLLIN is returned by zmq_poll. If false is
 // returned it does not automatically mean a timeout occurred waiting for input. So std::chrono is
 // used to determine when the poll has truly timed out.
-Kraken::Battling Kraken::PollTimeout(){
+Kraken::Battling Kraken::PollTimeout(int timeoutMs){
    using namespace std::chrono;
 
    steady_clock::time_point pollStartMs = steady_clock::now();
    while (!zsocket_poll(mRouter, 1)){
       int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
-      if (pollElapsedMs >= mTimeoutMs){
+      if (pollElapsedMs >= timeoutMs){
          return Kraken::Battling::TIMEOUT;
       }
    }
@@ -90,7 +90,7 @@ Kraken::Battling Kraken::NextChunkId(){
    FreeOldRequests();
 
    //Poll to see if anything is available on the pipeline:
-   if(Kraken::Battling::CONTINUE == PollTimeout()){
+   if(Kraken::Battling::CONTINUE == PollTimeout(mTimeoutMs)){
 
       // First frame is the identity of the client
       mIdentity = zframe_recv (mRouter);
@@ -103,7 +103,7 @@ Kraken::Battling Kraken::NextChunkId(){
    }
 
    //Poll to see if anything is available on the pipeline:
-   if(Kraken::Battling::CONTINUE == PollTimeout()){
+   if(Kraken::Battling::CONTINUE == PollTimeout(mTimeoutMs)){
 
       // Second frame is next chunk requested of the file
       mNextChunk = zstr_recv (mRouter);
@@ -145,8 +145,8 @@ Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
 Kraken::Battling Kraken::FinalBreach(){
    auto complete = SendRawData(nullptr, 0);
    
-   //Clean out any previous packets in the channel before initializing
-   while(zsocket_poll(mRouter, 1)){
+   //Clean out any previous packets in the channel to avoid memory leaks
+   if(Kraken::Battling::CONTINUE == PollTimeout(100)){
       FreeOldRequests();
       mIdentity = zframe_recv(mRouter);
    }

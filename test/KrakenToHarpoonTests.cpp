@@ -83,15 +83,13 @@ TEST_F(KrakenToHarpoonTests, PollTimeoutReturnsTimeout) {
    std::string location = GetTcpLocation(port);
    const int kWaitMs(21);
 
-
    MockKraken server;
-   server.MaxWaitInMs(kWaitMs);
 
    Kraken::Spear spear = server.SetLocation(location);
    EXPECT_EQ(spear, Kraken::Spear::IMPALED);
 
    steady_clock::time_point pollStartMs = steady_clock::now();
-   Kraken::Battling Battling = server.CallPollTimeout();
+   Kraken::Battling Battling = server.CallPollTimeout(kWaitMs);
    int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
    EXPECT_EQ(Battling, Kraken::Battling::TIMEOUT);
    EXPECT_EQ(kWaitMs, pollElapsedMs);

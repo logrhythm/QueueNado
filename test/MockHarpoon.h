@@ -14,8 +14,8 @@ public:
       void RequestChunks();
    }
 
-   Harpoon::Battling CallPollTimeout() {
-      return Harpoon::PollTimeout();
+   Harpoon::Battling CallPollTimeout(int timeoutMs) {
+      return Harpoon::PollTimeout(timeoutMs);
    }
 
 };
