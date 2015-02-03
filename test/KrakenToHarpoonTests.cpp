@@ -6,6 +6,8 @@
 #include "Kraken.h"
 #include "Death.h"
 #include <chrono>
+#include <future>
+#include <atomic>
 
 void* KrakenToHarpoonTests::RecvThreadNextChunkIdDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
@@ -103,7 +105,7 @@ TEST_F(KrakenToHarpoonTests, SendTidalWaveGetNextChunkIdDieMethods) {
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
 
-   zthread_new(KrakenToHarpoonTests::RecvThreadNextChunkIdDie, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &RecvThreadNextChunkIdDie, &location);
 
    MockKraken server;
    server.MaxWaitInMs(500);
@@ -115,6 +117,7 @@ TEST_F(KrakenToHarpoonTests, SendTidalWaveGetNextChunkIdDieMethods) {
       Kraken::Battling Battling = server.CallNextChunkId(); 
       EXPECT_EQ(Battling, Kraken::Battling::TIMEOUT);  
    }
+   done.wait();
 }
 
 TEST_F(KrakenToHarpoonTests, GetNextChunkIdWaitMethods) {
@@ -130,7 +133,7 @@ TEST_F(KrakenToHarpoonTests, GetNextChunkIdWaitMethods) {
    Kraken::Spear spear = server.SetLocation(location);
    EXPECT_EQ(spear, Kraken::Spear::IMPALED);   
 
-   zthread_new(KrakenToHarpoonTests::RecvThreadNextChunkIdWait, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &RecvThreadNextChunkIdWait, &location);
    
    for(int i = 0; i < 1; i++){
       Kraken::Battling Battling = server.CallNextChunkId(); 
@@ -139,6 +142,7 @@ TEST_F(KrakenToHarpoonTests, GetNextChunkIdWaitMethods) {
 
    Kraken::Battling Battling = server.CallNextChunkId(); 
    EXPECT_EQ(Battling, Kraken::Battling::TIMEOUT);  
+   done.wait();
 }
 
 TEST_F(KrakenToHarpoonTests, SendTidalWaveGetResultingWaitsMethods) {
@@ -150,7 +154,7 @@ TEST_F(KrakenToHarpoonTests, SendTidalWaveGetResultingWaitsMethods) {
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
 
-   zthread_new(KrakenToHarpoonTests::RecvThreadGetThreeWait, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &RecvThreadGetThreeWait, &location);
 
    MockKraken server;
    server.MaxWaitInMs(500);
@@ -173,6 +177,7 @@ TEST_F(KrakenToHarpoonTests, SendTidalWaveGetResultingWaitsMethods) {
 
    Battling = server.CallNextChunkId(); 
    EXPECT_EQ(Battling, Kraken::Battling::TIMEOUT);   
+   done.wait();
 }
 
 TEST_F(KrakenToHarpoonTests, SendEntireFileMethods2) {
@@ -184,7 +189,7 @@ TEST_F(KrakenToHarpoonTests, SendEntireFileMethods2) {
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
 
-   zthread_new(KrakenToHarpoonTests::RecvThreadGetFileDie, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &RecvThreadGetFileDie, &location);
 
    MockKraken server;
    server.MaxWaitInMs(500);
