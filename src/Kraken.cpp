@@ -9,6 +9,7 @@
 #include <g2log.hpp>
 
 #include "Kraken.h"
+#include <chrono>
 
 
 /// Constructing the server/Kraken that is about to be connected/impaled by the client/Harpoon
@@ -59,6 +60,23 @@ void Kraken::FreeChunk(){
    }
 }
 
+//Wait for input on the queue
+// NOTE: zsocket_poll returns true only when the ZMQ_POLLIN is returned by zmq_poll. If false is
+// returned it does not automatically mean a timeout occurred waiting for input. So std::chrono is
+// used to determine when the poll has truly timed out.
+Kraken::Battling Kraken::PollTimeout(){
+   using namespace std::chrono;
+
+   steady_clock::time_point pollStartMs = steady_clock::now();
+   while (!zsocket_poll(mRouter, 1)){
+      int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
+      if (pollElapsedMs >= mTimeoutMs){
+         return Kraken::Battling::TIMEOUT;
+      }
+   }
+   return Kraken::Battling::CONTINUE;
+}
+
 /// Internally used to get an ACK from the client asking for another chunk.
 /// We use this so that the sender does not send more data to the client than what the
 /// client can consume and therefore overloading the queue.
@@ -68,11 +86,11 @@ Kraken::Battling Kraken::NextChunkId(){
    FreeOldRequests();
 
    //Poll to see if anything is available on the pipeline:
-   if(zsocket_poll(mRouter, mTimeoutMs)){
+   if(Kraken::Battling::CONTINUE == PollTimeout()){
 
       // First frame is the identity of the client
       mIdentity = zframe_recv (mRouter);
-      if (!mIdentity) {
+      if(!mIdentity){
          return Kraken::Battling::INTERRUPT;
       }
 
@@ -81,7 +99,7 @@ Kraken::Battling Kraken::NextChunkId(){
    }
 
    //Poll to see if anything is available on the pipeline:
-   if(zsocket_poll(mRouter, mTimeoutMs)){
+   if(Kraken::Battling::CONTINUE == PollTimeout()){
 
       // Second frame is next chunk requested of the file
       mNextChunk = zstr_recv (mRouter);

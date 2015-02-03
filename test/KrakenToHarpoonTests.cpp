@@ -5,6 +5,7 @@
 #include "MockKraken.h"
 #include "Kraken.h"
 #include "Death.h"
+#include <chrono>
 
 void* KrakenToHarpoonTests::RecvThreadNextChunkIdDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
@@ -75,6 +76,27 @@ TEST_F(KrakenToHarpoonTests, KrakenSetLocation) {
    EXPECT_EQ(spear, Kraken::Spear::IMPALED);  
 }
 
+TEST_F(KrakenToHarpoonTests, PollTimeoutReturnsTimeout) {
+   using namespace std::chrono;
+
+   int port = GetTcpPort();
+   std::string location = GetTcpLocation(port);
+   const int kWaitMs(21);
+
+
+   MockKraken server;
+   server.MaxWaitInMs(kWaitMs);
+
+   Kraken::Spear spear = server.SetLocation(location);
+   EXPECT_EQ(spear, Kraken::Spear::IMPALED);
+
+   steady_clock::time_point pollStartMs = steady_clock::now();
+   Kraken::Battling Battling = server.CallPollTimeout();
+   int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
+   EXPECT_EQ(Battling, Kraken::Battling::TIMEOUT);
+   EXPECT_EQ(kWaitMs, pollElapsedMs);
+}
+
 TEST_F(KrakenToHarpoonTests, SendTidalWaveGetNextChunkIdDieMethods) {
    //Client thread will send out request for 10 chunks and instantly die. Therefore, none of those
    // chunks will be received and a -2 status should be returned
@@ -95,7 +117,7 @@ TEST_F(KrakenToHarpoonTests, SendTidalWaveGetNextChunkIdDieMethods) {
    }
 }
 
-TEST_F(KrakenToHarpoonTests, SendTidalWaveGetNextChunkIdWaitMethods) {
+TEST_F(KrakenToHarpoonTests, GetNextChunkIdWaitMethods) {
    //Client thread will send out request for 10 chunks and wait for resulting data.
    // Server should receive each of those chunks.
    // Server will not send back data, so client will time out and die.
@@ -103,18 +125,20 @@ TEST_F(KrakenToHarpoonTests, SendTidalWaveGetNextChunkIdWaitMethods) {
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
 
-   zthread_new(KrakenToHarpoonTests::RecvThreadNextChunkIdWait, reinterpret_cast<void*>(&location));
-
    MockKraken server;
    server.MaxWaitInMs(500);
-   
    Kraken::Spear spear = server.SetLocation(location);
    EXPECT_EQ(spear, Kraken::Spear::IMPALED);   
+
+   zthread_new(KrakenToHarpoonTests::RecvThreadNextChunkIdWait, reinterpret_cast<void*>(&location));
    
    for(int i = 0; i < 10; i++){
       Kraken::Battling Battling = server.CallNextChunkId(); 
       EXPECT_EQ(Battling, Kraken::Battling::CONTINUE);  
    }
+
+   Kraken::Battling Battling = server.CallNextChunkId(); 
+   EXPECT_EQ(Battling, Kraken::Battling::TIMEOUT);  
 }
 
 TEST_F(KrakenToHarpoonTests, SendTidalWaveGetResultingWaitsMethods) {

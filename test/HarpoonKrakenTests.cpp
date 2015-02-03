@@ -2,8 +2,10 @@
 #include <thread>
 #include "HarpoonKrakenTests.h"
 #include "MockKraken.h"
+#include "MockHarpoon.h"
 #include "Harpoon.h"
 #include "Death.h"
+#include <chrono>
 
 void* HarpoonKrakenTests::SendThreadNextChunkIdDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
@@ -73,6 +75,27 @@ TEST_F(HarpoonKrakenTests, HarpoonSetLocation) {
    Harpoon::Spear status = client.Aim(location);
 
    EXPECT_EQ(status, Harpoon::Spear::IMPALED);   
+}
+
+TEST_F(HarpoonKrakenTests, PollTimeoutReturnsTimeout) {
+   using namespace std::chrono;
+
+   MockHarpoon client;
+
+   int port = GetTcpPort();
+   std::string location = HarpoonKrakenTests::GetTcpLocation(port);
+   Harpoon::Spear status = client.Aim(location);
+
+   EXPECT_EQ(status, Harpoon::Spear::IMPALED);
+
+   int kWaitMs(21);
+   client.MaxWaitInMs(kWaitMs);
+
+   steady_clock::time_point pollStartMs = steady_clock::now();
+   Harpoon::Battling Battling = client.CallPollTimeout();
+   int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
+   EXPECT_EQ(Battling, Harpoon::Battling::TIMEOUT);
+   EXPECT_EQ(kWaitMs, pollElapsedMs);
 }
 
 TEST_F(HarpoonKrakenTests, SendTidalWaveGetNextChunkIdMethods) {

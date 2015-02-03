@@ -38,6 +38,7 @@ public:
    virtual ~Harpoon();
 
 protected:
+   Battling PollTimeout();
    void RequestChunks();
    void FreeChunk();
    

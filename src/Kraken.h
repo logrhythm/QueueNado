@@ -40,6 +40,7 @@ public:
     
 protected:
    Battling SendRawData(const uint8_t*, int size);
+   Battling PollTimeout();
    Battling NextChunkId(); 
    void FreeOldRequests();
    void FreeChunk();
