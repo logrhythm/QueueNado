@@ -6,14 +6,13 @@
 class HarpoonKrakenTests : public ::testing::Test {
 public:
 
-   HarpoonKrakenTests() : mIpc("ipc:///tmp/HarpoonKrakenTests.ipc"){
+   HarpoonKrakenTests() {
       srand(std::time(nullptr));
    };
 
    int mPid;
    std::string mTcpLocation;
    std::string mInprocLocation;
-   std::string mIpc;   
 
    static void* SendThreadNextChunkIdDie(void* arg);
    static void* SendThreadSendOneDie(void* arg);
@@ -31,7 +30,6 @@ protected:
    };
 
    virtual void TearDown() {
-      FileIO::RemoveFileAsRoot(mIpc);
    };
 
 

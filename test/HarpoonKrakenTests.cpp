@@ -151,8 +151,8 @@ TEST_F(HarpoonKrakenTests, PollTimeoutReturnsTimeout) {
       Harpoon::Battling Battling = client.CallPollTimeout(timeoutMs);
       int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
       EXPECT_EQ(Battling, Harpoon::Battling::TIMEOUT);
-      EXPECT_GE(timeoutMs, pollElapsedMs);
-      EXPECT_LE(pollElapsedMs, timeoutMs+1);
+      EXPECT_LE(timeoutMs, pollElapsedMs);
+      EXPECT_GE(timeoutMs, pollElapsedMs-1);
    }
 }
 
