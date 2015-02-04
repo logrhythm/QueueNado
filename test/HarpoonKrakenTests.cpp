@@ -2,8 +2,66 @@
 #include <thread>
 #include "HarpoonKrakenTests.h"
 #include "MockKraken.h"
+#include "MockHarpoon.h"
 #include "Harpoon.h"
 #include "Death.h"
+#include <chrono>
+#include <future>
+#include <atomic>
+
+void* HarpoonKrakenTests::SendHello(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
+   Kraken server;
+   server.SetLocation(address);
+   server.MaxWaitInMs(1000); // 1 second
+
+   uint8_t h = 'h';
+   uint8_t e = 'e';
+   uint8_t l = 'l';
+   uint8_t o = 'o';
+   uint8_t end = '\0';   
+   std::vector<uint8_t> hello{h,e,l,l,o,end};
+
+   for (auto c : hello) {
+      auto status = server.SendTidalWave({c});
+      LOG(INFO) << "SendTidalWave returned: " << static_cast<int> (status);
+   }
+   server.FinalBreach();
+   return nullptr;
+}
+
+void* HarpoonKrakenTests::SendSmallChunks(void* arg) {
+   std::string address = *(reinterpret_cast<std::string*>(arg));
+   Kraken server;
+   server.ChangeDefaultMaxChunkSizeInBytes(2);
+   server.SetLocation(address);
+   server.MaxWaitInMs(1000); // 1 second
+
+   uint8_t h = 'h';
+   uint8_t e = 'e';
+   uint8_t l = 'l';
+   uint8_t o = 'o';
+   uint8_t end = '\0';   
+   std::vector<uint8_t> hello{h,e,l,l,o,end};
+   std::vector<uint8_t> hell{h,e,l,l,end};
+   std::vector<uint8_t> hEnd{h,end};
+   std::vector<uint8_t> hV{h};
+
+   auto status = server.SendTidalWave(hello);
+   LOG(INFO) << "SendTidalWave returned: " << static_cast<int> (status);
+
+   status = server.SendTidalWave(hell);
+   LOG(INFO) << "SendTidalWave returned: " << static_cast<int> (status);
+
+   status = server.SendTidalWave(hEnd);
+   LOG(INFO) << "SendTidalWave returned: " << static_cast<int> (status);
+
+   status = server.SendTidalWave(hV);
+   LOG(INFO) << "SendTidalWave returned: " << static_cast<int> (status);
+
+   server.FinalBreach();
+   return nullptr;
+}
 
 void* HarpoonKrakenTests::SendThreadNextChunkIdDie(void* arg) {
    std::string address = *(reinterpret_cast<std::string*>(arg));
@@ -32,7 +90,7 @@ void* HarpoonKrakenTests::SendThreadSendThirtyDie(void* arg) {
    server.SetLocation(address);
    server.MaxWaitInMs(1000);
 
-   for (uint8_t i = 0; i < 30; i++) {
+   for (uint8_t i = 0; i < 30; ++i) {
       server.SendTidalWave({i});
    }
 
@@ -45,13 +103,16 @@ void* HarpoonKrakenTests::SendThreadSendThirtyTwoEnd(void* arg) {
    server.SetLocation(address);
    server.MaxWaitInMs(1000);
 
-   for (uint8_t i = 0; i < 30; i++) {
+   for (uint8_t i = 0; i < 30; ++i) {
       server.SendTidalWave({i});
    }
    server.FinalBreach();
 
    return nullptr;
 }
+
+
+
 
 int HarpoonKrakenTests::GetTcpPort() {
    int max = 15000;
@@ -75,12 +136,32 @@ TEST_F(HarpoonKrakenTests, HarpoonSetLocation) {
    EXPECT_EQ(status, Harpoon::Spear::IMPALED);   
 }
 
+TEST_F(HarpoonKrakenTests, PollTimeoutReturnsTimeout) {
+   using namespace std::chrono;
+
+   MockHarpoon client;
+
+   int port = GetTcpPort();
+   std::string location = HarpoonKrakenTests::GetTcpLocation(port);
+   Harpoon::Spear status = client.Aim(location);
+   EXPECT_EQ(status, Harpoon::Spear::IMPALED);
+
+   for (int timeoutMs = 1; timeoutMs < 50; timeoutMs += 5) {
+      steady_clock::time_point pollStartMs = steady_clock::now();
+      Harpoon::Battling Battling = client.CallPollTimeout(timeoutMs);
+      int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
+      EXPECT_EQ(Battling, Harpoon::Battling::TIMEOUT);
+      EXPECT_LE(timeoutMs, pollElapsedMs);
+      EXPECT_GE(timeoutMs, pollElapsedMs-1);
+   }
+}
+
 TEST_F(HarpoonKrakenTests, SendTidalWaveGetNextChunkIdMethods) {
    //Server will receive data requests from client, but will not respond to them.
    //  Client therefore will timeout:
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(HarpoonKrakenTests::SendThreadNextChunkIdDie, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &SendThreadNextChunkIdDie, &location);
 
    Harpoon client;
    client.MaxWaitInMs(1000);
@@ -93,6 +174,7 @@ TEST_F(HarpoonKrakenTests, SendTidalWaveGetNextChunkIdMethods) {
 
    EXPECT_EQ(res, Harpoon::Battling::TIMEOUT);
    EXPECT_EQ(p.size(), 0);
+   done.wait();
 }
 
 TEST_F(HarpoonKrakenTests, SendTidalWaveOneChunkReceivedMethods) {
@@ -100,7 +182,7 @@ TEST_F(HarpoonKrakenTests, SendTidalWaveOneChunkReceivedMethods) {
    //  Client therefore will timeout:
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(HarpoonKrakenTests::SendThreadSendOneDie, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &SendThreadSendOneDie, &location);
 
    Harpoon client;
    client.MaxWaitInMs(1000);
@@ -119,13 +201,14 @@ TEST_F(HarpoonKrakenTests, SendTidalWaveOneChunkReceivedMethods) {
 
    res = client.Heave(p);  
    EXPECT_EQ(res, Harpoon::Battling::TIMEOUT);
+   done.wait();
 }
 
 TEST_F(HarpoonKrakenTests, SendThirtyDataChunksReceivedMethods) {
 
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(HarpoonKrakenTests::SendThreadSendThirtyDie, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &SendThreadSendThirtyDie, &location);
 
    Harpoon client;
    std::vector<uint8_t> p;
@@ -145,13 +228,14 @@ TEST_F(HarpoonKrakenTests, SendThirtyDataChunksReceivedMethods) {
    Harpoon::Battling res = client.Heave(p);  
    EXPECT_EQ(res, Harpoon::Battling::TIMEOUT);
    EXPECT_EQ(p.size(), 0);
+   done.wait();
 }
 
 TEST_F(HarpoonKrakenTests, SendThirtyTwoDataChunksReceivedMethods) {
 
    int port = GetTcpPort();
    std::string location = GetTcpLocation(port);
-   zthread_new(HarpoonKrakenTests::SendThreadSendThirtyTwoEnd, reinterpret_cast<void*>(&location));
+   auto done = std::async(std::launch::async, &SendThreadSendThirtyTwoEnd, &location);
 
    Harpoon client;
    std::vector<uint8_t> p;
@@ -172,5 +256,115 @@ TEST_F(HarpoonKrakenTests, SendThirtyTwoDataChunksReceivedMethods) {
    Harpoon::Battling res = client.Heave(p);  
    EXPECT_EQ(res, Harpoon::Battling::VICTORIOUS);
    EXPECT_EQ(p.size(), 0);
+   done.wait();
+}
+
+
+TEST_F(HarpoonKrakenTests, SendThreadSendHello) {
+
+   int port = GetTcpPort();
+   std::string location = GetTcpLocation(port);
+   auto done = std::async(std::launch::async, &SendHello, &location);
+
+   Harpoon client;
+   std::vector<uint8_t> p;
+   client.MaxWaitInMs(1000); // on purpose not the same timeout
+
+   Harpoon::Spear status = client.Aim(location);
+   EXPECT_EQ(status, Harpoon::Spear::IMPALED) << "1st: " << static_cast<int>(status) << ", IMPALED: " << static_cast<int>(Harpoon::Spear::IMPALED);
+
+   uint8_t h = 'h';
+   uint8_t e = 'e';
+   uint8_t l = 'l';
+   uint8_t o = 'o';
+   uint8_t end = '\0';
+   const std::vector<uint8_t> expected{h,e,l,l,o,end};
+   
+   for (const auto c: expected){
+      std::vector<uint8_t> p;
+      Harpoon::Battling res = client.Heave(p); 
+      EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
+      ASSERT_EQ(p.size(), 1);
+      EXPECT_EQ(p[0], c);
+   }
+   
+   //Should now receive an empty chucnk to indicate end of stream:
+   Harpoon::Battling res = client.Heave(p);  
+   EXPECT_EQ(res, Harpoon::Battling::VICTORIOUS) << "result: " << static_cast<int>(res) << ", VICTORIOUS: " << static_cast<int>(Harpoon::Battling::VICTORIOUS);
+
+   EXPECT_EQ(p.size(), 0);
+   done.wait();
+}
+
+TEST_F(HarpoonKrakenTests, SendInSmallChunks) {
+
+   int port = GetTcpPort();
+   std::string location = GetTcpLocation(port);
+   auto done = std::async(std::launch::async, &SendSmallChunks, &location);
+
+   Harpoon client;
+   std::vector<uint8_t> p;
+   client.MaxWaitInMs(1000);
+
+   uint8_t h = 'h';
+   uint8_t e = 'e';
+   uint8_t l = 'l';
+   uint8_t o = 'o';
+   uint8_t end = '\0';
+   
+   Harpoon::Spear status = client.Aim(location);
+   EXPECT_EQ(status, Harpoon::Spear::IMPALED); 
+
+   Harpoon::Battling res = client.Heave(p); 
+   EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
+   ASSERT_EQ(p.size(), 2);
+   EXPECT_EQ(p[0], h);
+   EXPECT_EQ(p[1], e);
+
+   res = client.Heave(p); 
+   EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
+   ASSERT_EQ(p.size(), 2);
+   EXPECT_EQ(p[0], l);
+   EXPECT_EQ(p[1], l);
+
+   res = client.Heave(p); 
+   EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
+   ASSERT_EQ(p.size(), 2);
+   EXPECT_EQ(p[0], o);
+   EXPECT_EQ(p[1], end);
+
+   res = client.Heave(p); 
+   EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
+   ASSERT_EQ(p.size(), 2);
+   EXPECT_EQ(p[0], h);
+   EXPECT_EQ(p[1], e);
+
+   res = client.Heave(p); 
+   EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
+   ASSERT_EQ(p.size(), 2);
+   EXPECT_EQ(p[0], l);
+   EXPECT_EQ(p[1], l);
+
+   res = client.Heave(p); 
+   EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
+   ASSERT_EQ(p.size(), 1);
+   EXPECT_EQ(p[0], end);
+
+   res = client.Heave(p); 
+   EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
+   ASSERT_EQ(p.size(), 2);
+   EXPECT_EQ(p[0], h);
+   EXPECT_EQ(p[1], end);
+
+   res = client.Heave(p); 
+   EXPECT_EQ(res, Harpoon::Battling::CONTINUE); 
+   ASSERT_EQ(p.size(), 1);
+   EXPECT_EQ(p[0], h);
+   
+   //Should now receive an empty chucnk to indicate end of stream:
+   res = client.Heave(p); 
+   EXPECT_EQ(res, Harpoon::Battling::VICTORIOUS);
+   EXPECT_EQ(p.size(), 0);
+   done.wait();
 }
 

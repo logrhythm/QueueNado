@@ -7,14 +7,15 @@
 
 #include <czmq.h>
 #include <g2log.hpp>
-
 #include "Kraken.h"
+#include <chrono>
 
 
 /// Constructing the server/Kraken that is about to be connected/impaled by the client/Harpoon
 Kraken::Kraken():
 mLocation(""), 
-mQueueLength(10),
+mQueueLength(1), //Number of allowed messages in queue
+mMaxChunkSize(10485760), //10MB
 mNextChunk(nullptr), 
 mIdentity(nullptr), 
 mTimeoutMs(300000), //5 Minutes
@@ -39,6 +40,10 @@ void Kraken::MaxWaitInMs(const int timeoutMs){
    mTimeoutMs = timeoutMs;
 }
 
+void Kraken::ChangeDefaultMaxChunkSizeInBytes(const size_t bytes){
+   mMaxChunkSize = bytes;
+}
+
 //Free the chunk of data struct used by ZMQ in ACKs from the client
 void Kraken::FreeOldRequests(){
    if(mIdentity != nullptr){
@@ -59,6 +64,23 @@ void Kraken::FreeChunk(){
    }
 }
 
+//Wait for input on the queue
+// NOTE: zsocket_poll returns true only when the ZMQ_POLLIN is returned by zmq_poll. If false is
+// returned it does not automatically mean a timeout occurred waiting for input. So std::chrono is
+// used to determine when the poll has truly timed out.
+Kraken::Battling Kraken::PollTimeout(int timeoutMs){
+   using namespace std::chrono;
+
+   steady_clock::time_point pollStartMs = steady_clock::now();
+   while (!zsocket_poll(mRouter, 1)){
+      int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
+      if (pollElapsedMs >= timeoutMs){
+         return Kraken::Battling::TIMEOUT;
+      }
+   }
+   return Kraken::Battling::CONTINUE;
+}
+
 /// Internally used to get an ACK from the client asking for another chunk.
 /// We use this so that the sender does not send more data to the client than what the
 /// client can consume and therefore overloading the queue.
@@ -68,11 +90,11 @@ Kraken::Battling Kraken::NextChunkId(){
    FreeOldRequests();
 
    //Poll to see if anything is available on the pipeline:
-   if(zsocket_poll(mRouter, mTimeoutMs)){
+   if(Kraken::Battling::CONTINUE == PollTimeout(mTimeoutMs)){
 
       // First frame is the identity of the client
       mIdentity = zframe_recv (mRouter);
-      if (!mIdentity) {
+      if(!mIdentity){
          return Kraken::Battling::INTERRUPT;
       }
 
@@ -81,7 +103,7 @@ Kraken::Battling Kraken::NextChunkId(){
    }
 
    //Poll to see if anything is available on the pipeline:
-   if(zsocket_poll(mRouter, mTimeoutMs)){
+   if(Kraken::Battling::CONTINUE == PollTimeout(mTimeoutMs)){
 
       // Second frame is next chunk requested of the file
       mNextChunk = zstr_recv (mRouter);
@@ -98,17 +120,42 @@ Kraken::Battling Kraken::NextChunkId(){
 
 /// Send data to client
 Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
-   return SendRawData(dataToSend.data(), dataToSend.size());
+   size_t size = dataToSend.size();
+   if(size == 0){
+      return Kraken::Battling::CONTINUE;   
+   }
+
+   const uint8_t* data = dataToSend.data();
+   Kraken::Battling status = Kraken::Battling::CONTINUE;
+
+   for(size_t i = 0; i < size; i += mMaxChunkSize){
+      size_t chunkSize = std::min(size - i, mMaxChunkSize);
+
+      status = SendRawData(&data[i], chunkSize);
+      if (Kraken::Battling::CONTINUE != status) {
+         return status;
+      }
+   }
+
+   return status;
 }
 
 /// Signals the end of the Battling. This HAS TO BE CALLED by the Client
 /// when transfer is finished.
 Kraken::Battling Kraken::FinalBreach(){
-   return SendRawData(nullptr, 0);
+   auto complete = SendRawData(nullptr, 0);
+   
+   //Clean out any previous packets in the channel to avoid memory leaks
+   if(Kraken::Battling::CONTINUE == PollTimeout(100)){
+      FreeOldRequests();
+      mIdentity = zframe_recv(mRouter);
+   }
+   return complete;
 }
 
 /// Internal call to send a data array to the client.
 Kraken::Battling Kraken::SendRawData(const uint8_t* data, int size) {
+   
    FreeChunk();
    FreeOldRequests();
 
@@ -133,6 +180,7 @@ Kraken::~Kraken(){
    zsocket_unbind(mRouter, mLocation.c_str());
    zsocket_destroy(mCtx, mRouter);
    zctx_destroy(&mCtx);
+   mCtx = nullptr;
    FreeOldRequests();
    FreeChunk();
 }

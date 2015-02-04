@@ -34,12 +34,14 @@ public:
    Kraken();
    Spear SetLocation(const std::string& location);
    void MaxWaitInMs(const int timeout);
+   void ChangeDefaultMaxChunkSizeInBytes(const size_t bytes);
    Battling FinalBreach();
    Battling SendTidalWave(const std::vector<uint8_t>& data);
    virtual ~Kraken();
     
 protected:
    Battling SendRawData(const uint8_t*, int size);
+   Battling PollTimeout(int timeoutMs);
    Battling NextChunkId(); 
    void FreeOldRequests();
    void FreeChunk();
@@ -49,6 +51,7 @@ private:
    zctx_t* mCtx;
    std::string mLocation;
    size_t mQueueLength;
+   size_t mMaxChunkSize;
    char* mNextChunk;
    zframe_t* mIdentity;
    int mTimeoutMs;
