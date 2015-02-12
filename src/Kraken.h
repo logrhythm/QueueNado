@@ -35,6 +35,7 @@ public:
    Spear SetLocation(const std::string& location);
    void MaxWaitInMs(const int timeout);
    void ChangeDefaultMaxChunkSizeInBytes(const size_t bytes);
+   size_t MaxChunkSizeInBytes();
    Battling FinalBreach();
    Battling SendTidalWave(const std::vector<uint8_t>& data);
    virtual ~Kraken();
