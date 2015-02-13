@@ -10,12 +10,14 @@
 #include "Kraken.h"
 #include <chrono>
 
-
+namespace {
+   const size_t kDefaultMaxChunkSize_10MB_inBytes = 10 * 1024 * 1024;
+}
 /// Constructing the server/Kraken that is about to be connected/impaled by the client/Harpoon
 Kraken::Kraken():
 mLocation(""), 
 mQueueLength(1), //Number of allowed messages in queue
-mMaxChunkSize(10485760), //10MB
+mMaxChunkSize(kDefaultMaxChunkSize_10MB_inBytes), //10MB
 mNextChunk(nullptr), 
 mIdentity(nullptr), 
 mTimeoutMs(300000), //5 Minutes
@@ -40,9 +42,16 @@ void Kraken::MaxWaitInMs(const int timeoutMs){
    mTimeoutMs = timeoutMs;
 }
 
+/// @param the new default chunk size
 void Kraken::ChangeDefaultMaxChunkSizeInBytes(const size_t bytes){
    mMaxChunkSize = bytes;
 }
+
+/// @return max chunk size
+size_t Kraken::MaxChunkSizeInBytes() {
+   return mMaxChunkSize;
+}
+
 
 //Free the chunk of data struct used by ZMQ in ACKs from the client
 void Kraken::FreeOldRequests(){
@@ -118,7 +127,12 @@ Kraken::Battling Kraken::NextChunkId(){
    return Kraken::Battling::TIMEOUT;
 }
 
-/// Send data to client
+/** Send data to client
+* The actual  data might be sent in several small chunks
+* if the data size to send is larger than @ref MaxChunkSize()
+* @param dataToSend
+* @return status of the send operation
+*/
 Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
    size_t size = dataToSend.size();
    if(size == 0){

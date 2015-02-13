@@ -78,6 +78,14 @@ TEST_F(KrakenToHarpoonTests, KrakenSetLocation) {
    EXPECT_EQ(spear, Kraken::Spear::IMPALED);  
 }
 
+TEST_F(KrakenToHarpoonTests, Default_MaxChunkSize) {
+   Kraken kraken;
+   EXPECT_EQ(10 * 1024 * 1024, kraken.MaxChunkSizeInBytes());
+   kraken.ChangeDefaultMaxChunkSizeInBytes(100);
+   EXPECT_EQ(100, kraken.MaxChunkSizeInBytes());
+}
+
+
 TEST_F(KrakenToHarpoonTests, PollTimeoutReturnsTimeout) {
    using namespace std::chrono;
 
