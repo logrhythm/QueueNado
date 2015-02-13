@@ -48,7 +48,7 @@ void Kraken::ChangeDefaultMaxChunkSizeInBytes(const size_t bytes){
 }
 
 /// @return max chunk size
-size_t Kraken:: MaxChunkSizeInBytes() {
+size_t Kraken::MaxChunkSizeInBytes() {
    return mMaxChunkSize;
 }
 
@@ -128,7 +128,7 @@ Kraken::Battling Kraken::NextChunkId(){
 }
 
 /** Send data to client
-* The actual sending of data might be send in several small chunks
+* The actual  data might be sent in several small chunks
 * if the data size to send is larger than @ref MaxChunkSize()
 * @param dataToSend
 * @return status of the send operation
