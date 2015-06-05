@@ -10,8 +10,9 @@
 #include <string>
 #include <set>
 #include <vector>
-#include "global.h"
+#include "QueueNadoMacros.h"
 #include "Headcrab.h"
+
 struct _zctx_t;
 typedef struct _zctx_t zctx_t;
 class Crowbar {

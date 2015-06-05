@@ -5,8 +5,9 @@
 #include <map>
 #include <string>
 #include "IComponentQueue.h"
-#include "boost/thread.hpp"
-#include "global.h"
+#include <boost/thread.hpp>
+#include "QueueNadoMacros.h"
+
 
 template<class dataType>
 class ZeroMQ : public IComponentQueue {
