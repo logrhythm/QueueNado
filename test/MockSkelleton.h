@@ -4,7 +4,7 @@
 #include <atomic>
 #include <thread>
 #include <memory>
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
 
 class MockSkelleton : public Skelleton {
 public:

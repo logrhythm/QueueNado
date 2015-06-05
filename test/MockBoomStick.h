@@ -1,6 +1,6 @@
 #pragma once
 #include "BoomStick.h"
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
 
 class MockBoomStick : public BoomStick {
 public:
@@ -22,7 +22,7 @@ public:
       return BoomStick::Initialize();
    }
 
-   std::string Send(const std::string& command) LR_OVERRIDE {
+   std::string Send(const std::string& command) QN_OVERRIDE {
       if (mReturnString.empty()) {
          return BoomStick::Send(command);
       } else {
@@ -30,14 +30,14 @@ public:
       }
    }
 
-   bool SendAsync(const std::string& uuid, const std::string& command) LR_OVERRIDE {
+   bool SendAsync(const std::string& uuid, const std::string& command) QN_OVERRIDE {
       if (mReturnString.empty()) {
          return BoomStick::SendAsync(uuid,command);
       } else {
          return true;
       }
    }
-   bool GetAsyncReply(const std::string& uuid, const unsigned int msToWait, std::string& reply) LR_OVERRIDE {
+   bool GetAsyncReply(const std::string& uuid, const unsigned int msToWait, std::string& reply) QN_OVERRIDE {
       if (mReturnString.empty()) {
          return BoomStick::GetAsyncReply(uuid,msToWait,reply);
       } else {

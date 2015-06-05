@@ -2,7 +2,7 @@
 #include "ZeroMQ.h"
 
 
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
 class MockZeroMQPacket: public ZeroMQ<void*> {
 public:
    explicit MockZeroMQPacket(unsigned int id) :
