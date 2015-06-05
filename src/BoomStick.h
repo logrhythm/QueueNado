@@ -1,7 +1,7 @@
 #pragma once
+#include "QueueNadoMacros.h"
 #include <string>
 #include <map>
-#include <NMGlobal.h>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 struct _zctx_t;
