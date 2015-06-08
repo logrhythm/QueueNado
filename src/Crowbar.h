@@ -10,7 +10,6 @@
 #include <string>
 #include <set>
 #include <vector>
-#include "QueueNadoMacros.h"
 #include "Headcrab.h"
 
 struct _zctx_t;

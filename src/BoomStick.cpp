@@ -11,7 +11,7 @@
 #include "boost/uuid/uuid_io.hpp"
 #include <thread>
 #include <chrono>
-
+#include "QueueNadoMacros.h"
 #include "BoomStick.h"
 #include "Death.h"
 namespace {
