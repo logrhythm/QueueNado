@@ -1,6 +1,6 @@
 #pragma once
 #include "Skelleton.h"
-#include "g2log.hpp"
+#include "g3log/g3log.hpp"
 #include <atomic>
 #include <thread>
 #include <memory>
