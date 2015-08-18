@@ -11,7 +11,6 @@
 #include <Shotgun.h>
 #include <Vampire.h>
 #include <StopWatch.h>
-//#include <MakeUniquePtr.h>
 
 /*
  * Initialize the mutex-guarded Shotgun-Alien
@@ -49,7 +48,6 @@ std::unique_ptr<Vampire> Notifier::CreateHandshakeQueue() {
    LOG(INFO) << "Creating Vampire with queue: " << handshakeQueueName;
    const auto size = 100;
 
-   //auto target = std2::make_unique<Vampire>(handshakeQueueName);
    auto target = std::unique_ptr<Vampire>(new Vampire(handshakeQueueName));
    target->SetHighWater(size);
    target->SetOwnSocket(true);

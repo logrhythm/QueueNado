@@ -7,7 +7,6 @@
 #include <memory>
 #include <g2log.hpp>
 #include <thread>
-//#include <MakeUniquePtr.h>
 #include <sstream>
 #include "Listener.h"
 #include <Alien.h>
@@ -67,7 +66,6 @@ std::unique_ptr<Rifle> Listener::CreateFeedbackShooter() {
    LOG(INFO) << "Creating feedback handshake " << mHandshakeQueueName 
              << " for thread #" << std::this_thread::get_id();
    const size_t feedbackQSize = 100;
-   //auto shooter = std2::make_unique<Rifle>(mHandshakeQueueName);
    auto shooter = std::unique_ptr<Rifle>(new Rifle(mHandshakeQueueName));
    shooter->SetOwnSocket(false);
    shooter->SetHighWater(feedbackQSize);
