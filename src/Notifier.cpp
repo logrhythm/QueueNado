@@ -12,6 +12,21 @@
 #include <Vampire.h>
 #include <StopWatch.h>
 
+std::unique_ptr<Notifier>  Notifier::CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount) {
+
+   auto notifier = std::unique_ptr<Notifier>(new Notifier(notifierQueue, handshakeQueue));
+   if (notifier->Initialize(handshakeCount)) {
+      return std::move(notifier);
+   }
+   std::unique_ptr<Notifier> deadNotifier;
+   return deadNotifier;
+}
+
+
+/// destructor
+Notifier::~Notifier() {
+   Reset();;
+}
 /*
  * Initialize the mutex-guarded Shotgun-Alien
  *    queue by "aiming" it at the Notifier
