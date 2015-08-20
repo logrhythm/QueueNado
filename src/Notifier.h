@@ -25,9 +25,7 @@ class Notifier {
 
  private:
    Notifier() = delete;
-   Notifier(const std::string& notifierQueue, const std::string& handshakeQueue)
-      : mNotifierQueueName(notifierQueue),
-        mHandshakeQueueName(handshakeQueue) {};
+   Notifier(const std::string& notifierQueue, const std::string& handshakeQueue);
 
    bool Initialize(const size_t handshakeCount);
 

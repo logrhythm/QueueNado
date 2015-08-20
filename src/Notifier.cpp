@@ -23,6 +23,15 @@ std::unique_ptr<Notifier>  Notifier::CreateNotifier(const std::string& notifierQ
 }
 
 
+/**
+* @param notifierQueue to send notification on
+* @param handshakeQueue to receive handshake confirmation on
+*/
+Notifier::Notifier(const std::string& notifierQueue, const std::string& handshakeQueue)
+   : mNotifierQueueName(notifierQueue),
+     mHandshakeQueueName(handshakeQueue) {};
+
+
 /// destructor
 Notifier::~Notifier() {
    Reset();;
