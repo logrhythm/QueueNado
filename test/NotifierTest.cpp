@@ -11,74 +11,86 @@
 
 namespace {
 
-const std::string notifierQueue = "ipc:///tmp/RestartServicesQueue.ipc";
-const std::string notifierQueuePath = "/tmp/RestartServicesQueue.ipc";
-const std::string handshakeQueue = "ipc:///tmp/RestartServicesHandshakeQueue.ipc";
-const std::string handshakeQueuePath = "/tmp/RestartServicesHandshakeQueue.ipc";
+   const std::string notifierQueue = "ipc:///tmp/RestartServicesQueue.ipc";
+   const std::string notifierQueuePath = "/tmp/RestartServicesQueue.ipc";
+   const std::string handshakeQueue = "ipc:///tmp/RestartServicesHandshakeQueue.ipc";
+   const std::string handshakeQueuePath = "/tmp/RestartServicesHandshakeQueue.ipc";
 
-void* ReceiverThread(void* args) {
-   TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
-   CHECK(tmpRawPtr != nullptr);
-   TestThreadData threadData(*tmpRawPtr);
-   Listener listener(notifierQueue, handshakeQueue, "TestThread");
-   std::shared_ptr<void*> raiiExitFlag(nullptr, [threadData](void*) {
-      threadData.hasExited->store(true);
-      LOG(INFO) << "exiting thread: " << threadData.hasExited->load();
-   });
+   void* ReceiverThread(void* args) {
+      TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
+      CHECK(tmpRawPtr != nullptr);
+      TestThreadData threadData(*tmpRawPtr);
+      auto listener = Listener::CreateListener(notifierQueue, handshakeQueue, "TestThread");
+      std::shared_ptr<void*> raiiExitFlag(nullptr, [threadData](void*) {
+         threadData.hasExited->store(true);
+         LOG(INFO) << "exiting thread: " << threadData.hasExited->load();
+      });
 
-   EXPECT_TRUE(listener.Initialize());
-   NotifyParentThatChildHasStarted(threadData);
-   StopWatch timer;
 
-   bool confirmed = false;
-   while (ParentHasNotSentExitSignal(threadData)) {
-      if (MaxTimeoutHasOccurred(timer)) {
-         break;
+
+      EXPECT_NE(listener.get(), nullptr);
+      if (listener.get() == nullptr) {
+         ADD_FAILURE() << "Failed to create listener, thread #" << std::this_thread::get_id();
+         return nullptr;
       }
-      if (listener.NotificationReceived()) {
-         UpdateThreadDataAfterReceivingMessage(threadData);
-         if (threadData.kExpectedFeedback > 0) {
-            confirmed = listener.SendConfirmation();
-            if (!confirmed) {
-               ADD_FAILURE() << "Failed to send feedback, thread #" << std::this_thread::get_id();
+
+      NotifyParentThatChildHasStarted(threadData);
+      StopWatch timer;
+
+      bool confirmed = false;
+      while (ParentHasNotSentExitSignal(threadData)) {
+         if (MaxTimeoutHasOccurred(timer)) {
+            break;
+         }
+         if (listener->NotificationReceived()) {
+            UpdateThreadDataAfterReceivingMessage(threadData);
+            if (threadData.kExpectedFeedback > 0) {
+               confirmed = listener->SendConfirmation();
+               if (!confirmed) {
+                  ADD_FAILURE() << "Failed to send feedback, thread #" << std::this_thread::get_id();
+               }
             }
          }
       }
-   }
-   const bool timeout = MaxTimeoutHasOccurred(timer);
-   LOG(INFO) << "Exiting loop. Parent stated: keep running: " << threadData.keepRunning->load() << ", timout: " << timeout;
-   if (timeout) {
-      ADD_FAILURE() << "Receiver thread has timed out after " << kMaxWaitTimeInSec << " seconds.";
-   }
-   LOG(INFO) << threadData.print();
-   return nullptr;
-}
-
-void* SenderThread(void* args) {
-   Notifier notifier(notifierQueue, handshakeQueue);
-   TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
-   CHECK(tmpRawPtr != nullptr);
-   TestThreadData threadData(*tmpRawPtr);
-   std::shared_ptr<void*> raiiExitFlag(nullptr, [threadData](void*) { threadData.hasExited->store(true); });
-   EXPECT_TRUE(notifier.Initialize(threadData.kExpectedFeedback));
-   NotifyParentThatChildHasStarted(threadData);
-
-   while (ParentHasNotSentExitSignal(threadData)) {
-      if (TimeToSendANotification(threadData)) {
-         EXPECT_EQ(notifier.Notify(), threadData.kExpectedFeedback);
-         ResetNotifyFlag(threadData);
+      const bool timeout = MaxTimeoutHasOccurred(timer);
+      LOG(INFO) << "Exiting loop. Parent stated: keep running: " << threadData.keepRunning->load() << ", timout: " << timeout;
+      if (timeout) {
+         ADD_FAILURE() << "Receiver thread has timed out after " << kMaxWaitTimeInSec << " seconds.";
       }
+      LOG(INFO) << threadData.print();
+      return nullptr;
    }
-   LOG(INFO) << threadData.print();
-   return nullptr;
-}
+
+   void* SenderThread(void* args) {
+      TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
+      CHECK(tmpRawPtr != nullptr);
+      TestThreadData threadData(*tmpRawPtr);
+      auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, threadData.kExpectedFeedback);
+      std::shared_ptr<void*> raiiExitFlag(nullptr, [threadData](void*) { threadData.hasExited->store(true); });
+      const bool initialized = notifier.get() != nullptr;
+      if (false == initialized) {
+         ADD_FAILURE() << "Failed to initialize the Notifier";
+         return nullptr;
+      }
+      NotifyParentThatChildHasStarted(threadData);
+
+      while (ParentHasNotSentExitSignal(threadData)) {
+         if (TimeToSendANotification(threadData)) {
+            EXPECT_EQ(notifier->Notify(), threadData.kExpectedFeedback);
+            ResetNotifyFlag(threadData);
+         }
+      }
+      LOG(INFO) << threadData.print();
+      return nullptr;
+   }
 } //namespace
 
 TEST_F(NotifierTest, InitializationCreatesIPC) {
    EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
    EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
-   Notifier notifier(notifierQueue, handshakeQueue);
-   EXPECT_TRUE(notifier.Initialize(0));
+   const size_t ignored = 1;
+   auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, ignored);
+   EXPECT_NE(notifier.get(), nullptr);
    EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
    EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
 }
@@ -148,7 +160,7 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers) {
    TestThreadData receiver2ThreadData{"receiver2", sendFeedback};
    EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
    EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
- 
+
    // Spawn Sender and wait for it to start up
    zthread_new(&SenderThread, reinterpret_cast<TestThreadData*>(&senderData));
    EXPECT_TRUE(SleepUntilCondition({{senderData.hasStarted}}));

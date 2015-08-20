@@ -13,31 +13,31 @@ class Shotgun;
 class Vampire;
 
 class Notifier {
-   public:
-      Notifier() = delete;
-      Notifier(const std::string& notifierQueue, const std::string& handshakeQueue)
-         : mNotifierQueueName(notifierQueue),
-           mHandshakeQueueName(handshakeQueue) {};
-      virtual ~Notifier() { Reset(); };
+ public:
+   static std::unique_ptr<Notifier>  CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount);
+   size_t Notify();
+   virtual ~Notifier();
 
-       bool Initialize(const size_t handshakeCount);
-       size_t Notify();
-   
-   protected:
-       size_t ReceiveConfirmation();
-       std::unique_ptr<Vampire> CreateHandshakeQueue();
-       void Reset();
+ protected:
+   size_t ReceiveConfirmation();
+   std::unique_ptr<Vampire> CreateHandshakeQueue();
+   void Reset();
 
-   private:
-      std::string GetNotifierQueueName();
-      std::string GetHandshakeQueueName();
-      bool QueuesAreUnitialized();
-      const std::string mNotifierQueueName;
-      const std::string mHandshakeQueueName;
-      std::mutex gLock;
-      std::unique_ptr<Shotgun> gQueue;
-      std::unique_ptr<Vampire> gHandshakeQueue;
-      size_t gHandshakeCount = 0;
-      const size_t gMaxTimeoutInSec = 60;
+ private:
+   Notifier() = delete;
+   Notifier(const std::string& notifierQueue, const std::string& handshakeQueue);
+
+   bool Initialize(const size_t handshakeCount);
+
+   std::string GetNotifierQueueName();
+   std::string GetHandshakeQueueName();
+   bool QueuesAreUnitialized();
+   const std::string mNotifierQueueName;
+   const std::string mHandshakeQueueName;
+   std::mutex gLock;
+   std::unique_ptr<Shotgun> gQueue;
+   std::unique_ptr<Vampire> gHandshakeQueue;
+   size_t gHandshakeCount = 0;
+   const size_t gMaxTimeoutInSec = 60;
 
 };
