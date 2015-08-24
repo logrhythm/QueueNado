@@ -385,7 +385,7 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
 }
-TEST_F(RifleVampireTests, ipcFilesCleanedOnFatal) {
+TEST_F(RifleVampireTests, DISABLED_ipcFilesCleanedOnFatal) {
    std::string target("ipc:///rifleVampireDeath");
    Rifle stick{target};
    Vampire vamp{target};
