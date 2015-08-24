@@ -15,6 +15,7 @@ namespace {
    const std::string notifierQueuePath = "/tmp/RestartServicesQueue.ipc";
    const std::string handshakeQueue = "ipc:///tmp/RestartServicesHandshakeQueue.ipc";
    const std::string handshakeQueuePath = "/tmp/RestartServicesHandshakeQueue.ipc";
+   const std::string messageToSend = "Craig is cool";
 
    void* ReceiverThread(void* args) {
       TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
@@ -43,6 +44,7 @@ namespace {
             break;
          }
          if (listener->NotificationReceived()) {
+            std::string messageReceived = listener->GetMessage();
             UpdateThreadDataAfterReceivingMessage(threadData);
             if (threadData.kExpectedFeedback > 0) {
                confirmed = listener->SendConfirmation();
@@ -76,7 +78,7 @@ namespace {
 
       while (ParentHasNotSentExitSignal(threadData)) {
          if (TimeToSendANotification(threadData)) {
-            EXPECT_EQ(notifier->Notify(), threadData.kExpectedFeedback);
+            EXPECT_EQ(notifier->Notify(message), threadData.kExpectedFeedback);
             ResetNotifyFlag(threadData);
          }
       }
@@ -88,8 +90,8 @@ namespace {
 TEST_F(NotifierTest, InitializationCreatesIPC) {
    EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
    EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
-   const size_t ignored = 1;
-   auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, ignored);
+   const size_t ignoredHandshakes = 0;
+   auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, ignoredHandshakes);
    EXPECT_NE(notifier.get(), nullptr);
    EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
    EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
@@ -105,6 +107,7 @@ TEST_F(NotifierTest, 1Message1Receiver_noPingBack) {
    zthread_new(&SenderThread, reinterpret_cast<TestThreadData*>(&senderData));
    EXPECT_TRUE(SleepUntilCondition({{senderData.hasStarted}}));
    EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
+
    // Spawn Receiver and wait for it to start up
    zthread_new(&ReceiverThread, reinterpret_cast<TestThreadData*>(&receiver1ThreadData));
    EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.hasStarted}}));
@@ -113,6 +116,7 @@ TEST_F(NotifierTest, 1Message1Receiver_noPingBack) {
    FireOffANotification(senderData);
    EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.received}}));
    EXPECT_TRUE(receiver1ThreadData.received->load());
+   EXPECT_EQ(receiver1ThreadData.message->load(), message);
 
    // Shutdown everything
    ShutdownThreads({{senderData}, {receiver1ThreadData}});

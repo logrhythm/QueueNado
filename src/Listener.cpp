@@ -143,7 +143,11 @@ std::string Listener::ThreadID()  {
 bool Listener::NotificationReceived() {
    std::vector<std::string> dataFromQueue;
    mQueueReader->GetShot(getShotTimeout, dataFromQueue);
-   return MessageHasPayload(dataFromQueue);
+   bool notificationReceived = MessageHasPayload(dataFromQueue);
+   if (notificationReceived) {
+      mMessage = dataFromQueue[3];
+   }
+   return notificationReceived;
 }
 
 /*

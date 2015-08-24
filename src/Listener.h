@@ -22,6 +22,7 @@ class Listener {
    Listener& operator=(const Listener&) = delete;
    bool NotificationReceived();
    bool SendConfirmation();
+   std::string GetMessage(){ return mMessage; };
 
  protected:
    bool MessageHasPayload(const std::vector<std::string>& shots);
@@ -37,10 +38,11 @@ class Listener {
 
    const std::string mNotificationQueueName;
    const std::string mHandshakeQueueName;
+   std::string mMessage;
    std::unique_ptr<Alien> mQueueReader;
    std::unique_ptr<Rifle> mHandshakeQueue;
    const std::string mProgramName;
    const unsigned int getShotTimeout = 0;
    const int kBlockForOneMinute = 60;
-   const size_t kNumberOfMessages = 2;
+   const size_t kNumberOfMessages = 3;
 };

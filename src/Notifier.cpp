@@ -31,11 +31,10 @@ Notifier::Notifier(const std::string& notifierQueue, const std::string& handshak
    : mNotifierQueueName(notifierQueue),
      mHandshakeQueueName(handshakeQueue) {};
 
-
-/// destructor
 Notifier::~Notifier() {
-   Reset();;
+   Reset();
 }
+
 /*
  * Initialize the mutex-guarded Shotgun-Alien
  *    queue by "aiming" it at the Notifier
@@ -90,15 +89,17 @@ std::unique_ptr<Vampire> Notifier::CreateHandshakeQueue() {
  *
  * @return number of confirmed updates
  */
-size_t Notifier::Notify() {
+size_t Notifier::Notify(std::string& message) {
    std::lock_guard<std::mutex> guard(gLock);
+   std::vector<std::string> bullets;
+   bullets.push_back("notify");
+   bullets.push_back(message);
    if (QueuesAreUnitialized()) {
       LOG(WARNING) << "Uninitialized notifier queues";
       return {0};
    }
-   const std::string message = "notify";
-   LOG(INFO) << message;
-   gQueue->Fire(message);
+   LOG(INFO) << "Notifier: Sending message: " << message;
+   gQueue->Fire(bullets);
    size_t confirmed = ReceiveConfirmation();
    LOG(INFO) << "Notifier received " << confirmed << " handshakes";
    return {confirmed};

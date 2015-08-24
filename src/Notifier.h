@@ -5,7 +5,6 @@
  */
 
 #pragma once
-//#include "include/global.h"
 #include <mutex>
 #include <memory>
 
@@ -15,7 +14,7 @@ class Vampire;
 class Notifier {
  public:
    static std::unique_ptr<Notifier>  CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount);
-   size_t Notify();
+   size_t Notify(std::string& message);
    virtual ~Notifier();
 
  protected:

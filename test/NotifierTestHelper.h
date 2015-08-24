@@ -18,6 +18,7 @@ struct TestThreadData {
    std::shared_ptr<std::atomic<bool>> hasStarted;
    std::shared_ptr<std::atomic<bool>> hasExited;
    std::shared_ptr<std::atomic<bool>> timeToNotify;
+   std::shared_ptr<std::string>> message;
    const size_t kExpectedFeedback;
    const std::string kName;
 
