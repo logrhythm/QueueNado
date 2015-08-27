@@ -145,10 +145,24 @@ bool Listener::NotificationReceived() {
    mQueueReader->GetShot(getShotTimeout, dataFromQueue);
    bool notificationReceived = MessageHasPayload(dataFromQueue);
    if (notificationReceived) {
-      mMessage = dataFromQueue[3];
+      StorePayloadIfNecessary(dataFromQueue);
    }
    return notificationReceived;
 }
+
+void Listener::StorePayloadIfNecessary(std::vector<std::string>& dataFromQueue) {
+   std::cout << "1) dataFromQueue.size() = " << dataFromQueue.size() << std::endl;
+   if (dataFromQueue.size() > 1 && dataFromQueue[1] != "notify") {
+      RemoveFirstDummyShot(dataFromQueue);
+      mMessages = dataFromQueue;
+      std::cout << "2) dataFromQueue.size() = " << dataFromQueue.size() << std::endl;
+   }
+}
+
+void Listener::RemoveFirstDummyShot(std::vector<std::string>& data) {
+   data.erase(data.begin());
+}
+
 
 /*
  * Checks the message received from the queue
@@ -163,5 +177,5 @@ bool Listener::NotificationReceived() {
  *    being "notify"
  */
 bool Listener::MessageHasPayload(const std::vector<std::string>& shots) {
-   return (shots.size() == kNumberOfMessages && !shots[1].empty() && shots[1] == "notify");
+   return (shots.size() > 0 && !shots[1].empty());
 }

@@ -2,6 +2,7 @@
 #include <memory>
 #include <vector>
 #include <atomic>
+#include <mutex>
 #include <StopWatch.h>
 #include <thread>
 #include <g2log.hpp>
@@ -13,12 +14,13 @@ const size_t kMaxWaitTimeInSec = 15;
 
 
 struct TestThreadData {
+   std::mutex sharing;
    std::shared_ptr<std::atomic<bool>> keepRunning;
    std::shared_ptr<std::atomic<bool>> received;
    std::shared_ptr<std::atomic<bool>> hasStarted;
    std::shared_ptr<std::atomic<bool>> hasExited;
    std::shared_ptr<std::atomic<bool>> timeToNotify;
-   std::shared_ptr<std::string>> message;
+   std::vector<std::string> messages;
    const size_t kExpectedFeedback;
    const std::string kName;
 
@@ -38,6 +40,7 @@ struct TestThreadData {
         hasStarted(copy.hasStarted),
         hasExited(copy.hasExited),
         timeToNotify(copy.timeToNotify),
+        messages(copy.messages),
         kExpectedFeedback(copy.kExpectedFeedback),
         kName(copy.kName) {}
 
@@ -52,10 +55,10 @@ struct TestThreadData {
    }
    std::string print() {
       std::ostringstream out;
-      out << kName << " received: "       << received->load()
-          << "   keepRunning: " << keepRunning->load()
-          << "   hasStarted: "  << hasStarted->load()
-          << "   hasExited: "   << received->load()
+      out << kName << " received: " << received->load()
+          << "   keepRunning:  " << keepRunning->load()
+          << "   hasStarted:   " << hasStarted->load()
+          << "   hasExited:    " << received->load()
           << "   timeToNotify: " << timeToNotify->load();
       return out.str();
    }
@@ -69,9 +72,17 @@ bool MaxTimeoutHasOccurred(StopWatch& timeSinceStart) {
    return (timeSinceStart.ElapsedSec() >= kMaxWaitTimeInSec);
 }
 
-void UpdateThreadDataAfterReceivingMessage(TestThreadData& threadData) {
+
+void UpdateThreadDataAfterReceivingMessage(TestThreadData& threadData, std::vector<std::string>& messages) {
+   std::lock_guard<std::mutex> lock(threadData.sharing);
+   // std::cout << "Got the mutex and updating thread data..........." << std::endl;
+   // std::cout << "OtherFunction===== messages.size() = " << messages.size() << std::endl;
+   // std::cout << "OtherFunction===== messages[0] = " << messages[0] << std::endl;
+   threadData.messages = messages;
+   // std::cout << "threadData.messages.size() = " << threadData.messages.size() << std::endl;
+   // std::cout << "threadData.messages[0] = " << threadData.messages[0] << std::endl;
    threadData.received->store(true);
-}
+ }
 
 bool SleepUntilCondition(std::vector<std::shared_ptr<std::atomic<bool>>> conditions) {
    StopWatch timer;
@@ -118,6 +129,16 @@ bool SleepUntilConditionIsFalse(std::vector<std::shared_ptr<std::atomic<bool>>> 
    }
    return true;
 }
+
+std::vector<std::string>& GetMessages(TestThreadData& threadData) {
+   std::lock_guard<std::mutex> lock(threadData.sharing);
+   std::cout << "Got the mutex and returning the messages..........." << std::endl;
+   if (threadData.messages.empty()) {
+      std::cout << "threadData.messages is empty" << std::endl;
+   }
+   return threadData.messages;
+ }
+
 
 void SendShutdownSignalToThread(TestThreadData& threadData) {
    threadData.keepRunning->store(false);

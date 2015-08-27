@@ -89,7 +89,7 @@ std::unique_ptr<Vampire> Notifier::CreateHandshakeQueue() {
  *
  * @return number of confirmed updates
  */
-size_t Notifier::Notify(std::string& message) {
+size_t Notifier::Notify(const std::string& message) {
    std::lock_guard<std::mutex> guard(gLock);
    std::vector<std::string> bullets;
    bullets.push_back("notify");
