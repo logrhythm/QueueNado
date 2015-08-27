@@ -43,20 +43,23 @@ namespace {
          }
          if (listener->NotificationReceived()) {
             std::vector<std::string> messagesReceived = listener->GetMessages();
-            std::cout << "messagesReceived.size() = " << messagesReceived.size() << std::endl;
-            std::cout << "messagesReceived[0] = " << messagesReceived[0] << std::endl;
+            // std::cout << "messagesReceived.size() = " << messagesReceived.size() << std::endl;
+            // std::cout << "messagesReceived[0] = " << messagesReceived[0] << std::endl;
             if (threadData.kExpectedFeedback > 0) {
                confirmed = listener->SendConfirmation();
                if (!confirmed) {
                   ADD_FAILURE() << "Failed to send feedback, thread #" << std::this_thread::get_id();
                }
             }
-            EXPECT_FALSE(threadData.received->load());
-            UpdateThreadDataAfterReceivingMessage(threadData, messagesReceived);
-            EXPECT_TRUE(threadData.received->load());
-            EXPECT_NE(threadData.messages.size(), 0);
-            std::cout << "RECEIVER THREAD: threadData.messages.size() = " << threadData.messages.size() << std::endl;
-            std::cout << "RECEIVER THREAD: threadData.messages[0] = " << threadData.messages[0] << std::endl;
+            if (!messagesReceived.empty()) {
+               std::cout << "Got some messages... calling the two function version" << std::endl;
+               UpdateThreadDataAfterReceivingMessage(threadData, messagesReceived);
+            } else {
+               std::cout << "Didn't get any messages... calling the one function version" << std::endl;
+               UpdateThreadDataAfterReceivingMessage(threadData);
+            }
+            // std::cout << "RECEIVER THREAD: threadData.messages.size() = " << threadData.messages->size() << std::endl;
+            // std::cout << "RECEIVER THREAD: threadData.messages[0] = " << threadData.messages->at(0) << std::endl;
          }
       }
       const bool timeout = MaxTimeoutHasOccurred(timer);
@@ -92,19 +95,44 @@ namespace {
       LOG(INFO) << threadData.print();
       return nullptr;
    }
+   
+   void* SenderThread(void* args) {
+      TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
+      CHECK(tmpRawPtr != nullptr);
+      TestThreadData threadData(*tmpRawPtr);
+      auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, threadData.kExpectedFeedback);
+      std::shared_ptr<void*> raiiExitFlag(nullptr, [threadData](void*) { threadData.hasExited->store(true); });
+      const bool initialized = notifier.get() != nullptr;
+      if (false == initialized) {
+         ADD_FAILURE() << "Failed to initialize the Notifier";
+         return nullptr;
+      }
+      NotifyParentThatChildHasStarted(threadData);
+
+      while (ParentHasNotSentExitSignal(threadData)) {
+         if (TimeToSendANotification(threadData)) {
+            std::cout << "Notifying with messageToSend!!!!!!!!!" << std::endl;
+            EXPECT_EQ(notifier->Notify(), threadData.kExpectedFeedback);
+            std::cout << "Put the message in the queue!!!!!!" << std::endl;
+            ResetNotifyFlag(threadData);
+         }
+      }
+      LOG(INFO) << threadData.print();
+      return nullptr;
+   }
 } //namespace
 
-// TEST_F(NotifierTest, InitializationCreatesIPC) {
-//    EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
-//    EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
-//    const size_t ignoredHandshakes = 0;
-//    auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, ignoredHandshakes);
-//    EXPECT_NE(notifier.get(), nullptr);
-//    EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
-//    EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
-// }
+TEST_F(NotifierTest, InitializationCreatesIPC) {
+   EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
+   EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
+   const size_t ignoredHandshakes = 0;
+   auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, ignoredHandshakes);
+   EXPECT_NE(notifier.get(), nullptr);
+   EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
+   EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
+}
 
-TEST_F(NotifierTest, 1Message1Receiver_noPingBack) {
+TEST_F(NotifierTest, 1Message1Receiver_NoResponse_WithMessage) {
    TestThreadData senderData("sender");
    TestThreadData receiver1ThreadData("receiver");
    EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
@@ -123,11 +151,34 @@ TEST_F(NotifierTest, 1Message1Receiver_noPingBack) {
    FireOffANotification(senderData);
    EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.received}}));
    EXPECT_TRUE(receiver1ThreadData.received->load());
-   // EXPECT_NE(receiver1ThreadData.messages.size(), 0);
-   std::vector<std::string> msgs = GetMessages(receiver1ThreadData);
-   EXPECT_FALSE(msgs.empty());
-   // ASSERT_TRUE(*(msgs).size() > 0);
-   // EXPECT_EQ(*(receiver1ThreadData.messages.get()), messageToSend);
+   EXPECT_EQ(receiver1ThreadData.messages->size(), 1);
+   ASSERT_EQ(receiver1ThreadData.messages->at(0), messageToSend);
+
+   // Shutdown everything
+   ShutdownThreads({{senderData}, {receiver1ThreadData}});
+   EXPECT_TRUE(SleepUntilCondition({{senderData.hasExited}, {receiver1ThreadData.hasExited}}));
+   EXPECT_TRUE(ThreadIsShutdown(receiver1ThreadData));
+   EXPECT_TRUE(ThreadIsShutdown(senderData));
+}
+
+TEST_F(NotifierTest, 1Message1Receiver_NoResponse_NoMessage) {
+   TestThreadData senderData("sender");
+   TestThreadData receiver1ThreadData("receiver");
+   EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
+   EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
+
+   // Spawn Sender and wait for it to start up
+   zthread_new(&SenderThread, reinterpret_cast<TestThreadData*>(&senderData));
+   EXPECT_TRUE(SleepUntilCondition({{senderData.hasStarted}}));
+   EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
+
+   // Spawn Receiver and wait for it to start up
+   zthread_new(&ReceiverThread, reinterpret_cast<TestThreadData*>(&receiver1ThreadData));
+   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.hasStarted}}));
+
+   // First Exchange
+   FireOffANotification(senderData);
+   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.received}}));
 
    // Shutdown everything
    ShutdownThreads({{senderData}, {receiver1ThreadData}});

@@ -105,6 +105,19 @@ size_t Notifier::Notify(const std::string& message) {
    return {confirmed};
 }
 
+size_t Notifier::Notify() {
+   std::lock_guard<std::mutex> guard(gLock);
+   std::string message = "notify";
+   if (QueuesAreUnitialized()) {
+      LOG(WARNING) << "Uninitialized notifier queues";
+      return {0};
+   }
+   LOG(INFO) << "Notifier: Sending notification message: " << message;
+   gQueue->Fire(message);
+   size_t confirmed = ReceiveConfirmation();
+   LOG(INFO) << "Notifier received " << confirmed << " handshakes";
+   return {confirmed};
+}
 /*
 *  Receive confirmation from listener threads that
 *     they have been notified successfully

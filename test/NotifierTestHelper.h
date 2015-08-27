@@ -20,7 +20,7 @@ struct TestThreadData {
    std::shared_ptr<std::atomic<bool>> hasStarted;
    std::shared_ptr<std::atomic<bool>> hasExited;
    std::shared_ptr<std::atomic<bool>> timeToNotify;
-   std::vector<std::string> messages;
+   std::shared_ptr<std::vector<std::string>> messages;
    const size_t kExpectedFeedback;
    const std::string kName;
 
@@ -29,6 +29,7 @@ struct TestThreadData {
       hasStarted(new std::atomic<bool>()),
       hasExited(new std::atomic<bool>()),
       timeToNotify(new std::atomic<bool>()),
+      messages(new std::vector<std::string>()),
       kExpectedFeedback(expectedFeedback),
       kName(name) {
       reset();
@@ -52,6 +53,7 @@ struct TestThreadData {
       hasStarted->store(false);
       hasExited->store(false);
       timeToNotify->store(false);
+      messages.reset(new std::vector<std::string>());
    }
    std::string print() {
       std::ostringstream out;
@@ -60,6 +62,7 @@ struct TestThreadData {
           << "   hasStarted:   " << hasStarted->load()
           << "   hasExited:    " << received->load()
           << "   timeToNotify: " << timeToNotify->load();
+
       return out.str();
    }
 };
@@ -72,13 +75,17 @@ bool MaxTimeoutHasOccurred(StopWatch& timeSinceStart) {
    return (timeSinceStart.ElapsedSec() >= kMaxWaitTimeInSec);
 }
 
+void UpdateThreadDataAfterReceivingMessage(TestThreadData& threadData) {
+  threadData.received->store(true);
+}
 
-void UpdateThreadDataAfterReceivingMessage(TestThreadData& threadData, std::vector<std::string>& messages) {
+void UpdateThreadDataAfterReceivingMessage(TestThreadData& threadData, std::vector<std::string> messages) {
    std::lock_guard<std::mutex> lock(threadData.sharing);
-   // std::cout << "Got the mutex and updating thread data..........." << std::endl;
+   std::cout << "Got the mutex and updating thread data..........." << std::endl;
    // std::cout << "OtherFunction===== messages.size() = " << messages.size() << std::endl;
    // std::cout << "OtherFunction===== messages[0] = " << messages[0] << std::endl;
-   threadData.messages = messages;
+   threadData.messages->clear();
+   *(threadData.messages) = messages;
    // std::cout << "threadData.messages.size() = " << threadData.messages.size() << std::endl;
    // std::cout << "threadData.messages[0] = " << threadData.messages[0] << std::endl;
    threadData.received->store(true);
@@ -133,10 +140,10 @@ bool SleepUntilConditionIsFalse(std::vector<std::shared_ptr<std::atomic<bool>>> 
 std::vector<std::string>& GetMessages(TestThreadData& threadData) {
    std::lock_guard<std::mutex> lock(threadData.sharing);
    std::cout << "Got the mutex and returning the messages..........." << std::endl;
-   if (threadData.messages.empty()) {
+   if (threadData.messages == nullptr || threadData.messages->size() == 0) {
       std::cout << "threadData.messages is empty" << std::endl;
    }
-   return threadData.messages;
+   return *threadData.messages;
  }
 
 

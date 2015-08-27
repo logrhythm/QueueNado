@@ -15,6 +15,7 @@ class Notifier {
  public:
    static std::unique_ptr<Notifier>  CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount);
    size_t Notify(const std::string& message);
+   size_t Notify();
    virtual ~Notifier();
 
  protected:
