@@ -87,6 +87,7 @@ std::unique_ptr<Vampire> Notifier::CreateHandshakeQueue() {
  *    read by the queue subscriber. Then wait for listeners
  *    to confirm they received the notification
  *
+ * @param string to be sent to listeners
  * @return number of confirmed updates
  */
 size_t Notifier::Notify(const std::string& message) {
@@ -105,6 +106,13 @@ size_t Notifier::Notify(const std::string& message) {
    return {confirmed};
 }
 
+/*
+ * Fire a dummy message from the Shotgun to be
+ *    read by the queue subscriber. Then wait for listeners
+ *    to confirm they received the notification
+ *
+ * @return number of confirmed updates
+ */
 size_t Notifier::Notify() {
    std::lock_guard<std::mutex> guard(gLock);
    if (QueuesAreUnitialized()) {
@@ -122,7 +130,8 @@ size_t Notifier::Notify() {
  * Fire a message from the Shotgun to be
  *    read by the queue subscriber. Then wait for listeners
  *    to confirm they received the notification
- *
+ * 
+ * @param vector of strings to be sent to the listeners             
  * @return number of confirmed updates
  */
 size_t Notifier::Notify(const std::vector<std::string>& messages) {
