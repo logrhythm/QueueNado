@@ -151,6 +151,12 @@ bool Listener::NotificationReceived() {
    return notificationReceived;
 }
 
+/*
+* If the data comes in a specific way, save the vector, as
+* it contains messages from the notifier
+*
+*  @param vector of strings pulled off of the queue
+*/
 void Listener::StorePayloadIfNecessary(std::vector<std::string>& dataFromQueue) {
    if (dataFromQueue.size() > 1 && dataFromQueue[1] != "notify") {
       RemoveFirstDummyShot(dataFromQueue);
@@ -158,6 +164,12 @@ void Listener::StorePayloadIfNecessary(std::vector<std::string>& dataFromQueue) 
    }
 }
 
+/*
+* The notifier puts a dummy message at the front of the
+* queue. Strip this message from the vector of strings
+*
+* @param vector of strings where the first string is "notify"
+*/
 void Listener::RemoveFirstDummyShot(std::vector<std::string>& data) {
    data.erase(data.begin());
 }
