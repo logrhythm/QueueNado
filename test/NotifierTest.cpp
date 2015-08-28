@@ -16,7 +16,28 @@ namespace {
    const std::string handshakeQueue = "ipc:///tmp/RestartServicesHandshakeQueue.ipc";
    const std::string handshakeQueuePath = "/tmp/RestartServicesHandshakeQueue.ipc";
    const std::string messageToSend = "Craig is cool";
+   const std::vector<std::string> vectorToSend = {"Craig", "is", "cool"};
+   enum SendMessageType {NONE = 0, MSG = 1, VECTOR = 2};
+   SendMessageType SEND_MSG_TYPE = NONE;
 
+
+void HandleNotification(std::uniqe_ptr<Listener>& const listener, ThreadData& threadData) {
+   std::vector<std::string> messagesReceived = listener->GetMessages();
+   if (threadData.kExpectedFeedback > 0) {
+      confirmed = listener->SendConfirmation();
+      if (!confirmed) {
+         ADD_FAILURE() << "Failed to send feedback, thread #" << std::this_thread::get_id();
+      }
+   }
+   if (!messagesReceived.empty()) {
+      std::cout << "Got some messages... calling the two function version" << std::endl;
+      UpdateThreadDataAfterReceivingMessage(threadData, messagesReceived);
+   } else {
+      std::cout << "Didn't get any messages... calling the one function version" << std::endl;
+      UpdateThreadDataAfterReceivingMessage(threadData);
+   }
+
+}
    void* ReceiverThread(void* args) {
       TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
       CHECK(tmpRawPtr != nullptr);
@@ -42,24 +63,7 @@ namespace {
             break;
          }
          if (listener->NotificationReceived()) {
-            std::vector<std::string> messagesReceived = listener->GetMessages();
-            // std::cout << "messagesReceived.size() = " << messagesReceived.size() << std::endl;
-            // std::cout << "messagesReceived[0] = " << messagesReceived[0] << std::endl;
-            if (threadData.kExpectedFeedback > 0) {
-               confirmed = listener->SendConfirmation();
-               if (!confirmed) {
-                  ADD_FAILURE() << "Failed to send feedback, thread #" << std::this_thread::get_id();
-               }
-            }
-            if (!messagesReceived.empty()) {
-               std::cout << "Got some messages... calling the two function version" << std::endl;
-               UpdateThreadDataAfterReceivingMessage(threadData, messagesReceived);
-            } else {
-               std::cout << "Didn't get any messages... calling the one function version" << std::endl;
-               UpdateThreadDataAfterReceivingMessage(threadData);
-            }
-            // std::cout << "RECEIVER THREAD: threadData.messages.size() = " << threadData.messages->size() << std::endl;
-            // std::cout << "RECEIVER THREAD: threadData.messages[0] = " << threadData.messages->at(0) << std::endl;
+            HandleNotification(listener, threadData);
          }
       }
       const bool timeout = MaxTimeoutHasOccurred(timer);
@@ -71,31 +75,57 @@ namespace {
       return nullptr;
    }
 
-   void* SenderThreadWithMessage(void* args) {
-      TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
-      CHECK(tmpRawPtr != nullptr);
-      TestThreadData threadData(*tmpRawPtr);
-      auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, threadData.kExpectedFeedback);
-      std::shared_ptr<void*> raiiExitFlag(nullptr, [threadData](void*) { threadData.hasExited->store(true); });
-      const bool initialized = notifier.get() != nullptr;
-      if (false == initialized) {
-         ADD_FAILURE() << "Failed to initialize the Notifier";
-         return nullptr;
-      }
-      NotifyParentThatChildHasStarted(threadData);
 
-      while (ParentHasNotSentExitSignal(threadData)) {
-         if (TimeToSendANotification(threadData)) {
-            std::cout << "Notifying with messageToSend!!!!!!!!!" << std::endl;
-            EXPECT_EQ(notifier->Notify(messageToSend), threadData.kExpectedFeedback);
-            std::cout << "Put the message in the queue!!!!!!" << std::endl;
-            ResetNotifyFlag(threadData);
-         }
-      }
-      LOG(INFO) << threadData.print();
-      return nullptr;
-   }
-   
+   // void* ReceiverThread(void* args) {
+   //    TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
+   //    CHECK(tmpRawPtr != nullptr);
+   //    TestThreadData threadData(*tmpRawPtr);
+   //    auto listener = Listener::CreateListener(notifierQueue, handshakeQueue, "TestThread");
+   //    std::shared_ptr<void*> raiiExitFlag(nullptr, [threadData](void*) {
+   //       threadData.hasExited->store(true);
+   //       LOG(INFO) << "exiting thread: " << threadData.hasExited->load();
+   //    });
+
+   //    EXPECT_NE(listener.get(), nullptr);
+   //    if (listener.get() == nullptr) {
+   //       ADD_FAILURE() << "Failed to create listener, thread #" << std::this_thread::get_id();
+   //       return nullptr;
+   //    }
+
+   //    NotifyParentThatChildHasStarted(threadData);
+   //    StopWatch timer;
+
+   //    bool confirmed = false;
+   //    while (ParentHasNotSentExitSignal(threadData)) {
+   //       if (MaxTimeoutHasOccurred(timer)) {
+   //          break;
+   //       }
+   //       if (listener->NotificationReceived()) {
+   //          std::vector<std::string> messagesReceived = listener->GetMessages();
+   //          if (threadData.kExpectedFeedback > 0) {
+   //             confirmed = listener->SendConfirmation();
+   //             if (!confirmed) {
+   //                ADD_FAILURE() << "Failed to send feedback, thread #" << std::this_thread::get_id();
+   //             }
+   //          }
+   //          if (!messagesReceived.empty()) {
+   //             std::cout << "Got some messages... calling the two function version" << std::endl;
+   //             UpdateThreadDataAfterReceivingMessage(threadData, messagesReceived);
+   //          } else {
+   //             std::cout << "Didn't get any messages... calling the one function version" << std::endl;
+   //             UpdateThreadDataAfterReceivingMessage(threadData);
+   //          }
+   //       }
+   //    }
+   //    const bool timeout = MaxTimeoutHasOccurred(timer);
+   //    LOG(INFO) << "Exiting loop. Parent stated: keep running: " << threadData.keepRunning->load() << ", timeout: " << timeout;
+   //    if (timeout) {
+   //       ADD_FAILURE() << "Receiver thread has timed out after " << kMaxWaitTimeInSec << " seconds.";
+   //    }
+   //    LOG(INFO) << threadData.print();
+   //    return nullptr;
+   // }
+
    void* SenderThread(void* args) {
       TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
       CHECK(tmpRawPtr != nullptr);
@@ -112,8 +142,17 @@ namespace {
       while (ParentHasNotSentExitSignal(threadData)) {
          if (TimeToSendANotification(threadData)) {
             std::cout << "Notifying with messageToSend!!!!!!!!!" << std::endl;
-            EXPECT_EQ(notifier->Notify(), threadData.kExpectedFeedback);
-            std::cout << "Put the message in the queue!!!!!!" << std::endl;
+            switch(SEND_MSG_TYPE) {
+               case NONE: 
+                  EXPECT_EQ(notifier->Notify(), threadData.kExpectedFeedback);
+                  break;
+               case MSG:
+                  EXPECT_EQ(notifier->Notify(messageToSend), threadData.kExpectedFeedback);
+                  break;
+               case VECTOR:
+                  EXPECT_EQ(notifier->Notify(vectorToSend), threadData.kExpectedFeedback);
+                  break;
+            }
             ResetNotifyFlag(threadData);
          }
       }
@@ -133,13 +172,14 @@ TEST_F(NotifierTest, InitializationCreatesIPC) {
 }
 
 TEST_F(NotifierTest, 1Message1Receiver_NoResponse_WithMessage) {
+   SEND_MSG_TYPE = MSG;
    TestThreadData senderData("sender");
    TestThreadData receiver1ThreadData("receiver");
    EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
    EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
 
    // Spawn Sender and wait for it to start up
-   zthread_new(&SenderThreadWithMessage, reinterpret_cast<TestThreadData*>(&senderData));
+   zthread_new(&SenderThread, reinterpret_cast<TestThreadData*>(&senderData));
    EXPECT_TRUE(SleepUntilCondition({{senderData.hasStarted}}));
    EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
 
@@ -162,6 +202,7 @@ TEST_F(NotifierTest, 1Message1Receiver_NoResponse_WithMessage) {
 }
 
 TEST_F(NotifierTest, 1Message1Receiver_NoResponse_NoMessage) {
+   SEND_MSG_TYPE = NONE;
    TestThreadData senderData("sender");
    TestThreadData receiver1ThreadData("receiver");
    EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));

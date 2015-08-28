@@ -7,6 +7,7 @@
 #pragma once
 #include <mutex>
 #include <memory>
+#include <vector>
 
 class Shotgun;
 class Vampire;
@@ -14,6 +15,7 @@ class Vampire;
 class Notifier {
  public:
    static std::unique_ptr<Notifier>  CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount);
+   size_t Notify(const std::vector<std::string>& messages);
    size_t Notify(const std::string& message);
    size_t Notify();
    virtual ~Notifier();
@@ -39,5 +41,6 @@ class Notifier {
    std::unique_ptr<Vampire> gHandshakeQueue;
    size_t gHandshakeCount = 0;
    const size_t gMaxTimeoutInSec = 60;
+   const std::string notifyMessage = "notify";
 
 };

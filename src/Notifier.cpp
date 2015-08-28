@@ -92,7 +92,7 @@ std::unique_ptr<Vampire> Notifier::CreateHandshakeQueue() {
 size_t Notifier::Notify(const std::string& message) {
    std::lock_guard<std::mutex> guard(gLock);
    std::vector<std::string> bullets;
-   bullets.push_back("notify");
+   bullets.push_back(notifyMessage);
    bullets.push_back(message);
    if (QueuesAreUnitialized()) {
       LOG(WARNING) << "Uninitialized notifier queues";
@@ -107,17 +107,44 @@ size_t Notifier::Notify(const std::string& message) {
 
 size_t Notifier::Notify() {
    std::lock_guard<std::mutex> guard(gLock);
-   std::string message = "notify";
    if (QueuesAreUnitialized()) {
       LOG(WARNING) << "Uninitialized notifier queues";
       return {0};
    }
-   LOG(INFO) << "Notifier: Sending notification message: " << message;
-   gQueue->Fire(message);
+   LOG(INFO) << "Notifier: Sending notification message: " << notifyMessage;
+   gQueue->Fire(notifyMessage);
    size_t confirmed = ReceiveConfirmation();
    LOG(INFO) << "Notifier received " << confirmed << " handshakes";
    return {confirmed};
 }
+
+/*
+ * Fire a message from the Shotgun to be
+ *    read by the queue subscriber. Then wait for listeners
+ *    to confirm they received the notification
+ *
+ * @return number of confirmed updates
+ */
+size_t Notifier::Notify(const std::vector<std::string>& messages) {
+   std::lock_guard<std::mutex> guard(gLock);
+   std::vector<std::string> bullets;
+   bullets.push_back(notifyMessage);
+
+   for (auto& msg : messages) {
+      bullets.push_back(msg);
+   }
+
+   if (QueuesAreUnitialized()) {
+      LOG(WARNING) << "Uninitialized notifier queues";
+      return {0};
+   }
+   LOG(INFO) << "Notifier: Sending " << bullets.size() << " messages";
+   gQueue->Fire(bullets);
+   size_t confirmed = ReceiveConfirmation();
+   LOG(INFO) << "Notifier received " << confirmed << " handshakes";
+   return {confirmed};
+}
+
 /*
 *  Receive confirmation from listener threads that
 *     they have been notified successfully

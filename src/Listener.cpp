@@ -21,7 +21,8 @@ namespace {
 void ZeroCopyDelete(void*, void* data) {
   std::string* theString = reinterpret_cast<std::string*>(data);
   delete theString;  
-} 
+}
+ 
 } // namespace
       
 
