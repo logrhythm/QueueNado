@@ -22,7 +22,7 @@ void ZeroCopyDelete(void*, void* data) {
   std::string* theString = reinterpret_cast<std::string*>(data);
   delete theString;  
 }
- 
+
 } // namespace
       
 
@@ -152,11 +152,9 @@ bool Listener::NotificationReceived() {
 }
 
 void Listener::StorePayloadIfNecessary(std::vector<std::string>& dataFromQueue) {
-   std::cout << "1) dataFromQueue.size() = " << dataFromQueue.size() << std::endl;
    if (dataFromQueue.size() > 1 && dataFromQueue[1] != "notify") {
       RemoveFirstDummyShot(dataFromQueue);
       mMessages = dataFromQueue;
-      std::cout << "2) dataFromQueue.size() = " << dataFromQueue.size() << std::endl;
    }
 }
 
