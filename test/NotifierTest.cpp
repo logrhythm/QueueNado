@@ -21,34 +21,32 @@ namespace {
    SendMessageType SEND_MSG_TYPE = NONE;
 
 
-void HandleNotification(std::uniqe_ptr<Listener>& const listener, ThreadData& threadData) {
-   std::vector<std::string> messagesReceived = listener->GetMessages();
-   if (threadData.kExpectedFeedback > 0) {
-      confirmed = listener->SendConfirmation();
-      if (!confirmed) {
-         ADD_FAILURE() << "Failed to send feedback, thread #" << std::this_thread::get_id();
+   void HandleNotification(std::unique_ptr<Listener> const &listener, TestThreadData& threadData) {
+      bool confirmed = false;
+      std::vector<std::string> messagesReceived = listener->GetMessages();
+      if (threadData.kExpectedFeedback > 0) {
+         confirmed = listener->SendConfirmation();
+         if (!confirmed) {
+            ADD_FAILURE() << "Failed to send feedback, thread #" << std::this_thread::get_id();
+         }
+      }
+      if (!messagesReceived.empty()) {
+         UpdateThreadDataAfterReceivingMessage(threadData, messagesReceived);
+      } else {
+         UpdateThreadDataAfterReceivingMessage(threadData);
       }
    }
-   if (!messagesReceived.empty()) {
-      std::cout << "Got some messages... calling the two function version" << std::endl;
-      UpdateThreadDataAfterReceivingMessage(threadData, messagesReceived);
-   } else {
-      std::cout << "Didn't get any messages... calling the one function version" << std::endl;
-      UpdateThreadDataAfterReceivingMessage(threadData);
-   }
 
-}
    void* ReceiverThread(void* args) {
       TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
       CHECK(tmpRawPtr != nullptr);
       TestThreadData threadData(*tmpRawPtr);
-      auto listener = Listener::CreateListener(notifierQueue, handshakeQueue, "TestThread");
       std::shared_ptr<void*> raiiExitFlag(nullptr, [threadData](void*) {
          threadData.hasExited->store(true);
          LOG(INFO) << "exiting thread: " << threadData.hasExited->load();
       });
 
-      EXPECT_NE(listener.get(), nullptr);
+      auto listener = Listener::CreateListener(notifierQueue, handshakeQueue, "TestThread");
       if (listener.get() == nullptr) {
          ADD_FAILURE() << "Failed to create listener, thread #" << std::this_thread::get_id();
          return nullptr;
@@ -57,11 +55,7 @@ void HandleNotification(std::uniqe_ptr<Listener>& const listener, ThreadData& th
       NotifyParentThatChildHasStarted(threadData);
       StopWatch timer;
 
-      bool confirmed = false;
-      while (ParentHasNotSentExitSignal(threadData)) {
-         if (MaxTimeoutHasOccurred(timer)) {
-            break;
-         }
+      while (ParentHasNotSentExitSignal(threadData) && !MaxTimeoutHasOccurred(timer)) {
          if (listener->NotificationReceived()) {
             HandleNotification(listener, threadData);
          }
