@@ -31,6 +31,7 @@ class Listener {
    Listener() = delete;
    Listener(const std::string& notificationQueue, const std::string& handshakeQueue, const std::string& program);
    bool Initialize();
+   void ClearMessages() { mMessages.clear(); }
    void Reset();
    std::string ThreadID();
    std::unique_ptr<Rifle> CreateFeedbackShooter();
