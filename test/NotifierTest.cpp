@@ -324,22 +324,12 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_SingleM
    SpawnReceiver_WaitForStartup(receiver2ThreadData);
 
    // First Exchange
-   FireOffANotification(senderData);
-   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.received}, {receiver2ThreadData.received}}));
-   EXPECT_TRUE(receiver1ThreadData.received->load());
-   EXPECT_TRUE(receiver2ThreadData.received->load());
-   EXPECT_EQ(1, receiver1ThreadData.messages->size());
-   EXPECT_EQ(1, receiver2ThreadData.messages->size());
-   ASSERT_EQ(messageToSend, receiver1ThreadData.messages->at(0));
-   ASSERT_EQ(messageToSend, receiver2ThreadData.messages->at(0));
+   ExchangeNotification2Receivers(senderData, receiver2ThreadData, receiver2ThreadData);
+   VerifySingleMessage(receiver1ThreadData);
+   VerifySingleMessage(receiver2ThreadData);
 
    // Shutdown the receiver threads
-   ShutdownThreads({{receiver1ThreadData}, {receiver2ThreadData}});
-   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.hasExited}, {receiver2ThreadData.hasExited}}));
-   ShutdownThreads({{receiver1ThreadData}, {receiver2ThreadData}});
-   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.hasExited}, {receiver2ThreadData.hasExited}}));
-   EXPECT_TRUE(ThreadIsShutdown(receiver1ThreadData));
-   EXPECT_TRUE(ThreadIsShutdown(receiver2ThreadData));
+   Shutdown({receiver1ThreadData, receiver2ThreadData});
    EXPECT_FALSE(ThreadIsShutdown(senderData));
    receiver1ThreadData.reset();
    receiver2ThreadData.reset();
@@ -349,23 +339,12 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_SingleM
    SpawnReceiver_WaitForStartup(receiver2ThreadData);
 
    // Second Exchange
-   FireOffANotification(senderData);
-   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.received}, {receiver2ThreadData.received}}));
-   EXPECT_TRUE(receiver1ThreadData.received->load());
-   EXPECT_TRUE(receiver2ThreadData.received->load());
-   EXPECT_EQ(1, receiver1ThreadData.messages->size());
-   EXPECT_EQ(1, receiver2ThreadData.messages->size());
-   ASSERT_EQ(messageToSend, receiver1ThreadData.messages->at(0));
-   ASSERT_EQ(messageToSend, receiver2ThreadData.messages->at(0));
+   ExchangeNotification2Receivers(senderData, receiver2ThreadData, receiver2ThreadData);
+   VerifySingleMessage(receiver1ThreadData);
+   VerifySingleMessage(receiver2ThreadData);
 
    // Shutdown everything
-   ShutdownThreads({{senderData}, {receiver1ThreadData}, {receiver2ThreadData}});
-   EXPECT_TRUE(SleepUntilCondition({{senderData.hasExited}}));
-   EXPECT_TRUE(SleepUntilCondition({{senderData.hasExited}}));
-   EXPECT_TRUE(SleepUntilCondition({{receiver2ThreadData.hasExited}}));
-   EXPECT_TRUE(ThreadIsShutdown(receiver1ThreadData));
-   EXPECT_TRUE(ThreadIsShutdown(receiver2ThreadData));
-   EXPECT_TRUE(ThreadIsShutdown(senderData));
+   Shutdown({senderData, receiver1ThreadData, receiver2ThreadData});
 }
 
 TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_VectorMessage) {
@@ -380,26 +359,15 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_VectorM
 
    SpawnSender_WaitForStartup(senderData);
 
-   // Spawn 2 Listeners and wait for them to start up
    SpawnReceiver_WaitForStartup(receiver1ThreadData);
    SpawnReceiver_WaitForStartup(receiver2ThreadData);
 
    // First Exchange
-   FireOffANotification(senderData);
-   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.received}, {receiver2ThreadData.received}}));
-   EXPECT_TRUE(receiver1ThreadData.received->load());
-   EXPECT_TRUE(receiver2ThreadData.received->load());
-   ASSERT_EQ(receiver1ThreadData.messages->size(), vectorToSend.size());
-   ASSERT_EQ(receiver2ThreadData.messages->size(), vectorToSend.size());
-   CheckReturnedVector({{receiver1ThreadData}, {receiver2ThreadData}});
+   ExchangeNotification2Receivers(senderData, receiver2ThreadData, receiver2ThreadData);
+   CheckReturnedVector({receiver1ThreadData, receiver2ThreadData});
 
    // Shutdown the receiver threads
-   ShutdownThreads({{receiver1ThreadData}, {receiver2ThreadData}});
-   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.hasExited}, {receiver2ThreadData.hasExited}}));
-   ShutdownThreads({{receiver1ThreadData}, {receiver2ThreadData}});
-   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.hasExited}, {receiver2ThreadData.hasExited}}));
-   EXPECT_TRUE(ThreadIsShutdown(receiver1ThreadData));
-   EXPECT_TRUE(ThreadIsShutdown(receiver2ThreadData));
+   Shutdown({receiver1ThreadData, receiver2ThreadData});
    EXPECT_FALSE(ThreadIsShutdown(senderData));
    receiver1ThreadData.reset();
    receiver2ThreadData.reset();
@@ -409,20 +377,9 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_VectorM
    SpawnReceiver_WaitForStartup(receiver2ThreadData);
 
    // Second Exchange
-   FireOffANotification(senderData);
-   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.received}, {receiver2ThreadData.received}}));
-   EXPECT_TRUE(receiver1ThreadData.received->load());
-   EXPECT_TRUE(receiver2ThreadData.received->load());
-   ASSERT_EQ(receiver1ThreadData.messages->size(), vectorToSend.size());
-   ASSERT_EQ(receiver2ThreadData.messages->size(), vectorToSend.size());
-   CheckReturnedVector({{receiver1ThreadData}, {receiver2ThreadData}});
+   ExchangeNotification2Receivers(senderData, receiver2ThreadData, receiver2ThreadData);
+   CheckReturnedVector({receiver1ThreadData, receiver2ThreadData});
 
    // Shutdown everything
-   ShutdownThreads({{senderData}, {receiver1ThreadData}, {receiver2ThreadData}});
-   EXPECT_TRUE(SleepUntilCondition({{senderData.hasExited}}));
-   EXPECT_TRUE(SleepUntilCondition({{senderData.hasExited}}));
-   EXPECT_TRUE(SleepUntilCondition({{receiver2ThreadData.hasExited}}));
-   EXPECT_TRUE(ThreadIsShutdown(receiver1ThreadData));
-   EXPECT_TRUE(ThreadIsShutdown(receiver2ThreadData));
-   EXPECT_TRUE(ThreadIsShutdown(senderData));
+   Shutdown({senderData, receiver1ThreadData, receiver2ThreadData});
 }
