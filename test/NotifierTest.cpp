@@ -110,6 +110,19 @@ namespace {
          }
       }
    }
+
+   void SpawnSender_WaitForStartup(TestThreadData& senderData) {
+      // Spawn Sender and wait for it to start up
+      zthread_new(&SenderThread, reinterpret_cast<TestThreadData*>(&senderData));
+      EXPECT_TRUE(SleepUntilCondition({{senderData.hasStarted}}));
+      EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
+   }
+
+   void SpawnReceiver_WaitForStartup(TestThreadData& receiverData) {
+      // Spawn Receiver and wait for it to start up
+      zthread_new(&ReceiverThread, reinterpret_cast<TestThreadData*>(&receiverData));
+      EXPECT_TRUE(SleepUntilCondition({{receiverData.hasStarted}}));
+   }
 } //namespace
 
 
@@ -130,14 +143,9 @@ TEST_F(NotifierTest, 1Message1Receiver_NoResponse_WithMessage) {
    EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
    EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
 
-   // Spawn Sender and wait for it to start up
-   zthread_new(&SenderThread, reinterpret_cast<TestThreadData*>(&senderData));
-   EXPECT_TRUE(SleepUntilCondition({{senderData.hasStarted}}));
-   EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
+   SpawnSender_WaitForStartup(senderData);
 
-   // Spawn Receiver and wait for it to start up
-   zthread_new(&ReceiverThread, reinterpret_cast<TestThreadData*>(&receiver1ThreadData));
-   EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.hasStarted}}));
+   SpawnReceiver_WaitForStartup(receiver1ThreadData);
 
    // First Exchange
    FireOffANotification(senderData);
