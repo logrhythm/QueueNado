@@ -8,6 +8,7 @@
 #include "Listener.h"
 #include "Notifier.h"
 #include <StopWatch.h>
+#include <Result.h>
 
 namespace {
 
@@ -103,14 +104,27 @@ namespace {
    }
 } //namespace
 
+namespace {
+
+Result<bool> QueuesExist() {
+   bool notifierPathExists = FileIO::DoesFileExist(notifierQueuePath);
+   bool handshakePathExists = FileIO::DoesFileExist(handshakeQueuePath);
+   return Result<bool>{notifierPathExists && handshakePathExists, {"Notifier Queue Exists: " + notifierPathExists + 
+                                                                   ", Handshake Queue Exists: " + handshakePathExists}};
+}
+
+} // namespace
+
 TEST_F(NotifierTest, InitializationCreatesIPC) {
-   EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
-   EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
+   EXPECT_TRUE(QueuesExist()) << "This should fail!!"; 
+   // EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
+   // EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
    const size_t ignoredHandshakes = 0;
    auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, ignoredHandshakes);
    EXPECT_NE(notifier.get(), nullptr);
-   EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
-   EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
+   // EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
+   // EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
+   EXPECT_TRUE(QueuesExist());
 }
 
 TEST_F(NotifierTest, 1Message1Receiver_NoResponse_WithMessage) {
