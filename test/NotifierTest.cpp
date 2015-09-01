@@ -102,29 +102,25 @@ namespace {
       LOG(INFO) << threadData.print();
       return nullptr;
    }
+
+   void CheckReturnedVector(const std::vector<TestThreadData>& threadDataVector) {
+      for (unsigned int idx = 0; idx < vectorToSend.size(); idx++) {
+         for (auto& threadData : threadDataVector) {
+            EXPECT_EQ(vectorToSend.at(idx), threadData.messages->at(idx));
+         }
+      }
+   }
 } //namespace
 
-namespace {
-
-Result<bool> QueuesExist() {
-   bool notifierPathExists = FileIO::DoesFileExist(notifierQueuePath);
-   bool handshakePathExists = FileIO::DoesFileExist(handshakeQueuePath);
-   return Result<bool>{notifierPathExists && handshakePathExists, {"Notifier Queue Exists: " + notifierPathExists + 
-                                                                   ", Handshake Queue Exists: " + handshakePathExists}};
-}
-
-} // namespace
 
 TEST_F(NotifierTest, InitializationCreatesIPC) {
-   EXPECT_TRUE(QueuesExist()) << "This should fail!!"; 
-   // EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
-   // EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
+   EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
+   EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
    const size_t ignoredHandshakes = 0;
    auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, ignoredHandshakes);
    EXPECT_NE(notifier.get(), nullptr);
-   // EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
-   // EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
-   EXPECT_TRUE(QueuesExist());
+   EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
+   EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
 }
 
 TEST_F(NotifierTest, 1Message1Receiver_NoResponse_WithMessage) {
@@ -204,9 +200,7 @@ TEST_F(NotifierTest, 1Message1Receiver_NoResponse_VectorMessage) {
    FireOffANotification(senderData);
    EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.received}}));
    ASSERT_EQ(receiver1ThreadData.messages->size(), vectorToSend.size());
-   for (unsigned int idx = 0; idx < receiver1ThreadData.messages->size(); idx++) {
-      EXPECT_EQ(vectorToSend.at(idx), receiver1ThreadData.messages->at(idx));
-   }
+   CheckReturnedVector({{receiver1ThreadData}});
 
    // Shutdown everything
    ShutdownThreads({{senderData}, {receiver1ThreadData}});
@@ -215,7 +209,7 @@ TEST_F(NotifierTest, 1Message1Receiver_NoResponse_VectorMessage) {
    EXPECT_TRUE(ThreadIsShutdown(senderData));
 }
 
-TEST_F(NotifierTest, 1Message2ReceiversUsingSenderandReceiverThreads_NoMessage) {
+TEST_F(NotifierTest, 1Message2Receivers_ExpectFeedback_NoMessage) {
    SEND_MSG_TYPE = NONE;
    TestThreadData senderData("sender");
    TestThreadData receiver1ThreadData("receiver1");
@@ -247,7 +241,7 @@ TEST_F(NotifierTest, 1Message2ReceiversUsingSenderandReceiverThreads_NoMessage) 
    EXPECT_TRUE(ThreadIsShutdown(senderData));
 }
 
-TEST_F(NotifierTest, 1Message2ReceiversUsingSenderandReceiverThreads_SingleMessage) {
+TEST_F(NotifierTest, 1Message2Receivers_ExpectFeedback_SingleMessage) {
    SEND_MSG_TYPE = MSG;
    TestThreadData senderData("sender");
    TestThreadData receiver1ThreadData("receiver1");
@@ -281,7 +275,7 @@ TEST_F(NotifierTest, 1Message2ReceiversUsingSenderandReceiverThreads_SingleMessa
    EXPECT_TRUE(ThreadIsShutdown(senderData));
 }
 
-TEST_F(NotifierTest, 1Message2ReceiversUsingSenderandReceiverThreads_VectorMessage) {
+TEST_F(NotifierTest, 1Message2Receivers_ExpectFeedback_VectorMessage) {
    SEND_MSG_TYPE = VECTOR;
    TestThreadData senderData("sender");
    TestThreadData receiver1ThreadData("receiver1");
@@ -304,9 +298,7 @@ TEST_F(NotifierTest, 1Message2ReceiversUsingSenderandReceiverThreads_VectorMessa
    FireOffANotification(senderData);
    EXPECT_TRUE(SleepUntilCondition({{receiver1ThreadData.received}, {receiver2ThreadData.received}}));
    ASSERT_EQ(receiver1ThreadData.messages->size(), vectorToSend.size());
-   for (unsigned int idx = 0; idx < receiver1ThreadData.messages->size(); idx++) {
-      EXPECT_EQ(vectorToSend.at(idx), receiver1ThreadData.messages->at(idx));
-   }
+   CheckReturnedVector({{receiver1ThreadData}});
 
    // Shutdown all the threads
    //    and verify they are dead
@@ -317,7 +309,7 @@ TEST_F(NotifierTest, 1Message2ReceiversUsingSenderandReceiverThreads_VectorMessa
    EXPECT_TRUE(ThreadIsShutdown(senderData));
 }
 
-TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_NoMessage) {
+TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_NoMessage) {
    SEND_MSG_TYPE = NONE;
    const size_t expectedFeedback = 2;
    const size_t sendFeedback = 1;
@@ -376,7 +368,7 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_NoMessage) {
    EXPECT_TRUE(ThreadIsShutdown(senderData));
 }
 
-TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_SingleMessage) {
+TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_SingleMessage) {
    SEND_MSG_TYPE = MSG;
    const size_t expectedFeedback = 2;
    const size_t sendFeedback = 1;
@@ -443,7 +435,7 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_SingleMessage) {
    EXPECT_TRUE(ThreadIsShutdown(senderData));
 }
 
-TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_VectorMessage) {
+TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_VectorMessage) {
    SEND_MSG_TYPE = VECTOR;
    const size_t expectedFeedback = 2;
    const size_t sendFeedback = 1;
@@ -471,10 +463,7 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_VectorMessage) {
    EXPECT_TRUE(receiver2ThreadData.received->load());
    ASSERT_EQ(receiver1ThreadData.messages->size(), vectorToSend.size());
    ASSERT_EQ(receiver2ThreadData.messages->size(), vectorToSend.size());
-   for (unsigned int idx = 0; idx < vectorToSend.size(); idx++) {
-      EXPECT_EQ(vectorToSend.at(idx), receiver1ThreadData.messages->at(idx));
-      EXPECT_EQ(vectorToSend.at(idx), receiver2ThreadData.messages->at(idx));
-   }
+   CheckReturnedVector({{receiver1ThreadData}, {receiver2ThreadData}});
 
    // Shutdown the receiver threads
    ShutdownThreads({{receiver1ThreadData}, {receiver2ThreadData}});
@@ -499,10 +488,7 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_VectorMessage) {
    EXPECT_TRUE(receiver2ThreadData.received->load());
    ASSERT_EQ(receiver1ThreadData.messages->size(), vectorToSend.size());
    ASSERT_EQ(receiver2ThreadData.messages->size(), vectorToSend.size());
-   for (unsigned int idx = 0; idx < vectorToSend.size(); idx++) {
-      EXPECT_EQ(vectorToSend.at(idx), receiver1ThreadData.messages->at(idx));
-      EXPECT_EQ(vectorToSend.at(idx), receiver2ThreadData.messages->at(idx));
-   }
+   CheckReturnedVector({{receiver1ThreadData}, {receiver2ThreadData}});
 
    // Shutdown everything
    ShutdownThreads({{senderData}, {receiver1ThreadData}, {receiver2ThreadData}});

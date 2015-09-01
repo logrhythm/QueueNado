@@ -169,7 +169,7 @@ TEST_F(ShotgunAlienTests, ShotgunBadAim) {
    }
 
 }
-TEST_F(ShotgunAlienTests, DISABLED_ipcFilesCleanedOnFatal) {
+TEST_F(ShotgunAlienTests, ipcFilesCleanedOnFatal) {
    std::string target("ipc:///ShotgunAlienTestsDeath");
    Shotgun stick;
    Alien alien;
