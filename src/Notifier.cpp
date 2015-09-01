@@ -91,19 +91,9 @@ std::unique_ptr<Vampire> Notifier::CreateHandshakeQueue() {
  * @return number of confirmed updates
  */
 size_t Notifier::Notify(const std::string& message) {
-   std::lock_guard<std::mutex> guard(gLock);
    std::vector<std::string> bullets;
-   bullets.push_back(notifyMessage);
    bullets.push_back(message);
-   if (QueuesAreUnitialized()) {
-      LOG(WARNING) << "Uninitialized notifier queues";
-      return {0};
-   }
-   LOG(INFO) << "Notifier: Sending message: " << message;
-   gQueue->Fire(bullets);
-   size_t confirmed = ReceiveConfirmation();
-   LOG(INFO) << "Notifier received " << confirmed << " handshakes";
-   return {confirmed};
+   return Notify(bullets);
 }
 
 /*
@@ -114,16 +104,7 @@ size_t Notifier::Notify(const std::string& message) {
  * @return number of confirmed updates
  */
 size_t Notifier::Notify() {
-   std::lock_guard<std::mutex> guard(gLock);
-   if (QueuesAreUnitialized()) {
-      LOG(WARNING) << "Uninitialized notifier queues";
-      return {0};
-   }
-   LOG(INFO) << "Notifier: Sending notification message: " << notifyMessage;
-   gQueue->Fire(notifyMessage);
-   size_t confirmed = ReceiveConfirmation();
-   LOG(INFO) << "Notifier received " << confirmed << " handshakes";
-   return {confirmed};
+   return Notify(notifyMessage);
 }
 
 /*
@@ -137,7 +118,7 @@ size_t Notifier::Notify() {
 size_t Notifier::Notify(const std::vector<std::string>& messages) {
    std::lock_guard<std::mutex> guard(gLock);
    std::vector<std::string> bullets;
-   bullets.push_back(notifyMessage);
+   bullets.push_back("dummy");
 
    for (auto& msg : messages) {
       bullets.push_back(msg);
