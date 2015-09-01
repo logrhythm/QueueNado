@@ -17,8 +17,8 @@ protected:
    };
 
    virtual void TearDown() {
-      FileIO::RemoveFileAsRoot(notifierIPCPath).HasSuccess();
-      FileIO::RemoveFileAsRoot(handshakeIPCPath).HasSuccess();
+      FileIO::RemoveFileAsRoot(notifierIPCPath);
+      FileIO::RemoveFileAsRoot(handshakeIPCPath);
    };
 
 private:

@@ -31,11 +31,10 @@ Notifier::Notifier(const std::string& notifierQueue, const std::string& handshak
    : mNotifierQueueName(notifierQueue),
      mHandshakeQueueName(handshakeQueue) {};
 
-
-/// destructor
 Notifier::~Notifier() {
-   Reset();;
+   Reset();
 }
+
 /*
  * Initialize the mutex-guarded Shotgun-Alien
  *    queue by "aiming" it at the Notifier
@@ -88,17 +87,49 @@ std::unique_ptr<Vampire> Notifier::CreateHandshakeQueue() {
  *    read by the queue subscriber. Then wait for listeners
  *    to confirm they received the notification
  *
+ * @param string to be sent to listeners
+ * @return number of confirmed updates
+ */
+size_t Notifier::Notify(const std::string& message) {
+   std::vector<std::string> bullets;
+   bullets.push_back(message);
+   return Notify(bullets);
+}
+
+/*
+ * Fire a dummy message from the Shotgun to be
+ *    read by the queue subscriber. Then wait for listeners
+ *    to confirm they received the notification
+ *
  * @return number of confirmed updates
  */
 size_t Notifier::Notify() {
+   return Notify(kNotifyMessage);
+}
+
+/*
+ * Fire a message from the Shotgun to be
+ *    read by the queue subscriber. Then wait for listeners
+ *    to confirm they received the notification
+ * 
+ * @param vector of strings to be sent to the listeners             
+ * @return number of confirmed updates
+ */
+size_t Notifier::Notify(const std::vector<std::string>& messages) {
    std::lock_guard<std::mutex> guard(gLock);
+   std::vector<std::string> bullets;
+   bullets.push_back("dummy");
+
+   for (auto& msg : messages) {
+      bullets.push_back(msg);
+   }
+
    if (QueuesAreUnitialized()) {
       LOG(WARNING) << "Uninitialized notifier queues";
       return {0};
    }
-   const std::string message = "notify";
-   LOG(INFO) << message;
-   gQueue->Fire(message);
+   LOG(INFO) << "Notifier: Sending " << bullets.size() << " messages";
+   gQueue->Fire(bullets);
    size_t confirmed = ReceiveConfirmation();
    LOG(INFO) << "Notifier received " << confirmed << " handshakes";
    return {confirmed};
