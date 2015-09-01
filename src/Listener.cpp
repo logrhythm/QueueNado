@@ -143,8 +143,8 @@ bool Listener::NotificationReceived() {
    std::vector<std::string> dataFromQueue;
    mQueueReader->GetShot(getShotTimeout, dataFromQueue);
    bool notificationReceived = MessageHasPayload(dataFromQueue);
-   ClearMessages();
    if (notificationReceived) {
+      ClearMessages();
       StorePayloadIfNecessary(dataFromQueue);
    }
    return notificationReceived;
