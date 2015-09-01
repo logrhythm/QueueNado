@@ -41,6 +41,5 @@ class Notifier {
    std::unique_ptr<Vampire> gHandshakeQueue;
    size_t gHandshakeCount = 0;
    const size_t gMaxTimeoutInSec = 60;
-   const std::string notifyMessage = "notify";
-
+   const std::string kNotifyMessage = "notify";
 };

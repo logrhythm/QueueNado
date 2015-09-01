@@ -104,7 +104,7 @@ size_t Notifier::Notify(const std::string& message) {
  * @return number of confirmed updates
  */
 size_t Notifier::Notify() {
-   return Notify(notifyMessage);
+   return Notify(kNotifyMessage);
 }
 
 /*
