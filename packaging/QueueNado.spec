@@ -4,7 +4,7 @@ Release:       1%{?dist}
 Summary:       An implemnetation of Queue patterns for C++
 Group:         Development/Tools
 License:       MIT
-BuildRequires: probecmake >= 2.8, DeathKnell, czmq >= 2.0.3
+BuildRequires: probecmake >= 2.8, DeathKnell, czmq >= 2.0.3, StopWatch
 ExclusiveArch: x86_64
 
 %description
@@ -35,7 +35,7 @@ cp *.so $RPM_BUILD_ROOT/usr/local/probe/lib
 rm $RPM_BUILD_ROOT/usr/local/probe/lib/libgtest_170_lib.so
 mkdir -p $RPM_BUILD_ROOT/usr/local/probe/include
 cp src/*.h $RPM_BUILD_ROOT/usr/local/probe/include
-
+rm -f $RPM_BUILD_ROOT/usr/local/probe/include/QueueNadoMacros.h
 
 %post
 

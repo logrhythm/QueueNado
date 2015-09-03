@@ -8,7 +8,7 @@
 #include <memory>
 #include <future>
 #include <map>
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
 namespace {
 
    void runIterations(BoomStick& stick, int iterations) {

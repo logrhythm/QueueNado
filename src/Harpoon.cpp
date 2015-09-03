@@ -9,11 +9,12 @@
 #include <g2log.hpp>
 #include <algorithm>
 #include "Harpoon.h"
+#include <chrono>
 
 
 /// Creates the client that is to connect to the server/Kraken
 Harpoon::Harpoon(): 
-mQueueLength(10),
+mQueueLength(1), //Number of allowed messages in queue
 mTimeoutMs(300000), //5 minutes
 mOffset(0),
 mChunk(nullptr) {
@@ -48,6 +49,23 @@ void Harpoon::RequestChunks(){
    }   
 }
 
+//Wait for input on the queue
+// NOTE: zsocket_poll returns true only when the ZMQ_POLLIN is returned by zmq_poll. If false is
+// returned it does not automatically mean a timeout occurred waiting for input. So std::chrono is
+// used to determine when the poll has truly timed out.
+Harpoon::Battling Harpoon::PollTimeout(int timeoutMs){
+   using namespace std::chrono;
+   
+   steady_clock::time_point pollStartMs = steady_clock::now();
+   while (!zsocket_poll(mDealer, 1)){
+      int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
+      if (pollElapsedMs >= timeoutMs){
+         return Harpoon::Battling::TIMEOUT;
+      }
+   }
+   return Harpoon::Battling::CONTINUE;
+}
+
 /// Block until timeout or if there is new data to be received.
 Harpoon::Battling Harpoon::Heave(std::vector<uint8_t>& data){
    //Erase any previous data from the last Monitor()
@@ -56,7 +74,7 @@ Harpoon::Battling Harpoon::Heave(std::vector<uint8_t>& data){
    static const std::vector<uint8_t> emptyOnError;
 
    //Poll to see if anything is available on the pipeline:
-   if(zsocket_poll(mDealer, mTimeoutMs)){
+   if(Harpoon::Battling::CONTINUE == PollTimeout(mTimeoutMs)){
 
       mChunk = zframe_recv (mDealer);
       if(!mChunk) {

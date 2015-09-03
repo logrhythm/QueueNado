@@ -11,7 +11,7 @@ int ZeroMQTests::gCurrentPacketSize(0);
 
 
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterConstruct) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket fastCopyQueue(1);
    ASSERT_FALSE(fastCopyQueue.ContextSet());
    ASSERT_FALSE(fastCopyQueue.SocketSet());
@@ -60,7 +60,7 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterConstruct) {
 }
 
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterConstructBadly) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket* pFastCopyQueue = new MockZeroMQPacket(2);
    ASSERT_FALSE(pFastCopyQueue->ContextSet());
    MockZeroMQPacket* pFastCopyQueueCopy = new MockZeroMQPacket(pFastCopyQueue);
@@ -76,14 +76,14 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterConstructBadly) {
 }
 
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterGetHighWater) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket fastCopyQueue(1);
    ASSERT_TRUE(fastCopyQueue.GetHighWater() > 0);
 #endif
 }
 
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterGetContext) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket fastCopyQueue(1);
    void* context;
 
@@ -93,7 +93,7 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterGetContext) {
 }
 
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterGetSocket) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket fastCopyQueue(1);
    void* context;
    void* socket;
@@ -109,7 +109,7 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterGetSocket) {
 }
 
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterServerSetup) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket fastCopyQueue(1);
    void* context;
    ASSERT_FALSE((context = fastCopyQueue.GetContext()) == NULL);
@@ -136,7 +136,7 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterServerSetup) {
 }
 
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterClientSetup) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket fastCopyQueue(1);
    void* context;
    ASSERT_FALSE((context = fastCopyQueue.GetContext()) == NULL);
@@ -174,7 +174,7 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterClientSetup) {
 }
 
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterSendReadyFromClientToServer) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket serverQueue(1);
    ASSERT_TRUE(serverQueue.Initialize());
    MockZeroMQPacket clientQueue(serverQueue);
@@ -188,7 +188,7 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterSendReadyFromClientToServer) {
 }
 
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterSendDataToReadyClient) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket serverQueue(1);
    ASSERT_TRUE(serverQueue.Initialize());
    MockZeroMQPacket clientQueue(serverQueue);
@@ -210,7 +210,7 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterSendDataToReadyClient) {
 }
 
 TEST_F(ZeroMQTests, ConcequencesOfPacketInitFailureOnPointerQueue) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket mockServer(1);
    mockServer.Initialize();
    MockZeroMQPacket mockClient(mockServer);
@@ -256,7 +256,7 @@ TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterSendDataToReadyClientPerformanceTes
 }
 
 TEST_F(ZeroMQTests, ConcequencesOfFailedSetSendHWMOnPointerQueue) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
    MockZeroMQPacket mockServer(1);
    mockServer.mFailsToSetSendHWM = true;
 
@@ -269,7 +269,7 @@ TEST_F(ZeroMQTests, ConcequencesOfFailedSetSendHWMOnPointerQueue) {
 }
 
 TEST_F(ZeroMQTests, ConcequencesOfFailedSetReceiveHWMOnPointerQueue) {
-#ifdef LR_DEBUG
+#ifdef QN_DEBUG
 
    MockZeroMQPacket mockServer(1);
    mockServer.mFailsToSetReceiveHWM = true;
