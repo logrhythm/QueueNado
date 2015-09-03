@@ -169,6 +169,20 @@ TEST_F(ShotgunAlienTests, ShotgunBadAim) {
    }
 
 }
+
+TEST_F(ShotgunAlienTests, ipcFilesCleanedOnNormalExit) {
+   std::string target("ipc:///ShotgunAlienTestsExit");
+   std::string addressRealPath(target,target.find("ipc://")+6);
+   {
+      Shotgun stick;
+      Alien alien;
+      stick.Aim(target);
+      alien.PrepareToBeShot(target);
+      ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath));
+   }
+   ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath)) << "Shotgun did not clean up ipc file: " << addressRealPath;
+}
+
 TEST_F(ShotgunAlienTests, ipcFilesCleanedOnFatal) {
    std::string target("ipc:///ShotgunAlienTestsDeath");
    Shotgun stick;

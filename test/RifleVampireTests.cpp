@@ -385,6 +385,45 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
 }
+
+TEST_F(RifleVampireTests, ipcFilesCleanedOnNormalExitRifleOwner) {
+   std::string target("ipc:///rifleVampireExit");
+   std::string addressRealPath(target,target.find("ipc://")+6);
+   {
+      Rifle stick{target};
+      {
+         Vampire vamp{target};
+         ASSERT_TRUE(stick.Aim());
+         ASSERT_TRUE(vamp.PrepareToBeShot());
+         ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath));
+      }
+      // Vampire falls out of scope and ipc file is not deleted
+      ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath)) << "ipc file unexpectedly deleted: " << addressRealPath;
+   }
+   // Rifle falls out of scope and ipc file is cleaned up
+   ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath)) << "Rifle did not clean up ipc file: " << addressRealPath;
+}
+
+TEST_F(RifleVampireTests, ipcFilesCleanedOnNormalExitVampireOwner) {
+   std::string target("ipc:///rifleVampireExit");
+   std::string addressRealPath(target,target.find("ipc://")+6);
+   {
+      Vampire vamp{target};
+      vamp.SetOwnSocket(true);
+      {
+         Rifle stick{target};
+         stick.SetOwnSocket(false);
+         ASSERT_TRUE(stick.Aim());
+         ASSERT_TRUE(vamp.PrepareToBeShot());
+         ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath));
+      }
+      // Rifle falls out of scope and ipc file is not deleted
+      ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath)) << "ipc file unexpectedly deleted: " << addressRealPath;
+   }
+   // Vampire falls out of scope and ipc file is cleaned up
+   ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath)) << "Vampire did not clean up ipc file: " << addressRealPath;
+}
+
 TEST_F(RifleVampireTests, ipcFilesCleanedOnFatal) {
    std::string target("ipc:///rifleVampireDeath");
    Rifle stick{target};
