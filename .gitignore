@@ -1,3 +1,4 @@
+.*.sw[op]
 /3rdparty/gtest-1.7.0/
 /CMakeCache.txt
 /nbproject

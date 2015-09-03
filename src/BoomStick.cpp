@@ -13,7 +13,6 @@
 #include <chrono>
 
 #include "BoomStick.h"
-#include "Death.h"
 namespace {
 
    void ShrinkToFit(std::map<std::string, std::string>& map) {
@@ -234,7 +233,6 @@ bool BoomStick::Initialize() {
       mCtx = nullptr;
       return false;
    }
-   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, mBinding);
    return true;
 }
 

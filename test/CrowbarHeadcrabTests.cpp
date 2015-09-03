@@ -14,6 +14,18 @@ TEST_F(CrowbarHeadcrabTests, CrowbarBrokenSocket) {
    EXPECT_FALSE(firstCrowbar.Swing("foo"));
 
 }
+TEST_F(CrowbarHeadcrabTests, ipcFilesCleanedOnNormalExit) {
+   std::string addressRealPath(mTarget,mTarget.find("ipc://")+6);
+   {
+      Crowbar stick{mTarget};
+      Headcrab target{mTarget};
+      ASSERT_TRUE(stick.Wield());
+      ASSERT_TRUE(target.ComeToLife());
+      ASSERT_TRUE(FileIO::DoesFileExist(addressRealPath));
+   }
+   // Headcrab falls out of scope and ipc file is cleaned up
+   ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath)) << "Headcrab did not clean up ipc file: " << addressRealPath;
+}
 TEST_F(CrowbarHeadcrabTests, ipcFilesCleanedOnFatal) {
    Crowbar stick{mTarget};
    Headcrab target{mTarget};

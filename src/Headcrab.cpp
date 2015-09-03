@@ -23,7 +23,7 @@ Headcrab::Headcrab(const std::string& binding) : mBinding(binding), mContext(NUL
 /**
  * Default deconstructor
  */
-Headcrab::~ Headcrab() {
+Headcrab::~Headcrab() {
    if (mContext) {
       zctx_destroy(&mContext);
    }

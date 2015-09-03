@@ -6,7 +6,6 @@
 #include "Crowbar.h"
 #include "boost/thread.hpp"
 #include "g2log.hpp"
-#include "Death.h"
 
 /**
  * Construct a crowbar for beating things at the binding location
@@ -92,7 +91,6 @@ void* Crowbar::GetTip() {
       LOG(WARNING) << "Could not connect to " << mBinding << ":" << error;
       zclock_sleep(100);
    }
-   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, mBinding);
    if (zctx_interrupted) {
       LOG(INFO) << "Caught Interrupt Signal";
    }
