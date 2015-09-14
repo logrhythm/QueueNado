@@ -6,7 +6,6 @@
 #include "Crowbar.h"
 #include <boost/thread.hpp>
 #include <g3log/g3log.hpp>
-#include <Death.h>
 
 /**
  * Construct a crowbar for beating things at the binding location
