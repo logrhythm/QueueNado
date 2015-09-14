@@ -26,7 +26,7 @@ find_library(CQueueNado czmq PATHS /usr/local/probe/lib )
 find_library(ZMQ zmq PATHS /usr/local/probe/lib )
 find_library(ZLIB z PATHS /usr/local/probe/lib )
 find_library(TCMALLOC tcmalloc PATHS /usr/local/probe/lib )
-
+find_library(STOPWATCH StopWatch PATHS /usr/local/probe/lib )
 
 MESSAGE(" PROJECT_SRC = : ${PROJECT_SRC}")
 include_directories(${PROJECT_SRC})
@@ -108,7 +108,7 @@ include_directories(test)
   add_executable(UnitTestRunner 3rdparty/test_main.cpp ${TEST_SRC_FILES} )
   set_target_properties(${test} PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_TR1_TUPLE=0")
   set_target_properties(${test} PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_RTTI=0")
-  target_link_libraries(UnitTestRunner  QueueNado gtest_170_lib boost_thread
+  target_link_libraries(UnitTestRunner ${STOPWATCH}  QueueNado gtest_170_lib boost_thread
 boost_system ${ZLIB} ${G3LOG} ${G3LOGROTATE} FileIO DeathKnell stdc++ zmq czmq tcmalloc ${PLATFORM_LINK_LIBRIES} -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/probe/lib64)
 IF( NOT(MSVC))
   set_target_properties(${test} PROPERTIES COMPILE_FLAGS "-isystem -pthread ")

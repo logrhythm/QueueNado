@@ -3,7 +3,6 @@
 #include "boost/thread.hpp"
 #include "g3log/g3log.hpp"
 
-#include "Death.h"
 #include "Alien.h"
 
 /**
@@ -32,8 +31,6 @@ void Alien::PrepareToBeShot(const std::string& location) {
       LOG(WARNING) << "connect socket rc == " << rc;
       throw std::string("Failed to connect to socket");
    }
-   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, location);
-
 }
 
 /**
@@ -59,6 +56,7 @@ std::vector<std::string> Alien::GetShot() {
 void Alien::GetShot(const unsigned int timeout, std::vector<std::string>& bullets) {
    bullets.clear();
    if (!mBody) {
+      LOG(WARNING) << "Alien attempted to GetShot but is not properly initialized";
       return;
    }
 

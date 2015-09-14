@@ -194,7 +194,6 @@ void ZeroMQ<void*>::ClientSetup(const std::string& binding,
       zmq_close(socket);
       socket = NULL;
    }
-   Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, binding);
 }
 
 /**
