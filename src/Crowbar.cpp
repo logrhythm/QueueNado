@@ -4,8 +4,8 @@
 #include <zframe.h>
 
 #include "Crowbar.h"
-#include "boost/thread.hpp"
-#include "g2log.hpp"
+#include <boost/thread.hpp>
+#include <g3log/g3log.hpp>
 
 /**
  * Construct a crowbar for beating things at the binding location

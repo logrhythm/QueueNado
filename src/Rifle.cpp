@@ -3,7 +3,7 @@
 
 #include "Rifle.h"
 #include "czmq.h"
-#include "g2log.hpp"
+#include "g3log/g3log.hpp"
 #include "Death.h"
 /**
  * Construct our Rifle which is a push in our ZMQ push pull.

@@ -3,7 +3,7 @@
 #include "ZeroMQ.h"
 #include "boost/thread.hpp"
 #include "CZMQToolkit.h"
-#include "g2log.hpp"
+#include "g3log/g3log.hpp"
 #include "Death.h"
 
 /*

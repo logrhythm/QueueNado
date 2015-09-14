@@ -5,7 +5,7 @@
 #include <mutex>
 #include <StopWatch.h>
 #include <thread>
-#include <g2log.hpp>
+#include <g3log/g3log.hpp>
 #include <czmq.h>
 #include <gtest/gtest.h>
 
