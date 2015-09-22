@@ -43,7 +43,7 @@ class Notifier {
    std::unique_ptr<Vampire> mHandshakeQueue;
    size_t gHandshakeCount = 0;
    size_t mMaxTimeoutInSec;
-   unsigned int mGetShotTimeoutInMs;
+   const int mGetShotTimeoutInMs;
    std::string mNotifyMessage = "notify";
    std::atomic<bool> mKeepRunning;
 };
