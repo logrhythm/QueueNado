@@ -27,7 +27,7 @@ void Shotgun::Aim(const std::string& location) {
       LOG(WARNING) << "bound socket rc:" << rc << " : location: " << location;
       LOG(WARNING) << zmq_strerror(zmq_errno());
 
-      throw std::string("Failed to connect to bind socket");
+      throw std::runtime_error("Failed to connect to bind socket");
    }
    setIpcFilePermissions(location);
    Death::Instance().RegisterDeathEvent(&Death::DeleteIpcFiles, location);
