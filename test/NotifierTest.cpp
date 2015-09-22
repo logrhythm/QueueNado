@@ -123,7 +123,9 @@ namespace {
       testRifle.SetHighWater(100);
       EXPECT_TRUE(testRifle.Aim());
       EXPECT_TRUE(testRifle.Fire(std::string("test string")));
-      std::this_thread::sleep_for(std::chrono::seconds(1));
+      while (ParentHasNotSentExitSignal(senderThreadData)) {
+         std::this_thread::sleep_for(std::chrono::milliseconds(50));       
+      }
       return nullptr;
    }
 
