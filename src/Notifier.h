@@ -38,9 +38,9 @@ class Notifier {
    bool QueuesAreUnitialized();
    const std::string mNotifierQueueName;
    const std::string mHandshakeQueueName;
-   std::mutex gLock;
-   std::unique_ptr<Shotgun> gQueue;
-   std::unique_ptr<Vampire> gHandshakeQueue;
+   std::mutex mLock;
+   std::unique_ptr<Shotgun> mQueue;
+   std::unique_ptr<Vampire> mHandshakeQueue;
    size_t gHandshakeCount = 0;
    size_t mMaxTimeoutInSec;
    unsigned int mGetShotTimeoutInMs;
