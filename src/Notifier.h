@@ -14,7 +14,7 @@ class Vampire;
 
 class Notifier {
  public:
-   static std::unique_ptr<Notifier>  CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount, size_t maxTimeoutInSec = 60, unsigned int maxGetShotTimeoutInMs = 10);
+   static std::unique_ptr<Notifier>  CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount, const size_t maxTimeoutInSec = 60, const int maxGetShotTimeoutInMs = 10);
    size_t Notify(const std::vector<std::string>& messages);
    size_t Notify(const std::string& message);
    size_t Notify();
@@ -29,7 +29,7 @@ class Notifier {
 
  private:
    Notifier() = delete;
-   Notifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t maxTimeoutInSec, const unsigned int maxGetShotTimeoutInMs);
+   Notifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t maxTimeoutInSec, const int maxGetShotTimeoutInMs);
 
    bool Initialize(const size_t handshakeCount);
 
@@ -42,7 +42,7 @@ class Notifier {
    std::unique_ptr<Shotgun> mQueue;
    std::unique_ptr<Vampire> mHandshakeQueue;
    size_t gHandshakeCount = 0;
-   size_t mMaxTimeoutInSec;
+   const size_t mMaxTimeoutInSec;
    const int mGetShotTimeoutInMs;
    std::string mNotifyMessage = "notify";
    std::atomic<bool> mKeepRunning;

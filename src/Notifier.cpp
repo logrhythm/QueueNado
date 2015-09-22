@@ -12,7 +12,7 @@
 #include <Vampire.h>
 #include <StopWatch.h>
 #include <czmq.h>
-
+#include <iostream>
 std::unique_ptr<Notifier>  Notifier::CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount, const size_t maxTimeoutInSec, const int maxGetShotTimeoutInMs) {
    auto notifier = std::unique_ptr<Notifier>(new Notifier(notifierQueue, handshakeQueue, maxTimeoutInSec, maxGetShotTimeoutInMs));
    if (notifier->Initialize(handshakeCount)) {
@@ -55,8 +55,8 @@ bool Notifier::Initialize(const size_t handshakeCount) {
       mQueue.reset(new Shotgun);
       try {
          mQueue->Aim(GetNotifierQueueName());
-      } catch (std::string& e) {
-         LOG(WARNING) << "Caught string exception: " << e;
+      } catch (std::exception& e) {
+         LOG(WARNING) << "Caught exception: " << e.what();
          Reset();
       }
    }
@@ -64,16 +64,13 @@ bool Notifier::Initialize(const size_t handshakeCount) {
 }
 
 /*
- * Receives message data without caring about handshakes, added sleeping code
- * to prevent pounding the cpu
+ * Receives message data without caring about handshakes
  */
 std::string Notifier::ReceiveData() {
    StopWatch waitCheck;
    while (waitCheck.ElapsedSec() < mMaxTimeoutInSec && !zctx_interrupted && mKeepRunning.load()) {
       std::string msg;
-      if (!zctx_interrupted && mHandshakeQueue.get() != nullptr && mHandshakeQueue->GetShot(msg, mGetShotTimeoutInMs)) {
-         LOG(INFO) << "Received data: "
-                   << msg;
+      if (!zctx_interrupted && mHandshakeQueue.get() != nullptr && mHandshakeQueue->GetShot(msg, mGetShotTimeoutInMs)) {         
          return msg;
       }
    }
@@ -166,8 +163,8 @@ size_t Notifier::ReceiveConfirmation() {
    size_t responses = 0;
    while (responses < gHandshakeCount && waitCheck.ElapsedSec() < mMaxTimeoutInSec) {
       std::string msg;
-      if (mHandshakeQueue->GetShot(msg, mMaxTimeoutInSec)) {
-         LOG(INFO) << "Received update confirmation from thread #"
+      if (mHandshakeQueue->GetShot(msg, mGetShotTimeoutInMs)) {
+         LOG(DEBUG) << "Received update confirmation from thread #"
                    << msg << ", response count #" << ++responses;
       }
    }
