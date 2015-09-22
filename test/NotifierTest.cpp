@@ -460,6 +460,7 @@ TEST_F(NotifierTest, 1Message1Receiver_ReceiveData) {
    SpawnReceiveDataReceiver_WaitForStartup(receiver1ThreadData);
    // spawn thread to create rifle and fire shot
    SpawnReceiveDataSender_WaitForStartup(senderData);
-
-   Shutdown({senderData, receiver1ThreadData});
+   Shutdown({receiver1ThreadData});
+   SleepUntilCondition({{receiver1ThreadData.hasExited}});   
+   Shutdown({senderData});
 }
