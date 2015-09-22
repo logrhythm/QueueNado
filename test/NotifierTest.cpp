@@ -460,6 +460,7 @@ TEST_F(NotifierTest, 1Message1Receiver_ReceiveData) {
    SpawnReceiveDataReceiver_WaitForStartup(receiver1ThreadData);
    // spawn thread to create rifle and fire shot
    SpawnReceiveDataSender_WaitForStartup(senderData);
+   std::this_thread::sleep_for(std::chrono::seconds(1));
    Shutdown({receiver1ThreadData});
    SleepUntilCondition({{receiver1ThreadData.hasExited}});   
    Shutdown({senderData});
