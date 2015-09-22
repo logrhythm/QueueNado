@@ -12,7 +12,7 @@
 #include <Vampire.h>
 #include <StopWatch.h>
 #include <czmq.h>
-#include <iostream>
+
 std::unique_ptr<Notifier>  Notifier::CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount, const size_t maxTimeoutInSec, const int maxGetShotTimeoutInMs) {
    auto notifier = std::unique_ptr<Notifier>(new Notifier(notifierQueue, handshakeQueue, maxTimeoutInSec, maxGetShotTimeoutInMs));
    if (notifier->Initialize(handshakeCount)) {
