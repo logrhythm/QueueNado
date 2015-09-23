@@ -151,7 +151,6 @@ namespace {
       while (ParentHasNotSentExitSignal(receiverThreadData)) {
          received = notifier->ReceiveData();
          if (!received.empty()) {
-            std::cout << "receiver got something hooray: " << received << std::endl;
             EXPECT_EQ(received, toReceive);
             UpdateThreadDataAfterReceivingMessage(receiverThreadData);
             break; // Needed, so that received doesn't get overwritten on next iteration
@@ -458,7 +457,6 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_VectorM
 }
 
 TEST_F(NotifierTest, 1Message1Receiver_ReceiveData) {
-   SEND_MSG_TYPE = MSG;
    TestThreadData senderData("sender");
    TestThreadData receiver1ThreadData("receiver");
    EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
