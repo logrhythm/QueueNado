@@ -1,6 +1,5 @@
 #define _OPEN_SYS
 #include <sys/stat.h>
-#include <iostream>
 #include "Rifle.h"
 #include "czmq.h"
 #include "g3log/g3log.hpp"
@@ -151,12 +150,10 @@ bool Rifle::Fire(const std::string& bullet, const int waitToFire) {
    //LOG(DEBUG) << "RifleFire";
    if (!mChamber) {
       LOG(WARNING) << "Socket uninitialized!";
-      std::cout << "Failing 1" << std::endl;
       return false;
    }
    if (bullet.empty()) {
       LOG(WARNING) << "Tried to send empty packet";
-      std::cout << "Failing 2" << std::endl;
       return false;
    }
    zmq_pollitem_t items [] = {
@@ -170,12 +167,10 @@ bool Rifle::Fire(const std::string& bullet, const int waitToFire) {
          return CZMQToolkit::SendExistingMessage(message, mChamber);
       } else {
          LOG(WARNING) << "Error on Zmq socket send: " << zmq_strerror(zmq_errno());
-         std::cout << "Failing 3" << std::endl;
          return false;
       }
    } else {
       //      LOG(WARNING) << "timeout in zmq_pollout " << GetBinding();
-      std::cout << "Failing 4" << std::endl;
       return false;
    }
 }
