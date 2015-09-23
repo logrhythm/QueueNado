@@ -45,5 +45,4 @@ class Notifier {
    const size_t mMaxTimeoutInSec;
    const int mGetShotTimeoutInMs;
    std::string mNotifyMessage = "notify";
-   std::atomic<bool> mKeepRunning;
 };

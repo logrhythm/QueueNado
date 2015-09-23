@@ -1,6 +1,5 @@
 #define _OPEN_SYS
 #include <sys/stat.h>
-
 #include "Rifle.h"
 #include "czmq.h"
 #include "g3log/g3log.hpp"

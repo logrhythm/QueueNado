@@ -122,9 +122,11 @@ namespace {
       testRifle.SetOwnSocket(false);
       testRifle.SetHighWater(100);
       EXPECT_TRUE(testRifle.Aim());
-      EXPECT_TRUE(testRifle.Fire(std::string("test string")));
       while (ParentHasNotSentExitSignal(senderThreadData)) {
-         std::this_thread::sleep_for(std::chrono::milliseconds(50));       
+         if (TimeToSendANotification(senderThreadData)) {
+            EXPECT_TRUE(testRifle.Fire(std::string("test string"), 1));
+            ResetNotifyFlag(senderThreadData);
+         }
       }
       return nullptr;
    }
@@ -143,13 +145,15 @@ namespace {
          ADD_FAILURE() << "Failed to initialize the Notifier";
          return nullptr;
       }
-      auto received = std::string("");
+      std::string received = "";
       NotifyParentThatChildHasStarted(receiverThreadData);
       while (ParentHasNotSentExitSignal(receiverThreadData)) {
          received = notifier->ReceiveData();
          if (!received.empty()) {
             EXPECT_EQ(received, toReceive);
-            break;
+            UpdateThreadDataAfterReceivingMessage(receiverThreadData);
+            break; // Needed, so that received doesn't get overwritten on next iteration
+                   //   of loop before parent sends exit signal
          }
       }
       EXPECT_FALSE(received.empty());
@@ -460,8 +464,8 @@ TEST_F(NotifierTest, 1Message1Receiver_ReceiveData) {
    SpawnReceiveDataReceiver_WaitForStartup(receiver1ThreadData);
    // spawn thread to create rifle and fire shot
    SpawnReceiveDataSender_WaitForStartup(senderData);
-   std::this_thread::sleep_for(std::chrono::seconds(1));
-   Shutdown({receiver1ThreadData});
-   SleepUntilCondition({{receiver1ThreadData.hasExited}});   
-   Shutdown({senderData});
+
+   ExchangeNotification(senderData, receiver1ThreadData);
+
+   Shutdown({senderData, receiver1ThreadData});
 }
