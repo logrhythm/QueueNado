@@ -122,7 +122,12 @@ namespace {
       testRifle.SetOwnSocket(false);
       testRifle.SetHighWater(100);
       EXPECT_TRUE(testRifle.Aim());
-      EXPECT_TRUE(testRifle.Fire(std::string("test string")));
+      while (ParentHasNotSentExitSignal(senderThreadData)) {
+         if (TimeToSendANotification(senderThreadData)) {
+            EXPECT_TRUE(testRifle.Fire(std::string("test string"), 1));
+            ResetNotifyFlag(senderThreadData);
+         }
+      }
       std::this_thread::sleep_for(std::chrono::seconds(1));
       return nullptr;
    }
@@ -141,13 +146,16 @@ namespace {
          ADD_FAILURE() << "Failed to initialize the Notifier";
          return nullptr;
       }
-      auto received = std::string("");
+      std::string received = "";
       NotifyParentThatChildHasStarted(receiverThreadData);
       while (ParentHasNotSentExitSignal(receiverThreadData)) {
          received = notifier->ReceiveData();
          if (!received.empty()) {
+            std::cout << "receiver got something hooray: " << received << std::endl;
             EXPECT_EQ(received, toReceive);
-            break;
+            UpdateThreadDataAfterReceivingMessage(receiverThreadData);
+            break; // Needed, so that received doesn't get overwritten on next iteration
+                   //   of loop before parent sends exit signal
          }
       }
       EXPECT_FALSE(received.empty());
@@ -450,6 +458,7 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_VectorM
 }
 
 TEST_F(NotifierTest, 1Message1Receiver_ReceiveData) {
+   SEND_MSG_TYPE = MSG;
    TestThreadData senderData("sender");
    TestThreadData receiver1ThreadData("receiver");
    EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
@@ -458,6 +467,8 @@ TEST_F(NotifierTest, 1Message1Receiver_ReceiveData) {
    SpawnReceiveDataReceiver_WaitForStartup(receiver1ThreadData);
    // spawn thread to create rifle and fire shot
    SpawnReceiveDataSender_WaitForStartup(senderData);
+
+   ExchangeNotification(senderData, receiver1ThreadData);
 
    Shutdown({senderData, receiver1ThreadData});
 }

@@ -31,8 +31,7 @@ Notifier::Notifier(const std::string& notifierQueue, const std::string& handshak
    : mNotifierQueueName(notifierQueue),
      mHandshakeQueueName(handshakeQueue),
      mMaxTimeoutInSec(maxTimeoutInSec),
-     mGetShotTimeoutInMs(maxGetShotTimeoutInMs),
-     mKeepRunning{true} {};
+     mGetShotTimeoutInMs(maxGetShotTimeoutInMs) {};
 
 Notifier::~Notifier() {
    Reset();
@@ -68,13 +67,11 @@ bool Notifier::Initialize(const size_t handshakeCount) {
  */
 std::string Notifier::ReceiveData() {
    StopWatch waitCheck;
-   while (waitCheck.ElapsedSec() < mMaxTimeoutInSec && !zctx_interrupted && mKeepRunning.load()) {
-      std::string msg;
-      if (!zctx_interrupted && mHandshakeQueue.get() != nullptr && mHandshakeQueue->GetShot(msg, mGetShotTimeoutInMs)) {         
-         return msg;
-      }
+   std::string msg = "";
+   while (waitCheck.ElapsedSec() < mMaxTimeoutInSec && !zctx_interrupted && msg == "") {
+      mHandshakeQueue->GetShot(msg, mGetShotTimeoutInMs);
    }
-   return "";
+   return msg;
 }
    
 /*
@@ -182,7 +179,6 @@ size_t Notifier::ReceiveConfirmation() {
 void Notifier::Reset() {
    mQueue.reset(nullptr);
    mHandshakeQueue.reset(nullptr);
-   mKeepRunning.store(false);
 }
 
 /*
