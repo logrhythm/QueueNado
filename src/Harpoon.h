@@ -8,10 +8,8 @@
 
 #pragma once
 #include <string>
+#include <czmq.h>
 
-
-struct _zctx_t;
-typedef struct _zctx_t zctx_t;
 /** Harpoon-Kraken is a PipeLine communication pattern used to
 *  stream files or plain data from a server to a client. 
 * 
