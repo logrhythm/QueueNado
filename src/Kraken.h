@@ -30,6 +30,9 @@ public:
 
    enum class Spear : std::int8_t { MISS = -1, IMPALED = 0 };
    enum class Battling : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, CONTINUE = 0 };
+   enum class Status : std::int8_t {BLEEDING=1, DONE=2, ERROR_MAYHEM=3, THE_END=4};
+   typedef std::vector<uint8_t> Chunks;
+
 
    Kraken();
    Spear SetLocation(const std::string& location);
@@ -37,10 +40,13 @@ public:
    void ChangeDefaultMaxChunkSizeInBytes(const size_t bytes);
    size_t MaxChunkSizeInBytes();
    Battling FinalBreach();
-   Battling SendTidalWave(const std::vector<uint8_t>& data);
+   Battling SendTidalWave(const Kraken::Chunks& data);
    virtual ~Kraken();
+
+   
     
 protected:
+   
    Battling SendRawData(const uint8_t*, int size);
    Battling PollTimeout(int timeoutMs);
    Battling NextChunkId(); 

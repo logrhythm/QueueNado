@@ -133,7 +133,7 @@ Kraken::Battling Kraken::NextChunkId(){
 * @param dataToSend
 * @return status of the send operation
 */
-Kraken::Battling Kraken::SendTidalWave(const std::vector<uint8_t>& dataToSend){
+Kraken::Battling Kraken::SendTidalWave(const Kraken::Chunks& dataToSend){
    size_t size = dataToSend.size();
    if(size == 0){
       return Kraken::Battling::CONTINUE;   
