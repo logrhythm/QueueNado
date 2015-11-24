@@ -28,6 +28,20 @@ namespace KrakenBattle {
    * uuid<ERROR>error: stop sending for one UUID, reason for error is given
    * uuid<DONE>: done with sending for one UUID, completed without error
    * empty_uuid<END>: done with sending for ALL UUIDs.
+   * 
+   *
+   * 
+   * Detailed explanation
+   * Harpoon Kraken enables data streaming from a server to a client. ( pub:sub :: 1:1 communication).
+   * Kraken: Server that sends the data
+   * =======
+   * SendTidalWave() : Send a data chunk to the client (harpoon). Blocks until there is space available in the queue. Returns TIMEOUT, INTERRUPT, CONTINUE status to indicate the status of the underlying queue.
+   * FinalBreach() : Call to client (harpoon) to indicate the end of a stream.
+   * 
+   * Harpoon: Client that receives the data
+   * =========
+   * Aim() : Set location of the queue (tcp)
+   * Heave() : Request data and wait for the data to be returned. Returns TIMEOUT, INTERRUPT, VICTORIOUS, CONTINUE to indicate status of the stream. VICTORIOUS means the stream has completed.
    */
    enum class SendType {Data, Done, Error, End};
    enum class ProgressType{Continue, Stop};

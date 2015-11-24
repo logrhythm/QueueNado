@@ -27,6 +27,8 @@ namespace KrakenBattle {
    * @param data to send (optional, used for SendType::Data)
    * @param error message (optional, used for SendType::Error)
    * @return merged data uuid<SendType>optional:data/optional:error_msg
+   *
+   * Ref: KrakenBattle.h for detailed information regarding the sending
    */
    Kraken::Chunks  MergeData(const std::string& uuid, const KrakenBattle::SendType& type, const Kraken::Chunks& data, const std::string& error_msg) {
       const std::string sendType = EnumToString(type);
@@ -55,6 +57,8 @@ namespace KrakenBattle {
    * @param sendState
    * @param chunk to send (optional content, for SendType::Data)
    * @param error to send (optional content, for SendType::Error)
+   *
+   * Ref: KrakenBattle.h for detailed information regarding the sending
    */
    Kraken::Battling SendChunks(Kraken* kraken, const std::string& uuid, const KrakenBattle::SendType& sendState, const Kraken::Chunks& chunk, const std::string& error) {
       const size_t kSplitSize = kraken->MaxChunkSizeInBytes();
@@ -107,6 +111,8 @@ namespace KrakenBattle {
    * @param chunk to send to the client should have valid data on SendState::Data
    * @param sendState (End, Done, Data, Error)
    * @param error should have meaningful content on  SendState::Error
+   *
+   * Ref: KrakenBattle.h for detailed information regarding the sending
    */
    KrakenBattle::ProgressType  ForwardChunksToClient(Kraken* kraken, const std::string& uuid, const Kraken::Chunks& chunk,
          const KrakenBattle::SendType& sendState, const std::string& error) {
