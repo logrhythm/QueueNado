@@ -34,6 +34,7 @@ namespace KrakenBattle {
 
    std::vector<uint8_t>  MergeData(const std::string& uuid, const KrakenBattle::SendType& type, const Kraken::Chunks& optional_data, const std::string& optional_error_msg);
    KrakenBattle::ProgressType  SendChunks(Kraken* kraken, const std::string& uuid, const Kraken::Chunks& chunk, const KrakenBattle::SendType& type, const std::string& error);
-   KrakenBattle::ProgressType  ForwardPCapChunksToClient(Kraken* kraken, const std::string& uuid,const Kraken::Chunks& chunk, const KrakenBattle::SendType& sendState, const std::string& error);
-   std::string SendTypeToString(const KrakenBattle::SendType& type);
+   KrakenBattle::ProgressType  ForwardChunksToClient(Kraken* kraken, const std::string& uuid,const Kraken::Chunks& chunk, const KrakenBattle::SendType& sendState, const std::string& error);
+   std::string EnumToString(const KrakenBattle::SendType& type);
+   std::string EnumToString(const KrakenBattle::ProgressType& type);
 } // KrakenBattle

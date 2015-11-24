@@ -29,7 +29,7 @@ namespace KrakenBattle {
    * @return merged data uuid<SendType>optional:data/optional:error_msg
    */
    Kraken::Chunks  MergeData(const std::string& uuid, const KrakenBattle::SendType& type, const Kraken::Chunks& data, const std::string& error_msg) {
-      const std::string sendType = SendTypeToString(type);
+      const std::string sendType = EnumToString(type);
       const std::string& uuidToSend = (SendType::End == type ? emptyUUID : uuid);
       std::vector<uint8_t> merged;
       merged.reserve(uuidToSend.size() + sendType.size() + data.size() + error_msg.size());
@@ -113,13 +113,13 @@ namespace KrakenBattle {
       auto sendingResult = SendChunks(kraken, uuid, sendState, chunk, error);
       bool result = (Kraken::Battling::CONTINUE == sendingResult);
       LOG_IF(WARNING, (!result)) << "Failed to send 'SendTidalWave'" << ", uuid: " << uuid
-                                 << ", type: " << KrakenBattle::SendTypeToString(sendState);
+                                 << ", type: " << KrakenBattle::EnumToString(sendState);
 
       if (SendType::End == sendState) {
          sendingResult = kraken->FinalBreach();
          result = (Kraken::Battling::CONTINUE == sendingResult);
          LOG_IF(WARNING, (!result)) << "Failed to send 'FinalBreach'" << ", uuid: " << uuid
-                                    << ", type: " << KrakenBattle::SendTypeToString(sendState);
+                                    << ", type: " << KrakenBattle::EnumToString(sendState);
       }
 
       auto status = KrakenBattle::ProgressType::Stop;
@@ -132,13 +132,24 @@ namespace KrakenBattle {
 
 
 
-   std::string SendTypeToString(const KrakenBattle::SendType& type) {
+   std::string EnumToString(const KrakenBattle::SendType& type) {
       std::string textType = "<ERROR>";
       switch (type) {
          case SendType::Data : textType = "<DATA>"; break;
          case SendType::Done : textType = "<DONE>"; break;
          case SendType::Error : textType = "<ERROR>"; break;
          case SendType::End : textType = "<END>"; break;
+         default:
+            LOG(FATAL) << "Unknown Send::Type: " << static_cast<int>(type);
+      }
+      return textType;
+   }
+
+      std::string EnumToString(const KrakenBattle::ProgressType& type) {
+      std::string textType = "<ERROR>";
+      switch (type) {
+         case ProgressType::Stop : textType = "ProgressType::Stop"; break;
+         case ProgressType::Continue : textType = "ProgressType::Continue"; break;
          default:
             LOG(FATAL) << "Unknown Send::Type: " << static_cast<int>(type);
       }
