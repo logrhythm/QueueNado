@@ -39,7 +39,7 @@ public:
    void ChangeDefaultMaxChunkSizeInBytes(const size_t bytes);
    size_t MaxChunkSizeInBytes();
    Battling FinalBreach();
-   Battling SendTidalWave(const Kraken::Chunks& data);
+   Battling SendTidalWave(const Chunks& data);
    virtual ~Kraken();
 
 

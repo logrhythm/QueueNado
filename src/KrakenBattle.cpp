@@ -21,7 +21,7 @@ namespace KrakenBattle {
 
    /**
    * formats the data to send to the Harpoon according to the specification for
-   *  @ref file and pcap sending
+   * data transfers
    * @param uuid
    * @param type one of Data, Done, Error, End
    * @param data to send (optional, used for SendType::Data)
@@ -77,7 +77,7 @@ namespace KrakenBattle {
          CHECK(toSend.size() == kSplitSize);
          result = kraken->SendTidalWave(toSend);
 
-         for (size_t i = kSplitSize; i < kTotalSize; i += kSplitSizeAdjusted) {
+         for (size_t i = kSplitSize; i <= kTotalSize; i += kSplitSizeAdjusted) {
             if (result != Kraken::Battling::CONTINUE) {
                LOG(WARNING) << "Sending UUID: " << uuid << ", #split break: " << i << ", kTotalSize: " << kTotalSize
                             << ", kSplitSizeAdjusted: " << kSplitSizeAdjusted << ", result: " << static_cast<int>(result);
@@ -145,7 +145,7 @@ namespace KrakenBattle {
       return textType;
    }
 
-      std::string EnumToString(const KrakenBattle::ProgressType& type) {
+   std::string EnumToString(const KrakenBattle::ProgressType& type) {
       std::string textType = "<ERROR>";
       switch (type) {
          case ProgressType::Stop : textType = "ProgressType::Stop"; break;
