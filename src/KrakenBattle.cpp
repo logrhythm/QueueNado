@@ -100,7 +100,7 @@ namespace KrakenBattle {
 
 
    /**
-   * Forward  chunks to the client. This will be repeatedly called until an error
+   * Forward  chunks to the client. This can be repeatedly called until an error
    * occurrs (interrupt, timeout) or all is transmitted
    * @param kraken to send the harpoon/client
    * @param uuid to for unique identification
