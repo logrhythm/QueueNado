@@ -35,6 +35,8 @@ public:
    Battling Heave(std::vector<uint8_t>& data);
    virtual ~Harpoon();
 
+   std::string EnumToString(Battling type);
+
 protected:
    Battling PollTimeout(int timeoutMs);
    void RequestChunks();

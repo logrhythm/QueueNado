@@ -16,6 +16,8 @@
 #include <future>
 #include <StopWatch.h>
 #include <cstdlib>
+#include <g3log/g3log.hpp>
+
 
 namespace {
    Kraken::Chunks GetRandomData(const size_t sizeOfData) {
@@ -40,6 +42,9 @@ namespace {
       return data;
    }
 
+
+
+
 } // anonymous
 
 
@@ -57,6 +62,9 @@ namespace {
 // 5. uuid<END>
 TEST_F(KrakenIntegrationTest, VerifyCommunication) {
    using namespace KrakenBattle;
+   ASSERT_EQ(zctx_interrupted, false);
+
+   LOG(INFO) << "__STARTING TEST___";
 
    Kraken::Chunks header = {'h', 'e', 'l', 'l', 'o'};
 
@@ -74,24 +82,48 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
    auto spear = kraken.SetLocation(queue);
    EXPECT_EQ(spear, Kraken::Spear::IMPALED) << "spear: " << static_cast<int>(spear);
 
-   size_t tooHighValue = 100;
-   std::shared_ptr<std::atomic<size_t>> allReceived {new std::atomic<size_t>{tooHighValue}};
+   std::shared_ptr<std::atomic<size_t>> expectedToReceive {new std::atomic<size_t>{0}};
    std::shared_ptr<Harpoon> harpoon = std::make_shared<Harpoon>();
-   harpoon->Aim(queue);
+   auto spearResult = harpoon->Aim(queue);
+   ASSERT_EQ(spearResult, Harpoon::Spear::IMPALED);
    harpoon->MaxWaitInMs(1000);
 
    // RECEIVER
    using HarpoonReceived = std::vector<Kraken::Chunks>;
-   std::future<HarpoonReceived> willReceive = std::async(std::launch::async,  [allReceived, harpoon] {
+   std::future<HarpoonReceived> willReceive = std::async(std::launch::async,  [expectedToReceive, harpoon] {
       StopWatch stopWatch;
       HarpoonReceived data;
-      while (allReceived->load() != data.size() && stopWatch.ElapsedSec() < 10) {
+      size_t counter = 0;
+      while(expectedToReceive->load() == 0 && stopWatch.ElapsedSec() < 10) {
+         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+
+ 
+      size_t expected = expectedToReceive->load();
+      while (data.size() != expected  && stopWatch.ElapsedSec() < 10) {
+         LOG(INFO) << "Attempt to receive from Kraken: #" << counter;
          Kraken::Chunks blood;
-         harpoon->Heave(blood);
+         auto harpoonResult = harpoon->Heave(blood);
+         LOG(INFO) << "#" << counter << " Received from Kraken bytes:" << blood.size();
+         ++counter;
+         EXPECT_TRUE(Harpoon::Battling::CONTINUE == harpoonResult) 
+            << harpoon->EnumToString(harpoonResult) << ", counter: " << counter << "/" << expectedToReceive->load() << " received: " << data.size() << "/" << expected;
+
          if (blood.size() > 0) {
             data.push_back(blood);
+         } else {
+            ADD_FAILURE() << "counter: " << counter;
+            return data;
          }
       }
+
+      // Receive final breach
+      Kraken::Chunks blood;
+      auto harpoonResult = harpoon->Heave(blood);
+      EXPECT_EQ(harpoonResult, Harpoon::Battling::VICTORIOUS) << harpoon->EnumToString(harpoonResult);
+      EXPECT_EQ(blood.size(), 0);
+
+      LOG(INFO) << "Expected: " << expected << ". Received: " << data.size();
       return data;
    });
 
@@ -100,23 +132,36 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
    // SENDER
    // send all stuff - happy path
    const std::string noError = {"no error"};
-   // send header
+   const size_t kExpectedNumberOfSendActions = 6;
+
+   // signal the async job to exit before the timer if all the
+   // expected data is received
+   expectedToReceive->store(kExpectedNumberOfSendActions);
+   const size_t kraken_header_size = 25;
+
+   // 0. send header
+   LOG(INFO) << "#0 Kraken is sending bytes:  " << header.size() + kraken_header_size;
    auto status = KrakenBattle::ForwardChunksToClient(&kraken, session, header, SendType::Data, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue) << "received: " << KrakenBattle::EnumToString(status);
 
-   // send data1: world
+   // 1. send data1: world
+   LOG(INFO) << "#1 Kraken is sending: " << chunk1.size() + kraken_header_size;
    status = KrakenBattle::ForwardChunksToClient(&kraken, session, chunk1, SendType::Data, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue)<< "received: " << KrakenBattle::EnumToString(status);
 
-   // send data2: 10MB - which will be split up multiple times
+   // 2. send data2: 10MB - which will be split up multiple times
+   LOG(INFO) << "#2 - #3 - #4 Kraken is sending: " << chunk2.size() + kraken_header_size  + kraken_header_size; // calculated to be two sends
    status = KrakenBattle::ForwardChunksToClient(&kraken, session, chunk2, SendType::Data, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue)<< "received: " << KrakenBattle::EnumToString(status);
 
-   // send data3: done
+   // 3. send data3: done
    const Kraken::Chunks noChunk = {};
+   LOG(INFO) << "#4 Kraken is sending: " << noChunk.size()  + kraken_header_size;
    status = KrakenBattle::ForwardChunksToClient(&kraken, session, noChunk, SendType::Done, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue) << "received: " << KrakenBattle::EnumToString(status);
-   // send data4: end
+   
+   // 4. send data4: end
+   LOG(INFO) << "#5 Kraken is sending: " << noChunk.size()  + kraken_header_size;
    status = KrakenBattle::ForwardChunksToClient(&kraken, session, noChunk, SendType::End, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue) << "received: " << KrakenBattle::EnumToString(status);
 
@@ -131,8 +176,6 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
    // 3. uuid<DATA> - part2 10MB
    // 4. uuid<DONE>
    // 5. uuid<END>
-   const size_t kExpectedNumberOfSendActions = 6;
-   allReceived->store(kExpectedNumberOfSendActions); // signal the async job to exit before the timer
    const auto kReceived = willReceive.get();
    const auto kChunkHeader = header;
    const auto kExpectedHeader = MergeData(session, SendType::Data, kChunkHeader, noError);
@@ -172,6 +215,9 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
    vec = kReceived[5];
    auto endExpected = MergeData(session, SendType::End, noChunk, noError);
    EXPECT_TRUE((endExpected == vec)) << vectorToString(vec);
+
+   
+   LOG(INFO) << "___ENDING TEST ____";
    
 }
 

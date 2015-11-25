@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include <FileIO.h>
+#include <czmq.h>
 
 class HarpoonKrakenTests : public ::testing::Test {
 public:
@@ -30,6 +31,7 @@ protected:
    };
 
    virtual void TearDown() {
+      zctx_interrupted = false;
    };
 
 

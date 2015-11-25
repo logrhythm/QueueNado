@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gtest/gtest.h>
+#include <czmq.h>
 
 class KrakenToHarpoonTests : public ::testing::Test {
 public:

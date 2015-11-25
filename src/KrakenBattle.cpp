@@ -119,13 +119,16 @@ namespace KrakenBattle {
       auto sendingResult = SendChunks(kraken, uuid, sendState, chunk, error);
       bool result = (Kraken::Battling::CONTINUE == sendingResult);
       LOG_IF(WARNING, (!result)) << "Failed to send 'SendTidalWave'" << ", uuid: " << uuid
-                                 << ", type: " << KrakenBattle::EnumToString(sendState);
+                                 << ", type: " << KrakenBattle::EnumToString(sendState)
+                                 << ", sending result: " << kraken->EnumToString(sendingResult);
+
 
       if (SendType::End == sendState) {
          sendingResult = kraken->FinalBreach();
          result = (Kraken::Battling::CONTINUE == sendingResult);
          LOG_IF(WARNING, (!result)) << "Failed to send 'FinalBreach'" << ", uuid: " << uuid
-                                    << ", type: " << KrakenBattle::EnumToString(sendState);
+                                    << ", type: " << KrakenBattle::EnumToString(sendState)
+                                    << ", sending result: " << kraken->EnumToString(sendingResult);
       }
 
       auto status = KrakenBattle::ProgressType::Stop;

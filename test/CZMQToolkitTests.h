@@ -86,6 +86,7 @@ protected:
          zctx_destroy(&mContext);
       }
       
+      zctx_interrupted = false;
    }
 
    std::string mTarget;
