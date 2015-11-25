@@ -101,10 +101,8 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
  
       size_t expected = expectedToReceive->load();
       while (data.size() != expected  && stopWatch.ElapsedSec() < 10) {
-         LOG(INFO) << "Attempt to receive from Kraken: #" << counter;
          Kraken::Chunks blood;
          auto harpoonResult = harpoon->Heave(blood);
-         LOG(INFO) << "#" << counter << " Received from Kraken bytes:" << blood.size();
          ++counter;
          EXPECT_TRUE(Harpoon::Battling::CONTINUE == harpoonResult) 
             << harpoon->EnumToString(harpoonResult) << ", counter: " << counter << "/" << expectedToReceive->load() << " received: " << data.size() << "/" << expected;
@@ -122,8 +120,6 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
       auto harpoonResult = harpoon->Heave(blood);
       EXPECT_EQ(harpoonResult, Harpoon::Battling::VICTORIOUS) << harpoon->EnumToString(harpoonResult);
       EXPECT_EQ(blood.size(), 0);
-
-      LOG(INFO) << "Expected: " << expected << ". Received: " << data.size();
       return data;
    });
 
@@ -137,31 +133,25 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
    // signal the async job to exit before the timer if all the
    // expected data is received
    expectedToReceive->store(kExpectedNumberOfSendActions);
-   const size_t kraken_header_size = 25;
 
    // 0. send header
-   LOG(INFO) << "#0 Kraken is sending bytes:  " << header.size() + kraken_header_size;
    auto status = KrakenBattle::ForwardChunksToClient(&kraken, session, header, SendType::Data, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue) << "received: " << KrakenBattle::EnumToString(status);
 
    // 1. send data1: world
-   LOG(INFO) << "#1 Kraken is sending: " << chunk1.size() + kraken_header_size;
    status = KrakenBattle::ForwardChunksToClient(&kraken, session, chunk1, SendType::Data, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue)<< "received: " << KrakenBattle::EnumToString(status);
 
    // 2. send data2: 10MB - which will be split up multiple times
-   LOG(INFO) << "#2 - #3 - #4 Kraken is sending: " << chunk2.size() + kraken_header_size  + kraken_header_size; // calculated to be two sends
    status = KrakenBattle::ForwardChunksToClient(&kraken, session, chunk2, SendType::Data, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue)<< "received: " << KrakenBattle::EnumToString(status);
 
    // 3. send data3: done
    const Kraken::Chunks noChunk = {};
-   LOG(INFO) << "#4 Kraken is sending: " << noChunk.size()  + kraken_header_size;
    status = KrakenBattle::ForwardChunksToClient(&kraken, session, noChunk, SendType::Done, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue) << "received: " << KrakenBattle::EnumToString(status);
    
    // 4. send data4: end
-   LOG(INFO) << "#5 Kraken is sending: " << noChunk.size()  + kraken_header_size;
    status = KrakenBattle::ForwardChunksToClient(&kraken, session, noChunk, SendType::End, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue) << "received: " << KrakenBattle::EnumToString(status);
 
