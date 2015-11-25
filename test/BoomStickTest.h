@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 #include "BoomStick.h"
 #include <pthread.h>
+#include <czmq.h>
 
 class BoomStickTest : public ::testing::Test
 {
@@ -16,7 +17,9 @@ public:
 
 protected:
 	virtual void SetUp() {}
-	virtual void TearDown() {}
+	virtual void TearDown() {
+      zctx_interrupted = false;
+   }
  
    std::string mAddress;
 };

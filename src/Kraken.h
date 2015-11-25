@@ -42,7 +42,7 @@ public:
    Battling SendTidalWave(const Chunks& data);
    virtual ~Kraken();
 
-
+   std::string EnumToString(Battling type);
     
 protected:
    

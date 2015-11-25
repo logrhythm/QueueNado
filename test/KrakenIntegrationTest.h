@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <cstdlib>
+#include <czmq.h>
 
 class KrakenIntegrationTest : public ::testing::Test {
 public:
@@ -22,11 +23,13 @@ public:
 
 protected:
    virtual void SetUp() {
+      zctx_interrupted = false;
       system(mTearDownTestDirectory.c_str());
       EXPECT_EQ(0, system(mCreateTestDirectory.c_str()));
    }
 
    virtual void TearDown() {
+      zctx_interrupted = false;
       EXPECT_EQ(0, system(mTearDownTestDirectory.c_str()));
    }
 

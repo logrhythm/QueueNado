@@ -1,6 +1,7 @@
 #pragma once
 #include <gtest/gtest.h>
 #include <FileIO.h>
+#include <czmq.h>
 
 class NotifierTest : public ::testing::Test {
 public:
@@ -19,6 +20,7 @@ protected:
    virtual void TearDown() {
       FileIO::RemoveFileAsRoot(notifierIPCPath);
       FileIO::RemoveFileAsRoot(handshakeIPCPath);
+      zctx_interrupted = false;
    };
 
 private:

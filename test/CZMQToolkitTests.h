@@ -85,7 +85,6 @@ protected:
       if (mContext) {
          zctx_destroy(&mContext);
       }
-      
    }
 
    std::string mTarget;
