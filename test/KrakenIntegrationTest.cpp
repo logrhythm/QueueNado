@@ -64,7 +64,7 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
    using namespace KrakenBattle;
    ASSERT_EQ(zctx_interrupted, false);
 
-   LOG(INFO) << "__STARTING TEST___";
+
 
    Kraken::Chunks header = {'h', 'e', 'l', 'l', 'o'};
 
@@ -216,8 +216,6 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
    auto endExpected = MergeData(session, SendType::End, noChunk, noError);
    EXPECT_TRUE((endExpected == vec)) << vectorToString(vec);
 
-   
-   LOG(INFO) << "___ENDING TEST ____";
    
 }
 
