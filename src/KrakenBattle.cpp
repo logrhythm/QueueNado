@@ -149,7 +149,7 @@ namespace KrakenBattle {
          case SendType::Error : textType = "<ERROR>"; break;
          case SendType::End : textType = "<END>"; break;
          default:
-            LOG(FATAL) << "Unknown Send::Type: " << static_cast<int>(type);
+            LOG(FATAL) << "Unknown SendType: " << static_cast<int>(type);
       }
       return textType;
    }
@@ -160,7 +160,7 @@ namespace KrakenBattle {
          case ProgressType::Stop : textType = "ProgressType::Stop"; break;
          case ProgressType::Continue : textType = "ProgressType::Continue"; break;
          default:
-            LOG(FATAL) << "Unknown Send::Type: " << static_cast<int>(type);
+            LOG(FATAL) << "Unknown ProgressType: " << static_cast<int>(type);
       }
       return textType;
    }
