@@ -7,13 +7,15 @@
 
 
 
+#pragma once
+
 #include "KrakenBattle.h"
 #include "Kraken.h"
 #include <Result.h>
 #include <string>
 #include <tuple>
 
-#pragma once
+
 
 
 /**
@@ -32,12 +34,6 @@ namespace HarpoonBattle {
       Done = KrakenBattle::SendType::Done,
       Error = KrakenBattle::SendType::Error,
       End = KrakenBattle::SendType::End
-   };
-
-   struct Received {
-      ReceivedType type;
-      Kraken::Chunks chunk;
-      std::string session;
    };
 
    std::string EnumToString(const ReceivedType& type);

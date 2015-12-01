@@ -92,10 +92,7 @@ namespace HarpoonBattle {
       Kraken::Chunks data;
       const size_t distance = std::distance(typeEnd, chunks.end());
       data.reserve(distance);
-      LOG(INFO) << "distance: " << distance;
       std::copy(typeEnd, chunks.end(), std::back_inserter(data));
-
-      //auto type = HarpoonBattle::StringToEnum(rawType);
       return std::make_tuple(type, data, session);
    }
 
