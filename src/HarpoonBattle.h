@@ -39,8 +39,8 @@ namespace HarpoonBattle {
    std::string EnumToString(const ReceivedType& type);
    ReceivedType StringToEnum(const std::string& type);
 
-   enum ReceivedPartsIndex {IndexOfReceivedType, IndexOfChunk, IndexOfSession};
-   using ReceivedParts = std::tuple<ReceivedType, Kraken::Chunks, std::string>;
+   enum ReceivedPartsIndex {IndexOfSession, IndexOfReceivedType, IndexOfChunk};
+   using ReceivedParts = std::tuple<std::string, ReceivedType, Kraken::Chunks>;
 
 
    ReceivedParts ExtractToParts(const Kraken::Chunks& chunks);

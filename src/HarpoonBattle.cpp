@@ -64,7 +64,7 @@ namespace HarpoonBattle {
       auto uuidEnd = std::find(chunks.begin(), chunks.end(), '<');
       if (uuidEnd == chunks.end() || uuidEnd == chunks.begin()) {
          LOG(WARNING) << "received chunks does not conform to Kraken-Harpoon communication protocol";
-         return std::make_tuple(ReceivedType::Error, noChunks, "no session");
+         return std::make_tuple("", ReceivedType::Error, noChunks);
       }
 
       std::string session;
@@ -72,10 +72,10 @@ namespace HarpoonBattle {
       
 
       // Extract type
-      auto typeEnd = std::find(chunks.begin(), chunks.end(), '>');
-      if (typeEnd == chunks.end()) {
+      auto typeEnd = std::find(uuidEnd, chunks.end(), '>');
+      if (typeEnd == chunks.end() || typeEnd == uuidEnd) {
          LOG(WARNING) << "received chunks does not conform to Kraken-Harpoon communication protocol";
-         return std::make_tuple(ReceivedType::Error, noChunks, session);
+         return std::make_tuple(session, ReceivedType::Error, noChunks);
       }
       typeEnd = typeEnd+1; // this is possibly chunks.end()
       std::string rawType;
@@ -84,7 +84,7 @@ namespace HarpoonBattle {
 
       // End, Done or Error received
       if (type != ReceivedType::Data) {
-        return std::make_tuple(type, noChunks, session);
+        return std::make_tuple(session, type, noChunks);
       }
 
 
@@ -93,7 +93,7 @@ namespace HarpoonBattle {
       const size_t distance = std::distance(typeEnd, chunks.end());
       data.reserve(distance);
       std::copy(typeEnd, chunks.end(), std::back_inserter(data));
-      return std::make_tuple(type, data, session);
+      return std::make_tuple(session, type, data);
    }
 
 } // HarpoonBattle

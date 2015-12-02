@@ -30,7 +30,7 @@ TEST_F(HarpoonBattleTest, EnumToString) {
 
 }
 
-TEST_F(HarpoonBattleTest, EnumToString_Converted) {
+TEST_F(HarpoonBattleTest, EnumToStringConverted) {
    auto data = HarpoonBattle::EnumToString(static_cast<HarpoonBattle::ReceivedType>(KrakenBattle::SendType::Data));
    auto done = HarpoonBattle::EnumToString(static_cast<HarpoonBattle::ReceivedType>(KrakenBattle::SendType::Done));
    auto error = HarpoonBattle::EnumToString(static_cast<HarpoonBattle::ReceivedType>(KrakenBattle::SendType::Error));
@@ -43,8 +43,8 @@ TEST_F(HarpoonBattleTest, EnumToString_Converted) {
 }
 
 
-// Disabled since it will trigger a fatal shutdown of the logger
-TEST_F(HarpoonBattleTest, EnumToString_Undefined) {
+
+TEST_F(HarpoonBattleTest, EnumToStringUndefined) {
    Death::SetupExitHandler();
    Death::ClearExits();
    EXPECT_FALSE(Death::WasKilled());
@@ -74,11 +74,11 @@ TEST_F(HarpoonBattleTest, StringToEnum) {
 
 
 
-TEST_F(HarpoonBattleTest, ChunksExtracted_DATA) {
+TEST_F(HarpoonBattleTest, ChunksExtractedDATA) {
    const std::string uuid = "some-uuid";
    auto type = KrakenBattle::SendType::Data;
    auto data = KrakenIntegrationHelper::GetRandomData(1024);
-   auto error = std::string("no error");
+   auto error = std::string("no error - ignored");
    auto merged = KrakenBattle::MergeData(uuid, type, data, error);
 
    auto extracted = HarpoonBattle::ExtractToParts(merged);
@@ -96,20 +96,18 @@ TEST_F(HarpoonBattleTest, ChunksExtracted_DATA) {
 }
 
 
-TEST_F(HarpoonBattleTest, ChunksExtracted_DONE) {
+TEST_F(HarpoonBattleTest, ChunksExtractedDONE) {
    const std::string uuid = "some-uuid";
    auto type = KrakenBattle::SendType::Done;
    auto ignored = KrakenIntegrationHelper::GetRandomData(1024);
-   auto error = std::string("no error");
+   auto error = std::string("no error - ignored");
    auto merged = KrakenBattle::MergeData(uuid, type, ignored, error);
 
-   LOG(INFO) << "start here";
    auto extracted = HarpoonBattle::ExtractToParts(merged);
    EXPECT_EQ(std::get<HarpoonBattle::IndexOfSession>(extracted), uuid);
 
    auto extractedType = std::get<HarpoonBattle::IndexOfReceivedType>(extracted);
    EXPECT_EQ(extractedType, HarpoonBattle::ReceivedType::Done);
-   LOG(INFO) << "PAST THIS";
 
    auto extractedChunk = std::get<HarpoonBattle::IndexOfChunk>(extracted);
    auto dataAsString = KrakenIntegrationHelper::vectorToString(ignored);
@@ -119,17 +117,17 @@ TEST_F(HarpoonBattleTest, ChunksExtracted_DONE) {
 }
 
 
-TEST_F(HarpoonBattleTest, ChunksExtracted_END) {
+TEST_F(HarpoonBattleTest, ChunksExtractedEND) {
    const std::string uuid = "some-uuid";
    const std::string expectedUuid = "00000000-0000-0000-0000-000000000000";
    auto type = KrakenBattle::SendType::End;
    Kraken::Chunks ignored;
-   auto error = std::string("no error");
+   auto error = std::string("no error - ignored");
    auto merged = KrakenBattle::MergeData(uuid, type, ignored, error);
 
    auto extracted = HarpoonBattle::ExtractToParts(merged);
    std::string extractedUuid = std::get<HarpoonBattle::IndexOfSession>(extracted);
-   EXPECT_EQ(expectedUuid, expectedUuid);
+   EXPECT_EQ(expectedUuid, extractedUuid);
 
    auto extractedType = std::get<HarpoonBattle::IndexOfReceivedType>(extracted);
    EXPECT_EQ(extractedType, HarpoonBattle::ReceivedType::End);
@@ -143,11 +141,11 @@ TEST_F(HarpoonBattleTest, ChunksExtracted_END) {
 
 
 
-TEST_F(HarpoonBattleTest, ChunksExtracted_ERROR) {
+TEST_F(HarpoonBattleTest, ChunksExtractedERROR) {
    const std::string uuid = "some-uuid";
    auto type = KrakenBattle::SendType::Error;
    Kraken::Chunks ignored;
-   auto error = std::string("no error");
+   auto error = std::string("has error - NOT ignored");
    auto merged = KrakenBattle::MergeData(uuid, type, ignored, error);
 
    auto extracted = HarpoonBattle::ExtractToParts(merged);
@@ -160,8 +158,11 @@ TEST_F(HarpoonBattleTest, ChunksExtracted_ERROR) {
    auto extractedChunk = std::get<HarpoonBattle::IndexOfChunk>(extracted);
    auto dataAsString = KrakenIntegrationHelper::vectorToString(ignored);
    auto extractedChunkAsString = KrakenIntegrationHelper::vectorToString(extractedChunk);
-   EXPECT_TRUE(dataAsString == extractedChunkAsString) << "data: " << dataAsString.size() << ",  extracted: " << extractedChunkAsString.size();
-   EXPECT_EQ(extractedChunkAsString.size(), 0);
+   EXPECT_TRUE(dataAsString != extractedChunkAsString) << "data: " << dataAsString.size() << ",  extracted: " << extractedChunkAsString.size();
+
+   EXPECT_TRUE(error == extractedChunkAsString) << "error: " << error.size() << ",  extracted: " << extractedChunkAsString.size();
+   
+   EXPECT_NE(extractedChunkAsString.size(), 0);
 }
 
 
