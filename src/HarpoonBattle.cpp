@@ -82,8 +82,9 @@ namespace HarpoonBattle {
       std::copy(uuidEnd, typeEnd, std::back_inserter(rawType));
       auto type = StringToEnum(rawType);
 
-      // End, Done or Error received
-      if (type != ReceivedType::Data) {
+      // End or Done received. 
+      // In case of Error then an error message will be part of the chunk data section
+      if (type == ReceivedType::Done || type == ReceivedType::End) {
         return std::make_tuple(session, type, noChunks);
       }
 
