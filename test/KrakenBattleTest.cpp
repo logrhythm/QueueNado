@@ -10,19 +10,15 @@
 #include "Kraken.h"
 #include "KrakenBattle.h"
 #include "Harpoon.h"
+#include "KrakenIntegrationHelper.h"
 
+ using namespace KrakenIntegrationHelper;
 
 namespace {
    const std::string gUuid =  "734a83c7-9435-4605-b1f9-4724c81faf21";
    const std::string gEmptyUuid = "00000000-0000-0000-0000-000000000000";
    const Kraken::Chunks gEmptyData = {};
    const Kraken::Chunks gData = {1, 2, 128, 'k', 'j', '2', '1'};
-
-   std::string vectorToString(const std::vector<uint8_t>& vec) {
-      std::string data;
-      std::copy(vec.begin(), vec.end(), std::back_inserter(data));
-      return data;
-   }
 }
 
 
