@@ -144,6 +144,7 @@ namespace KrakenBattle {
    std::string EnumToString(const KrakenBattle::SendType& type) {
       std::string textType = "<ERROR>";
       switch (type) {
+         case SendType::Begin : textType = "<BEGIN>"; break;
          case SendType::Data : textType = "<DATA>"; break;
          case SendType::Done : textType = "<DONE>"; break;
          case SendType::Error : textType = "<ERROR>"; break;

@@ -30,6 +30,7 @@
 namespace HarpoonBattle {
 
    enum class ReceivedType {
+      Begin = KrakenBattle::SendType::Begin, // optional
       Data = KrakenBattle::SendType::Data,
       Done = KrakenBattle::SendType::Done,
       Error = KrakenBattle::SendType::Error,

@@ -109,7 +109,7 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
    expectedToReceive->store(kExpectedNumberOfSendActions);
 
    // 0. send header
-   auto status = KrakenBattle::ForwardChunksToClient(&kraken, session, header, SendType::Data, noError);
+   auto status = KrakenBattle::ForwardChunksToClient(&kraken, session, header, SendType::Begin, noError);
    EXPECT_EQ(status, KrakenBattle::ProgressType::Continue) << "received: " << KrakenBattle::EnumToString(status);
 
    // 1. send data1: world
@@ -142,7 +142,7 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
    // 5. uuid<END>
    const auto kReceived = willReceive.get();
    const auto kChunkHeader = header;
-   const auto kExpectedHeader = MergeData(session, SendType::Data, kChunkHeader, noError);
+   const auto kExpectedHeader = MergeData(session, SendType::Begin, kChunkHeader, noError);
    const auto kSessionHeader = MergeData(session, SendType::Data, {}, {});
    auto chunk1Expected = MergeData(session, SendType::Data, chunk1, noError);
 
