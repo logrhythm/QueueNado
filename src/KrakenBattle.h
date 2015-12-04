@@ -24,6 +24,8 @@ namespace KrakenBattle {
    * error: error message, a string
    *
    * The data format is as follows
+   * =============================
+   * optional: uuid<BEGIN>filename: send once the curent filename
    * uuid<DATA>data: continously sending pcap chunks
    * uuid<ERROR>error: stop sending for one UUID, reason for error is given
    * uuid<DONE>: done with sending for one UUID, completed without error
@@ -43,7 +45,7 @@ namespace KrakenBattle {
    * Aim() : Set location of the queue (tcp)
    * Heave() : Request data and wait for the data to be returned. Returns TIMEOUT, INTERRUPT, VICTORIOUS, CONTINUE to indicate status of the stream. VICTORIOUS means the stream has completed.
    */
-   enum class SendType {Data, Done, Error, End};
+   enum class SendType {Begin, Data, Done, Error, End};
    enum class ProgressType{Continue, Stop};
 
    std::vector<uint8_t>  MergeData(const std::string& uuid, const KrakenBattle::SendType& type, const Kraken::Chunks& optional_data, const std::string& optional_error_msg);

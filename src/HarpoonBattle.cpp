@@ -15,6 +15,7 @@ namespace HarpoonBattle {
    std::string EnumToString(const ReceivedType& type) {
       std::string textType = "<ERROR>";
       switch (type) {
+         case ReceivedType::Begin : textType = "<BEGIN>"; break;
          case ReceivedType::Data : textType = "<DATA>"; break;
          case ReceivedType::Done : textType = "<DONE>"; break;
          case ReceivedType::Error : textType = "<ERROR>"; break;
@@ -26,7 +27,9 @@ namespace HarpoonBattle {
    }
 
    ReceivedType StringToEnum(const std::string& type) {
-      if (type == "<DATA>") {
+      if (type == "<BEGIN>") {
+         return ReceivedType::Begin;
+      } else if (type == "<DATA>") {
          return ReceivedType::Data;
       } else if (type == "<DONE>") {
          return ReceivedType::Done;
