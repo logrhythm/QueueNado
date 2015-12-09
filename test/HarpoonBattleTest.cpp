@@ -100,9 +100,10 @@ TEST_F(HarpoonBattleTest, MergeDataForDifferentTypes) {
    EXPECT_EQ(merged.size(), 0);
 
    type = KrakenBattle::SendType::End;
-   expectedSize = uuid.size() + EnumToString(type).size() + error.size();
+   const std::string emptyUUID = {"00000000-0000-0000-0000-000000000000"};
+   expectedSize = emptyUUID.size() + EnumToString(type).size();
    merged = KrakenBattle::MergeData(uuid, type, data, error); // uuid + type + error msg.
-   EXPECT_EQ(merged.size(), 41);
+   EXPECT_EQ(merged.size(), expectedSize);
 }
 
 TEST_F(HarpoonBattleTest, ChunksExtractedDATA) {
