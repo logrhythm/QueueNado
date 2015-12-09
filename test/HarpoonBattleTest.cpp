@@ -73,6 +73,38 @@ TEST_F(HarpoonBattleTest, StringToEnum) {
 }
 
 
+TEST_F(HarpoonBattleTest, MergeDataForDifferentTypes) {
+   const std::string uuid = "some-uuid";
+   auto type = KrakenBattle::SendType::Begin;
+   auto error = std::string("no error - ignored");
+   auto data = KrakenIntegrationHelper::GetRandomData(1024);
+   auto merged = KrakenBattle::MergeData(uuid, type, data, error);
+   auto expectedSize = data.size() + uuid.size() + EnumToString(type).size();
+
+   EXPECT_EQ(merged.size(), expectedSize);  // 1024 + uuid + type
+   merged.clear();
+   EXPECT_EQ(merged.size(), 0);
+
+   type = KrakenBattle::SendType::Data;
+   merged = KrakenBattle::MergeData(uuid, type, data, error);  // 1024 + uuid + type
+   expectedSize = data.size() + uuid.size() + EnumToString(type).size();
+   EXPECT_EQ(merged.size(), expectedSize);
+   merged.clear();
+   EXPECT_EQ(merged.size(), 0);
+
+   type = KrakenBattle::SendType::Error;
+   expectedSize = uuid.size() + EnumToString(type).size() + error.size();
+   merged = KrakenBattle::MergeData(uuid, type, data, error); // uuid + type + error msg
+   EXPECT_EQ(merged.size(), expectedSize);
+   merged.clear();
+   EXPECT_EQ(merged.size(), 0);
+
+   type = KrakenBattle::SendType::End;
+   const std::string emptyUUID = {"00000000-0000-0000-0000-000000000000"};
+   expectedSize = emptyUUID.size() + EnumToString(type).size();
+   merged = KrakenBattle::MergeData(uuid, type, data, error); // uuid + type + error msg.
+   EXPECT_EQ(merged.size(), expectedSize);
+}
 
 TEST_F(HarpoonBattleTest, ChunksExtractedDATA) {
    const std::string uuid = "some-uuid";
