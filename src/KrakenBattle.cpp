@@ -39,12 +39,12 @@ namespace KrakenBattle {
       std::copy(uuidToSend.begin(), uuidToSend.end(), std::back_inserter(merged));
       std::copy(sendType.begin(), sendType.end(), std::back_inserter(merged));
 
-      if (SendType::Data == type) {
+      if (SendType::Data == type || SendType::Begin == type) {
          std::copy(data.begin(), data.end(), std::back_inserter(merged));
       } else if (SendType::Error == type) {
          std::copy(error_msg.begin(), error_msg.end(), std::back_inserter(merged));
-      }
-      return merged;
+      } 
+      return merged; 
    }
 
 
