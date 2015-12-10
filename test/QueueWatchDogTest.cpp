@@ -14,11 +14,6 @@ namespace QueueWatchDogTestHelpers {
    const int DUMMY_CRASH_SIGNAL = 35;
    const size_t waitTillExitInSeconds = 1;
    const std::chrono::milliseconds duration(50);
-   const std::string ipcPrefix = "ipc:///tmp/";
-   const std::string notifierQueueName = "QueueWatchDogTest.ipc";
-   const std::string notifierHandshakeQueueName = "QueueWatchDogTestHandshake.ipc";
-   std::string notifierQueue = ipcPrefix + notifierQueueName;
-   std::string notifierHandshakeQueue = ipcPrefix + notifierHandshakeQueueName;
    std::atomic<bool> system_saw_signal(false);
    const size_t numberOfListeners = 1;
 
@@ -40,8 +35,7 @@ TEST_F(QueueWatchDogTest, CatchUserSignal_withNotifier) {
    std::signal(35, QueueWatchDogTestHelpers::UserSignalHandler);
 
    // Set up a notifier
-   std::unique_ptr<Notifier> notifier = Notifier::CreateNotifier(QueueWatchDogTestHelpers::notifierQueue,
-                                                                 QueueWatchDogTestHelpers::notifierHandshakeQueue,
+   std::unique_ptr<Notifier> notifier = Notifier::CreateNotifier(notifierQueue, notifierHandshakeQueue,
                                                                  QueueWatchDogTestHelpers::numberOfListeners);
 
    // Verify that the user signal 35 has not been seen
@@ -51,9 +45,8 @@ TEST_F(QueueWatchDogTest, CatchUserSignal_withNotifier) {
       QueueWatchDog restartWD(__FUNCTION__,
                               QueueWatchDogTestHelpers::waitTillExitInSeconds,
                               QueueWatchDogTestHelpers::DUMMY_CRASH_SIGNAL,
-                              QueueWatchDogTestHelpers::notifierQueue,
-                              QueueWatchDogTestHelpers::notifierHandshakeQueue);
-      QueueWatchDogTestHelpers::SleepTestMS(100);
+                              notifierQueue, notifierHandshakeQueue);
+      QueueWatchDogTestHelpers::SleepTestMS(500);
 
       // Notify the WatchDog that it is time to raise the signal
       EXPECT_EQ(notifier->Notify(), QueueWatchDogTestHelpers::numberOfListeners);
