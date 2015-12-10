@@ -61,6 +61,7 @@ public:
 protected:
 
    virtual void SetUp() {
+      zctx_interrupted = false;
    };
 
    virtual void TearDown() {
