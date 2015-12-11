@@ -26,7 +26,7 @@ class Harpoon {
 public: 
 
    enum class Spear : std::int8_t { MISS = -1, IMPALED = 0 };
-   enum class Battling : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, VICTORIOUS = 0, CONTINUE = 1 };
+   enum class Battling : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, VICTORIOUS = 0, CONTINUE = 1, ABORT =2 };
 
    Harpoon();
 
