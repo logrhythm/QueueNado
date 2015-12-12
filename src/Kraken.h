@@ -29,7 +29,7 @@ class Kraken {
 public:
 
    enum class Spear : std::int8_t { MISS = -1, IMPALED = 0 };
-   enum class Battling : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, CONTINUE = 0, ABORTED = 1 };
+   enum class Battling : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, CONTINUE = 0, CANCEL = 1 };
    typedef std::vector<uint8_t> Chunks;
 
 
@@ -53,6 +53,7 @@ protected:
    void FreeChunk();
 
 private:
+   const std::string kCancel = {"<CANCEL>"};
    void* mRouter;
    zctx_t* mCtx;
    std::string mLocation;

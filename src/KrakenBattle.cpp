@@ -73,7 +73,6 @@ namespace KrakenBattle {
       if (kTotalSize <= kSplitSize) {
          result = kraken->SendTidalWave(kTotalToSend);
       } else {
-
          std::vector<uint8_t> toSend;
          toSend.reserve(kSplitSize);
          toSend.assign(kTotalToSend.begin(), kTotalToSend.begin() + kSplitSize);
@@ -84,7 +83,7 @@ namespace KrakenBattle {
          for (size_t i = kSplitSize; i <= kTotalSize; i += kSplitSizeAdjusted) {
             if (result != Kraken::Battling::CONTINUE) {
                LOG(WARNING) << "Sending UUID: " << uuid << ", #split break: " << i << ", kTotalSize: " << kTotalSize
-                            << ", kSplitSizeAdjusted: " << kSplitSizeAdjusted << ", result: " << static_cast<int>(result);
+                            << ", kSplitSizeAdjusted: " << kSplitSizeAdjusted << ", result: " << kraken->EnumToString(result) << ":" << static_cast<int>(result);
                break;
             }
 
@@ -118,17 +117,24 @@ namespace KrakenBattle {
          const KrakenBattle::SendType& sendState, const std::string& error) {
       auto sendingResult = SendChunks(kraken, uuid, sendState, chunk, error);
       bool result = (Kraken::Battling::CONTINUE == sendingResult);
-      LOG_IF(WARNING, (!result)) << "Failed to send 'SendTidalWave'" << ", uuid: " << uuid
+      LOG_IF(WARNING, (!result)) << "When attempting to send 'SendTidalWave'" << ", uuid: " << uuid
                                  << ", sendState: " << KrakenBattle::EnumToString(sendState)
-                                 << ", sending result: " << kraken->EnumToString(sendingResult);
+                                 << ", Communication result was:" << kraken->EnumToString(sendingResult);
 
-
+      // No fancy exit if the client called cancel
+      if (Kraken::Battling::CANCEL == sendingResult) {
+         return KrakenBattle::ProgressType::Stop;
+      }
+   
+      // In case of end was the final sending. 
       if (SendType::End == sendState) {
          sendingResult = kraken->FinalBreach();
+
+         // For enything other than CONTINUE as result we will return STOP
          result = (Kraken::Battling::CONTINUE == sendingResult);
-         LOG_IF(WARNING, (!result)) << "Failed to send 'FinalBreach'" << ", uuid: " << uuid
+         LOG_IF(WARNING, (!result)) << "When attempting to  send 'FinalBreach'" << ", uuid: " << uuid
                                     << ", sendState: " << KrakenBattle::EnumToString(sendState)
-                                    << ", sending result: " << kraken->EnumToString(sendingResult);
+                                    << ", Communication result was: " << kraken->EnumToString(sendingResult);
       }
 
       auto status = KrakenBattle::ProgressType::Stop;

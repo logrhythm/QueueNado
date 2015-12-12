@@ -49,6 +49,16 @@ void Harpoon::RequestChunks() {
    }
 }
 
+
+Harpoon::Battling Harpoon::Cancel() {
+   FreeChunk();
+   RequestChunks();
+   zstr_sendf (mDealer, "<CANCEL>");
+   std::vector<uint8_t> ignored;
+   return Harpoon::Heave(ignored);
+}
+
+
 //Wait for input on the queue
 // NOTE: zsocket_poll returns true only when the ZMQ_POLLIN is returned by zmq_poll. If false is
 // returned it does not automatically mean a timeout occurred waiting for input. So std::chrono is
@@ -65,6 +75,9 @@ Harpoon::Battling Harpoon::PollTimeout(int timeoutMs) {
    }
    return Harpoon::Battling::CONTINUE;
 }
+
+
+
 
 /// Block until timeout or if there is new data to be received.
 Harpoon::Battling Harpoon::Heave(std::vector<uint8_t>& data) {

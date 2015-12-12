@@ -118,6 +118,9 @@ Kraken::Battling Kraken::NextChunkId() {
       mNextChunk = zstr_recv (mRouter);
       if (!mNextChunk) {
          return Kraken::Battling::INTERRUPT;
+      } else if (kCancel== mNextChunk) {
+         LOG(WARNING) << "Client/Harpoon requested ongoing transfer to be cancelled";
+         return Kraken::Battling::CANCEL;
       }
 
       return Kraken::Battling::CONTINUE;
@@ -147,7 +150,7 @@ Kraken::Battling Kraken::SendTidalWave(const Kraken::Chunks& dataToSend) {
 
       status = SendRawData(&data[i], chunkSize);
       if (Kraken::Battling::CONTINUE != status) {
-         return status;
+         return status; // timout, interrupt or cancel
       }
    }
 
@@ -172,18 +175,15 @@ Kraken::Battling Kraken::SendRawData(const uint8_t* data, int size) {
 
    FreeChunk();
    FreeOldRequests();
-
    const auto next = NextChunkId();
    if (Kraken::Battling::CONTINUE != next) {
       return next;
    }
 
    mChunk = zframe_new(data, size);
-
    // Send chunk to client
    zframe_send (&mIdentity, mRouter, ZFRAME_REUSE + ZFRAME_MORE);
    zframe_send (&mChunk, mRouter, 0);
-
    return Kraken::Battling::CONTINUE;
 
 }
@@ -206,6 +206,7 @@ std::string Kraken::EnumToString(Battling value) {
       case Battling::TIMEOUT: result = "TIMEOUT"; break;
       case Battling::INTERRUPT: result = "INTERRUPT"; break;
       case Battling::CONTINUE: result = "CONTINUE"; break;
+      case Battling::CANCEL: result = "CANCEL"; break;
       default :
          result = "UNKNOWN: " + std::to_string(static_cast<int>(value));
    }

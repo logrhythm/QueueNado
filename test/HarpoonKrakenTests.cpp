@@ -41,7 +41,7 @@ namespace {
       {}
    };
 } // anonymous
-void* HarpoonKrakenTests::SendHelloExpectAbort(void* arg) {
+void* HarpoonKrakenTests::SendHelloExpectCancel(void* arg) {
    using AbortNotifyPtr = std::shared_ptr<HelloAbort>;
    std::shared_ptr<HelloAbort> helloAbort = *(reinterpret_cast<AbortNotifyPtr*>(arg));
 
@@ -57,13 +57,14 @@ void* HarpoonKrakenTests::SendHelloExpectAbort(void* arg) {
    uint8_t end = '\0';
    std::vector<uint8_t> hello{h, e, l, l, o, end};
 
-   size_t counter = 0;
+   signed int counter = -1; // 1 off 
    auto status = Kraken::Battling::CONTINUE;
    for (auto c : hello) {
       status = server.SendTidalWave({c});
-      if (status == Kraken::Battling::ABORTED) {
+      if (status == Kraken::Battling::CANCEL) {
          helloAbort->abortAt.store(counter);
-         LOG(INFO) << "Received abort at count: " << counter;
+         LOG(INFO) << "Received cancel at count: " << counter;
+         break;
       }
       LOG(INFO) << "SendTidalWave/Cancel returned: " << static_cast<int> (status);
       ++counter;
@@ -345,7 +346,7 @@ TEST_F(HarpoonKrakenTests, ReceiveAbortDuringHello) {
    const int port = GetTcpPort();
    const std::string location = GetTcpLocation(port);
    auto helloAbort = std::make_shared<HelloAbort>(location);
-   auto done = std::async(std::launch::async, &SendHelloExpectAbort, &helloAbort);
+   auto done = std::async(std::launch::async, &SendHelloExpectCancel, &helloAbort);
 
    Harpoon client;
    std::vector<uint8_t> p;
@@ -359,6 +360,7 @@ TEST_F(HarpoonKrakenTests, ReceiveAbortDuringHello) {
    uint8_t l = 'l';
    uint8_t o = 'o';
    uint8_t end = '\0';
+
    const std::vector<uint8_t> expected{h, e, l, l, o, end};
    const size_t abortAt = 2;
    size_t counter = 0;
@@ -367,14 +369,17 @@ TEST_F(HarpoonKrakenTests, ReceiveAbortDuringHello) {
       auto res = Harpoon::Battling::CONTINUE;
 
       if (abortAt == counter) {
-         res = client.Abort();
-         EXPECT_EQ(res, Harpoon::Battling::ABORT);
-      } else {
+         LOG(INFO) << "Calling cancel at count:" << counter << std::endl;
+         res = client.Cancel();
+         LOG(INFO) << "***********************After abort: " << static_cast<int>(res);
+         break;
+      } else if (counter < abortAt){
          res = client.Heave(p);
          EXPECT_EQ(res, Harpoon::Battling::CONTINUE);
          ASSERT_EQ(p.size(), 1);
          EXPECT_EQ(p[0], c);
       }
+      ++counter;
    }
 
    //Should now receive an empty chucnk to indicate end of stream:
