@@ -186,7 +186,7 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
 
 
 
-// This integration test is imporant also since it's the only one that truly tests
+// This integration test is important also since it's the only one that truly tests
 // the KrakenBattle::SendChunks (cpp hidden file)
 //
 // To verify the expected steps in this communication
