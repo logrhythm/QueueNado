@@ -59,9 +59,11 @@ void* HarpoonKrakenTests::SendHelloExpectCancel(void* arg) {
 
    signed int counter = -1; // 1 off 
    auto status = Kraken::Battling::CONTINUE;
+   bool cancelReceived = {false};
    for (auto c : hello) {
       status = server.SendTidalWave({c});
       if (status == Kraken::Battling::CANCEL) {
+         cancelReceived = true;
          helloAbort->abortAt.store(counter);
          LOG(INFO) << "Received cancel at count: " << counter;
          break;
@@ -69,6 +71,7 @@ void* HarpoonKrakenTests::SendHelloExpectCancel(void* arg) {
       LOG(INFO) << "SendTidalWave/Cancel returned: " << static_cast<int> (status);
       ++counter;
    }
+   EXPECT_TRUE(cancelReceived);
    server.FinalBreach();
    return nullptr;
 }
@@ -170,6 +173,25 @@ std::string HarpoonKrakenTests::GetTcpLocation(int port) {
    tcpLocation.append(std::to_string(port));
    return tcpLocation;
 }
+
+
+TEST_F(HarpoonKrakenTests, HarpoonEnumToString) {
+   Harpoon harpoon;
+   const auto kTimeout = harpoon.EnumToString(Harpoon::Battling::TIMEOUT);
+   const auto kInterrupt = harpoon.EnumToString(Harpoon::Battling::INTERRUPT);
+   const auto kVictorious = harpoon.EnumToString(Harpoon::Battling::VICTORIOUS);
+   const auto kContinue = harpoon.EnumToString(Harpoon::Battling::CONTINUE);
+   const auto kCancel = harpoon.EnumToString(Harpoon::Battling::CANCEL);
+
+   EXPECT_TRUE(kTimeout == "<TIMEOUT>");
+   EXPECT_TRUE(kInterrupt == "<INTERRUPT>");
+   EXPECT_TRUE(kVictorious == "<VICTORIOUS>");
+   EXPECT_TRUE(kContinue == "<CONTINUE>");
+   EXPECT_TRUE(kCancel == "<CANCEL>");
+}
+
+
+
 
 TEST_F(HarpoonKrakenTests, HarpoonSetLocation) {
    Harpoon client;
@@ -364,6 +386,7 @@ TEST_F(HarpoonKrakenTests, ReceiveAbortDuringHello) {
    const std::vector<uint8_t> expected{h, e, l, l, o, end};
    const size_t abortAt = 2;
    size_t counter = 0;
+   bool cancelSet = {false};
    for (const auto c : expected) {
       std::vector<uint8_t> p;
       auto res = Harpoon::Battling::CONTINUE;
@@ -371,7 +394,7 @@ TEST_F(HarpoonKrakenTests, ReceiveAbortDuringHello) {
       if (abortAt == counter) {
          LOG(INFO) << "Calling cancel at count:" << counter << std::endl;
          res = client.Cancel();
-         LOG(INFO) << "***********************After abort: " << static_cast<int>(res);
+         cancelSet = true;
          break;
       } else if (counter < abortAt){
          res = client.Heave(p);
@@ -381,8 +404,10 @@ TEST_F(HarpoonKrakenTests, ReceiveAbortDuringHello) {
       }
       ++counter;
    }
+   EXPECT_EQ(counter, 2);
+   EXPECT_TRUE(cancelSet);
 
-   //Should now receive an empty chucnk to indicate end of stream:
+   //Should now receive an empty chunk to indicate end of stream:
    // technically this was "victorious by escape" ;)
    Harpoon::Battling res = client.Heave(p);
    EXPECT_EQ(res, Harpoon::Battling::VICTORIOUS) << "result: " << static_cast<int>(res) << ", VICTORIOUS: " << static_cast<int>(Harpoon::Battling::VICTORIOUS);

@@ -42,7 +42,7 @@ public:
    Battling SendTidalWave(const Chunks& data);
    virtual ~Kraken();
 
-   std::string EnumToString(Battling type);
+   std::string EnumToString(Battling type) const;
     
 protected:
    
@@ -53,7 +53,6 @@ protected:
    void FreeChunk();
 
 private:
-   const std::string kCancel = {"<CANCEL>"};
    void* mRouter;
    zctx_t* mCtx;
    std::string mLocation;

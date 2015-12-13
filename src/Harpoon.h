@@ -36,7 +36,7 @@ public:
    Battling Cancel();
    virtual ~Harpoon();
 
-   std::string EnumToString(Battling type);
+   std::string EnumToString(Battling type) const;
 
 protected:
    Battling PollTimeout(int timeoutMs);

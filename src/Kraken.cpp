@@ -116,10 +116,11 @@ Kraken::Battling Kraken::NextChunkId() {
 
       // Second frame is next chunk requested of the file
       mNextChunk = zstr_recv (mRouter);
+      static const std::string kCancel = EnumToString(Kraken::Battling::CANCEL);
       if (!mNextChunk) {
          return Kraken::Battling::INTERRUPT;
-      } else if (kCancel== mNextChunk) {
-         LOG(WARNING) << "Client/Harpoon requested ongoing transfer to be cancelled";
+      } else if (EnumToString(Kraken::Battling::CANCEL)== mNextChunk) {
+         LOG(WARNING) << "Client/Harpoon requested the ongoing transfer to be cancelled";
          return Kraken::Battling::CANCEL;
       }
 
@@ -200,13 +201,13 @@ Kraken::~Kraken() {
 }
 
 
-std::string Kraken::EnumToString(Battling value) {
+std::string Kraken::EnumToString(Battling value) const{
    std::string result;
    switch (value) {
-      case Battling::TIMEOUT: result = "TIMEOUT"; break;
-      case Battling::INTERRUPT: result = "INTERRUPT"; break;
-      case Battling::CONTINUE: result = "CONTINUE"; break;
-      case Battling::CANCEL: result = "CANCEL"; break;
+      case Battling::TIMEOUT: result = "<TIMEOUT>"; break;
+      case Battling::INTERRUPT: result = "<INTERRUPT>"; break;
+      case Battling::CONTINUE: result = "<CONTINUE>"; break;
+      case Battling::CANCEL: result = "<CANCEL>"; break;
       default :
          result = "UNKNOWN: " + std::to_string(static_cast<int>(value));
    }

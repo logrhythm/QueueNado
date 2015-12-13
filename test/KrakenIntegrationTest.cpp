@@ -24,7 +24,7 @@ using namespace KrakenIntegrationHelper;
 
 
 
-// This integration test is imporant also since it's the only one that truly tests
+// This integration test is important since it's the only one that truly tests
 // the KrakenBattle::SendChunks (cpp hidden file)
 //
 // To verify the expected steps in this communication
@@ -193,8 +193,8 @@ TEST_F(KrakenIntegrationTest, VerifyCommunication) {
 // 0. some header (in this case just 'hello')
 // 1. uuid<DATA>w,o,r,l,d
 // 2. uuid<DATA> - part1 10MB
-// ---> ABORT sent from the receiver/Harpoon
 // 3. uuid<DATA> - part2 10MB
+// ---> ABORT sent from the receiver/Harpoon
 // 4. uuid<DONE>
 // 5. uuid<END>
 TEST_F(KrakenIntegrationTest, AbortedCommunication) {
@@ -231,7 +231,10 @@ TEST_F(KrakenIntegrationTest, AbortedCommunication) {
       StopWatch stopWatch;
       HarpoonReceived data;
       size_t counter = 0;
-      size_t abortAt = 3; // i.e. before the 4th we abort
+      // i.e. After the 3rd is received but before dealing with the 4th we abort
+      // See also comment above this test
+      size_t abortAt = 3; 
+      bool cancelWasCalled = {false};
       while (expectedToReceive->load() == 0 && stopWatch.ElapsedSec() < 10) {
          std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
@@ -243,6 +246,7 @@ TEST_F(KrakenIntegrationTest, AbortedCommunication) {
          if (abortAt == counter) {
             LOG(INFO) << "#counter: " << counter << ", sending cancel through harpoon back to kraken";
             harpoonResult = harpoon->Cancel();
+            cancelWasCalled = true;
             EXPECT_TRUE(Harpoon::Battling::CONTINUE == harpoonResult);
             break;
          } else {
@@ -261,6 +265,9 @@ TEST_F(KrakenIntegrationTest, AbortedCommunication) {
          ++counter;
       }
 
+
+      EXPECT_TRUE(cancelWasCalled);
+      EXPECT_EQ(3, counter); // aborted the loop after cancel
       // Once we have called cancel we should not expect anything else. We can attempt 
       // but at this point communication is dead and timeout is what to be expected
       Kraken::Chunks blood;
