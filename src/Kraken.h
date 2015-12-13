@@ -29,7 +29,7 @@ class Kraken {
 public:
 
    enum class Spear : std::int8_t { MISS = -1, IMPALED = 0 };
-   enum class Battling : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, CONTINUE = 0 };
+   enum class Battling : std::int8_t { TIMEOUT = -2, INTERRUPT = -1, CONTINUE = 0, CANCEL = 1 };
    typedef std::vector<uint8_t> Chunks;
 
 
@@ -42,7 +42,7 @@ public:
    Battling SendTidalWave(const Chunks& data);
    virtual ~Kraken();
 
-   std::string EnumToString(Battling type);
+   std::string EnumToString(Battling type) const;
     
 protected:
    

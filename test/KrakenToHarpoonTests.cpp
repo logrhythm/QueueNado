@@ -68,6 +68,23 @@ std::string KrakenToHarpoonTests::GetTcpLocation(int port) {
    return tcpLocation;
 }
 
+
+TEST_F(KrakenToHarpoonTests, KrakenEnumToString) {
+   Kraken kraken;
+   const auto kTimeout = kraken.EnumToString(Kraken::Battling::TIMEOUT);
+   const auto kInterrupt = kraken.EnumToString(Kraken::Battling::INTERRUPT);
+   const auto kContinue = kraken.EnumToString(Kraken::Battling::CONTINUE);
+   const auto kCancel = kraken.EnumToString(Kraken::Battling::CANCEL);
+
+   EXPECT_TRUE(kTimeout == "<TIMEOUT>");
+   EXPECT_TRUE(kInterrupt == "<INTERRUPT>");
+   EXPECT_TRUE(kContinue == "<CONTINUE>");
+   EXPECT_TRUE(kCancel == "<CANCEL>");
+}
+
+
+
+
 TEST_F(KrakenToHarpoonTests, KrakenSetLocation) {
    Kraken server;
 

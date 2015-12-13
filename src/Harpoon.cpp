@@ -49,6 +49,16 @@ void Harpoon::RequestChunks() {
    }
 }
 
+
+Harpoon::Battling Harpoon::Cancel() {
+   FreeChunk();
+   RequestChunks();
+   zstr_sendf (mDealer, EnumToString(Harpoon::Battling::CANCEL).c_str());
+   std::vector<uint8_t> ignored;
+   return Harpoon::Heave(ignored);
+}
+
+
 //Wait for input on the queue
 // NOTE: zsocket_poll returns true only when the ZMQ_POLLIN is returned by zmq_poll. If false is
 // returned it does not automatically mean a timeout occurred waiting for input. So std::chrono is
@@ -65,6 +75,9 @@ Harpoon::Battling Harpoon::PollTimeout(int timeoutMs) {
    }
    return Harpoon::Battling::CONTINUE;
 }
+
+
+
 
 /// Block until timeout or if there is new data to be received.
 Harpoon::Battling Harpoon::Heave(std::vector<uint8_t>& data) {
@@ -116,14 +129,15 @@ Harpoon::~Harpoon() {
    zctx_destroy(&mCtx);
 }
 
-std::string Harpoon::EnumToString(Harpoon::Battling value) {
+std::string Harpoon::EnumToString(Harpoon::Battling value) const {
    std::string result;
 
    switch (value) {
-      case Harpoon::Battling::TIMEOUT: result = "TIMEOUT"; break;
-      case Harpoon::Battling::INTERRUPT: result = "INTERRUPT"; break;
-      case Harpoon::Battling::VICTORIOUS: result = "VICTORIOUS"; break;
-      case Harpoon::Battling::CONTINUE: result = "CONTINUE"; break;
+      case Harpoon::Battling::TIMEOUT: result = "<TIMEOUT>"; break;
+      case Harpoon::Battling::INTERRUPT: result = "<INTERRUPT>"; break;
+      case Harpoon::Battling::VICTORIOUS: result = "<VICTORIOUS>"; break;
+      case Harpoon::Battling::CONTINUE: result = "<CONTINUE>"; break;
+      case Harpoon::Battling::CANCEL: result = "<CANCEL>"; break;
       default:
          result = "UNKNOWN: " +  std::to_string(static_cast<int>(value));
    }
