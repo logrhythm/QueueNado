@@ -34,7 +34,9 @@ Kraken::Spear Kraken::SetLocation(const std::string& location) {
    zsocket_set_hwm(mRouter, mQueueLength * 2);
 
    int result = zsocket_bind(mRouter, mLocation.c_str());
-   return result ? Kraken::Spear::IMPALED : Kraken::Spear::MISS;
+
+   LOG(INFO) << "zsocket_bind result: " << result << ", " << location;
+   return (-1 == result) ? Kraken::Spear::MISS : Kraken::Spear::IMPALED;
 }
 
 /// Set the amount of time in MS the server should wait for client ACKs

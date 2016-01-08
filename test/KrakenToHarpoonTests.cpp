@@ -229,3 +229,16 @@ TEST_F(KrakenToHarpoonTests, SendEntireFileMethods2) {
    Kraken::Battling Battling = server.FinalBreach();
    EXPECT_EQ(Battling, Kraken::Battling::CONTINUE); 
 }
+
+
+TEST_F(KrakenToHarpoonTests, KrakenSetBadLocation) {
+
+   std::string location("bad location");
+
+   MockKraken server;
+   server.MaxWaitInMs(500);
+   
+   Kraken::Spear spear = server.SetLocation(location);
+   EXPECT_EQ(Kraken::Spear::MISS, spear);  
+}
+

@@ -193,7 +193,7 @@ TEST_F(HarpoonKrakenTests, HarpoonEnumToString) {
 
 
 
-TEST_F(HarpoonKrakenTests, HarpoonSetLocation) {
+TEST_F(HarpoonKrakenTests, HarpoonSetGoodLocation) {
    Harpoon client;
 
    int port = GetTcpPort();
@@ -201,6 +201,15 @@ TEST_F(HarpoonKrakenTests, HarpoonSetLocation) {
    Harpoon::Spear status = client.Aim(location);
 
    EXPECT_EQ(status, Harpoon::Spear::IMPALED);
+}
+
+TEST_F(HarpoonKrakenTests, HarpoonSetBadLocation) {
+   Harpoon client;
+
+   std::string location("bad location");
+   Harpoon::Spear status = client.Aim(location);
+
+   EXPECT_EQ(Harpoon::Spear::MISS, status);
 }
 
 TEST_F(HarpoonKrakenTests, PollTimeoutReturnsTimeout) {
