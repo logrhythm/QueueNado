@@ -40,7 +40,7 @@ else
 fi
 
 make -j6
-./UnitTestRunner
+sudo ./UnitTestRunner
 mkdir -p $RPM_BUILD_ROOT/usr/local/probe/lib
 cp -rfd lib%{name}.so* $RPM_BUILD_ROOT/usr/local/probe/lib
 rm -f RPM_BUILD_ROOT/usr/local/probe/lib/libgtest_170_lib.so
