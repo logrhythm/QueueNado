@@ -18,7 +18,7 @@
 class CZMQToolkitTests : public ::testing::Test {
 public:
 
-   CZMQToolkitTests() : mContext(nullptr), mRepSocket(nullptr), mReqSocket(nullptr) {
+   CZMQToolkitTests() : mContext(nullptr), mReplySocket(nullptr), mRequestSocket(nullptr) {
    }
 
    virtual ~CZMQToolkitTests() {
@@ -41,22 +41,22 @@ protected:
       zctx_set_sndhwm(mContext, 10); // HWM on internal thread communicaiton
       zctx_set_iothreads(mContext, 2);
 
-      mRepSocket = zsocket_new(mContext, ZMQ_REP);
-      ASSERT_NE(nullptr, mRepSocket);
-      zsocket_set_hwm(mRepSocket, 1);
-      zsocket_set_linger(mRepSocket, 0);
+      mReplySocket = zsocket_new(mContext, ZMQ_REP);
+      ASSERT_NE(nullptr, mReplySocket);
+      zsocket_set_hwm(mReplySocket, 1);
+      zsocket_set_linger(mReplySocket, 0);
       int bindRetries = 100;
-      while ((zsocket_bind(mRepSocket, mTarget.c_str()) < 0) && bindRetries-- > 0) {
+      while ((zsocket_bind(mReplySocket, mTarget.c_str()) < 0) && bindRetries-- > 0) {
          zclock_sleep(100);
       }
       ASSERT_LT(0, bindRetries);
 
-      mReqSocket = zsocket_new(mContext, ZMQ_REQ);
-      ASSERT_NE(nullptr, mReqSocket);
-      zsocket_set_hwm(mReqSocket, 1);
-      zsocket_set_linger(mReqSocket, 0);
+      mRequestSocket = zsocket_new(mContext, ZMQ_REQ);
+      ASSERT_NE(nullptr, mRequestSocket);
+      zsocket_set_hwm(mRequestSocket, 1);
+      zsocket_set_linger(mRequestSocket, 0);
       int connectRetries = 100;
-      while ((zsocket_connect(mReqSocket, mTarget.c_str()) < 0) && connectRetries-- > 0) {
+      while ((zsocket_connect(mRequestSocket, mTarget.c_str()) < 0) && connectRetries-- > 0) {
          zclock_sleep(100);
       }
       ASSERT_LT(0, connectRetries);
@@ -64,14 +64,14 @@ protected:
 
    virtual void TearDown() {
       raise(SIGTERM);
-      ASSERT_EQ(0, zsocket_unbind(mRepSocket, mTarget.c_str()));
-      mRepSocket = nullptr;
-      ASSERT_EQ(0, zsocket_disconnect(mReqSocket, mTarget.c_str()));
-      mReqSocket = nullptr;
+      ASSERT_EQ(0, zsocket_unbind(mReplySocket, mTarget.c_str()));
+      mReplySocket = nullptr;
+      ASSERT_EQ(0, zsocket_disconnect(mRequestSocket, mTarget.c_str()));
+      mRequestSocket = nullptr;
    }
 
    std::string mTarget;
    zctx_t* mContext;
-   void* mRepSocket;
-   void* mReqSocket;
+   void* mReplySocket;
+   void* mRequestSocket;
 };

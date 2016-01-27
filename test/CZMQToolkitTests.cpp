@@ -5,23 +5,23 @@
 
 
 TEST_F(CZMQToolkitTests, HighWaterMark) {
-   ASSERT_TRUE(mRepSocket != nullptr);
-   ASSERT_TRUE(mReqSocket != nullptr);
+   ASSERT_TRUE(mReplySocket != nullptr);
+   ASSERT_TRUE(mRequestSocket != nullptr);
 
    const int expectedHighWaterMark(15);
-   CZMQToolkit::setHWMAndBuffer(mRepSocket, expectedHighWaterMark);
-   CZMQToolkit::PrintCurrentHighWater(mRepSocket, mTarget);
+   CZMQToolkit::setHWMAndBuffer(mReplySocket, expectedHighWaterMark);
+   CZMQToolkit::PrintCurrentHighWater(mReplySocket, mTarget);
 
-   EXPECT_EQ(expectedHighWaterMark, zsocket_rcvhwm(mRepSocket));
-   EXPECT_EQ(expectedHighWaterMark, zsocket_sndhwm(mRepSocket));
+   EXPECT_EQ(expectedHighWaterMark, zsocket_rcvhwm(mReplySocket));
+   EXPECT_EQ(expectedHighWaterMark, zsocket_sndhwm(mReplySocket));
 }
 
 TEST_F(CZMQToolkitTests, SendExistingMessageFailures) {
-   ASSERT_TRUE(mRepSocket != nullptr);
-   ASSERT_TRUE(mReqSocket != nullptr);
+   ASSERT_TRUE(mReplySocket != nullptr);
+   ASSERT_TRUE(mRequestSocket != nullptr);
    zmsg_t* message = nullptr;
    ASSERT_FALSE(CZMQToolkit::SendExistingMessage(message, nullptr));
-   ASSERT_FALSE(CZMQToolkit::SendExistingMessage(message, mReqSocket));
+   ASSERT_FALSE(CZMQToolkit::SendExistingMessage(message, mRequestSocket));
    message = zmsg_new();
    zmsg_addmem(message, "abc", 3);
    ASSERT_FALSE(CZMQToolkit::SendExistingMessage(message, nullptr));
@@ -29,12 +29,12 @@ TEST_F(CZMQToolkitTests, SendExistingMessageFailures) {
 }
 
 TEST_F(CZMQToolkitTests, SendExistingMessage) {
-   ASSERT_TRUE(mRepSocket != nullptr);
-   ASSERT_TRUE(mReqSocket != nullptr);
+   ASSERT_TRUE(mReplySocket != nullptr);
+   ASSERT_TRUE(mRequestSocket != nullptr);
    zmsg_t* message = zmsg_new();
    zmsg_addmem(message, "abc", 3);
-   ASSERT_TRUE(CZMQToolkit::SendExistingMessage(message, mReqSocket));
-   zmsg_t* gotMessage = zmsg_recv(mRepSocket);
+   ASSERT_TRUE(CZMQToolkit::SendExistingMessage(message, mRequestSocket));
+   zmsg_t* gotMessage = zmsg_recv(mReplySocket);
    ASSERT_EQ(1, zmsg_size(gotMessage));
    zframe_t* frame = zmsg_pop(gotMessage);
    ASSERT_EQ(3, zframe_size(frame));
