@@ -7,7 +7,6 @@
 #include "MockZeroMQ.h"
 
 using namespace std;
-int ZeroMQTests::gCurrentPacketSize(0);
 
 
 TEST_F(ZeroMQTests, ZeroCopyPacketBroadcasterConstruct) {

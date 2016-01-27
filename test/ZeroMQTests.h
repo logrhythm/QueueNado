@@ -2,12 +2,7 @@
 
 #include "gtest/gtest.h"
 #include "ZeroMQ.h"
-#include <pthread.h>
 #include <sys/time.h>
-#include <iostream>
-#include "boost/thread/locks.hpp"
-#include "boost/thread/recursive_mutex.hpp"
-#include "ReceivePacketZMQ.h"
 
 #ifndef PACKETS_TO_TEST
 #define PACKETS_TO_TEST 400000
@@ -64,7 +59,6 @@ public:
     }
     int mPacketsSeen;
     int mPacketsToTest;
-    static int gCurrentPacketSize;
 protected:
 	virtual void SetUp() {
 		srandom ((unsigned) time (nullptr));
@@ -141,11 +135,9 @@ protected:
     }
 
 	std::string t_data;
-	uLong t_header;
 	u_char* t_smallData;
 	u_char* t_bigData;
 	size_t t_bigDataSize;
-	pthread_t t_workerHandle;
 	int t_totalTransactions;
 	int t_targetTransactionsPerSecond;
 	double t_expectedTime;
@@ -153,7 +145,6 @@ protected:
 	timeval t_startTime;
 	size_t t_packetSize;
 	timeval t_endTime;
-	boost::recursive_mutex mMutex;
 };
 
 
