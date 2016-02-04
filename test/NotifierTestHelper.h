@@ -109,42 +109,12 @@ bool SleepUntilCondition(std::vector<std::shared_ptr<std::atomic<bool>>> conditi
    return true;
 }
 
-bool SleepUntilConditionIsFalse(std::vector<std::shared_ptr<std::atomic<bool>>> conditions) {
-   StopWatch timer;
-
-   auto allFalse = [&] {
-      for (auto& check : conditions) {
-         if (check->load() == true) {
-            return false;
-         }
-      }
-      return true;
-   };
-
-   while (!allFalse() && !MaxTimeoutHasOccurred(timer)) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
-   }
-
-   if (MaxTimeoutHasOccurred(timer)) {
-      ADD_FAILURE() << "SleepUntilConditionIsFalse timed out after " << kMaxWaitTimeInSec << " seconds.";
-      return false;
-   }
-   return true;
-}
-
-std::vector<std::string>& GetMessages(TestThreadData& threadData) {
-   std::lock_guard<std::mutex> lock(threadData.sharing);
-   return *threadData.messages;
- }
 
 
 void SendShutdownSignalToThread(TestThreadData& threadData) {
    threadData.keepRunning->store(false);
 }
 
-std::shared_ptr<std::atomic<bool>> ParentDecidesWhenToExit(TestThreadData& threadData) {
-   return threadData.keepRunning;
-}
 
 void ShutdownThreads(std::vector<TestThreadData> threads) {
    for (TestThreadData& threadData : threads) {
