@@ -69,16 +69,7 @@ bool Notifier::Initialize(const size_t handshakeCount) {
 std::unique_ptr<Vampire> Notifier::CreateHandshakeQueue() {
    const std::string handshakeQueueName = GetHandshakeQueueName();
    LOG(INFO) << "Creating Vampire with queue: " << handshakeQueueName;
-   const auto size = 100;
-
    auto target = std::unique_ptr<Vampire>(new Vampire(handshakeQueueName));
-   target->SetHighWater(size);
-   target->SetOwnSocket(true);
-   if (!target->PrepareToBeShot()) {
-      std::unique_ptr<Vampire> miss;
-      LOG(WARNING) << "Unable to bind socket: " << handshakeQueueName;
-      return miss;
-   }
    return target;
 }
 
@@ -145,8 +136,8 @@ size_t Notifier::ReceiveConfirmation() {
    StopWatch waitCheck;
    size_t responses = 0;
    while (responses < gHandshakeCount && waitCheck.ElapsedSec() < gMaxTimeoutInSec) {
-      std::string msg;
-      if (gHandshakeQueue->GetShot(msg, gMaxTimeoutInSec)) {
+      auto msg =  gHandshakeQueue->GetShot();
+      if (!msg.empty()) {
          LOG(INFO) << "Received update confirmation from thread #"
                    << msg << ", response count #" << ++responses;
       }
