@@ -49,13 +49,16 @@ list(APPEND LIBS ${STOPWATCH})
 find_library(DEATHKNELL DeathKnell PATHS /usr/local/probe/lib )
 list(APPEND LIBS ${DEATHKNELL})
 
-find_library(TCMALLOC tcmalloc PATHS /usr/local/probe/lib )
+#find_library(TCMALLOC tcmalloc PATHS /usr/local/probe/lib )
 # Appended first instead
+find_library(NANO_MSG nanomsg PATHS /usr/local/lib )
+list(APPEND LIBS ${NANO_MSG})
 
-
+find_library(MPI mpi PATHS /usr/lib64/openmpi/lib )
+find_library(MPI_CXX mpi_cxx PATHS /usr/lib64/openmpi/lib )
 
 MESSAGE(" PROJECT_SRC = : ${PROJECT_SRC}")
-include_directories(${PROJECT_SRC})
+include_directories(${PROJECT_SRC} /usr/include/openmpi-x86_64/)
 SET(ACTIVE_CPP0xx_DIR "Release")
 
 
@@ -63,7 +66,7 @@ IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
    MESSAGE("")
    MESSAGE("cmake for GCC ")
    SET(PLATFORM_LINK_LIBRIES rt)
-   SET(CMAKE_CXX_FLAGS "-Wall -rdynamic -Wunused -std=c++11 -pthread -D_GLIBCXX_USE_NANOSLEEP")
+   SET(CMAKE_CXX_FLAGS "-g -Wall -rdynamic -Wunused -std=c++11 -pthread -D_GLIBCXX_USE_NANOSLEEP")
 ENDIF()
 
 
@@ -78,7 +81,7 @@ file(GLOB SRC_FILES ${PROJECT_SRC}/*.h ${PROJECT_SRC}/*.hpp ${PROJECT_SRC}/*.cpp
  
 # Create the QueueNado library
 include_directories(${PROJECT_SRC})
-add_library(${LIBRARY_TO_BUILD} SHARED  ${SRC_FILES})
+add_library(${LIBRARY_TO_BUILD} STATIC  ${SRC_FILES})
 SET(QueueNado_VERSION_STRING ${VERSION})
 MESSAGE("VERSION: ${VERSION}")
 SET_TARGET_PROPERTIES(${LIBRARY_TO_BUILD} PROPERTIES LINKER_LANGUAGE CXX SOVERSION ${VERSION})
@@ -107,3 +110,7 @@ file(GLOB TEST_SRC_FILES "test/*.cpp")
 add_executable(UnitTestRunner 3rdparty/test_main.cpp ${TEST_SRC_FILES} )
 target_link_libraries(UnitTestRunner ${LIBRARY_TO_BUILD} gtest_170_lib ${LIBS})
 set_target_properties(${test} PROPERTIES COMPILE_FLAGS "-isystem -pthread ")
+
+#add_executable(Benchmark 3rdparty/process_benchmark.cpp src/Rifle.cpp src/Vampire.cpp src/NanoMsg.cpp)
+add_executable(Benchmark 3rdparty/process_benchmark.cpp )
+target_link_libraries(Benchmark ${LIBRARY_TO_BUILD} ${MPI} ${MPI_CXX} ${NANO_MSG})
