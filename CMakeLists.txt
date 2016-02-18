@@ -49,7 +49,7 @@ list(APPEND LIBS ${STOPWATCH})
 find_library(DEATHKNELL DeathKnell PATHS /usr/local/probe/lib )
 list(APPEND LIBS ${DEATHKNELL})
 
-#find_library(TCMALLOC tcmalloc PATHS /usr/local/probe/lib )
+find_library(TCMALLOC tcmalloc PATHS /usr/local/probe/lib )
 # Appended first instead
 find_library(NANO_MSG nanomsg PATHS /usr/local/lib )
 list(APPEND LIBS ${NANO_MSG})
