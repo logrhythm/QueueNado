@@ -23,15 +23,9 @@ public:
    static std::string GetIpcLocation();
    static std::string GetInprocLocation();
    void RifleThread(int numberOfMessages, std::string& location,
-           std::string& exampleData, int hwm, int ioThreads, bool ownSocket);
-   void ShootStakeThread(int numberOfMessages,
-           std::string& binding, std::vector<std::pair<void*, unsigned int> >& exampleData, 
-           bool ownSocket);
+                    std::string& exampleData, int hwm, int ioThreads, bool ownSocket);
    void VampireThread(int numberOfMessages, std::string& location,
          std::string& exampleData, int hwm, int ioThreads, bool ownSocket);
-   void StakeAVampireThread(int numberOfMessages,
-           std::string& location, std::vector<std::pair<void*, unsigned int> >& exampleData, 
-           int hwm, int ioThreads);
    void ShootZeroCopyThread(int numberOfMessages,
         std::string& location, std::string& exampleData,int hwm, int ioThreads, 
         bool ownSocket);
@@ -48,25 +42,12 @@ public:
            int rifleHWM, int vampireHWM, std::string& location, int dataSize,
            int nShotsPerRifle, int expectedSpeed);
 
-   class RifleAmmo {
-   public:
-
-      RifleAmmo() :
-      count(1), location() {
-      }
-      int count;
-      std::string location;
-   };
-
 protected:
 
    virtual void SetUp() {
-      zctx_interrupted = false;
    };
 
-   virtual void TearDown() {
-      zctx_interrupted = false;
-   };
+   virtual void TearDown() {   };
 
    void MakeBigData(size_t size) {
       t_bigDataSize = size - (size % 4);
