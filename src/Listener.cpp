@@ -81,14 +81,7 @@ bool Listener::Initialize() {
 std::unique_ptr<Rifle> Listener::CreateFeedbackShooter() {
    LOG(INFO) << "Creating feedback handshake " << mHandshakeQueueName 
              << " for thread #" << std::this_thread::get_id();
-   const size_t feedbackQSize = 100;
    auto shooter = std::unique_ptr<Rifle>(new Rifle(mHandshakeQueueName));
-   shooter->SetOwnSocket(false);
-   shooter->SetHighWater(feedbackQSize);
-   if (!shooter->Aim()) {
-      LOG(WARNING) << "Failed to initialize feedback queue : " << mHandshakeQueueName;
-      shooter.reset();
-   }
    return shooter;
 }
 
@@ -110,14 +103,10 @@ bool Listener::SendConfirmation() {
    std::ostringstream oss;
    auto id = ThreadID();
    oss << id << " : " << this->mProgramName;
-   std::string* pMsg = new std::string(oss.str());
-   const bool confirmation = mHandshakeQueue->FireZeroCopy(pMsg, pMsg->size(), ZeroCopyDelete, kBlockForOneMinute);
-   if (confirmation) {
-      LOG(INFO) << "Send update confirmation, thread #" << oss.str();
-   } else {
-      LOG(WARNING) << "Failed to send update confirmation, thread # " << oss.str();
-   }
-   return confirmation;
+   NanoMsg msg(oss.str());
+   mHandshakeQueue->FireZeroCopy(msg);
+    LOG(INFO) << "Send update confirmation, thread #" << oss.str();
+   return true;
 }
 
 /*
