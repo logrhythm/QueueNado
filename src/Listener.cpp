@@ -103,8 +103,7 @@ bool Listener::SendConfirmation() {
    std::ostringstream oss;
    auto id = ThreadID();
    oss << id << " : " << this->mProgramName;
-   NanoMsg msg(oss.str());
-   mHandshakeQueue->FireZeroCopy(msg);
+   mHandshakeQueue->Fire(oss.str());
     LOG(INFO) << "Send update confirmation, thread #" << oss.str();
    return true;
 }
