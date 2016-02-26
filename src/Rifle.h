@@ -3,15 +3,19 @@
 #include <string>
 #include <nanomsg/pipeline.h>
 #include "NanoMsg.h"
+#include "NanoProtocol.h"
+#include <memory>
 class Rifle {
 public:
-   Rifle(const std::string& location);
+   explicit Rifle(const std::string& location);
+   Rifle(const std::string&, const int timeoutInMs);
    std::string GetBinding() const;
-   void FireZeroCopy(NanoMsg& msg);
+   void Fire(const std::string& data);
+   void FireStake(void* data);
+   void FireStakes(const std::vector<std::pair<void*, unsigned int>>& data);
    virtual ~Rifle();
-protected:
-   void Destroy();
 private:
-   std::string mLocation;
+   void FireZeroCopy(NanoMsg& msg);
+   std::unique_ptr<NanoProtocol> mProtocolHandler;
    int mSocket;
 };
