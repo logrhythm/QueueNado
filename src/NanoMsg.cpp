@@ -24,8 +24,6 @@ NanoMsg::NanoMsg(void*& data) : sent(false) {
    if (error == ENOMEM) {
       throw std::runtime_error("not enough memory to allocate NanoMsg");
    }
-   LOG(DEBUG) << "put void pointer: " << data;
-   LOG(DEBUG) << "put void pointer address: " << &data;
    std::memcpy(buffer, &data, data_size);
 }
 /**
