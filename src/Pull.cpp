@@ -111,10 +111,8 @@ int Pull::GetPointer(void*& stake) {
 void Pull::GetVector(std::vector<std::pair<void*, unsigned int>>& stakes) {
    void * buf = {nullptr};
    auto num_bytes_received = ReceiveMsg(&buf);
-   auto vectorStart = reinterpret_cast<std::pair<void*, unsigned int>*> (buf);
-   stakes.assign(vectorStart,
-                 vectorStart
-                 + num_bytes_received /  sizeof (std::pair<void*, unsigned int>));
+   auto receivedVector = reinterpret_cast<std::vector<std::pair<void*, unsigned int>>*> (buf);
+   stakes = *receivedVector;
    nn_freemsg(buf);
 }
 /**
