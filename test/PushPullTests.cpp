@@ -84,15 +84,14 @@ namespace {
       }
       return threads;
    }
-   void FireStringsAtPulls(int howManyPushs,
-                           int howManyShots,
-                           int howManyPulls,
-                           const std::string& location,
-                           const std::string& data) {
-      LOG(DEBUG) << "FireStringsAtPulls";
+   void FireStrings(int howManyPushs,
+                    int howManyShots,
+                    int howManyPulls,
+                    const std::string& location,
+                    const std::string& data) {
+      LOG(DEBUG) << "FireStrings";
       auto pushList = CreatePushs(howManyPushs, howManyPulls, location);
       auto pullList = CreatePulls(howManyPushs, howManyPulls, location);
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
       auto pushLambda = [&](std::shared_ptr<Push> threadGun) {
          for (int i = 0; i < howManyShots / howManyPushs; i++) {
             auto thread_id = std::this_thread::get_id();
@@ -118,20 +117,55 @@ namespace {
       for (auto& thread:pushThreads) {
          thread.join();
       }
-      LOG(DEBUG) << "FireStringsAtPulls finished";
+      LOG(DEBUG) << "FireStrings finished";
    }
-   void FirePointersAtPulls(int howManyPushs,
-                               int howManyShots,
-                               int howManyPulls,
-                               const std::string& location,
-                               std::string& realData) {
-      LOG(DEBUG) << "FirePointersAtPulls";
+   void FireVector(int howManyPushs,
+                   int howManyShots,
+                   int howManyPulls,
+                   const std::string& location,
+                   std::vector<std::pair<void*, unsigned int>>& data) {
+      LOG(DEBUG) << "FireStrings";
+      auto pushList = CreatePushs(howManyPushs, howManyPulls, location);
+      auto pullList = CreatePulls(howManyPushs, howManyPulls, location);
+      auto pushLambda = [&](std::shared_ptr<Push> threadGun) {
+         for (int i = 0; i < howManyShots / howManyPushs; i++) {
+            auto thread_id = std::this_thread::get_id();
+            LOG(DEBUG) << thread_id << " about to fire ";
+            threadGun->Send(data);
+            LOG(DEBUG) << thread_id << " fired push shot";
+         }
+      };
+      auto pullLambda = [&](std::shared_ptr<Pull> threadPull) {
+         auto thread_id = std::this_thread::get_id();
+         std::vector<std::pair<void*, unsigned int>> receiveVector;
+         for (int i = 0; i < howManyShots / howManyPulls; i++) {
+            LOG(DEBUG) << thread_id << " waiting for push shot";
+            threadPull->GetVector(receiveVector);
+            EXPECT_EQ(receiveVector.size(), receiveVector.size()) <<
+               " size of received vector should be the same as sent";
+            EXPECT_EQ(receiveVector, data) <<
+               " received vector contents should be the same as sent";
+         }
+      };
+      auto pullThreads = ListenWithPulls(pullList, pullLambda);
+      auto pushThreads = ShootWithPushs(pushList, pushLambda);
+      for (auto& thread:pullThreads) {
+         thread.join();
+      }
+      for (auto& thread:pushThreads) {
+         thread.join();
+      }
+      LOG(DEBUG) << "FireStrings finished";
+   }
+   void FirePointers(int howManyPushs,
+                     int howManyShots,
+                     int howManyPulls,
+                     const std::string& location,
+                     std::string& realData) {
+      LOG(DEBUG) << "FirePointers";
       auto sizeOfData = realData.size();
       auto pushList = CreatePushs(howManyPushs, howManyPulls, location);
       auto pullList = CreatePulls(howManyPushs, howManyPulls, location);
-      auto reconstructedString = std::string(realData.c_str(), sizeOfData);
-      ASSERT_EQ(reconstructedString, realData) <<
-         "Should be able to convert back to string here";
       auto pushLambda = [&](std::shared_ptr<Push> threadGun) {
          for (int i = 0; i < howManyShots / howManyPushs; i++) {
             auto thread_id = std::this_thread::get_id();
@@ -158,7 +192,7 @@ namespace {
       for (auto& thread:pushThreads) {
          thread.join();
       }
-      LOG(DEBUG) << "FirePointersAtPulls finished";
+      LOG(DEBUG) << "FirePointers finished";
    }
 }
 TEST_F(PushPullTests, NonBlockingPullShouldThrow) {
@@ -189,73 +223,157 @@ TEST_F(PushPullTests, FireOneString_OneToOne) {
    auto const numPushs = 1;
    auto const numShots = 1;
    auto const numPulls = 1;
-   auto testIpcFile = std::string("FireOneString");
+   auto testIpcFile = std::string("FireOneString_OneToOne");
    auto const location = std::string("ipc:///tmp/" + testIpcFile);
    auto const exampleData = std::string("test data");
-   FireStringsAtPulls(numPushs,
-                         numShots,
-                         numPulls,
-                         location,
-                         exampleData);
+   FireStrings(numPushs,
+               numShots,
+               numPulls,
+               location,
+               exampleData);
    LOG(DEBUG) << "FireOneString_OneToOne finished";
 }
-TEST_F(PushPullTests, FireOneString_OneToMany) {
-   LOG(DEBUG) << "FireOneString_OneToMany";
+TEST_F(PushPullTests, FireManyStrings_OneToOne) {
+   LOG(DEBUG) << "FireManyStrings_OneToOne";
    auto const numPushs = 1;
-   auto const numShots = 8;
+   auto const numShots = 16;
+   auto const numPulls = 1;
+   auto testIpcFile = std::string("FireManyString_OneToOne");
+   auto const location = std::string("ipc:///tmp/" + testIpcFile);
+   auto const exampleData = std::string("test data");
+   FireStrings(numPushs,
+               numShots,
+               numPulls,
+               location,
+               exampleData);
+   LOG(DEBUG) << "FireManyStrings_OneToOne finished";
+}
+TEST_F(PushPullTests, FireManyStrings_OneToMany) {
+   LOG(DEBUG) << "FireManyStrings_OneToMany";
+   auto const numPushs = 1;
+   auto const numShots = 16;
    auto const numPulls = 4;
-   auto testIpcFile = std::string("FireOneString_OneToMany");
+   auto testIpcFile = std::string("FireManyStrings_OneToMany");
    auto const location = std::string("ipc:///tmp/" + testIpcFile);
    auto const exampleData = std::string("test data");
-   FireStringsAtPulls(numPushs,
-                         numShots,
-                         numPulls,
-                         location,
-                         exampleData);
-   LOG(DEBUG) << "FireOneString_OneToMany finished";
+   FireStrings(numPushs,
+               numShots,
+               numPulls,
+               location,
+               exampleData);
+   LOG(DEBUG) << "FireManyStrings_OneToMany finished";
 }
-TEST_F(PushPullTests, FireOneString_ManyToOne) {
-   LOG(DEBUG) << "FireOneString_ManyToOne";
-   auto const numPushs = 2;
-   auto const numShots = 8;
+TEST_F(PushPullTests, FireManyStrings_ManyToOne) {
+   LOG(DEBUG) << "FireManyStrings_ManyToOne";
+   auto const numPushs = 4;
+   auto const numShots = 16;
    auto const numPulls = 1;
-   auto testIpcFile = std::string("FireOneString_ManyToOne");
+   auto testIpcFile = std::string("FireManyStrings_ManyToOne");
    auto const location = std::string("ipc:///tmp/" + testIpcFile);
    auto const exampleData = std::string("test data");
-   FireStringsAtPulls(numPushs,
-                      numShots,
-                      numPulls,
-                      location,
-                      exampleData);
-   LOG(DEBUG) << "FireOneString_ManyToOne finished";
-}
-TEST_F(PushPullTests, FireMultipleStrings_OneToOne) {
-   LOG(DEBUG) << "FireMultipleStrings";
-   auto const numPushs = 1;
-   auto const numShots = 10;
-   auto const numPulls = 1;
-   auto testIpcFile = std::string("FireOneString");
-   auto const location = std::string("ipc:///tmp/" + testIpcFile);
-   auto const exampleData = std::string("test data");
-   FireStringsAtPulls(numPushs,
-                      numShots,
-                      numPulls,
-                      location,
-                      exampleData);
-   LOG(DEBUG) << "FireMultipleStrings finished";
+   FireStrings(numPushs,
+               numShots,
+               numPulls,
+               location,
+               exampleData);
+   LOG(DEBUG) << "FireManyStrings_ManyToOne finished";
 }
 TEST_F(PushPullTests, FireOnePointer_OneToOne) {
-   LOG(DEBUG) << "FireOneString";
+   LOG(DEBUG) << "FireOnePointer_OneToOne";
    auto const numPushs = 1;
    auto const numShots = 1;
    auto const numPulls = 1;
-   auto testIpcFile = std::string("FireOneString");
+   auto testIpcFile = std::string("FireOnePointer_OneToOne");
    auto const location = std::string("ipc:///tmp/" + testIpcFile);
    auto exampleData = std::string("test data");
-   FirePointersAtPulls(numPushs,
-                       numShots,
-                       numPulls,
-                       location,
-                       exampleData);
-   LOG(DEBUG) << "FireOneString finished";
+   FirePointers(numPushs,
+                numShots,
+                numPulls,
+                location,
+                exampleData);
+   LOG(DEBUG) << "FireOnePointer_OneToOne finished";
+}
+TEST_F(PushPullTests, FireManyPointers_OneToMany) {
+   LOG(DEBUG) << "FireManyPointers_OneToMany";
+   auto const numPushs = 1;
+   auto const numShots = 16;
+   auto const numPulls = 4;
+   auto testIpcFile = std::string("FireManyPointers_OneToMany");
+   auto const location = std::string("ipc:///tmp/" + testIpcFile);
+   auto exampleData = std::string("test data");
+   FirePointers(numPushs,
+                numShots,
+                numPulls,
+                location,
+                exampleData);
+   LOG(DEBUG) << "FireManyPointers_OneToMany finished";
+}
+TEST_F(PushPullTests, FireManyPointers_ManyToOne) {
+   LOG(DEBUG) << "FireManyPointers_ManyToOne";
+   auto const numPushs = 4;
+   auto const numShots = 16;
+   auto const numPulls = 1;
+   auto testIpcFile = std::string("FireManyPointers_ManyToOne");
+   auto const location = std::string("ipc:///tmp/" + testIpcFile);
+   auto exampleData = std::string("test data");
+   FirePointers(numPushs,
+                numShots,
+                numPulls,
+                location,
+                exampleData);
+   LOG(DEBUG) << "FireManyPointers_ManyToOne finished";
+}
+TEST_F(PushPullTests, FireOneVector_OneToOne) {
+   LOG(DEBUG) << "FireOneVector_OneToOne";
+   auto const numPushs = 1;
+   auto const numShots = 1;
+   auto const numPulls = 1;
+   auto testIpcFile = std::string("FireOneVector_OneToOne");
+   auto const location = std::string("ipc:///tmp/" + testIpcFile);
+   std::vector<std::pair<void*, unsigned int>> exampleData;
+   auto vectorData = std::pair<void*, unsigned int>(const_cast<int*>(&numPushs),
+                                                    numShots);
+   exampleData.push_back(vectorData);
+   FireVector(numPushs,
+              numShots,
+              numPulls,
+              location,
+              exampleData);
+   LOG(DEBUG) << "FireOneVector_OneToOne finished";
+}
+TEST_F(PushPullTests, FireManyVectors_OneToMany) {
+   LOG(DEBUG) << "FireManyVectors_OneToMany";
+   auto const numPushs = 1;
+   auto const numShots = 16;
+   auto const numPulls = 4;
+   auto testIpcFile = std::string("FireManyVectors_OneToMany");
+   auto const location = std::string("ipc:///tmp/" + testIpcFile);
+   std::vector<std::pair<void*, unsigned int>> exampleData;
+   auto vectorData = std::pair<void*, unsigned int>(const_cast<int*>(&numPushs),
+                                                    numShots);
+   exampleData.push_back(vectorData);
+   FireVector(numPushs,
+              numShots,
+              numPulls,
+              location,
+              exampleData);
+   LOG(DEBUG) << "FireManyVectors_OneToMany finished";
+}
+TEST_F(PushPullTests, FireManyVectors_ManyToOne) {
+   LOG(DEBUG) << "FireManyVectors_ManyToOne";
+   auto const numPushs = 4;
+   auto const numShots = 16;
+   auto const numPulls = 1;
+   auto testIpcFile = std::string("FireManyVectors_ManyToOne");
+   auto const location = std::string("ipc:///tmp/" + testIpcFile);
+   std::vector<std::pair<void*, unsigned int>> exampleData;
+   auto vectorData = std::pair<void*, unsigned int>(const_cast<int*>(&numPushs),
+                                                    numShots);
+   exampleData.push_back(vectorData);
+   FireVector(numPushs,
+              numShots,
+              numPulls,
+              location,
+              exampleData);
+   LOG(DEBUG) << "FireManyVectors_ManyToOne finished";
 }
