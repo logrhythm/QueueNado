@@ -12,11 +12,12 @@ public:
    Vampire(const std::string& location, const int timeoutInMs);
    std::string GetBinding() const;
    std::string GetShot();
-   void GetStake(void*& stake);
-   void GetStakes(std::vector<std::pair<void*, unsigned int>>& stakes);
+   /* void GetStake(void*& stake); */
+   /* void GetStakes(std::vector<std::pair<void*, unsigned int>>& stakes); */
+   int GetPointer(void*& stake);
    virtual ~Vampire();
 private:
-   int ReceiveMsg(void * buf);
+   int ReceiveMsg(void ** buf);
    std::unique_ptr<NanoProtocol> mProtocolHandler;
    int mSocket;
 };

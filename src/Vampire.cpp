@@ -52,44 +52,72 @@ std::string Vampire::GetBinding() const {
 /**
  * Receive a msg from the nanomsg queue, check for errors
  */
-int Vampire::ReceiveMsg(void * buf) {
-   auto num_bytes_received = nn_recv(mSocket, &buf, NN_MSG, 0);
+int Vampire::ReceiveMsg(void ** buf) {
+   auto num_bytes_received = nn_recv(mSocket, buf, NN_MSG, 0);
    if (num_bytes_received < 0) {
       auto error = nn_errno ();
       if (error == ETIMEDOUT) {
          throw std::runtime_error("timed out receiving message");
       }
    }
+   std::string nanoString(static_cast<char*>(*buf), num_bytes_received);
    return num_bytes_received;
 }
 /**
  * Get a string sent by the rifle
  */
 std::string Vampire::GetShot() {
-   void * buf = {nullptr};
-   auto num_bytes_received = ReceiveMsg(buf);
+   void * buf = nullptr;
+   auto num_bytes_received = ReceiveMsg(&buf);
    std::string nanoString(static_cast<char*>(buf), num_bytes_received);
    nn_freemsg(buf);
    return nanoString;
 }
 /**
+ * Gets a user pointer
+ */
+// int Vampire::GetUserPointer(void*& stake) {
+//    char buf [sizeof(void*)];
+//    auto bytesReceived = nn_recv(mSocket, buf, sizeof(void*), 0);
+//    if (bytesReceived < 0) {
+//       auto error = nn_errno ();
+//       if (error == ETIMEDOUT) {
+//          throw std::runtime_error("timed out receiving message");
+//       }
+//    }
+//    stake = buf;
+//    return bytesReceived;
+// }
+/**
  * Gets a void pointer from the nanomsg queue
  */
-void Vampire::GetStake(void*& stake) {
-   ReceiveMsg(stake);
-}
-/*
- * Receives a vector of pairs from the nanomsg queue
- */
-void Vampire::GetStakes(std::vector<std::pair<void*, unsigned int>>& stakes) {
-   void * buf = {nullptr};
-   auto num_bytes_received = ReceiveMsg(buf);
-   auto vectorStart = reinterpret_cast<std::pair<void*, unsigned int>*> (buf);
-   stakes.assign(vectorStart,
-                 vectorStart
-                 + num_bytes_received /  sizeof (std::pair<void*, unsigned int>));
+int Vampire::GetPointer(void*& stake) {
+   void * buf = nullptr;
+   auto bytesReceived = ReceiveMsg(&buf);
+   LOG(DEBUG) << "got pointer: " << buf;
+   LOG(DEBUG) << "pointer data: " << static_cast<char*>(buf);
+   stake = buf;
    nn_freemsg(buf);
+   return bytesReceived;
 }
+// /**
+//  * Gets a void pointer from the nanomsg queue
+//  */
+// void Vampire::GetStake(void*& stake) {
+//    ReceiveMsg(&stake);
+// }
+// /*
+//  * Receives a vector of pairs from the nanomsg queue
+//  */
+// void Vampire::GetStakes(std::vector<std::pair<void*, unsigned int>>& stakes) {
+//    void * buf = {nullptr};
+//    auto num_bytes_received = ReceiveMsg(&buf);
+//    auto vectorStart = reinterpret_cast<std::pair<void*, unsigned int>*> (buf);
+//    stakes.assign(vectorStart,
+//                  vectorStart
+//                  + num_bytes_received /  sizeof (std::pair<void*, unsigned int>));
+//    nn_freemsg(buf);
+// }
 /**
  * Destructor that closes socket
  */

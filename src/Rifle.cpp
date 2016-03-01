@@ -48,20 +48,20 @@ Rifle::Rifle(const std::string& location, const int timeoutInMs) {
 std::string Rifle::GetBinding() const {
    return mProtocolHandler->GetLocation();
 }
-/**
- * Fires a void pointer
- */
-void Rifle::FireStake(void* data) {
-   NanoMsg msg(data);
-   FireZeroCopy(msg);
-}
-/**
- * Fires a packet hash vector
- */
-void Rifle::FireStakes(const std::vector<std::pair<void*, unsigned int>>& data) {
-   NanoMsg msg(data);
-   FireZeroCopy(msg);
-}
+// /**
+//  * Fires a void pointer
+//  */
+// void Rifle::FireStake(void* data) {
+//    NanoMsg msg(data);
+//    FireZeroCopy(msg);
+// }
+// /**
+//  * Fires a packet hash vector
+//  */
+// void Rifle::FireStakes(const std::vector<std::pair<void*, unsigned int>>& data) {
+//    NanoMsg msg(data);
+//    FireZeroCopy(msg);
+// }
 /**
  * Fires a basic string
  */
@@ -69,11 +69,27 @@ void Rifle::Fire(const std::string& data) {
    NanoMsg msg(data);
    FireZeroCopy(msg);
 }
+void Rifle::Fire(void *data) {
+   NanoMsg msg(data);
+   FireZeroCopy(msg);
+}
+/**
+ * Fires a pointer controlled by the user, ie no zero copy
+ */
+// void Rifle::FireUserPointer(void * data,
+//                             int size) {
+//    auto num_bytes_sent = nn_send(mSocket,
+//                                  &data,
+//                                  size,
+//                                  0);
+//    if (num_bytes_sent < 0) {
+//       throw std::runtime_error("send failed");
+//    }
+// }
 /**
  * Fire a message using zero copy api
  */
 void Rifle::FireZeroCopy(NanoMsg& msg) {
-   //LOG(INFO) << "about to send data";
    auto num_bytes_sent = nn_send(mSocket,
                                 &msg.buffer,
                                 NN_MSG,

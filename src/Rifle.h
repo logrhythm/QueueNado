@@ -11,8 +11,10 @@ public:
    Rifle(const std::string&, const int timeoutInMs);
    std::string GetBinding() const;
    void Fire(const std::string& data);
-   void FireStake(void* data);
-   void FireStakes(const std::vector<std::pair<void*, unsigned int>>& data);
+   void Fire(void * data);
+   //void FireUserPointer(void* data, int size);
+   /* void FireStake(void* data); */
+   /* void FireStakes(const std::vector<std::pair<void*, unsigned int>>& data); */
    virtual ~Rifle();
 private:
    void FireZeroCopy(NanoMsg& msg);
