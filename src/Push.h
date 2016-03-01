@@ -14,6 +14,7 @@ public:
    std::string GetBinding() const;
    void Send(const std::string& data);
    void Send(void * data);
+   void Send(const std::vector<std::pair<void*, unsigned int>>& data);
    virtual ~Push();
 private:
    void SendMessage(NanoMsg& msg);

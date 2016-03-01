@@ -84,6 +84,16 @@ void Push::Send(void *data) {
    NanoMsg msg(data);
    SendMessage(msg);
 }
+/**
+ * Fires a packet hash vector
+ */
+void Push::Send(const std::vector<std::pair<void*, unsigned int>>& data) {
+   NanoMsg msg(data);
+   SendMessage(msg);
+}
+/**
+ * private function to send a message using zero copy api
+ */
 void Push::SendMessage(NanoMsg& msg) {
    auto num_bytes_sent = nn_send(mSocket,
                                 &msg.buffer,
