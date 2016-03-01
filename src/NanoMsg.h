@@ -13,7 +13,7 @@ public:
    ~NanoMsg();
    NanoMsg& operator=(const NanoMsg&) = delete;
    NanoMsg(const NanoMsg&) = delete;
-   NanoMsg() = default;
+   NanoMsg() = delete;
    void* buffer;
    bool sent;
 };
