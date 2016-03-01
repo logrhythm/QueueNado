@@ -12,7 +12,6 @@ NanoProtocol::NanoProtocol(const std::string& location) {
       mProtocol = Protocol::TCP;
       mOwner = false;
       mLocation = location.substr(location.find("tcp://") + 6);
-      LOG_IF(DEBUG, mOwner) << "i own the location: " << location;
    }
 }
 NanoProtocol::~NanoProtocol() {
