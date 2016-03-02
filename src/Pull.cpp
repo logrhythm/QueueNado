@@ -31,7 +31,7 @@ Pull::Pull(const std::string& location, const bool shouldConnect) {
                                " because of error: " +
                                std::string(nn_strerror(errno)));
    }
-   LOG(DEBUG) << connectionType
+   LOG(INFO) << connectionType
               << " socket at: " << mProtocolHandler->GetLocation();
 }
 /**
@@ -71,7 +71,7 @@ Pull::Pull(const std::string& location,
                                " because of error: " +
                                std::string(nn_strerror(errno)));
    }
-   LOG(DEBUG) << connectionType
+   LOG(INFO) << connectionType
               << " socket at: " << mProtocolHandler->GetLocation()
               << " with timeout: " << timeoutInMs;
 }
