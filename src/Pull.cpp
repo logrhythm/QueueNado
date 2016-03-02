@@ -90,6 +90,18 @@ int Pull::ReceiveMsg(void *& buf) {
       auto error = nn_errno ();
       if (error == ETIMEDOUT) {
          throw std::runtime_error("timed out receiving message");
+      } else if (error == EFAULT || error == EBADF || error == ENOTSUP) {
+         // really bad issue,
+         // trying to send a nullptr,
+         // bad socket,
+         // or operation not supported
+         LOG(FATAL) << "fatal nanomsg pull error: "
+                    << std::string(nn_strerror(errno));
+      } else if (error == EFSM || error == EAGAIN) {
+         // failed for now, but you can try again
+         throw std::runtime_error("try again");
+      } else if (error == EINTR || error == ETERM) {
+         // shutting down, we don't care stop trying to run
       }
    }
    return num_bytes_received;
