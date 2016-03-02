@@ -10,7 +10,8 @@ NanoMsg::NanoMsg(PacketHashVector& data) : sent(false) {
    buffer = nn_allocmsg(data_size, 0);
    auto error = nn_errno ();
    if (error == ENOMEM) {
-      throw std::runtime_error("not enough memory to allocate NanoMsg");
+      throw std::runtime_error("not enough memory to allocate NanoMsg: " +
+                               std::string(nn_strerror(errno)));
    }
    std::memcpy(buffer, &data, data_size);
 }
@@ -22,7 +23,8 @@ NanoMsg::NanoMsg(void*& data) : sent(false) {
    buffer = nn_allocmsg(data_size, 0);
    auto error = nn_errno ();
    if (error == ENOMEM) {
-      throw std::runtime_error("not enough memory to allocate NanoMsg");
+      throw std::runtime_error("not enough memory to allocate NanoMsg: " +
+                               std::string(nn_strerror(errno)));
    }
    std::memcpy(buffer, &data, data_size);
 }
@@ -33,7 +35,8 @@ NanoMsg::NanoMsg(const std::string& data) : sent(false) {
    buffer = nn_allocmsg(data.size(), 0);
    auto error = nn_errno ();
    if (error == ENOMEM) {
-      throw std::runtime_error("not enough memory to allocate NanoMsg");
+      throw std::runtime_error("not enough memory to allocate NanoMsg: " +
+                               std::string(nn_strerror(errno)));
    }
    std::memcpy(buffer, data.c_str(), data.size());
 }
