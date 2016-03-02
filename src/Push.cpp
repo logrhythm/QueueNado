@@ -1,35 +1,40 @@
 #include "Push.h"
 #include <g3log/g3log.hpp>
 /**
- * Construct a blocking rifle (no timeout)
+ * Construct a blocking nano msg push class (no timeout)
  */
 Push::Push(const std::string& location, const bool shouldConnect) {
    mProtocolHandler = std::move(std::unique_ptr<NanoProtocol>(
                                    new NanoProtocol(location)));
    mSocket = nn_socket(AF_SP, NN_PUSH);
    if (mSocket < 0) {
-      throw std::runtime_error("could not open transport socket");
+      throw std::runtime_error("could not open transport socket" +
+                               mProtocolHandler->GetLocation() +
+                               " because of error: " +
+                               std::string(nn_strerror(errno)));
    }
    int connectResponse = {0};
    std::string connectionType("");
-   if (shouldConnect){
+   if (shouldConnect) {
       connectResponse = nn_connect(mSocket,
                                    mProtocolHandler->GetLocation().c_str());
       connectionType = std::string("nn_connect");
-   } else{
+   } else {
       connectResponse = nn_bind(mSocket,
                                 mProtocolHandler->GetLocation().c_str());
       connectionType = std::string("nn_bind");
    }
    if (connectResponse < 0) {
       throw std::runtime_error("could not connect to endpoint: " +
-                               mProtocolHandler->GetLocation());
+                               mProtocolHandler->GetLocation() +
+                               " because of error: " +
+                               std::string(nn_strerror(errno)));
    }
    LOG(DEBUG) << connectionType
               << " socket at: " << mProtocolHandler->GetLocation();
 }
 /**
- * Construct non-blocking rifle (timeout)
+ * Construct non-blocking nano msg push class (timeout)
  */
 Push::Push(const std::string& location,
              const int timeoutInMs,
@@ -38,27 +43,32 @@ Push::Push(const std::string& location,
                                    new NanoProtocol(location)));
    mSocket = nn_socket(AF_SP, NN_PUSH);
    if (mSocket < 0) {
-      throw std::runtime_error("could not open transport socket");
+      throw std::runtime_error("could not open transport socket" +
+                               mProtocolHandler->GetLocation() +
+                               " because of error: " +
+                               std::string(nn_strerror(errno)));
    }
    nn_setsockopt(mSocket,
-                  NN_SOL_SOCKET,
-                  NN_SNDTIMEO,
-                  &timeoutInMs,
-                  sizeof(timeoutInMs));
+                 NN_SOL_SOCKET,
+                 NN_SNDTIMEO,
+                 &timeoutInMs,
+                 sizeof(timeoutInMs));
    int connectResponse = {0};
    std::string connectionType("");
-   if (shouldConnect){
+   if (shouldConnect) {
       connectResponse = nn_connect(mSocket,
                                    mProtocolHandler->GetLocation().c_str());
       connectionType = std::string("nn_connect");
-   } else{
+   } else {
       connectResponse = nn_bind(mSocket,
                                 mProtocolHandler->GetLocation().c_str());
       connectionType = std::string("nn_bind");
    }
    if (connectResponse < 0) {
       throw std::runtime_error("could not connect to endpoint: " +
-                               mProtocolHandler->GetLocation());
+                               mProtocolHandler->GetLocation() +
+                               " because of error: " +
+                               std::string(nn_strerror(errno)));
    }
    LOG(DEBUG) << connectionType
               << " socket at: " << mProtocolHandler->GetLocation();
