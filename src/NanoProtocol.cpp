@@ -7,7 +7,6 @@ NanoProtocol::NanoProtocol(const std::string& location) {
       mProtocol = Protocol::IPC;
       mLocation = location.substr(location.find("ipc://") + 6);
       mOwner = !FileIO::DoesFileExist(mLocation);
-      LOG_IF(DEBUG, mOwner) << "i own the location: " << location;
    } else if (location.find("tcp") != std::string::npos){
       mProtocol = Protocol::TCP;
       mOwner = false;
@@ -17,7 +16,7 @@ NanoProtocol::NanoProtocol(const std::string& location) {
 NanoProtocol::~NanoProtocol() {
    if (mProtocol == Protocol::IPC && mOwner) {
       remove(mLocation.c_str());
-      LOG(DEBUG) << "removed ipc file at: " << mLocation;
+      LOG(INFO) << "removed ipc file at: " << mLocation;
    }
 }
 std::string NanoProtocol::GetLocation() {
