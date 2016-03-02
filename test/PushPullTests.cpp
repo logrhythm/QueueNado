@@ -1,5 +1,3 @@
-#include <czmq.h>
-#include <boost/thread.hpp>
 #include "PushPullTests.h"
 #include "Death.h"
 #include "FileIO.h"

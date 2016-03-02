@@ -5,10 +5,6 @@
 #include "Push.h"
 #include "Pull.h"
 
-#include <atomic>
-#include <sys/time.h>
-#include <czmq.h>
-
 class PushPullTests : public ::testing::Test {
 public:
 
