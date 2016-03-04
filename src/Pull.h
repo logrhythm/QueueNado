@@ -13,12 +13,16 @@ public:
         const int timeoutInMs,
         const bool shouldConnect=false);
    std::string GetBinding() const;
-   std::string GetString();
-   void GetVector(std::vector<std::pair<void*, unsigned int>>& vector);
-   int GetPointer(void*& pointer);
+   std::string GetString(bool dontWait=false);
+   void GetVector(std::vector<std::pair<void*, unsigned int>>& vector,
+                  bool dontWait=false);
+   int GetPointer(void*& pointer, bool dontWait=false);
    virtual ~Pull();
+   Pull& operator=(const Pull&) = delete;
+   Pull(const Pull&) = delete;
+   Pull() = delete;
 private:
-   int ReceiveMsg(void *& buf);
+   int ReceiveMsg(void *& buf, bool dontWait);
    std::unique_ptr<NanoProtocol> mProtocolHandler;
    int mSocket;
 };

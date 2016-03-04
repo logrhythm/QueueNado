@@ -37,8 +37,12 @@ Push::Push(const std::string& location, const bool shouldConnect) {
  * Construct non-blocking nano msg push class (timeout)
  */
 Push::Push(const std::string& location,
-             const int timeoutInMs,
-             const bool shouldConnect) {
+           const int timeoutInMs,
+           const bool shouldConnect) {
+   if (timeoutInMs <= 0) {
+      //throw std::runtime_error("bad timeout value: " + std::to_string(timeoutInMs));
+      LOG(FATAL) << "bad timeout value: " << std::to_string(timeoutInMs);
+   }
    mProtocolHandler = std::move(std::unique_ptr<NanoProtocol>(
                                    new NanoProtocol(location)));
    mSocket = nn_socket(AF_SP, NN_PUSH);
@@ -71,7 +75,8 @@ Push::Push(const std::string& location,
                                std::string(nn_strerror(errno)));
    }
    LOG(INFO) << connectionType
-              << " socket at: " << mProtocolHandler->GetLocation();
+             << " socket at: " << mProtocolHandler->GetLocation()
+             << " with timeout: " << timeoutInMs;
 }
 /**
  * Return the location the socket is bound to
@@ -83,36 +88,37 @@ std::string Push::GetBinding() const {
 /**
  * Fires a basic string
  */
-void Push::Send(const std::string& data) {
+void Push::Send(const std::string& data, bool dontWait) {
    NanoMsg msg(data);
-   SendMessage(msg);
+   SendMessage(msg, dontWait);
 }
 /**
  * Fires a void pointer
  */
-void Push::Send(void *data) {
+void Push::Send(void *data, bool dontWait) {
    NanoMsg msg(data);
-   SendMessage(msg);
+   SendMessage(msg, dontWait);
 }
 /**
  * Fires a packet hash vector
  */
-void Push::Send(const std::vector<std::pair<void*, unsigned int>>& data) {
+void Push::Send(const std::vector<std::pair<void*, unsigned int>>& data,
+                bool dontWait) {
    NanoMsg msg(data);
-   SendMessage(msg);
+   SendMessage(msg, dontWait);
 }
 /**
  * private function to send a message using zero copy api
  */
-void Push::SendMessage(NanoMsg& msg) {
+void Push::SendMessage(NanoMsg& msg, bool dontWait) {
    auto num_bytes_sent = nn_send(mSocket,
-                                &msg.buffer,
-                                NN_MSG,
-                                0);
+                                 &msg.buffer,
+                                 NN_MSG,
+                                 dontWait? NN_DONTWAIT : 0);
    if (num_bytes_sent < 0) {
       auto error = nn_errno ();
       if (error == ETIMEDOUT) {
-         throw std::runtime_error("timed out receiving message");
+         throw std::runtime_error("timed out sending message");
       } else if (error == EFAULT || error == EBADF || error == ENOTSUP) {
          // really bad issue,
          // trying to send a nullptr,

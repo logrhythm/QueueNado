@@ -84,8 +84,11 @@ std::string Pull::GetBinding() const {
 /**
  * Receive a msg from the nanomsg queue, check for errors
  */
-int Pull::ReceiveMsg(void *& buf) {
-   auto num_bytes_received = nn_recv(mSocket, &buf, NN_MSG, 0);
+int Pull::ReceiveMsg(void *& buf, bool dontWait) {
+   auto num_bytes_received = nn_recv(mSocket,
+                                     &buf,
+                                     NN_MSG,
+                                     dontWait? NN_DONTWAIT : 0);
    if (num_bytes_received < 0) {
       auto error = nn_errno ();
       if (error == ETIMEDOUT) {
@@ -109,9 +112,9 @@ int Pull::ReceiveMsg(void *& buf) {
 /**
  * Get a string sent by the nano push
  */
-std::string Pull::GetString() {
+std::string Pull::GetString(bool dontWait) {
    void * buf = nullptr;
-   auto num_bytes_received = ReceiveMsg(buf);
+   auto num_bytes_received = ReceiveMsg(buf, dontWait);
    std::string nanoString(static_cast<char*>(buf), num_bytes_received);
    nn_freemsg(buf);
    return nanoString;
@@ -119,9 +122,9 @@ std::string Pull::GetString() {
 /**
  * Gets a void pointer from the nanomsg queue
  */
-int Pull::GetPointer(void*& pointer) {
+int Pull::GetPointer(void*& pointer, bool dontWait) {
    void * buf = nullptr;
-   auto bytesReceived = ReceiveMsg(buf);
+   auto bytesReceived = ReceiveMsg(buf, dontWait);
    auto castedBuf = reinterpret_cast<void**>(buf);
    pointer = *castedBuf;
    nn_freemsg(buf);
@@ -130,9 +133,10 @@ int Pull::GetPointer(void*& pointer) {
 /**
  * Gets a vector of pointers from the nanomsg queue
  */
-void Pull::GetVector(std::vector<std::pair<void*, unsigned int>>& vector) {
+void Pull::GetVector(std::vector<std::pair<void*, unsigned int>>& vector,
+                     bool dontWait) {
    void * buf = {nullptr};
-   ReceiveMsg(buf);
+   ReceiveMsg(buf, dontWait);
    auto receivedVector = reinterpret_cast<std::vector<std::pair<void*, unsigned int>>*> (buf);
    vector = *receivedVector;
    nn_freemsg(buf);
