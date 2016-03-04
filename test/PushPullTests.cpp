@@ -139,7 +139,7 @@ namespace {
          for (int i = 0; i < howManyShots / howManyPulls; i++) {
             LOG(DEBUG) << thread_id << " waiting for push shot";
             threadPull->GetVector(receiveVector);
-            EXPECT_EQ(receiveVector.size(), receiveVector.size()) <<
+            EXPECT_EQ(receiveVector.size(), data.size()) <<
                " size of received vector should be the same as sent";
             EXPECT_EQ(receiveVector, data) <<
                " received vector contents should be the same as sent";
