@@ -14,7 +14,7 @@ NanoProtocol::NanoProtocol(const std::string& location) {
    }
 }
 NanoProtocol::~NanoProtocol() {
-   if (mProtocol == Protocol::IPC && mOwner) {
+   if (mProtocol == Protocol::IPC && mOwner && FileIO::DoesFileExist(mLocation)) {
       remove(mLocation.c_str());
       LOG(INFO) << "removed ipc file at: " << mLocation;
    }
