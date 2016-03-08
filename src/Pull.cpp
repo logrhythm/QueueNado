@@ -76,6 +76,57 @@ Pull::Pull(const std::string& location,
               << " with timeout: " << timeoutInMs;
 }
 /**
+ * Construct a non-blocking nanomsg pull (timeout)
+ */
+Pull::Pull(const std::string& location,
+           const int timeoutInMs,
+           const int bufferSize,
+           const bool shouldConnect) {
+   mProtocolHandler = std::move(std::unique_ptr<NanoProtocol>(
+                                   new NanoProtocol(location)));
+   mSocket = nn_socket(AF_SP, NN_PULL);
+   if (mSocket < 0) {
+      throw std::runtime_error("could not open transport socket" +
+                               mProtocolHandler->GetLocation() +
+                               " because of error: " +
+                               std::string(nn_strerror(errno)));
+   }
+   if (timeoutInMs > 0) {
+      nn_setsockopt(mSocket,
+                    NN_SOL_SOCKET,
+                    NN_RCVTIMEO,
+                    &timeoutInMs,
+                    sizeof(timeoutInMs));
+   } else {
+      LOG(INFO) << " zero or negative timeout requested, blocking socket";
+   }
+   nn_setsockopt(mSocket,
+                 NN_SOL_SOCKET,
+                 NN_RCVBUF,
+                 &bufferSize,
+                 sizeof(bufferSize));
+   int connectResponse = {0};
+   std::string connectionType("");
+   if (shouldConnect){
+      connectResponse = nn_connect(mSocket,
+                                   mProtocolHandler->GetLocation().c_str());
+      connectionType = "nn_connect";
+   } else{
+      connectResponse = nn_bind(mSocket,
+                                mProtocolHandler->GetLocation().c_str());
+      connectionType = "nn_bind";
+   }
+   if (connectResponse < 0) {
+      throw std::runtime_error("could not connect to endpoint: " +
+                               mProtocolHandler->GetLocation() +
+                               " because of error: " +
+                               std::string(nn_strerror(errno)));
+   }
+   LOG(INFO) << connectionType
+              << " socket at: " << mProtocolHandler->GetLocation()
+              << " with timeout: " << timeoutInMs;
+}
+/**
  * Return the socket location
  */
 std::string Pull::GetBinding() const {
@@ -133,12 +184,12 @@ int Pull::GetPointer(void*& pointer, bool dontWait) {
 /**
  * Gets a vector of pointers from the nanomsg queue
  */
-void Pull::GetVector(std::vector<std::pair<void*, unsigned int>>& vector,
+void Pull::GetVector(std::vector<std::pair<void*, unsigned int>>& toReturn,
                      bool dontWait) {
    void * buf = {nullptr};
-   ReceiveMsg(buf, dontWait);
-   auto receivedVector = reinterpret_cast<std::vector<std::pair<void*, unsigned int>>*> (buf);
-   vector = *receivedVector;
+   auto bytesReceived = ReceiveMsg(buf, dontWait);
+   auto receivedPtr = reinterpret_cast<std::pair<void*, unsigned int>*> (buf);
+   toReturn.assign(receivedPtr, receivedPtr + bytesReceived / sizeof(std::pair<void*, unsigned int>));
    nn_freemsg(buf);
 }
 /**

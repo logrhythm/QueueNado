@@ -12,6 +12,10 @@ public:
    Pull(const std::string& location,
         const int timeoutInMs,
         const bool shouldConnect=false);
+   Pull(const std::string& location,
+        const int timeoutInMs,
+        const int bufferSize,
+        const bool shouldConnect=false);
    std::string GetBinding() const;
    std::string GetString(bool dontWait=false);
    void GetVector(std::vector<std::pair<void*, unsigned int>>& vector,

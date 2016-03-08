@@ -79,6 +79,57 @@ Push::Push(const std::string& location,
              << " with timeout: " << timeoutInMs;
 }
 /**
+ * Construct a specific push queue
+ */
+Push::Push(const std::string& location,
+           const int timeoutInMs,
+           const int bufferSize,
+           const bool shouldConnect) {
+   mProtocolHandler = std::move(std::unique_ptr<NanoProtocol>(
+                                   new NanoProtocol(location)));
+   mSocket = nn_socket(AF_SP, NN_PUSH);
+   if (mSocket < 0) {
+      throw std::runtime_error("could not open transport socket" +
+                               mProtocolHandler->GetLocation() +
+                               " because of error: " +
+                               std::string(nn_strerror(errno)));
+   }
+   if (timeoutInMs > 0) {
+      nn_setsockopt(mSocket,
+                    NN_SOL_SOCKET,
+                    NN_SNDTIMEO,
+                    &timeoutInMs,
+                    sizeof(timeoutInMs));
+   } else {
+      LOG(INFO) << " zero or negative timeout requested, blocking socket";
+   }
+   nn_setsockopt(mSocket,
+                 NN_SOL_SOCKET,
+                 NN_SNDBUF,
+                 &bufferSize,
+                 sizeof(bufferSize));
+   int connectResponse = {0};
+   std::string connectionType("");
+   if (shouldConnect) {
+      connectResponse = nn_connect(mSocket,
+                                   mProtocolHandler->GetLocation().c_str());
+      connectionType = std::string("nn_connect");
+   } else {
+      connectResponse = nn_bind(mSocket,
+                                mProtocolHandler->GetLocation().c_str());
+      connectionType = std::string("nn_bind");
+   }
+   if (connectResponse < 0) {
+      throw std::runtime_error("could not connect to endpoint: " +
+                               mProtocolHandler->GetLocation() +
+                               " because of error: " +
+                               std::string(nn_strerror(errno)));
+   }
+   LOG(INFO) << connectionType
+             << " socket at: " << mProtocolHandler->GetLocation()
+             << " with timeout: " << timeoutInMs;
+}
+/**
  * Return the location the socket is bound to
  * @return
  */
@@ -96,6 +147,7 @@ void Push::Send(const std::string& data, bool dontWait) {
  * Fires a void pointer
  */
 void Push::Send(void *data, bool dontWait) {
+   //LOG(INFO) << "sending pointer";
    NanoMsg msg(data);
    SendMessage(msg, dontWait);
 }
@@ -105,12 +157,15 @@ void Push::Send(void *data, bool dontWait) {
 void Push::Send(const std::vector<std::pair<void*, unsigned int>>& data,
                 bool dontWait) {
    NanoMsg msg(data);
+   //LOG(INFO) << "Sending vector with starting pointer: " << &data[0];
+   //Send(const_cast<std::vector<std::pair<void*, unsigned int> >*>(&data));
    SendMessage(msg, dontWait);
 }
 /**
  * private function to send a message using zero copy api
  */
 void Push::SendMessage(NanoMsg& msg, bool dontWait) {
+   //LOG(INFO) << "sending message";
    auto num_bytes_sent = nn_send(mSocket,
                                  &msg.buffer,
                                  NN_MSG,

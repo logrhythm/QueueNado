@@ -11,6 +11,10 @@ public:
    Push(const std::string&,
         const int timeoutInMs,
         const bool shouldConnect=true);
+   Push(const std::string&,
+        const int timeoutInMs,
+        const int bufferSize,
+        const bool shouldConnect=true);
    std::string GetBinding() const;
    void Send(const std::string& data, bool dontWait=false);
    void Send(void * data, bool dontWait=false);
