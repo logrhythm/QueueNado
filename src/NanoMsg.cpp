@@ -13,11 +13,8 @@ NanoMsg::NanoMsg(PacketHashVector& data) : sent(false) {
       throw std::runtime_error("not enough memory to allocate NanoMsg: " +
                                std::string(nn_strerror(errno)));
    }
-   std::memcpy(buffer, &data, data_size);
+   std::memcpy(buffer, &data[0], data_size);
 }
-/**
- * Constructor for copying a raw pointer into the nanomsg buffer
- */
 NanoMsg::NanoMsg(void*& data) : sent(false) {
    auto data_size = sizeof(void*);
    buffer = nn_allocmsg(data_size, 0);
