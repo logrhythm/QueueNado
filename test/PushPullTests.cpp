@@ -39,6 +39,10 @@ namespace {
             // many pulls to one push, bind instead of connect
             LOG(DEBUG) << "one to many push setup";
             toReturn.push_back(std::make_shared<Push>(location, false));
+         } else if (howManyPushs == 1 && howManyPulls == 0) {
+            LOG(DEBUG) << "one push setup";
+            // one push, use default behavior (connect)
+            toReturn.push_back(std::make_shared<Push>(location));
          }
       }
       return toReturn;
@@ -60,6 +64,10 @@ namespace {
             LOG(DEBUG) << "one to many pull setup";
             // many pulls to one push, connect instead of bind
             toReturn.push_back(std::make_shared<Pull>(location, true));
+         } else if (howManyPushs == 0 && howManyPulls == 1) {
+            LOG(DEBUG) << "one pull setup";
+            // one pull, use default behavior (bind)
+            toReturn.push_back(std::make_shared<Pull>(location));
          }
       }
       return toReturn;
@@ -95,7 +103,7 @@ namespace {
             auto thread_id = std::this_thread::get_id();
             LOG(DEBUG) << thread_id << " about to fire ";
             threadGun->Send(data);
-            LOG(DEBUG) << thread_id << " fired push shot: " << data;
+            LOG(DEBUG) << thread_id << " fired shot: ";
          }
       };
       auto pullLambda = [&](std::shared_ptr<Pull> threadPull) {
@@ -103,7 +111,7 @@ namespace {
          for (int i = 0; i < howManyShots / howManyPulls; i++) {
             LOG(DEBUG) << thread_id << " waiting for push shot";
             auto queueString = threadPull->GetString();
-            LOG(DEBUG) << thread_id <<  " received push shot: " << queueString;
+            LOG(DEBUG) << thread_id <<  " received shot";
             EXPECT_EQ(queueString, data);
          }
       };
@@ -122,7 +130,7 @@ namespace {
                    int howManyPulls,
                    const std::string& location,
                    std::vector<std::pair<void*, unsigned int>>& data) {
-      LOG(DEBUG) << "FireStrings";
+      LOG(DEBUG) << "FireVector";
       auto pushList = CreatePushs(howManyPushs, howManyPulls, location);
       auto pullList = CreatePulls(howManyPushs, howManyPulls, location);
       auto pushLambda = [&](std::shared_ptr<Push> threadGun) {
@@ -153,14 +161,14 @@ namespace {
       for (auto& thread:pushThreads) {
          thread.join();
       }
-      LOG(DEBUG) << "FireStrings finished";
+      LOG(DEBUG) << "FireVector finished";
    }
    void FirePointers(int howManyPushs,
                      int howManyShots,
                      int howManyPulls,
                      const std::string& location,
                      std::string& realData) {
-      LOG(DEBUG) << "FirePointers";
+      LOG(DEBUG) << "FirePointer";
       auto sizeOfData = realData.size();
       auto pushList = CreatePushs(howManyPushs, howManyPulls, location);
       auto pullList = CreatePulls(howManyPushs, howManyPulls, location);
@@ -230,6 +238,79 @@ TEST_F(PushPullTests, FireOneString_OneToOne) {
                location,
                exampleData);
    LOG(DEBUG) << "FireOneString_OneToOne finished";
+}
+TEST_F(PushPullTests, FillSendQueue_OneToOne) {
+   LOG(DEBUG) << "FillSendQueue_OneToOne";
+   auto const defaultMaxBytes = 5120000;
+   auto const numPushs = 1;
+   auto const numShots = 10;
+   auto const numPulls = 1;
+   auto testIpcFile = std::string("FillSendQueue_OneToOne");
+   auto const location = std::string("ipc:///tmp/" + testIpcFile);
+   auto const exampleData = std::string(defaultMaxBytes * 4 , 'n');
+   FireStrings(numPushs,
+               numShots,
+               numPulls,
+               location,
+               exampleData);
+   LOG(DEBUG) << "FillSendQueue_OneToOne finished";
+}
+TEST_F(PushPullTests, FillSendQueue_OnePush) {
+   LOG(DEBUG) << "FillSendQueue_OnePush";
+   auto const defaultMaxBytes = 128000;
+   auto const numPushs = 1;
+   auto const numShots = 1;
+   auto const numPulls = 0;
+   auto testIpcFile = std::string("FillSendQueue_OnePush");
+   auto const location = std::string("ipc:///tmp/" + testIpcFile);
+   auto const exampleData = std::string(10,'n');
+   auto pushList = CreatePushs(numPushs, numPulls, location);
+   auto pushLambda = [&](std::shared_ptr<Push> threadGun) {
+      for (int i = 0; i < numShots / numPushs; i++) {
+         auto thread_id = std::this_thread::get_id();
+         LOG(DEBUG) << thread_id << " about to fire ";
+         EXPECT_THROW(threadGun->Send(exampleData, true),
+                      std::runtime_error) <<
+         "thread should fail since nothing is connected";
+      }
+   };
+   auto pushThreads = ShootWithPushs(pushList, pushLambda);
+   for (auto& thread:pushThreads) {
+      thread.join();
+   }
+   LOG(DEBUG) << "FillSendQueue_OnePush finished";
+}
+TEST_F(PushPullTests, FillSendQueue_OnePushOneBusyPull) {
+   LOG(DEBUG) << "FillSendQueue_OnePushOneBusyPull";
+   auto const defaultMaxBytes = 128000;
+   auto const defaultShotSize = defaultMaxBytes;
+   auto const numPushs = 1;
+   auto const numShots = 5;
+   auto const numPulls = 1;
+   auto kTimeoutInMs = 5;
+   auto testIpcFile = std::string("FillSendQueue_OnePushOneBusyPull");
+   auto const location = std::string("ipc:///tmp/" + testIpcFile);
+   auto const exampleData = std::string(defaultShotSize, 'n');
+   auto pushPtr = std::make_shared<Push>(location,
+                                         kTimeoutInMs);
+   auto pullPtr = std::make_shared<Pull>(location);
+   auto pushLambda = [&](std::shared_ptr<Push> threadGun) {
+      for (int i = 0; i < numShots / numPushs; i++) {
+         auto thread_id = std::this_thread::get_id();
+         LOG(DEBUG) << thread_id << " about to fire ";
+         EXPECT_THROW(threadGun->Send(exampleData), std::runtime_error);
+         // if ( i % 0 == 0) {
+         //    EXPECT_NO_THROW(threadGun->Send(exampleData)) <<
+         //       "should not throw on the first send";
+         // } else {
+         //    EXPECT_THROW(threadGun->Send(exampleData), std::runtime_error) <<
+         //    "should throw on last send";
+         // }
+      }
+   };
+   auto pushThread = std::thread(pushLambda, pushPtr);
+   pushThread.join();
+   LOG(DEBUG) << "FillSendQueue_OnePushOneBusyPull finished";
 }
 TEST_F(PushPullTests, FireManyStrings_OneToOne) {
    LOG(DEBUG) << "FireManyStrings_OneToOne";
@@ -331,6 +412,8 @@ TEST_F(PushPullTests, FireOneVector_OneToOne) {
    std::vector<std::pair<void*, unsigned int>> exampleData;
    auto vectorData = std::pair<void*, unsigned int>(const_cast<int*>(&numPushs),
                                                     numShots);
+   exampleData.push_back(vectorData);
+   exampleData.push_back(vectorData);
    exampleData.push_back(vectorData);
    FireVector(numPushs,
               numShots,
