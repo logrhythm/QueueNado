@@ -7,7 +7,8 @@
  */
 NanoMsg::NanoMsg(PacketHashVector& data) : mSent(false) {
    auto data_size = data.size() * sizeof(std::pair<void*, unsigned int>);
-   mBuffer = nn_allocmsg(data_size, 0);
+   const int defaultAllocationPolicy = {0};
+   mBuffer = nn_allocmsg(data_size, defaultAllocationPolicy);
    auto error = nn_errno ();
    if (error == ENOMEM) {
       throw std::runtime_error("not enough memory to allocate NanoMsg: " +
@@ -16,8 +17,9 @@ NanoMsg::NanoMsg(PacketHashVector& data) : mSent(false) {
    std::memcpy(mBuffer, &data[0], data_size);
 }
 NanoMsg::NanoMsg(void*& data) : mSent(false) {
+   const int defaultAllocationPolicy = {0};
    auto data_size = sizeof(void*);
-   mBuffer = nn_allocmsg(data_size, 0);
+   mBuffer = nn_allocmsg(data_size, defaultAllocationPolicy);
    auto error = nn_errno ();
    if (error == ENOMEM) {
       throw std::runtime_error("not enough memory to allocate NanoMsg: " +
@@ -29,7 +31,8 @@ NanoMsg::NanoMsg(void*& data) : mSent(false) {
  * Constructor for copying a string into the nanomsg mBuffer
  */
 NanoMsg::NanoMsg(const std::string& data) : mSent(false) {
-   mBuffer = nn_allocmsg(data.size(), 0);
+   const int defaultAllocationPolicy = {0};
+   mBuffer = nn_allocmsg(data.size(), defaultAllocationPolicy);
    auto error = nn_errno ();
    if (error == ENOMEM) {
       throw std::runtime_error("not enough memory to allocate NanoMsg: " +
