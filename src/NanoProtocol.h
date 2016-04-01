@@ -8,7 +8,7 @@ class NanoProtocol {
 public:
    enum class Protocol {TCP,IPC};
    NanoProtocol(const std::string& location);
-   ~NanoProtocol();
+   virtual ~NanoProtocol();
    NanoProtocol& operator=(const NanoProtocol&) = delete;
    NanoProtocol(const NanoProtocol&) = delete;
    NanoProtocol() = delete;
