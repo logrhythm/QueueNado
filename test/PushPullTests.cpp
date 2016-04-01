@@ -201,16 +201,16 @@ namespace {
       LOG(DEBUG) << "FirePointers finished";
    }
 }
-TEST_F(PushPullTests, NonBlockingPullShouldThrow) {
+TEST_F(PushPullTests, NonBlockingPullShouldNotThrow) {
    const int timeoutInMs = {5};
    Pull pull (GetIpcLocation(), timeoutInMs);
-   EXPECT_THROW(auto received = {pull.GetString()}, std::runtime_error);
+   auto received = {pull.GetString()};
 }
-TEST_F(PushPullTests, NonBlockingPushShouldThrow) {
+TEST_F(PushPullTests, NonBlockingPushShouldNotThrow) {
    const int timeoutInMs = {5};
    Push push(GetIpcLocation(), timeoutInMs);
    std::string testString("test string");
-   EXPECT_THROW(push.Send(testString), std::runtime_error);
+   EXPECT_NO_THROW(push.Send(testString));
 }
 TEST_F(PushPullTests, ipcFilesCleanedOnDelete) {
    LOG(DEBUG) << "ipcFilesCLeanedOnDelete";
@@ -269,8 +269,7 @@ TEST_F(PushPullTests, FillSendQueue_OnePush) {
       for (int i = 0; i < numShots / numPushs; i++) {
          auto thread_id = std::this_thread::get_id();
          LOG(DEBUG) << thread_id << " about to fire ";
-         EXPECT_THROW(threadGun->Send(exampleData, true),
-                      std::runtime_error) <<
+         EXPECT_NO_THROW(threadGun->Send(exampleData, true)) <<
          "thread should fail since nothing is connected";
       }
    };
@@ -298,14 +297,7 @@ TEST_F(PushPullTests, FillSendQueue_OnePushOneBusyPull) {
       for (int i = 0; i < numShots / numPushs; i++) {
          auto thread_id = std::this_thread::get_id();
          LOG(DEBUG) << thread_id << " about to fire ";
-         EXPECT_THROW(threadGun->Send(exampleData), std::runtime_error);
-         // if ( i % 0 == 0) {
-         //    EXPECT_NO_THROW(threadGun->Send(exampleData)) <<
-         //       "should not throw on the first send";
-         // } else {
-         //    EXPECT_THROW(threadGun->Send(exampleData), std::runtime_error) <<
-         //    "should throw on last send";
-         // }
+         EXPECT_NO_THROW(threadGun->Send(exampleData));
       }
    };
    auto pushThread = std::thread(pushLambda, pushPtr);
