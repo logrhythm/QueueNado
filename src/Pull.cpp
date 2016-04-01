@@ -152,8 +152,7 @@ int Pull::ReceiveMsg(void *& buf, bool dontWait) {
          LOG(FATAL) << "fatal nanomsg pull error: "
                     << std::string(nn_strerror(errno));
       } else if (error == EFSM || error == EAGAIN) {
-         // failed for now, but you can try again
-         throw std::runtime_error("try again");
+         // failed for now, but you can try again so don't do anything
       } else if (error == EINTR || error == ETERM) {
          // shutting down, we don't care stop trying to run
       }
