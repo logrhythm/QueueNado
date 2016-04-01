@@ -167,7 +167,7 @@ void Push::Send(const std::vector<std::pair<void*, unsigned int>>& data,
 void Push::SendMessage(NanoMsg& msg, bool dontWait) {
    //LOG(INFO) << "sending message";
    auto num_bytes_sent = nn_send(mSocket,
-                                 &msg.buffer,
+                                 msg.GetBufferReference(),
                                  NN_MSG,
                                  dontWait? NN_DONTWAIT : 0);
    if (num_bytes_sent < 0) {
@@ -189,7 +189,7 @@ void Push::SendMessage(NanoMsg& msg, bool dontWait) {
       }
    }
    // mark message as sent so it does not have to deallocate itself
-   msg.sent = {true};
+   msg.SetSent();
 }
 /**
  * Destructor that closes socket

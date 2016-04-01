@@ -14,6 +14,16 @@ public:
    NanoMsg& operator=(const NanoMsg&) = delete;
    NanoMsg(const NanoMsg&) = delete;
    NanoMsg() = delete;
-   void* buffer;
-   bool sent;
+   bool IsSent() {
+      return mSent;
+   }
+   void SetSent() {
+      mSent = true;
+   }
+   void** GetBufferReference() {
+      return &mBuffer;
+   }
+private:
+   void* mBuffer;
+   bool mSent;
 };
