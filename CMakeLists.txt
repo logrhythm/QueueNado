@@ -30,8 +30,11 @@ list(APPEND LIBS ${G3FILE_ROTATE})
 find_library(BOOST_THREAD boost_thread PATHS /usr/local/probe/lib )
 list(APPEND LIBS ${BOOST_THREAD})
 
-find_library(BOOST_SYSTEM boost_thread PATHS /usr/local/probe/lib )
+find_library(BOOST_SYSTEM boost_system PATHS /usr/local/probe/lib )
 list(APPEND LIBS ${BOOST_SYSTEM})
+
+find_library(FILEIO FileIO PATHS /usr/local/probe/lib )
+list(APPEND LIBS ${FILEIO})
 
 
 find_library(CQueueNado czmq PATHS /usr/local/probe/lib )
