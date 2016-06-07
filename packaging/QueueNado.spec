@@ -30,7 +30,7 @@ unzip -u gtest-1.7.0.zip
 cd ..
 
 if [ "%{buildtype}" == "-DUSE_LR_DEBUG=OFF"  ]; then
-   /usr/local/probe/bin/cmake -DVERSION=%{version} -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14 -fPIC -Ofast -m64 -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/probe/lib64 ' -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_COMPILER=/usr/local/probe/bin/g++
+   /usr/local/probe/bin/cmake -DVERSION=%{version} -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14 -Wall -fPIC -Ofast -m64 -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/probe/lib64 ' -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_COMPILER=/usr/local/probe/bin/g++
 elif [ "%{buildtype}" == "-DUSE_LR_DEBUG=ON"  ]; then
    /usr/local/probe/bin/cmake -DUSE_LR_DEBUG=ON -DVERSION=%{version} -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14  -Wall -Werror -g -gdwarf-2 -O0 -fPIC -m64 -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/probe/lib64 ' -DCMAKE_CXX_COMPILER=/usr/local/probe/bin/g++
 else
