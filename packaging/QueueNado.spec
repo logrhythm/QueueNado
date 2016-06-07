@@ -28,7 +28,15 @@ rm -f  CMakeCache.txt
 cd 3rdparty
 unzip -u gtest-1.7.0.zip
 cd ..
-/usr/local/probe/bin/cmake -DVERSION=%{version} -DCMAKE_CXX_COMPILER_ARG1:STRING=' -fPIC -Ofast -m64 -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/probe/lib64 ' -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_COMPILER=/usr/local/probe/bin/g++
+
+if [ "%{buildtype}" == "-DUSE_LR_DEBUG=OFF"  ]; then
+   /usr/local/probe/bin/cmake -DVERSION=%{version} -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14 -fPIC -Ofast -m64 -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/probe/lib64 ' -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_COMPILER=/usr/local/probe/bin/g++
+elif [ "%{buildtype}" == "-DUSE_LR_DEBUG=ON"  ]; then
+   /usr/local/probe/bin/cmake -DUSE_LR_DEBUG=ON -DVERSION=%{version} -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14  -Wall -Werror -g -gdwarf-2 -O0 -fPIC -m64 -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/probe/lib64 ' -DCMAKE_CXX_COMPILER=/usr/local/probe/bin/g++
+else
+   echo "Unknown buildtype:" "%{buildtype}"
+   exit 1
+fi
 
 make -j6
 sudo ./UnitTestRunner
