@@ -1,6 +1,6 @@
 Name:          QueueNado
 Version:       %{version}
-Release:       1%{?dist}
+Release:       %{buildnumber}%{?dist}
 Summary:       An implemnetation of Queue patterns for C++
 Group:         Development/Tools
 License:       MIT
