@@ -4,10 +4,10 @@ set -e
 PACKAGE=QueueNado
 
 
-if [[ $# -ne 1   ]] ; then
-   echo 'Usage:  sh buildRpm <BUILD_TYPE>'
-   echo '        BUILD_TYPE is PRODUCTION or DEBUG'
-   exit 0
+if [[ $# -ne 2 ]] ; then
+    echo 'Usage:  sh buildRpm <BUILD_TYPE> <BUILD_NUMBER>'
+    echo '        BUILD_TYPE is PRODUCTION or COVERAGE'
+    exit 0
 fi
 
 if [ "$1" = "PRODUCTION"   ] ; then
@@ -18,6 +18,9 @@ else
    echo "<BUILD_TYPE> must be one of: PRODUCTION or DEBUG"
    exit 0
 fi
+
+BUILD="$2"
+
 
 # As version number we use the commit number on HEAD 
 # we do not bother with other branches for now
@@ -40,4 +43,4 @@ mkdir -p ~/rpmbuild/SOURCES
 mv $PACKAGE-$VERSION.tar.gz ~/rpmbuild/SOURCES
 cd ~/rpmbuild
 
-rpmbuild -v -bb  --define="version ${VERSION}" --define="buildtype ${BUILD_TYPE}" --target=x86_64 ~/rpmbuild/SPECS/$PACKAGE.spec
+rpmbuild -v -bb  --define="version ${VERSION}" --define="buildtype {$BUILD_TYPE}"  --define="buildnumber {$BUILD}" --target=x86_64 ~/rpmbuild/SPECS/$PACKAGE.spec
