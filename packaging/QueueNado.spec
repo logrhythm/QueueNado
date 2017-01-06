@@ -5,7 +5,7 @@ Summary:       An implemnetation of Queue patterns for C++
 Group:         Development/Tools
 License:       MIT
 BuildRequires: probecmake >= 2.8, probezlib, g3logrotate, StopWatch, FileIO
-Requires: g3log, DeathKnell, czmq >= 2.0.3
+Requires: g3log, DeathKnell, czmq >= 2.0.3, nanomsg >= 0.8
 ExclusiveArch: x86_64
 
 %description
