@@ -103,6 +103,63 @@ namespace {
       return nullptr;
    }
 
+   /**
+    * RAII delete the string after it has been sent through the Rifle/Vampire queue back to the 
+    * Notifier
+    */
+   void ZeroCopyDelete(void*, void* data) {
+      std::string* theString = reinterpret_cast<std::string*>(data);
+      delete theString;  
+   }
+
+   void *SenderThreadForReceiveData(void* args) {
+      TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
+      CHECK(tmpRawPtr != nullptr);
+      TestThreadData senderThreadData(*tmpRawPtr);
+      std::shared_ptr<void*> raiiExitFlag(nullptr, [senderThreadData](void*) { senderThreadData.hasExited->store(true); });
+      Rifle testRifle(handshakeQueue);
+      NotifyParentThatChildHasStarted(senderThreadData);
+      testRifle.SetOwnSocket(false);
+      testRifle.SetHighWater(100);
+      EXPECT_TRUE(testRifle.Aim());
+      while (ParentHasNotSentExitSignal(senderThreadData)) {
+         if (TimeToSendANotification(senderThreadData)) {
+            EXPECT_TRUE(testRifle.Fire(std::string("test string"), 1));
+            ResetNotifyFlag(senderThreadData);
+         }
+      }
+      return nullptr;
+   }
+
+   void* ReceiverThreadForReceiveData(void* args) {
+      TestThreadData* tmpRawPtr = reinterpret_cast<TestThreadData*>(args);
+      CHECK(tmpRawPtr != nullptr);
+      TestThreadData receiverThreadData(*tmpRawPtr);
+      std::string toReceive = "test string";
+      size_t notifierTimeoutInSec = 1;
+      int getShotTimeoutInMs = 1;
+      auto notifier = Notifier::CreateNotifier(notifierQueue, handshakeQueue, 0, notifierTimeoutInSec, getShotTimeoutInMs);
+      std::shared_ptr<void*> raiiExitFlag(nullptr, [receiverThreadData](void*) { receiverThreadData.hasExited->store(true); });
+      const bool initialized = notifier.get() != nullptr;
+      if (false == initialized) {
+         ADD_FAILURE() << "Failed to initialize the Notifier";
+         return nullptr;
+      }
+      std::string received = "";
+      NotifyParentThatChildHasStarted(receiverThreadData);
+      while (ParentHasNotSentExitSignal(receiverThreadData)) {
+         received = notifier->ReceiveData();
+         if (!received.empty()) {
+            EXPECT_EQ(received, toReceive);
+            UpdateThreadDataAfterReceivingMessage(receiverThreadData);
+            break; // Needed, so that received doesn't get overwritten on next iteration
+                   //   of loop before parent sends exit signal
+         }
+      }
+      EXPECT_FALSE(received.empty());
+      return nullptr;
+   }
+
    void CheckReturnedVector(const std::vector<TestThreadData>& threadDataVector) {
       for (unsigned int idx = 0; idx < vectorToSend.size(); idx++) {
          for (auto& threadData : threadDataVector) {
@@ -114,6 +171,20 @@ namespace {
    void SpawnSender_WaitForStartup(TestThreadData& senderData) {
       zthread_new(&SenderThread, reinterpret_cast<TestThreadData*>(&senderData));
       EXPECT_TRUE(SleepUntilCondition({{senderData.hasStarted}}));
+      EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
+      EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
+   }
+
+   void SpawnReceiveDataSender_WaitForStartup(TestThreadData& senderData) {
+      EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
+      EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
+      zthread_new(&SenderThreadForReceiveData, reinterpret_cast<TestThreadData*>(&senderData));
+      EXPECT_TRUE(SleepUntilCondition({{senderData.hasStarted}}));
+   }
+
+   void SpawnReceiveDataReceiver_WaitForStartup(TestThreadData& receiverData) {
+      zthread_new(&ReceiverThreadForReceiveData, reinterpret_cast<TestThreadData*>(&receiverData));
+      EXPECT_TRUE(SleepUntilCondition({{receiverData.hasStarted}}));
       EXPECT_TRUE(FileIO::DoesFileExist(notifierQueuePath));
       EXPECT_TRUE(FileIO::DoesFileExist(handshakeQueuePath));
    }
@@ -382,4 +453,19 @@ TEST_F(NotifierTest, 2Messages2Receivers_RestartReceivers_ExpectFeedback_VectorM
 
    // Shutdown everything
    Shutdown({senderData, receiver1ThreadData, receiver2ThreadData});
+}
+
+TEST_F(NotifierTest, 1Message1Receiver_ReceiveData) {
+   TestThreadData senderData("sender");
+   TestThreadData receiver1ThreadData("receiver");
+   EXPECT_FALSE(FileIO::DoesFileExist(notifierQueuePath));
+   EXPECT_FALSE(FileIO::DoesFileExist(handshakeQueuePath));
+   // spawn thread to create notifier and poll the ReceiveData function 
+   SpawnReceiveDataReceiver_WaitForStartup(receiver1ThreadData);
+   // spawn thread to create rifle and fire shot
+   SpawnReceiveDataSender_WaitForStartup(senderData);
+
+   ExchangeNotification(senderData, receiver1ThreadData);
+
+   Shutdown({senderData, receiver1ThreadData});
 }

@@ -11,10 +11,10 @@
 #include <Shotgun.h>
 #include <Vampire.h>
 #include <StopWatch.h>
+#include <czmq.h>
 
-std::unique_ptr<Notifier>  Notifier::CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount) {
-
-   auto notifier = std::unique_ptr<Notifier>(new Notifier(notifierQueue, handshakeQueue));
+std::unique_ptr<Notifier>  Notifier::CreateNotifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t handshakeCount, const size_t maxTimeoutInSec, const int maxGetShotTimeoutInMs) {
+   auto notifier = std::unique_ptr<Notifier>(new Notifier(notifierQueue, handshakeQueue, maxTimeoutInSec, maxGetShotTimeoutInMs));
    if (notifier->Initialize(handshakeCount)) {
       return std::move(notifier);
    }
@@ -27,9 +27,11 @@ std::unique_ptr<Notifier>  Notifier::CreateNotifier(const std::string& notifierQ
 * @param notifierQueue to send notification on
 * @param handshakeQueue to receive handshake confirmation on
 */
-Notifier::Notifier(const std::string& notifierQueue, const std::string& handshakeQueue)
+Notifier::Notifier(const std::string& notifierQueue, const std::string& handshakeQueue, const size_t maxTimeoutInSec, const int maxGetShotTimeoutInMs)
    : mNotifierQueueName(notifierQueue),
-     mHandshakeQueueName(handshakeQueue) {};
+     mHandshakeQueueName(handshakeQueue),
+     mMaxTimeoutInSec(maxTimeoutInSec),
+     mGetShotTimeoutInMs(maxGetShotTimeoutInMs) {};
 
 Notifier::~Notifier() {
    Reset();
@@ -43,23 +45,35 @@ Notifier::~Notifier() {
  * @return bool, whether or not both queues are initialized
  */
 bool Notifier::Initialize(const size_t handshakeCount) {
-   std::lock_guard<std::mutex> guard(gLock);
+   std::lock_guard<std::mutex> guard(mLock);
    gHandshakeCount = handshakeCount;
-   if (gHandshakeQueue.get() == nullptr) {
-      gHandshakeQueue = std::move(CreateHandshakeQueue());
+   if (mHandshakeQueue.get() == nullptr) {
+      mHandshakeQueue = std::move(CreateHandshakeQueue());
    }
-   if (gQueue.get() == nullptr) {
-      gQueue.reset(new Shotgun);
+   if (mQueue.get() == nullptr) {
+      mQueue.reset(new Shotgun);
       try {
-         gQueue->Aim(GetNotifierQueueName());
+         mQueue->Aim(GetNotifierQueueName());
       } catch (std::exception& e) {
          LOG(WARNING) << "Caught exception: " << e.what();
          Reset();
       }
    }
-   return (gQueue.get() != nullptr) && (gHandshakeQueue.get() != nullptr);
+   return (mQueue.get() != nullptr) && (mHandshakeQueue.get() != nullptr);
 }
 
+/*
+ * Receives message data without caring about handshakes
+ */
+std::string Notifier::ReceiveData() {
+   StopWatch waitCheck;
+   std::string msg = "";
+   while (waitCheck.ElapsedSec() < mMaxTimeoutInSec && !zctx_interrupted && msg == "") {
+      mHandshakeQueue->GetShot(msg, mGetShotTimeoutInMs);
+   }
+   return msg;
+}
+   
 /*
 *  Initialize a Vampire queue to get confirmation from
 *     listeners that they received the notification
@@ -104,7 +118,7 @@ size_t Notifier::Notify(const std::string& message) {
  * @return number of confirmed updates
  */
 size_t Notifier::Notify() {
-   return Notify(kNotifyMessage);
+   return Notify(mNotifyMessage);
 }
 
 /*
@@ -116,7 +130,7 @@ size_t Notifier::Notify() {
  * @return number of confirmed updates
  */
 size_t Notifier::Notify(const std::vector<std::string>& messages) {
-   std::lock_guard<std::mutex> guard(gLock);
+   std::lock_guard<std::mutex> guard(mLock);
    std::vector<std::string> bullets;
    bullets.push_back("dummy");
 
@@ -129,7 +143,7 @@ size_t Notifier::Notify(const std::vector<std::string>& messages) {
       return {0};
    }
    LOG(INFO) << "Notifier: Sending " << bullets.size() << " messages";
-   gQueue->Fire(bullets);
+   mQueue->Fire(bullets);
    size_t confirmed = ReceiveConfirmation();
    LOG(INFO) << "Notifier received " << confirmed << " handshakes";
    return {confirmed};
@@ -144,17 +158,17 @@ size_t Notifier::Notify(const std::vector<std::string>& messages) {
 size_t Notifier::ReceiveConfirmation() {
    StopWatch waitCheck;
    size_t responses = 0;
-   while (responses < gHandshakeCount && waitCheck.ElapsedSec() < gMaxTimeoutInSec) {
+   while (responses < gHandshakeCount && waitCheck.ElapsedSec() < mMaxTimeoutInSec) {
       std::string msg;
-      if (gHandshakeQueue->GetShot(msg, gMaxTimeoutInSec)) {
-         LOG(INFO) << "Received update confirmation from thread #"
+      if (mHandshakeQueue->GetShot(msg, mGetShotTimeoutInMs)) {
+         LOG(DEBUG) << "Received update confirmation from thread #"
                    << msg << ", response count #" << ++responses;
       }
    }
 
-   const bool goodEnough = waitCheck.ElapsedSec() < gMaxTimeoutInSec || responses == gHandshakeCount;
+   const bool goodEnough = waitCheck.ElapsedSec() < mMaxTimeoutInSec || responses == gHandshakeCount;
 
-   LOG_IF(WARNING, !goodEnough) << "Listener confirmation timed out after" << gMaxTimeoutInSec
+   LOG_IF(WARNING, !goodEnough) << "Listener confirmation timed out after" << mMaxTimeoutInSec
                                 << "seconds... " << responses << "/" << gHandshakeCount << " replied";
    return responses;
 }
@@ -163,9 +177,8 @@ size_t Notifier::ReceiveConfirmation() {
  * Reset the Shotgun-Alien queue to nullptr
  */
 void Notifier::Reset() {
-   std::lock_guard<std::mutex> guard(gLock);
-   gQueue.reset(nullptr);
-   gHandshakeQueue.reset(nullptr);
+   mQueue.reset(nullptr);
+   mHandshakeQueue.reset(nullptr);
 }
 
 /*
@@ -186,5 +199,5 @@ std::string Notifier::GetHandshakeQueueName() {
 *  @return whether both of the queues are initialized
 */
 bool Notifier::QueuesAreUnitialized() {
-   return (gQueue.get() == nullptr || gHandshakeQueue.get() == nullptr); 
+   return (mQueue.get() == nullptr || mHandshakeQueue.get() == nullptr); 
 }
