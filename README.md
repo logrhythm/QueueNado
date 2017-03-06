@@ -18,7 +18,9 @@ It **cannot** do many-to-many
 #### API
 [[Vampire.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Vampire.h)
 [[Rifle.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Rifle.h)
-Test usage: [[RifleVampireTests.cpp]](https://github.com/LogRhythm/QueueNado/blob/master/test/RifleVampireTests.cpp)
+
+#### Test usage
+[[RifleVampireTests.cpp]](https://github.com/LogRhythm/QueueNado/blob/master/test/RifleVampireTests.cpp)
 
 # Shotgun - Alien
 `Shotgun - Alien` implements the [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out) messaging in zmq.
@@ -35,7 +37,9 @@ Test usage: [[RifleVampireTests.cpp]](https://github.com/LogRhythm/QueueNado/blo
 #### API
 [[Shotgun.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Shotgun.h)
 [[Alien.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Alien.h)
-Test usage: [[ShotgunAlienTests.cpp]](https://github.com/LogRhythm/QueueNado/blob/master/test/ShotgunAlienTests.cpp)
+
+#### Test usage
+[[ShotgunAlienTests.cpp]](https://github.com/LogRhythm/QueueNado/blob/master/test/ShotgunAlienTests.cpp)
 
 
 # Headcrab - Crowbar
@@ -50,7 +54,9 @@ Test usage: [[ShotgunAlienTests.cpp]](https://github.com/LogRhythm/QueueNado/blo
 
 [[Headcrab.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Headcrab.h)
 [[Crowbar.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Crowbar.h)
-Test usage: [[CrowbarHeadcrabTests.cpp]](https://github.com/LogRhythm/QueueNado/blob/master/test/CrowbarHeadcrabTests.cpp)
+
+#### Test usage
+[[CrowbarHeadcrabTests.cpp]](https://github.com/LogRhythm/QueueNado/blob/master/test/CrowbarHeadcrabTests.cpp)
 
 
 # Harpoon - Kraken
@@ -76,7 +82,7 @@ Usage example calls from the API:
 [[Harpoon.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Harpoon.h)
 [[HarpoonBattle.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/HarpoonBattle.h)
 
-#### Test usage:  
+#### Test usage
 * [[KrakenBattleTest.cpp]](https://github.com/LogRhythm/QueueNado/blob/master/test/KrakenBattleTest.cpp)
 * [[HarpoonKrakenTests.cpp]](https://github.com/LogRhythm/QueueNado/blob/master/test/HarpoonKrakenTests.cpp)
 * [[KrakenIntegrationTest.cpp]](https://github.com/LogRhythm/QueueNado/blob/master/test/KrakenIntegrationTest.cpp)
