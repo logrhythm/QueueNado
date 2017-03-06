@@ -26,7 +26,7 @@ It **cannot** do many-to-many
 `Shotgun - Alien` implements the [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out) messaging in zmq.
 
 #### Use Cases for `Shotgun - Alien`
-* Many listeners one sender
+* One to many: one sender communicating with many listeners.
 * Not high performance around 10k msgs a sec. This can be improved by batching many messages together.
 * Process to process communication
 
