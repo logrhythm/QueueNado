@@ -13,7 +13,6 @@ QueueNado
 * many-to-one
 
 In a *many* scenario, it is the "one" side that has to do ```bind``` ([[Vampire.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Vampire.h) [[Rifle.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Rifle.h) on the queue.
-
 #### Rifle - Vampire Limitation
 It **cannot** do many-to-many
 
@@ -98,7 +97,7 @@ Usage example calls from the API:
 # Notifier - Listener
 `Notifier - Listener` extends the `Shotgun - Alien` implementation of the  the [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out) messaging pattern in zmq.
 
-The `Notifier - Listener` classes are  wrappers around the `Shotgun - Alien`queueing framework. A `Notifier` is used to place a message onto a queue that is fed from by multiple Listeners. It uses a handshake ideology, where the each `Listener` must respond back to the `Notifier` that it received the message. A `Notification` is deemed successful only if every expected `Listener` responds to the `Notifier`. 
+The `Notifier - Listener` classes are  wrappers around the `Shotgun - Alien`queueing framework. A `Notifier` is used to place a message onto a queue that is fed from by multiple Listeners. It uses handshake communications, where the each `Listener` must respond back to the `Notifier` that it received the message. A `Notification` is deemed successful only if every expected `Listener` responds to the `Notifier`. 
 
 #### Use cases for Notifier/Listener
 * One-to-many with handshake feedback
