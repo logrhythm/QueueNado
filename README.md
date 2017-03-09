@@ -1,7 +1,7 @@
 QueueNado
 =========
 
-Is a collection of C++ implemntations of ZMQ fast queue patterns (Push/Pull, request/reply, pub/sub, dealer/router) for C++
+`QueueNado` is a collection of C++ implemntations of ZMQ fast queue patterns (Push/Pull, request/reply, pub/sub, dealer/router) for C++
 
 
 # Rifle - Vampire
