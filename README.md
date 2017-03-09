@@ -98,7 +98,7 @@ Usage example calls from the API:
 # Notifier - Listener
 `Notifier - Listener` extends the `Shotgun - Alien` implementation of the  the [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out) messaging pattern in zmq.
 
-The `Notifier - Listener` classes are  wrappers around the `Shotgun - Alien`queueing framework. A `Notifier` is used to place a message into a queue that is fed from by multiple Listeners. It uses a handshake ideology, where the each `Listener` must respond back to the `Notifier` that it received the message. A `Notification` is deemed successful only if every expected `Listener` responds to the `Notifier`. 
+The `Notifier - Listener` classes are  wrappers around the `Shotgun - Alien`queueing framework. A `Notifier` is used to place a message onto a queue that is fed from by multiple Listeners. It uses a handshake ideology, where the each `Listener` must respond back to the `Notifier` that it received the message. A `Notification` is deemed successful only if every expected `Listener` responds to the `Notifier`. 
 
 #### Use cases for Notifier/Listener
 * One-to-many with handshake feedback
