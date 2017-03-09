@@ -5,7 +5,7 @@ QueueNado
 
 
 # Rifle - Vampire
-Rifle Vampire implements the [push / pull](http://zguide.zeromq.org/page:all#Divide-and-Conquer) messaging in zmq. It can be one-to-one, one-to-many,  many-to-one. . In a "many" scenario, it is the "one" side that has to do ```bind``` on the queue. 
+`Rifle - Vampire` implements the [push / pull](http://zguide.zeromq.org/page:all#Divide-and-Conquer) messaging pattern in zmq. It can be one-to-one, one-to-many,  many-to-one. . In a "many" scenario, it is the "one" side that has to do ```bind``` on the queue. 
 
 #### Rifle - Vampire Limitation
 It **cannot** do many-to-many
@@ -23,7 +23,7 @@ It **cannot** do many-to-many
 [[RifleVampireTests.cpp]](https://github.com/LogRhythm/QueueNado/blob/master/test/RifleVampireTests.cpp)
 
 # Shotgun - Alien
-`Shotgun - Alien` implements the [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out) messaging in zmq.
+`Shotgun - Alien` implements the [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out) messaging pattern in zmq.
 
 #### Use Cases for `Shotgun - Alien`
 * One to many: one sender communicating with many listeners.
@@ -43,7 +43,7 @@ It **cannot** do many-to-many
 
 
 # Headcrab - Crowbar
-`Headcrab - Crowbar` implements [request / reply](http://zguide.zeromq.org/page:all#Ask-and-Ye-Shall-Receive) messaging in zmq.
+`Headcrab - Crowbar` implements [request / reply](http://zguide.zeromq.org/page:all#Ask-and-Ye-Shall-Receive) messaging pattern in zmq.
 
 #### Use Cases for `Headcrab - Crowbar` 
 * Need reply to guarantee message was delivered
@@ -89,7 +89,7 @@ Usage example calls from the API:
 
 
 # Notifier - Listener
-`Notifier - Listener` extends the `Shotgun - Alien` implementation of the  the [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out) messaging in zmq.
+`Notifier - Listener` extends the `Shotgun - Alien` implementation of the  the [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out) messaging pattern in zmq.
 
 The `Notifier - Listener` classes are  wrappers around the `Shotgun - Alien`queueing framework. A `Notifier` is used to place a message into a queue that is fed from by multiple Listeners. It uses a handshake ideology, where the each `Listener` must respond back to the `Notifier` that it received the message. A `Notification` is deemed successful only if every expected `Listener` responds to the `Notifier`. 
 
