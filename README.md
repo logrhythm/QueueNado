@@ -81,7 +81,7 @@ The server sending streaming data.
 #### Harpoon: Client that receives the data
 Usage example calls from the API:
 * `Aim()` : Set location of the queue (tcp)
-* `Heave()` : Request data and wait for the data to be returned. Returns `TIMEOUT`, `INTERRUPT`, `VICTORIOUS`, `CONTINUE` to indicate status of the stream. `VICTORIOUS` means the stream has completed.
+* `Heave()` : Request data and wait for the data to be returned. Returns `TIMEOUT`, `INTERRUPT`, `VICTORIOUS`, `CONTINUE` to indicate status of the stream. `VICTORIOUS` means that the stream has completed.
 
 #### API
 [[Kraken.h]] (https://github.com/LogRhythm/QueueNado/blob/master/src/Kraken.h)
