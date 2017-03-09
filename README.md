@@ -5,7 +5,13 @@ QueueNado
 
 
 # Rifle - Vampire
-`Rifle - Vampire` implements the [push / pull](http://zguide.zeromq.org/page:all#Divide-and-Conquer) messaging pattern in zmq. It can be one-to-one, one-to-many,  many-to-one. . In a "many" scenario, it is the "one" side that has to do ```bind``` on the queue. 
+`Rifle - Vampire` implements the [push / pull](http://zguide.zeromq.org/page:all#Divide-and-Conquer) messaging pattern in zmq. The communication setup supports the following client/server communications
+**Client / Server**
+* one-to-one
+* one-to-many
+* many-to-one
+
+In a *many* scenario, it is the "one" side that has to do ```bind``` ([[Vampire.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Vampire.h) [[Rifle.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Rifle.h) on the queue.
 
 #### Rifle - Vampire Limitation
 It **cannot** do many-to-many
