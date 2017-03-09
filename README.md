@@ -7,7 +7,7 @@ QueueNado
 # Rifle - Vampire
 `Rifle - Vampire` implements the [push / pull](http://zguide.zeromq.org/page:all#Divide-and-Conquer) messaging pattern in zmq. The communication setup supports the following client/server communications
 
-**Client / Server**
+**Client -to- Server**
 * one-to-one
 * one-to-many
 * many-to-one
