@@ -12,7 +12,7 @@ QueueNado
 * one-to-many
 * many-to-one
 
-In a *many* scenario, it is the "one" side that has to do ```bind``` ([[Vampire.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Vampire.h) [[Rifle.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Rifle.h) on the queue.
+In a *many* scenario, it is the "one" side that does the ```bind``` ([[Vampire.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Vampire.h) [[Rifle.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Rifle.h) on the queue.
 #### Rifle - Vampire Limitation
 It **cannot** do many-to-many
 
@@ -35,10 +35,11 @@ It **cannot** do many-to-many
 * One to many: one sender communicating with many listeners.
 * Not high performance around 10k msgs a sec. This can be improved by batching many messages together.
 * Process to process communication
+* All listeners receive every message sent.
 
 #### Known limitations and issues
 * [Slow joiner](http://zguide.zeromq.org/php:chapter5#Representing-State-as-Key-Value-Pairs) issues don't matter or can be worked around
-* All listeners need to see every message for a topic
+
 
 #### API
 [[Shotgun.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Shotgun.h)
@@ -52,7 +53,7 @@ It **cannot** do many-to-many
 `Headcrab - Crowbar` implements [request / reply](http://zguide.zeromq.org/page:all#Ask-and-Ye-Shall-Receive) messaging pattern in zmq.
 
 #### Use Cases for `Headcrab - Crowbar` 
-* Need reply to guarantee message was delivered
+* Need to receive acknowledgement from the receiver for each message sent to it
 * Know that their will always be a response (otherwise the socket will be broken)
 
 #### Known limitations and issues
@@ -66,18 +67,18 @@ It **cannot** do many-to-many
 
 
 # Harpoon - Kraken
-`Harpoon - Kraken` implements a streaming version of [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out). It enables  data streaming from a server to a client. 
+`Harpoon - Kraken` implements a streaming version of [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out). It enables  data streaming from a publisher to a subscriber. 
 
 
 #### Kraken Purpose:
-The server sending streaming data.
+The publisher sending streaming data.
 #### Usage example calls from the API: [[kraken.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Kraken.h)
 
-* `SendTidalWave()` : Send a data chunk to the client ([[harpoon]](https://github.com/LogRhythm/QueueNado/blob/master/src/Harpoon.h)). The call blocks until there is space available in the queue. Returns `TIMEOUT`, `INTERRUPT`, `CONTINUE` status to indicate the status of the underlying queue.
+* `SendTidalWave()` : Send a data chunk to the subscriber ([[harpoon]](https://github.com/LogRhythm/QueueNado/blob/master/src/Harpoon.h)). The call blocks until there is space available in the queue. Returns `TIMEOUT`, `INTERRUPT`, `CONTINUE` status to indicate the status of the underlying queue.
 
-* `FinalBreach()` : Call to client ([[harpoon]](https://github.com/LogRhythm/QueueNado/blob/master/src/Harpoon.h)) to indicate the end of a stream.
+* `FinalBreach()` : Call to subscriber ([[harpoon]](https://github.com/LogRhythm/QueueNado/blob/master/src/Harpoon.h)) to indicate the end of a stream.
 
-#### Harpoon: Client that receives the data
+#### Harpoon: Subscriber that receives the data
 Usage example calls from the API:
 * `Aim()` : Set location of the queue (tcp)
 * `Heave()` : Request data and wait for the data to be returned. Returns `TIMEOUT`, `INTERRUPT`, `VICTORIOUS`, `CONTINUE` to indicate status of the stream. `VICTORIOUS` means that the stream has completed.
@@ -95,9 +96,9 @@ Usage example calls from the API:
 
 
 # Notifier - Listener
-`Notifier - Listener` extends the `Shotgun - Alien` implementation of the  the [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out) messaging pattern in zmq.
+`Notifier - Listener` extends the `Shotgun - Alien` implementation of the [pub / sub](http://zguide.zeromq.org/page:all#Getting-the-Message-Out) messaging pattern in zmq.
 
-The `Notifier - Listener` classes are  wrappers around the `Shotgun - Alien`queueing framework. A `Notifier` is used to place a message onto a queue that is fed from by multiple Listeners. It uses handshake communications, where each `Listener` must respond back to the `Notifier` that it received the message. A `Notification` is deemed successful only if every expected `Listener` responds to the `Notifier`. 
+The `Notifier - Listener` classes are  wrappers around the `Shotgun - Alien`queueing framework. A `Notifier` is used to place a message onto a queue that is read from by multiple Listeners. It uses handshake communications, where each `Listener` must respond back to the `Notifier` that it received the message. A `Notification` is deemed successful only if every expected `Listener` responds to the `Notifier`. 
 
 #### Use cases for Notifier/Listener
 * One-to-many with handshake feedback
