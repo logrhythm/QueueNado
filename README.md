@@ -12,7 +12,7 @@ QueueNado
 * one-to-many
 * many-to-one
 
-In a *many* scenario, it is the "one" side that does the ```bind``` ([[Vampire.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Vampire.h) [[Rifle.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Rifle.h) on the queue.
+In a *many* scenario, it is the "one" side that does the ```bind``` ([[Vampire.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Vampire.h) [[Rifle.h]](https://github.com/LogRhythm/QueueNado/blob/master/src/Rifle.h)) on the queue.
 #### Rifle - Vampire Limitation
 It **cannot** do many-to-many
 
