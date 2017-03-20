@@ -18,8 +18,8 @@ protected:
    };
 
    virtual void TearDown() {
-      FileIO::RemoveFileAsRoot(notifierIPCPath);
-      FileIO::RemoveFileAsRoot(handshakeIPCPath);
+      FileIO::RemoveFile(notifierIPCPath);
+      FileIO::RemoveFile(handshakeIPCPath);
       zctx_interrupted = false;
    };
 
