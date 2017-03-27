@@ -4,6 +4,61 @@ QueueNado
 `QueueNado` is a collection of C++ implemntations of ZMQ fast queue patterns (Push/Pull, request/reply, pub/sub, dealer/router) for C++
 
 
+## Requirements
+1. [g3log](https://github.com/KjellKod/g3log)
+2. [g3sinks](https://github.com/KjellKod/g3sinks)
+3. [FileIO](https://github.com/LogRhythm/FileIO)
+4. [CZMQ v2.2](http://czmq.zeromq.org/)
+5. [ZMQ v2.2](http://zeromq.org/)
+5. [ZLIB](http://www.zlib.net)
+Most Linux distributions carry zlib. 
+Example: In Ubuntu it can be installed with 
+```sudo apt-get install zlib1g-dev``` 
+5. [StopWatch](https://github.com/LogRhythm/StopWatch)
+5. [DeathKnell](https://github.com/LogRhythm/DeathKnell)
+5. [tcmalloc](https://github.com/gperftools/gperftools)
+The creators of tcmalloc recommends installing ` libunwind`   to avoid encountering a  deadlock bug during stack unwinding. 
+6. [boost](http://www.boost.org/doc/libs/1_63_0/index.html)
+For installing boost please follow their [instructions](http://www.boost.org/doc/libs/1_63_0/more/getting_started/unix-variants.html). 
+
+
+## Build and Install
+Example of installation
+```
+cd Queuenado
+cd 3rdparty
+unzip gtest-1.7.0.zip
+cd ..
+mkdir build
+cd build
+cmake ..
+make -j
+```
+
+### Executing the unit tests
+```
+./UnitTestRunneer
+
+NOTE: On Ubuntu several unit tests will fail when not 
+running on root. However, running thrugh sudo disabled the usage of the QueueNado library. Ref: [sudo documentation](https://www.sudo.ws/man/sudoers.man.html)See chapter: Command_Environment
+
+You can run the `UnitTestRunner` as `sudo` IF you install the library first. 
+
+
+```
+
+### Installing
+```
+sudo make install
+```
+
+Alternative on Debian systems
+```
+make package
+sudo dpkg -i Queuenado-<package_version>Linux.deb
+```
+
+
 # Rifle - Vampire
 `Rifle - Vampire` implements the [push / pull](http://zguide.zeromq.org/page:all#Divide-and-Conquer) messaging pattern in zmq. The communication setup supports the following client/server communications
 

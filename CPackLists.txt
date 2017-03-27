@@ -1,0 +1,92 @@
+#  INSTALL( TARGETS QueueNado
+ #           ARCHIVE
+ #           LIBRARY DESTINATION lib/QueueNado
+ #           COMPONENT libraries)
+
+ #  INSTALL( FILES ${HEADER_FILES}
+ #           DESTINATION include
+ #           COMPONENT headers)
+
+
+SET(MAJOR_VERSION 1)
+IF (NOT DEFINED ${VERSION})
+   MESSAGE("Extracting git software version")
+   execute_process(COMMAND bash "-c" "git rev-list --branches HEAD | wc -l | tr -d ' ' | tr -d '\n'" OUTPUT_VARIABLE GIT_VERSION)
+   SET(MINOR_VERSION ${GIT_VERSION})
+   SET(BUILD_NUMBER 0)
+   SET(VERSION ${MAJOR_VERSION}.${MINOR_VERSION}.${BUILD_NUMBER}) 
+ENDIF()
+MESSAGE("Software Version: ${VERSION}")
+
+IF (NOT DEFINED ${CPACK_INSTALL_PREFIX})
+   SET(CPACK_INSTALL_PREFIX "/usr/local")
+ENDIF()
+
+SET(CPACK_PACKAGE_NAME QueueNado)
+SET(CPACK_PACKAGE_VERSION_MAJOR ${MAJOR_VERSION})
+SET(CPACK_PACKAGE_VERSION_MINOR ${MINOR_VERSION})
+SET(CPACK_PACKAGE_VERSION_PATCH ${BUILD_NUMBER})
+SET(CPACK_PACKAGE_DESCRIPTION "QueueNado deals with file access and directory traversal.
+    The QueueNado utilities are written to be fast, easy to use and utilizing return values rather than exceptions for error handling. 
+    MIT License. Copyright (c) 2014 LogRhythm. 
+    Repository: https://github.com/LogRhythm/QueueNado")
+
+
+
+
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${CPACK_PACKAGE_DESCRIPTION})
+SET(CPACK_PACKAGE_CONTACT "LogRhythm kjell.hedstrom@logrhythm.com")
+SET(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SRC}/../LICENSE)
+SET(CPACK_PACKAGE_VENDOR "LogRhythm")
+SET(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SRC}/../LICENSE)
+
+SET(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output dir for libraries")
+SET(CMAKE_INSTALL_HEADERDIR include CACHE PATH "Output dir for headers")
+
+
+INSTALL( TARGETS QueueNado 
+        ARCHIVE DESTINATION ${CPACK_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CPACK_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+        COMPONENT libraries)
+
+INSTALL( FILES ${HEADER_FILES}
+          DESTINATION ${CPACK_INSTALL_PREFIX}/${CMAKE_INSTALL_HEADERDIR}
+          COMPONENT headers)
+
+INSTALL( FILES ${PROJECT_SOURCE_DIR}/cmake/QueueNadoConfig.cmake
+          DESTINATION ${CPACK_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/QueueNado)
+
+SET(CPACK_COMPONENTS_ALL libraries headers)
+SET(CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "QueueNado libraries")
+SET(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "QueueNado C++ headers")
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   SET(CPACK_GENERATOR "DEB")
+   SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "LogRhythm")
+ENDIF()
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   MESSAGE("\nTo create installation package: ")
+   MESSAGE("make package")
+ENDIF()
+
+MESSAGE("\nOption to install using 'sudo make install")
+MESSAGE("Installation locations: ")
+MESSAGE("====================")
+MESSAGE("Headers: ${CPACK_INSTALL_PREFIX}/${CMAKE_INSTALL_HEADERDIR}")
+MESSAGE("Library : ${CPACK_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+
+MESSAGE("For more information please see QueueNado/CPackLists.txt")
+MESSAGE("To install: sudo dpkg -i QueueNado-<version>-Linux.deb")
+MESSAGE("To list files in install package: sudo dpkg --contents QueueNado-<version>-Linux.deb")
+MESSAGE("To list installed files: sudo dpkg -L QueueNado")
+MESSAGE("To remove: sudo dpkg -r QueueNado")
+MESSAGE("To remove: sudo dpkg -r QueueNado")
+
+#  NOTE: to change installation locations you can use the settings below
+#  examples:
+#  CPACK_INSTALL_PREFIX
+#  CMAKE_INSTALL_HEADERDIR
+#  CMAKE_INSTALL_LIBDIR
+INCLUDE(CPack)
+
