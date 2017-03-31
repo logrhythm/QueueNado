@@ -17,7 +17,7 @@ SET(CPACK_PACKAGE_NAME QueueNado)
 SET(CPACK_PACKAGE_VERSION_MAJOR ${MAJOR_VERSION})
 SET(CPACK_PACKAGE_VERSION_MINOR ${MINOR_VERSION})
 SET(CPACK_PACKAGE_VERSION_PATCH ${BUILD_NUMBER})
-SET(CPACK_PACKAGE_DESCRIPTION "QueueNado is a collection of C++ implemntations of ZMQ fast queue patterns (Push/Pull, request/reply, pub/sub, dealer/router) for C++.
+SET(CPACK_PACKAGE_DESCRIPTION "QueueNado is a collection of C++ implementations of ZMQ fast queue patterns (Push/Pull, request/reply, pub/sub, dealer/router) for C++.
     MIT License. Copyright (c) 2014 LogRhythm. 
     Repository: https://github.com/LogRhythm/QueueNado")
 
