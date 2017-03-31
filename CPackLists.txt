@@ -8,15 +8,6 @@
  #           COMPONENT headers)
 
 
-SET(MAJOR_VERSION 1)
-IF (NOT DEFINED ${VERSION})
-   MESSAGE("Extracting git software version")
-   execute_process(COMMAND bash "-c" "git rev-list --branches HEAD | wc -l | tr -d ' ' | tr -d '\n'" OUTPUT_VARIABLE GIT_VERSION)
-   SET(MINOR_VERSION ${GIT_VERSION})
-   SET(BUILD_NUMBER 0)
-   SET(VERSION ${MAJOR_VERSION}.${MINOR_VERSION}.${BUILD_NUMBER}) 
-ENDIF()
-MESSAGE("Software Version: ${VERSION}")
 
 IF (NOT DEFINED ${CPACK_INSTALL_PREFIX})
    SET(CPACK_INSTALL_PREFIX "/usr/local")
@@ -26,8 +17,7 @@ SET(CPACK_PACKAGE_NAME QueueNado)
 SET(CPACK_PACKAGE_VERSION_MAJOR ${MAJOR_VERSION})
 SET(CPACK_PACKAGE_VERSION_MINOR ${MINOR_VERSION})
 SET(CPACK_PACKAGE_VERSION_PATCH ${BUILD_NUMBER})
-SET(CPACK_PACKAGE_DESCRIPTION "QueueNado deals with file access and directory traversal.
-    The QueueNado utilities are written to be fast, easy to use and utilizing return values rather than exceptions for error handling. 
+SET(CPACK_PACKAGE_DESCRIPTION "QueueNado is a collection of C++ implemntations of ZMQ fast queue patterns (Push/Pull, request/reply, pub/sub, dealer/router) for C++.
     MIT License. Copyright (c) 2014 LogRhythm. 
     Repository: https://github.com/LogRhythm/QueueNado")
 
@@ -61,12 +51,10 @@ SET(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "QueueNado C++ headers")
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
    SET(CPACK_GENERATOR "DEB")
    SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "LogRhythm")
-ENDIF()
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
    MESSAGE("\nTo create installation package: ")
    MESSAGE("make package")
 ENDIF()
+
 
 MESSAGE("\nOption to install using 'sudo make install")
 MESSAGE("Installation locations: ")

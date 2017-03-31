@@ -37,13 +37,7 @@ make -j
 
 ### Executing the unit tests
 ```
-./UnitTestRunneer
-
-NOTE: On Ubuntu several unit tests will fail when not 
-running on root. However, running thrugh sudo disabled the usage of the QueueNado library. Ref: [sudo documentation](https://www.sudo.ws/man/sudoers.man.html)See chapter: Command_Environment
-
-You can run the `UnitTestRunner` as `sudo` IF you install the library first. 
-
+sudo ./UnitTestRunneer
 
 ```
 
