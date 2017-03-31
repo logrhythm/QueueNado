@@ -14,10 +14,6 @@ project (QueueNado)
 set(PROJECT_SRC ${QueueNado_SOURCE_DIR}/src)
 set(DIR_UNIT_TEST ${QueueNado_SOURCE_DIR}/test)
 set(DIR_3RDPARTY ${QueueNado_SOURCE_DIR}/3rdparty)
-set(CMAKE_INSTALL_RPATH "/usr/local/probe/lib:/usr/local/probe/lib64")
-set(CMAKE_SKIP_BUILD_RPATH TRUE)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 
 find_library(G3LOG g3logger PATHS /usr/local/probe/lib )
@@ -115,8 +111,11 @@ file(GLOB TEST_SRC_FILES "test/*.cpp")
 
 SET(CMAKE_CXX_FLAGS "-Wall -Wno-sign-compare -rdynamic -Wunused -std=c++14 -pthread -D_GLIBCXX_USE_NANOSLEEP")
 add_executable(UnitTestRunner 3rdparty/test_main.cpp ${TEST_SRC_FILES} )
-target_link_libraries(UnitTestRunner ${LIBRARY_TO_BUILD} gtest_170_lib ${LIBS})
-set_target_properties(${test} PROPERTIES COMPILE_FLAGS "-isystem -pthread ")
+MESSAGE("*****: " ${LIBRARY_TO_BUILD})
+
+target_link_libraries(UnitTestRunner gtest_170_lib ${LIBS})
+target_link_libraries(UnitTestRunner ${LIBRARY_TO_BUILD})
+set_target_properties(UnitTestRunner PROPERTIES COMPILE_FLAGS "-isystem -pthread ")
 
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
