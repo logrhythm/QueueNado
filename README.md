@@ -9,15 +9,16 @@ QueueNado
 2. [g3sinks](https://github.com/KjellKod/g3sinks)
 3. [FileIO](https://github.com/LogRhythm/FileIO)
 4. [ZMQ v3.2.5](http://zeromq.org/)
-5. [ZLIB](http://www.zlib.net)
+5. [CZMQ v3.0.2](http://czmq.zeromq.org/)
+6. [ZLIB](http://www.zlib.net)
 Most Linux distributions carry zlib. 
 Example: In Ubuntu it can be installed with 
 ```sudo apt-get install zlib1g-dev``` 
-6. [StopWatch](https://github.com/LogRhythm/StopWatch)
-7. [DeathKnell](https://github.com/LogRhythm/DeathKnell)
-8. [tcmalloc](https://github.com/gperftools/gperftools)
+7. [StopWatch](https://github.com/LogRhythm/StopWatch)
+8. [DeathKnell](https://github.com/LogRhythm/DeathKnell)
+9. [tcmalloc](https://github.com/gperftools/gperftools)
 The creators of tcmalloc recommends installing ` libunwind`   to avoid encountering a  deadlock bug during stack unwinding. 
-9. [boost](http://www.boost.org/doc/libs/1_63_0/index.html)
+10. [boost](http://www.boost.org/doc/libs/1_63_0/index.html)
 For installing boost please follow their [instructions](http://www.boost.org/doc/libs/1_63_0/more/getting_started/unix-variants.html). 
 
 
