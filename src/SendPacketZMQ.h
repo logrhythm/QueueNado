@@ -1,14 +1,6 @@
 #pragma once
 
 #include "Rifle.h"
-#include <dpi/libafc.h>
-#include <dpi/libctl.h>
-#include <dpi/protodef.h>
-#include <dpi/libdata.h>
-#include <dpi/modules/uaction.h>
-#include <dpi/modules/uevent.h>
-#include <dpi/modules/uevent_hooks.h>
-#include <dpi/modules/uapplication.h>
 
 class SendPacketZMQ : public Rifle
 {

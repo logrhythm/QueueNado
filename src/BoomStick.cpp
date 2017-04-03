@@ -4,6 +4,7 @@
 #include <zsocket.h>
 #include <zmsg.h>
 #include <zsocket.h>
+#include <zsockopt.h>
 #include <zframe.h>
 #include <iostream>
 #include <time.h>

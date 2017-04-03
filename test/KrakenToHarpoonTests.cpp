@@ -103,25 +103,6 @@ TEST_F(KrakenToHarpoonTests, Default_MaxChunkSize) {
 }
 
 
-TEST_F(KrakenToHarpoonTests, PollTimeoutReturnsTimeout) {
-   using namespace std::chrono;
-
-   int port = GetTcpPort();
-   std::string location = GetTcpLocation(port);
-   MockKraken server;
-   Kraken::Spear spear = server.SetLocation(location);
-   EXPECT_EQ(spear, Kraken::Spear::IMPALED);
-
-   for (int timeoutMs = 1; timeoutMs < 50; timeoutMs += 5) {
-      steady_clock::time_point pollStartMs = steady_clock::now();
-      Kraken::Battling Battling = server.CallPollTimeout(timeoutMs);
-      int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
-      EXPECT_EQ(Battling, Kraken::Battling::TIMEOUT);
-      EXPECT_LE(timeoutMs, pollElapsedMs);
-      EXPECT_GE(timeoutMs, pollElapsedMs-1);
-   }
-}
-
 TEST_F(KrakenToHarpoonTests, SendTidalWaveGetNextChunkIdDieMethods) {
    //Client thread will send out request for 10 chunks and instantly die. Therefore, none of those
    // chunks will be received and a -2 status should be returned
