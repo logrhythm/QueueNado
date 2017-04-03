@@ -12,17 +12,3 @@ public:
    void SetQueueSize(const int size);
    bool Initialize();
 };
-
-
-/*#include <dpi/libafc.h>
-#include <dpi/libctl.h>
-#include <dpi/protodef.h>
-#include <dpi/libdata.h>
-#include <dpi/modules/uaction.h>
-#include <dpi/modules/uevent.h>
-#include <dpi/modules/uevent_hooks.h>
-#include <dpi/modules/uapplication.h>
-
-from icomponentqueue
-#include <dpi/bits/complex_ctb_types.h>
-*/
