@@ -212,25 +212,6 @@ TEST_F(HarpoonKrakenTests, HarpoonSetBadLocation) {
    EXPECT_EQ(Harpoon::Spear::MISS, status);
 }
 
-TEST_F(HarpoonKrakenTests, PollTimeoutReturnsTimeout) {
-   using namespace std::chrono;
-
-   MockHarpoon client;
-
-   int port = GetTcpPort();
-   std::string location = HarpoonKrakenTests::GetTcpLocation(port);
-   Harpoon::Spear status = client.Aim(location);
-   EXPECT_EQ(status, Harpoon::Spear::IMPALED);
-
-   for (int timeoutMs = 1; timeoutMs < 50; timeoutMs += 5) {
-      steady_clock::time_point pollStartMs = steady_clock::now();
-      Harpoon::Battling Battling = client.CallPollTimeout(timeoutMs);
-      int pollElapsedMs = duration_cast<milliseconds>(steady_clock::now() - pollStartMs).count();
-      EXPECT_EQ(Battling, Harpoon::Battling::TIMEOUT);
-      EXPECT_LE(timeoutMs, pollElapsedMs) << timeoutMs << "<=" << pollElapsedMs;
-      EXPECT_NE(pollElapsedMs, 0);
-   }
-}
 
 TEST_F(HarpoonKrakenTests, SendTidalWaveGetNextChunkIdMethods) {
    //Server will receive data requests from client, but will not respond to them.
