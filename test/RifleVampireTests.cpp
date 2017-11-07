@@ -1928,38 +1928,7 @@ TEST_F(RifleVampireTests, BringDeadVampireBackToLife) {
 
 }
 
-/**
- * Test socket ownership. Only one things can own the socket.
- * @param 
- */
-TEST_F(RifleVampireTests, MultileRiflesSocketOwnerTest) {
 
-   std::string msg("Woo");
-   std::string location(GetIpcLocation());
-   Vampire vampire(location);
-   Vampire vampire2(location);
-   EXPECT_TRUE(vampire.PrepareToBeShot());
-   EXPECT_TRUE(vampire2.PrepareToBeShot());
-   Rifle rifle1(location);
-   rifle1.SetOwnSocket(true);
-   Rifle rifle2(location);
-   rifle2.SetOwnSocket(true);
 
-   EXPECT_TRUE(rifle1.Aim());
-   EXPECT_TRUE(rifle2.Aim());
 
-   sleep(10);
-   //We should fail to send because we no longer own the socket.
-   EXPECT_FALSE(rifle1.Fire(msg, 10));
-
-   EXPECT_TRUE(rifle2.Fire(msg, 500));
-   EXPECT_TRUE(rifle2.Fire(msg, 500));
-
-   std::string bullet;
-   //messages should have been load balanced between them, so each should have
-   //a single shot.
-   EXPECT_TRUE(vampire.GetShot(bullet, 1));
-   EXPECT_TRUE(vampire2.GetShot(bullet, 1));
-
-}
 
