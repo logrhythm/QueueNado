@@ -48,9 +48,6 @@ list(APPEND LIBS ${STOPWATCH})
 find_library(DEATHKNELL DeathKnell PATHS /usr/local/probe/lib )
 list(APPEND LIBS ${DEATHKNELL})
 
-find_library(TCMALLOC tcmalloc PATHS /usr/local/probe/lib )
-# Appended first instead
-
 SET(MAJOR_VERSION 1)
 
 # Find the current version if not already set

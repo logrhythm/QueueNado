@@ -16,9 +16,7 @@ Example: In Ubuntu it can be installed with
 ```sudo apt-get install zlib1g-dev``` 
 7. [StopWatch](https://github.com/LogRhythm/StopWatch)
 8. [DeathKnell](https://github.com/LogRhythm/DeathKnell)
-9. [tcmalloc](https://github.com/gperftools/gperftools)
-The creators of tcmalloc recommends installing ` libunwind`   to avoid encountering a  deadlock bug during stack unwinding. 
-10. [boost](http://www.boost.org/doc/libs/1_63_0/index.html)
+9. [boost](http://www.boost.org/doc/libs/1_63_0/index.html)
 For installing boost please follow their [instructions](http://www.boost.org/doc/libs/1_63_0/more/getting_started/unix-variants.html). 
 
 
