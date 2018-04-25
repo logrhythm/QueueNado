@@ -1,0 +1,37 @@
+#!/bin/sh
+
+GitRepeat() {
+   userName=$1
+   repoName=$2
+   branch=$3
+
+   fullRepo="https://github.com/$userName/$repoName.git"
+   tryCount=1
+   stopFlag=1
+   if [ ! -d "$repoName" ]; then
+      while [ $stopFlag == 1 ]; do
+         let tryCount=tryCount+1
+         timeout 60 git clone -b $branch $fullRepo
+         if [ "$?" -eq 0 ]; then
+            stopFlag=0
+         else
+            rm -rf $repoName
+            if [ "$tryCount" -gt 60 ]; then
+               echo \"git clone -b $branch $fullRepo\" failed 60 times in 60 minutes.
+               exit -60
+            fi
+            echo retrying \"git clone $fullRepo\"
+         fi
+      done
+   else
+      echo $repoName already exists.
+   fi
+}
+
+rm -rf Q
+rm -rf src_3rdparty/q
+GitRepeat KjellKod Q setup
+mkdir -p src_3rdparty
+mv Q/src/* src_3rdparty/.
+rm -rf Q
+
