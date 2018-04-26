@@ -1,3 +1,20 @@
+/* Not any company's property but Public-Domain
+* Do with source-code as you will. No requirement to keep this
+* header if need to use it/change it/ or do whatever with it
+*
+* Note that there is No guarantee that this code will work
+* and I take no responsibility for this code and any problems you
+* might get if using it.
+*
+* Code & platform dependent issues with it was originally
+* published at http://www.kjellkod.cc/threadsafecircularBase
+* 2012-16-19  @author Kjell Hedström, hedstrom@kjellkod.cc
+*
+* Modified and inspired from KjellKod's code at:
+* https://github.com/KjellKod/Q/src/q/q_api.hpp
+*/
+
+
 #pragma once
 
 #include <tuple>
@@ -7,7 +24,7 @@
 #include <q/spsc.hpp>
 #include <q/mpmc.hpp>
 
-/* Inspired by https://github.com/KjellKod/Q/src/q/q_api.hpp*/
+
 
 
 namespace QAPI {
@@ -57,6 +74,45 @@ namespace QAPI {
    };
 
 
+   namespace sfinae {
+      // SFINAE: Substitution Failure Is Not An Error
+      // Decide at compile time what function signature to use
+      // 1. If 'wait_and_pop' exists in the queue it uses that
+      // 2. If only 'pop' exists it implements 'wait_and_pop' expected
+      // -- FYI: The wait is set to increments of 100 ns
+      template <typename T, typename Element>
+      bool wrapper(T& t, Element& e, std::chrono::milliseconds max_wait) {
+         using milliseconds = std::chrono::milliseconds;
+         using clock = std::chrono::steady_clock;
+         using namespace std::chrono_literals;
+         auto t1 = clock::now();
+         bool result = false;
+         while (!(result = t.pop(e))) {
+            std::this_thread::sleep_for(100ns);
+            auto elapsed_ms = std::chrono::duration_cast<milliseconds>(clock::now() - t1);
+            if (elapsed_ms > max_wait) {
+               return result;
+            }
+         }
+         return result;
+      }
+
+      template <typename T, typename Element>
+      auto match_call(T& t, Element& e, std::chrono::milliseconds ms, int) -> decltype( t.wait_and_pop(e, ms) )
+      { return t.wait_and_pop(e, ms); }
+
+      template <typename T, typename Element>
+      auto match_call(T& t, Element& e, std::chrono::milliseconds ms, long) -> decltype( wrapper(t, e, ms) )
+      { return wrapper(t, e, ms); }
+
+      template <typename T, typename Element>
+      int wait_and_pop (T& t, Element& e, std::chrono::milliseconds ms) {
+         // SFINAE magic happens with the '0'.  For the right call it will be deducted ot bhe
+         return match_call(t, e, ms, 0);
+      }
+   }
+
+
 
 // struct with : pop() + base Queue API
    template<typename QType>
@@ -74,6 +130,18 @@ namespace QAPI {
          }
          return result;
       }
+
+      template<typename Element>
+      bool wait_and_pop(Element& item, const std::chrono::milliseconds wait_ms) {
+         TriggerTimeStats trigger(mStats);
+         auto result = sfinae::wait_and_pop(Base<QType>::mQueueRef, item, wait_ms);
+         if (!result) {
+            trigger.Skip();
+         }
+         return result;
+      }
+
+
       TimeStats mStats;
    };  // ReceiverQ
 

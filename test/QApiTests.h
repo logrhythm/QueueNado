@@ -97,19 +97,25 @@ namespace QApiTests {
 
       StopWatch watch;
       size_t amountReceived = 0;
+      size_t byteReceived = 0;
       while (!stopRunning.load()) {
          std::string value;
-         while (false == q.pop(value) && !stopRunning.load()) {
-            std::this_thread::sleep_for(100ns); // yield is too aggressive
+         bool result = false;
+         std::chrono::milliseconds wait{10};
+         while (!(result = q.wait_and_pop(value, wait))) {
+            if (stopRunning.load()) {
+               break;
+            }
          }
-         if (!stopRunning.load()) {
+         if (result) {
             EXPECT_EQ(data.size(), value.size());
             EXPECT_FALSE(value.empty());
             ++amountReceived;
+            byteReceived += value.size();
          }
       }
       std::ostringstream oss;
-      oss << "GetUntil: " << q.mStats.FlushAsString() << std::endl;
+      oss << "Bytes received: " << byteReceived << std::endl;
       std::cout << oss.str();
       return amountReceived;
    }
@@ -187,7 +193,7 @@ namespace QApiTests {
          amountProduced += result.get();
       }
       consumerStop.store(true);
-      size_t amountConsumed = 0;
+      float amountConsumed = 0;
       for (auto& result : consumerResult) {
          amountConsumed += result.get();
       }
@@ -196,7 +202,7 @@ namespace QApiTests {
       EXPECT_GE(amountConsumed + 100, amountProduced);
       std::cout << "Transaction/s: " << amountConsumed / elapsedTimeSec << std::endl;
       std::cout << "Transaction/s per consumer: " << amountConsumed / elapsedTimeSec / numberConsumers << std::endl;
-      std::cout << "Transation MByte/s: " << amountConsumed* data.size() / (1024 * 1024) / elapsedTimeSec << std::endl;
+      std::cout << "Transation GByte/s: " << amountConsumed * data.size() / (1024 * 1024 * 1024) / elapsedTimeSec << std::endl;
    }
 
 } // Q API Tests
