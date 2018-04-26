@@ -41,6 +41,7 @@ public:
 
    void QueueSPSCBenchmark(int dataSize, int nHowMany, int expectedSpeed);
    void QueueMPMCBenchmark(int numSenders, int numReceivers, int dataSize, int nHowMany, int expectedSpeed);
+   void QueueMPMCBenchmark_1Minute(int numSenders, int numReceivers, int dataSize, int nHowMany, int expectedSpeed);
    
    void OneRifleNVampiresStakeBenchmark(int nVampires, int nIOThreads,
            int rifleHWM, int vampireHWM, std::string& location, int dataSize,

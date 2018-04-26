@@ -30,7 +30,7 @@ GitRepeat() {
 
 rm -rf Q
 rm -rf src_3rdparty/q
-GitRepeat KjellKod Q setup
+GitRepeat KjellKod Q SFINAE 
 mkdir -p src_3rdparty
 mv Q/src/* src_3rdparty/.
 rm -rf Q

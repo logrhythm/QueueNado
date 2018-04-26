@@ -12,6 +12,7 @@
 #include <q/mpmc.hpp>
 #include <future>
 #include <QueueNadoMacros.h>
+#include <limits>
 
 namespace {
    const int kNoWaitTimeMs = 0;
@@ -292,10 +293,13 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
       using namespace std::chrono_literals;
       for (auto i = 0; i < stop; ++i) {
          std::string sendData = exampleData;
+         if (stopRunning.load()) {
+            return pushed;
+         }
          while (false == q.push(sendData)) {
             std::this_thread::sleep_for(1us); // // yield is too aggressive
             if (stopRunning.load()) {
-               break;
+               return pushed;
             }
          }
          ++pushed;
@@ -313,11 +317,14 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
 
       using namespace std::chrono_literals;
       for (auto i = 0; i < stop; ++i) {
+         if (stopRunning.load()) {
+            return received;
+         }
          std::string incoming;
          while (false == q.pop(incoming)) {
             std::this_thread::sleep_for(1us); // // yield is too aggressive
             if (stopRunning.load()) {
-               break;
+               return received;
             }
          }
          ++received;
@@ -334,7 +341,8 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
 
 void RifleVampireTests::QueueSPSCBenchmark(int dataSize, int nHowMany, int expectedSpeed) {
 
-   auto queue = QAPI::CreateQueue<spsc::flexible::circular_fifo<std::string>>(100);
+   const size_t kQueueSize = 100;
+   auto queue = QAPI::CreateQueue<spsc::flexible::circular_fifo<std::string>>(kQueueSize);
    const std::string exampleData(dataSize, 'a');
    SetExpectedTime(nHowMany, exampleData.size() * sizeof (char), expectedSpeed, 20000L);
 
@@ -352,13 +360,61 @@ void RifleVampireTests::QueueSPSCBenchmark(int dataSize, int nHowMany, int expec
    auto received = receivedResult.get();
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
-   EXPECT_EQ(sent, received);
+   EXPECT_GE(received + kQueueSize, sent);
 }
 
 
 void RifleVampireTests::QueueMPMCBenchmark(int numSenders, int numReceivers, int dataSize, int nHowMany, int expectedSpeed) {
    
-   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<std::string>>(100, std::chrono::milliseconds(1));
+   const size_t kQueueSize = 100;
+   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<std::string>>(kQueueSize, std::chrono::milliseconds(1));
+   const std::string exampleData(dataSize, 'a');
+   SetExpectedTime(nHowMany, exampleData.size() * sizeof (char), expectedSpeed, 20000L);
+
+   auto producer = std::get <QAPI::index::sender>(queue);
+   auto consumer = std::get <QAPI::index::receiver>(queue);
+
+   StartTimedSection();
+   std::vector<std::future<size_t>> sentResult;
+   sentResult.reserve(numSenders);
+   std::vector<std::future<size_t>> receiveResult;
+   receiveResult.reserve(numReceivers);
+   std::atomic<bool> stopRunning{false};
+   for (int i = 0; i < numReceivers; ++i) {
+      receiveResult.emplace_back(std::async(std::launch::async, Get<decltype(consumer)>,
+                                    consumer, dataSize, nHowMany, std::ref(stopRunning)));
+   }
+
+   for (int i = 0; i < numSenders; ++i) {
+      sentResult.emplace_back(std::async(std::launch::async, Push<decltype(producer)>,
+                                    producer, dataSize, nHowMany, std::ref(stopRunning)));
+   }
+   
+   StopWatch timecheck;
+   size_t totalSent = 0;
+   for (int i = 0; i < numSenders; ++i) {
+      totalSent = sentResult[i].get();
+   }
+
+   stopRunning.store(true);
+   size_t totalReceived = 0;
+   for (int i = 0; i < numSenders; ++i) {
+      totalReceived = receiveResult[i].get();
+   }
+   EndTimedSection();
+   EXPECT_TRUE(TimedSectionPassed());
+   std::cout << "Actual throughput: " << totalReceived * dataSize << " bytes" << std::endl;
+   std::cout << "Total time elapsed: " << timecheck.ElapsedSec() << std::endl;
+   std::cout << "Transaction/second: " << totalReceived/timecheck.ElapsedSec() << std::endl;
+   std::cout << "Transaction speed: " << ((totalReceived * dataSize / 1000)/timecheck.ElapsedSec()) << " Mbps" << std::endl; 
+   EXPECT_GE(totalReceived + kQueueSize, totalSent);
+}
+
+
+void RifleVampireTests::QueueMPMCBenchmark_1Minute(int numSenders, int numReceivers, int dataSize, int nHowMany, int expectedSpeed) {
+   
+   const size_t kQueueSize = 100;
+   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<std::string>>(kQueueSize, std::chrono::milliseconds(1));
    const std::string exampleData(dataSize, 'a');
    SetExpectedTime(nHowMany, exampleData.size() * sizeof (char), expectedSpeed, 20000L);
 
@@ -383,6 +439,13 @@ void RifleVampireTests::QueueMPMCBenchmark(int numSenders, int numReceivers, int
    }
    
 
+   StopWatch timecheck;
+   using namespace std::chrono_literals;
+   while(timecheck.ElapsedSec() < 60) {
+      std::this_thread::sleep_for(10ms);
+   }
+   stopRunning.store(true);
+
    size_t totalSent = 0;
    for (int i = 0; i < numSenders; ++i) {
       totalSent = sentResult[i].get();
@@ -395,10 +458,12 @@ void RifleVampireTests::QueueMPMCBenchmark(int numSenders, int numReceivers, int
    }
    EndTimedSection();
    EXPECT_TRUE(TimedSectionPassed());
-   EXPECT_EQ(totalSent, nHowMany); 
-   EXPECT_EQ(totalSent, totalReceived); // 100 can diff
+   std::cout << "Actual throughput: " << ((totalReceived * dataSize)/(1024 * 1024)) << " MBytes" << std::endl;
+   std::cout << "Total time elapsed: " << timecheck.ElapsedSec() << std::endl;
+   std::cout << "Transaction/second: " << totalReceived/timecheck.ElapsedSec() << std::endl;
+   std::cout << "Transaction speed: " << ((totalReceived * dataSize / (1024 * 1024))/timecheck.ElapsedSec()) << " Mbyte/s" << std::endl; 
+   EXPECT_GE(totalReceived + kQueueSize, totalSent);
 }
-
 
 
 
@@ -609,6 +674,20 @@ TEST_F(RifleVampireTests, ipcFilesCleanedOnFatal) {
    ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath));
 }
 
+/**
+*
+* The Rifle Vampire performance tests are NOT measuring correctly how much the throughput is and what the actual 
+* time it took to process them. For that reason all the performance tests are disabled with #if 0
+* 
+* For the time being they are being left in case we want to revisit similar performance tests later for the new
+* queues that we are doing.
+*
+* At that time these obsolete tests should be replaced and deleted
+*/ 
+
+
+#if 0
+
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCLargeSize) {
    if (geteuid() == 0) {
       std::string location = GetIpcLocation();
@@ -616,7 +695,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCLargeSize) {
       int nIOThreads = 1;
       int rifleHWM = 1000;
       int vampireHWM = 500;
-      int dataSize = 65554;
+      int dataSize = 56554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
       OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
@@ -1660,6 +1739,15 @@ TEST_F(RifleVampireTests, MPMC_OneToFour) {
    QueueMPMCBenchmark(numSenders, numReceivers, dataSize, howMany, expectedSpeed);
 }
 
+TEST_F(RifleVampireTests, SPMC_OneToFour_OneMinute) {
+   int dataSize = 65554;
+   int howMany = std::numeric_limits<int>::max();
+   int expectedSpeed = 1000;
+   int numSenders = 1;
+   int numReceivers = 4;
+   QueueMPMCBenchmark_1Minute(numSenders, numReceivers, dataSize, howMany, expectedSpeed);
+}
+
 
 TEST_F(RifleVampireTests, MPMC_FourToFour) {
    int dataSize = 65554;
@@ -1699,6 +1787,8 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPLargeSizeZeroC
                                          location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
+
+#endif // 0 --- Broken performance test
 
 TEST_F(RifleVampireTests, StopPreparingAlreadyAndJustGo) {
    std::string location = GetIpcLocation();
