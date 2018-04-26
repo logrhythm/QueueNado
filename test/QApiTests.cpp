@@ -91,7 +91,7 @@ TEST(Performance, SPSC_Fixed_20secRun_LargeData) {
 }
 
 
-TEST(Performance, MPMC_4_to_1_20secRun_LargeData) {
+TEST(Performance, MPMC_1_to_4_20secRun_LargeData) {
    using namespace std;
    auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<string>>(kSmallQueueSize);
    const size_t large = 65554;
@@ -99,6 +99,18 @@ TEST(Performance, MPMC_4_to_1_20secRun_LargeData) {
    EXPECT_EQ(large, data.size());
    const size_t numberOfProducers = 1;
    const size_t numberOfConsumers = 4;
+   const size_t kTimeToRunSec = 20;
+   RunMPMC(queue, data, numberOfProducers, numberOfConsumers, kTimeToRunSec);
+}
+
+TEST(Performance, MPMC_4_to_1_20secRun_LargeData) {
+   using namespace std;
+   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<string>>(kSmallQueueSize);
+   const size_t large = 65554;
+   std::string data(large, 'a');
+   EXPECT_EQ(large, data.size());
+   const size_t numberOfProducers = 4;
+   const size_t numberOfConsumers = 1;
    const size_t kTimeToRunSec = 20;
    RunMPMC(queue, data, numberOfProducers, numberOfConsumers, kTimeToRunSec);
 }

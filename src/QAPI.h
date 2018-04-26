@@ -45,7 +45,7 @@ namespace QAPI {
       size_t capacity_free() const { return mQueueRef.capacity_free(); }
       size_t size() const { return mQueueRef.size(); }
       bool lock_free() const { return mQueueRef.size(); }
-      size_t usage() const { return mQueueRef.usage(); }
+      auto usage() const -> decltype(&QType::usage) { return mQueueRef.usage(); }
 
       std::shared_ptr<QType> mQueueStorage;
       QType& mQueueRef;

@@ -19,7 +19,7 @@ namespace QApiTests {
       producerStart.store(true);
       using namespace std::chrono_literals;
       while (!consumerStart.load()) {
-         std::this_thread::sleep_for(2ns);
+         std::this_thread::sleep_for(1us);
       }
 
       for (auto i = start; i < stop; ++i) {
@@ -43,7 +43,7 @@ namespace QApiTests {
       received.reserve(stop - start);
       consumerStart.store(true);
       while (!producerStart.load()) {
-         std::this_thread::sleep_for(2ns);
+         std::this_thread::sleep_for(1us);
       }
 
       for (auto i = start; i < stop; ++i) {
@@ -66,9 +66,6 @@ namespace QApiTests {
       using namespace std::chrono_literals;
       producerCount++;
       using namespace std::chrono_literals;
-      while (numberOfConsumers < consumerCount.load()) {
-         std::this_thread::sleep_for(2ns);
-      }
 
       StopWatch watch;
       size_t amountPushed = 0;
@@ -91,9 +88,6 @@ namespace QApiTests {
    size_t GetUntil(Receiver q, const std::string data, const size_t numberOfProducers, std::atomic<size_t>& producerCount, std::atomic<size_t>& consumerCount, std::atomic<bool>& stopRunning) {
       using namespace std::chrono_literals;
       consumerCount++;
-      while (numberOfProducers < producerCount.load()) {
-         std::this_thread::sleep_for(2ns);
-      }
 
       StopWatch watch;
       size_t amountReceived = 0;
@@ -153,7 +147,8 @@ namespace QApiTests {
    }
 
    template<typename T>
-   void RunMPMC(T queue, std::string data, size_t numberProducers, size_t numberConsumers, const size_t timeToRunInSec) {
+   void RunMPMC(T queue, std::string data, size_t numberProducers,
+                size_t numberConsumers, const size_t timeToRunInSec) {
       std::atomic<size_t> producerCount{0};
       std::atomic<size_t> consumerCount{0};
       std::atomic<bool> producerStop{false};
@@ -202,7 +197,7 @@ namespace QApiTests {
       EXPECT_GE(amountConsumed + 100, amountProduced);
       std::cout << "Transaction/s: " << amountConsumed / elapsedTimeSec << std::endl;
       std::cout << "Transaction/s per consumer: " << amountConsumed / elapsedTimeSec / numberConsumers << std::endl;
-      std::cout << "Transation GByte/s: " << amountConsumed * data.size() / (1024 * 1024 * 1024) / elapsedTimeSec << std::endl;
+      std::cout << "Transation GByte/s: " << amountConsumed* data.size() / (1024 * 1024 * 1024) / elapsedTimeSec << std::endl;
    }
 
 } // Q API Tests
