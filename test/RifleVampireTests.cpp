@@ -686,7 +686,7 @@ TEST_F(RifleVampireTests, ipcFilesCleanedOnFatal) {
 */ 
 
 
-#if 0
+
 
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCLargeSize) {
    if (geteuid() == 0) {
@@ -701,7 +701,6 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCLargeSize) {
       OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 }
-
 
 
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCSmallSize) {
@@ -719,7 +718,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCSmallSize) {
 
 }
 
-
+#if 0
 
 
 TEST_F(RifleVampireTests, SPSC) {
