@@ -52,7 +52,7 @@ namespace QAPI {
 
 
 
-// struct with: push() + base Queue API
+   // push() + base Queue API
    template<typename QType>
    struct Sender : public Base<QType> {
     public:
@@ -113,7 +113,9 @@ namespace QAPI {
 
 
 
-// struct with : pop() + base Queue API
+   // pop(), wait_and_pop + base Queue API
+   // if the QType does not support wait_and_pop then 
+   // it will follow the sfinae::wrapper's wait_and_pop implementation
    template<typename QType>
    struct Receiver : public Base<QType> {
     public:
