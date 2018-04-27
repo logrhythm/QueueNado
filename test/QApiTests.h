@@ -168,15 +168,17 @@ namespace QApiTests {
 
       for (size_t i = 0; i < numberProducers; ++i) {
          producerResult.emplace_back(std::async(std::launch::async, PushUntil<decltype(producer)>,
-                                                producer, data, numberProducers, std::ref(producerCount),
-                                                std::ref(consumerCount), std::ref(producerStop)));
+                                                producer, data, numberProducers, 
+                                                std::ref(producerCount), std::ref(consumerCount), 
+                                                std::ref(producerStop)));
       }
       std::vector<std::future<size_t>> consumerResult;
       consumerResult.reserve(numberConsumers);
       for (size_t i = 0; i < numberProducers; ++i) {
          consumerResult.emplace_back(std::async(std::launch::async, GetUntil<decltype(consumer)>,
-                                                consumer, data, numberConsumers, std::ref(producerCount),
-                                                std::ref(consumerCount), std::ref(consumerStop)));
+                                                consumer, data, numberConsumers, 
+                                                std::ref(producerCount), std::ref(consumerCount), 
+                                                std::ref(consumerStop)));
       }
 
       using namespace std::chrono_literals;
