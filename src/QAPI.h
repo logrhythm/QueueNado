@@ -14,7 +14,6 @@
 * https://github.com/KjellKod/Q/src/q/q_api.hpp
 */
 
-
 #pragma once
 
 #include <tuple>
@@ -23,9 +22,6 @@
 #include <TriggerTimeStats.h>
 #include <q/spsc.hpp>
 #include <q/mpmc.hpp>
-
-
-
 
 namespace QAPI {
    // Base Queue API without pop() and push()
@@ -51,7 +47,6 @@ namespace QAPI {
    };
 
 
-
    // push() + base Queue API
    template<typename QType>
    struct Sender : public Base<QType> {
@@ -68,7 +63,6 @@ namespace QAPI {
          }
          return result;
       }
-
       TimeStats mStats;
    };
 
@@ -109,7 +103,7 @@ namespace QAPI {
          // SFINAE magic happens with the '0'.  For the right call it will be deducted ot bhe
          return match_call(t, e, ms, 0);
       }
-   }
+   } // sfinae
 
 
 
@@ -141,11 +135,8 @@ namespace QAPI {
          }
          return result;
       }
-
-
       TimeStats mStats;
-   };  // ReceiverQ
-
+   };  
 
 
    template<typename QType, typename... Args>
@@ -156,11 +147,3 @@ namespace QAPI {
 
    enum index {sender = 0, receiver = 1};
 } // QueueAPI
-
-
-
-
-
-
-
-
