@@ -363,7 +363,7 @@ void RifleVampireTests::QueueSPSCBenchmark(int dataSize, int nHowMany, int expec
 void RifleVampireTests::QueueMPMCBenchmark(int numSenders, int numReceivers, int dataSize, int nHowMany, int expectedSpeed) {
    
    const size_t kQueueSize = 100;
-   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<std::string>>(kQueueSize);
+   auto queue = QAPI::CreateQueue<mpmc::flexible_lock_queue<std::string>>(kQueueSize);
    const std::string exampleData(dataSize, 'a');
    SetExpectedTime(nHowMany, exampleData.size() * sizeof (char), expectedSpeed, 20000L);
 
@@ -410,7 +410,7 @@ void RifleVampireTests::QueueMPMCBenchmark(int numSenders, int numReceivers, int
 void RifleVampireTests::QueueMPMCBenchmark_1Minute(int numSenders, int numReceivers, int dataSize, int nHowMany, int expectedSpeed) {
    
    const size_t kQueueSize = 100;
-   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<std::string>>(kQueueSize);
+   auto queue = QAPI::CreateQueue<mpmc::flexible_lock_queue<std::string>>(kQueueSize);
    const std::string exampleData(dataSize, 'a');
    SetExpectedTime(nHowMany, exampleData.size() * sizeof (char), expectedSpeed, 20000L);
 

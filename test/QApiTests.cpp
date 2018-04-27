@@ -24,6 +24,48 @@ namespace {
 }
 
 
+TEST(Queue, BaseAPI_Flexible) {
+   auto queue = QAPI::CreateQueue<spsc::flexible::circular_fifo<std::string>>(kAmount);
+   auto producer = std::get<QAPI::index::sender>(queue);
+   auto consumer = std::get<QAPI::index::receiver>(queue);
+   EXPECT_TRUE(producer.empty());
+   EXPECT_FALSE(producer.full());
+   EXPECT_EQ(kAmount, producer.capacity());
+   EXPECT_EQ(kAmount, producer.capacity_free());
+   EXPECT_EQ(0, producer.size());
+   //EXPECT_TRUE(producer.lock_free()); See comment in QAPI.h
+   EXPECT_EQ(0, producer.usage());
+}
+
+TEST(Queue, BaseAPI_Fixed) {
+   auto queue = QAPI::CreateQueue<spsc::fixed::circular_fifo<std::string, kAmount>>();
+   auto producer = std::get<QAPI::index::sender>(queue);
+   auto consumer = std::get<QAPI::index::receiver>(queue);
+   EXPECT_TRUE(producer.empty());
+   EXPECT_FALSE(producer.full());
+   EXPECT_EQ(kAmount, producer.capacity());
+   EXPECT_EQ(kAmount, producer.capacity_free());
+   EXPECT_EQ(0, producer.size());
+   //EXPECT_TRUE(producer.lock_free()); See comment in QAPI.h
+   EXPECT_EQ(0, producer.usage());
+}
+
+
+TEST(Queue, BaseAPI_Flexible_Locked) {
+   auto queue = QAPI::CreateQueue<mpmc::flexible_lock_queue<std::string>>(kAmount);
+   auto producer = std::get<QAPI::index::sender>(queue);
+   auto consumer = std::get<QAPI::index::receiver>(queue);
+   EXPECT_TRUE(producer.empty());
+   EXPECT_FALSE(producer.full());
+   EXPECT_EQ(kAmount, producer.capacity());
+   EXPECT_EQ(kAmount, producer.capacity_free());
+   EXPECT_EQ(0, producer.size());
+   //EXPECT_FALSE(producer.lock_free());  // NOT lock -free
+   EXPECT_EQ(0, producer.usage());
+}
+
+
+
 TEST(Performance, SPSC_Flexible_CircularFifo) {
    auto queue = QAPI::CreateQueue<spsc::flexible::circular_fifo<std::string>>(kAmount);
    RunSPSC(queue, kAmount);
@@ -51,7 +93,7 @@ TEST(Performance, SPSC_Fixed_CircularFifo_Smaller) {
 
 TEST(Performance, MPMC_1_to_1) {
    using namespace std;
-   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<string>>(kAmount);
+   auto queue = QAPI::CreateQueue<mpmc::flexible_lock_queue<string>>(kAmount);
    RunSPSC(queue, kAmount);
 }
 
@@ -59,7 +101,7 @@ TEST(Performance, MPMC_1_to_1) {
 TEST(Performance, MPMC_1_to_1_Smaller) {
    using namespace std;
 
-   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<string>>(kSmallQueueSize);
+   auto queue = QAPI::CreateQueue<mpmc::flexible_lock_queue<string>>(kSmallQueueSize);
    RunSPSC(queue, kAmount);
 }
 
@@ -91,7 +133,7 @@ TEST(Performance, SPSC_Fixed_20secRun_LargeData) {
 
 TEST(Performance, MPMC_1_to_4_20secRun_LargeData) {
    using namespace std;
-   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<string>>(kSmallQueueSize);
+   auto queue = QAPI::CreateQueue<mpmc::flexible_lock_queue<string>>(kSmallQueueSize);
    const size_t large = 65554;
    std::string data(large, 'a');
    EXPECT_EQ(large, data.size());
@@ -103,7 +145,7 @@ TEST(Performance, MPMC_1_to_4_20secRun_LargeData) {
 
 TEST(Performance, MPMC_4_to_1_20secRun_LargeData) {
    using namespace std;
-   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<string>>(kSmallQueueSize);
+   auto queue = QAPI::CreateQueue<mpmc::flexible_lock_queue<string>>(kSmallQueueSize);
    const size_t large = 65554;
    std::string data(large, 'a');
    EXPECT_EQ(large, data.size());
@@ -115,7 +157,7 @@ TEST(Performance, MPMC_4_to_1_20secRun_LargeData) {
 
 TEST(Performance, MPMC_4_to_4_20secRun_LargeData) {
    using namespace std;
-   auto queue = QAPI::CreateQueue<mpmc::dynamic_lock_queue<string>>(kSmallQueueSize);
+   auto queue = QAPI::CreateQueue<mpmc::flexible_lock_queue<string>>(kSmallQueueSize);
    const size_t large = 65554;
    std::string data(large, 'a');
    EXPECT_EQ(large, data.size());

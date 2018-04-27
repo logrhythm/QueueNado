@@ -127,8 +127,8 @@ namespace QApiTests {
 
       using namespace std;
       using namespace chrono;
-      auto producer = std::get <QAPI::index::sender>(queue);
-      auto consumer = std::get <QAPI::index::receiver>(queue);
+      auto producer = std::get<QAPI::index::sender>(queue);
+      auto consumer = std::get<QAPI::index::receiver>(queue);
 
       auto t1 = high_resolution_clock::now();
       size_t start = 0;
@@ -161,8 +161,8 @@ namespace QApiTests {
 
       using namespace std;
       using namespace std::chrono;
-      auto producer = std::get <QAPI::index::sender>(queue);
-      auto consumer = std::get <QAPI::index::receiver>(queue);
+      auto producer = std::get<QAPI::index::sender>(queue);
+      auto consumer = std::get<QAPI::index::receiver>(queue);
       std::vector<std::future<size_t>> producerResult;
       producerResult.reserve(numberProducers);
 
@@ -201,8 +201,13 @@ namespace QApiTests {
          amountConsumed += result.get();
       }
 
+
+      // amoundProduced >= amountConsumed
+      // amountProduced <= amountConsumed + 100
+      EXPECT_TRUE(amountProduced >= amountConsumed);
+      EXPECT_TRUE(amountProduced <= amountConsumed + producer.capacity());
+
       auto elapsedTimeSec = elapsedRun.ElapsedSec();
-      EXPECT_GE(amountConsumed + 100, amountProduced);
       std::cout << "Transaction/s: "
                 << amountConsumed / elapsedTimeSec << std::endl;
       std::cout << "Transaction/s per consumer: "

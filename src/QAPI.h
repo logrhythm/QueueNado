@@ -39,8 +39,10 @@ namespace QAPI {
       size_t capacity() const { return mQueueRef.capacity(); }
       size_t capacity_free() const { return mQueueRef.capacity_free(); }
       size_t size() const { return mQueueRef.size(); }
-      bool lock_free() const { return mQueueRef.size(); }
-      auto usage() const -> decltype(&QType::usage) { return mQueueRef.usage(); }
+      // GCC BUG:  std::atomic<size_t>{}.is_lock_free(); is not implemented in gcc 4.8.5
+      // It is implemented in later versions (gc 5.3 and newer)
+      //bool lock_free() const { return mQueueRef.lock_free(); } 
+      size_t usage() const { return mQueueRef.usage(); }
 
       std::shared_ptr<QType> mQueueStorage;
       QType& mQueueRef;
