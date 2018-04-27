@@ -12,12 +12,13 @@ namespace QApiTests {
 
 
    template <typename Sender>
-   ResultType Push(Sender q, size_t start, size_t stop, std::atomic<bool>& producerStart, std::atomic<bool>& consumerStart) {
+   ResultType Push(Sender q, size_t start, size_t stop,
+                   std::atomic<bool>& producerStart, std::atomic<bool>& consumerStart) {
       using namespace std::chrono_literals;
+
       std::vector<std::string> expected;
       expected.reserve(stop - start);
       producerStart.store(true);
-      using namespace std::chrono_literals;
       while (!consumerStart.load()) {
          std::this_thread::sleep_for(1us);
       }
@@ -37,8 +38,10 @@ namespace QApiTests {
 
 
    template <typename Receiver>
-   ResultType Get(Receiver q, size_t start, size_t stop, std::atomic<bool>& producerStart, std::atomic<bool>& consumerStart) {
+   ResultType Get(Receiver q, size_t start, size_t stop,
+                  std::atomic<bool>& producerStart, std::atomic<bool>& consumerStart) {
       using namespace std::chrono_literals;
+
       std::vector<std::string> received;
       received.reserve(stop - start);
       consumerStart.store(true);
@@ -62,11 +65,12 @@ namespace QApiTests {
 
 
    template <typename Sender>
-   size_t PushUntil(Sender q, std::string data, const size_t numberOfConsumers, std::atomic<size_t>& producerCount, std::atomic<size_t>& consumerCount, std::atomic<bool>& stopRunning) {
-      using namespace std::chrono_literals;
-      producerCount++;
+   size_t PushUntil(Sender q, std::string data, const size_t numberOfConsumers,
+                    std::atomic<size_t>& producerCount, std::atomic<size_t>& consumerCount,
+                    std::atomic<bool>& stopRunning) {
       using namespace std::chrono_literals;
 
+      producerCount++;
       StopWatch watch;
       size_t amountPushed = 0;
       while (!stopRunning.load()) {
@@ -76,7 +80,6 @@ namespace QApiTests {
          }
          ++amountPushed;
       }
-
       std::ostringstream oss;
       oss << "Push Until: " << q.mStats.FlushAsString() << std::endl;
       std::cout << oss.str();
@@ -85,7 +88,9 @@ namespace QApiTests {
 
 
    template <typename Receiver>
-   size_t GetUntil(Receiver q, const std::string data, const size_t numberOfProducers, std::atomic<size_t>& producerCount, std::atomic<size_t>& consumerCount, std::atomic<bool>& stopRunning) {
+   size_t GetUntil(Receiver q, const std::string data, const size_t numberOfProducers,
+                   std::atomic<size_t>& producerCount, std::atomic<size_t>& consumerCount,
+                   std::atomic<bool>& stopRunning) {
       using namespace std::chrono_literals;
       consumerCount++;
 
@@ -113,8 +118,6 @@ namespace QApiTests {
       std::cout << oss.str();
       return amountReceived;
    }
-
-
 
 
    template<typename T>
@@ -146,6 +149,7 @@ namespace QApiTests {
       EXPECT_EQ(expected, received);
    }
 
+
    template<typename T>
    void RunMPMC(T queue, std::string data, size_t numberProducers,
                 size_t numberConsumers, const size_t timeToRunInSec) {
@@ -163,14 +167,16 @@ namespace QApiTests {
       producerResult.reserve(numberProducers);
 
       for (size_t i = 0; i < numberProducers; ++i) {
-         producerResult.emplace_back(std::async(std::launch::async, PushUntil<decltype(producer)>, producer, data, numberProducers,
-                                                std::ref(producerCount), std::ref(consumerCount), std::ref(producerStop)));
+         producerResult.emplace_back(std::async(std::launch::async, PushUntil<decltype(producer)>,
+                                                producer, data, numberProducers, std::ref(producerCount),
+                                                std::ref(consumerCount), std::ref(producerStop)));
       }
       std::vector<std::future<size_t>> consumerResult;
       consumerResult.reserve(numberConsumers);
       for (size_t i = 0; i < numberProducers; ++i) {
-         consumerResult.emplace_back(std::async(std::launch::async, GetUntil<decltype(consumer)>, consumer, data, numberConsumers,
-                                                std::ref(producerCount), std::ref(consumerCount), std::ref(consumerStop)));
+         consumerResult.emplace_back(std::async(std::launch::async, GetUntil<decltype(consumer)>,
+                                                consumer, data, numberConsumers, std::ref(producerCount),
+                                                std::ref(consumerCount), std::ref(consumerStop)));
       }
 
       using namespace std::chrono_literals;
@@ -195,9 +201,12 @@ namespace QApiTests {
 
       auto elapsedTimeSec = elapsedRun.ElapsedSec();
       EXPECT_GE(amountConsumed + 100, amountProduced);
-      std::cout << "Transaction/s: " << amountConsumed / elapsedTimeSec << std::endl;
-      std::cout << "Transaction/s per consumer: " << amountConsumed / elapsedTimeSec / numberConsumers << std::endl;
-      std::cout << "Transation GByte/s: " << amountConsumed* data.size() / (1024 * 1024 * 1024) / elapsedTimeSec << std::endl;
+      std::cout << "Transaction/s: "
+                << amountConsumed / elapsedTimeSec << std::endl;
+      std::cout << "Transaction/s per consumer: "
+                << amountConsumed / elapsedTimeSec / numberConsumers << std::endl;
+      std::cout << "Transation GByte/s: "
+                << amountConsumed* data.size() / (1024 * 1024 * 1024) / elapsedTimeSec << std::endl;
    }
 
 } // Q API Tests

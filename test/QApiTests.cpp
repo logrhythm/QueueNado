@@ -16,14 +16,13 @@
 #include <thread>
 #include <algorithm>
 
+using namespace QApiTests;
+
 namespace {
    const size_t kAmount = 1000000;
    const size_t kSmallQueueSize = 100;
 }
 
-
-
-using namespace QApiTests;
 
 TEST(Performance, SPSC_Flexible_CircularFifo) {
    auto queue = QAPI::CreateQueue<spsc::flexible::circular_fifo<std::string>>(kAmount);
@@ -45,10 +44,9 @@ TEST(Performance, SPSC_Fixed_CircularFifo) {
 
 TEST(Performance, SPSC_Fixed_CircularFifo_Smaller) {
    using namespace std;
-   auto queue = QAPI::CreateQueue < spsc::fixed::circular_fifo<string, kSmallQueueSize>> ();
+   auto queue = QAPI::CreateQueue<spsc::fixed::circular_fifo<string, kSmallQueueSize>>();
    RunSPSC(queue, kAmount);
 }
-
 
 
 TEST(Performance, MPMC_1_to_1) {

@@ -201,9 +201,6 @@ void RifleVampireTests::VampireThread(int numberOfMessages,
    }
 }
 
-
-
-
 void RifleVampireTests::StakeAVampireThread(int numberOfMessages,
       std::string& location,
       std::vector<std::pair<void*, unsigned int> >& exampleData,
@@ -308,6 +305,7 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
       return pushed;
    }
 
+
   template <typename Receiver>
    size_t Get(Receiver q, int dataSize, int stop, std::atomic<bool>& stopRunning) {
       using namespace std::chrono_literals;
@@ -335,8 +333,6 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
       std::cout << q.mStats.FlushAsString() << std::endl;
       return received;
    }
-
-
 
 
 void RifleVampireTests::QueueSPSCBenchmark(int dataSize, int nHowMany, int expectedSpeed) {
@@ -464,8 +460,6 @@ void RifleVampireTests::QueueMPMCBenchmark_1Minute(int numSenders, int numReceiv
    std::cout << "Transaction speed: " << ((totalReceived * dataSize / (1024 * 1024))/timecheck.ElapsedSec()) << " Mbyte/s" << std::endl; 
    EXPECT_GE(totalReceived + kQueueSize, totalSent);
 }
-
-
 
 
 void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOThreads,
@@ -674,20 +668,6 @@ TEST_F(RifleVampireTests, ipcFilesCleanedOnFatal) {
    ASSERT_FALSE(FileIO::DoesFileExist(addressRealPath));
 }
 
-/**
-*
-* The Rifle Vampire performance tests are NOT measuring correctly how much the throughput is and what the actual 
-* time it took to process them. For that reason all the performance tests are disabled with #if 0
-* 
-* For the time being they are being left in case we want to revisit similar performance tests later for the new
-* queues that we are doing.
-*
-* At that time these obsolete tests should be replaced and deleted
-*/ 
-
-
-
-
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCLargeSize) {
    if (geteuid() == 0) {
       std::string location = GetIpcLocation();
@@ -719,7 +699,16 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCSmallSize) {
 }
 
 #if 0
-
+/**
+*
+* The Rifle Vampire performance tests are NOT measuring correctly how much the throughput is and what the actual 
+* time it took to process them. For that reason all the performance tests are disabled with #if 0
+* 
+* For the time being they are being left in case we want to revisit similar performance tests later for the new
+* queues that we are doing.
+*
+* At that time these obsolete tests should be replaced and deleted
+*/ 
 
 TEST_F(RifleVampireTests, SPSC) {
    int dataSize = 100;
@@ -1878,8 +1867,6 @@ TEST_F(RifleVampireTests, ShootBlank) {
    EXPECT_FALSE(rifle.Fire(msg, 100));
    std::string bullet;
    EXPECT_FALSE(vampire.GetShot(bullet, 1));
-
-
 }
 
 TEST_F(RifleVampireTests, ShootNULL) {
@@ -2229,8 +2216,6 @@ TEST_F(RifleVampireTests, BringDeadVampireBackToLife) {
    for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       EXPECT_TRUE(vampire.GetShot(bullet, 1));
    }
-
-
 }
 
 /**
