@@ -29,8 +29,7 @@
 
 namespace QAPI {
 // Base Queue API without pop() and push()
-// It should be mentioned the thinking of what goes where
-// it is a "controversy" whether what is tail and what is head
+// This follows the 'tail' first design on FIFO
 // http://en.wikipedia.org/wiki/FIFO#Head_or_tail_first
 // This implementation follows "pop on head", "push on tail"
    template<typename QType>
