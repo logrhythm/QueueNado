@@ -23,6 +23,16 @@ namespace {
    const size_t kSmallQueueSize = 100;
 }
 
+TEST(Queue, ProdConsInitializationCopy) {
+   using namespace QAPI;
+   using QType = spsc::flexible::circular_fifo<std::string>;
+   auto queue = CreateQueue<QType>(kAmount);
+    Sender<QType> sender1 = std::get<QAPI::index::sender>(queue);
+    Sender<QType> sender2(std::get<QAPI::index::sender>(queue));
+    Receiver<QType> receiver1 = std::get<QAPI::index::receiver>(queue);
+    Receiver<QType> receiver2(std::get<QAPI::index::receiver>(queue));
+}
+
 
 TEST(Queue, BaseAPI_Flexible) {
    auto queue = QAPI::CreateQueue<spsc::flexible::circular_fifo<std::string>>(kAmount);
