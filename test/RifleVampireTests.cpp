@@ -725,7 +725,6 @@ TEST_F(RifleVampireTests, SPSCWithLargeTransfer) {
 }
 
 
-
 TEST_F(RifleVampireTests, OneRifleOneVampirePointers) {
    if (geteuid() == 0) {
       std::string location = GetIpcLocation();

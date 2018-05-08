@@ -30,7 +30,6 @@ unzip -u gtest-1.7.0.zip
 cd ..
 sh scripts/getLibraries
 
-
 if [ "%{buildtype}" == "-DUSE_LR_DEBUG=OFF"  ]; then
    /usr/local/probe/bin/cmake -DUSE_LR_DEBUG=ON -DVERSION:STRING=%{version}.%{buildnumber} \
       -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14 -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -Wall -fPIC -Ofast -m64 -isystem/usr/local/gcc/include -isystem/usr/local/probe/include -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/gcc/lib64 ' \

@@ -12,7 +12,7 @@ namespace QApiTests {
 
 
    template <typename Sender>
-   ResultType Push(Sender q, size_t start, size_t stop,
+   ResultType Send(Sender q, size_t start, size_t stop,
                    std::atomic<bool>& producerStart, std::atomic<bool>& consumerStart) {
       using namespace std::chrono_literals;
 
@@ -31,14 +31,14 @@ namespace QApiTests {
          }
       }
       std::ostringstream oss;
-      oss << "Push Until: " << q.mStats.FlushAsString() << std::endl;
+      oss << "SPSC Send: " << q.mStats.FlushAsString() << std::endl;
       std::cout << oss.str();
       return expected;
    }
 
 
    template <typename Receiver>
-   ResultType Get(Receiver q, size_t start, size_t stop,
+   ResultType Receive(Receiver q, size_t start, size_t stop,
                   std::atomic<bool>& producerStart, std::atomic<bool>& consumerStart) {
       using namespace std::chrono_literals;
 
@@ -57,7 +57,7 @@ namespace QApiTests {
          received.push_back(value);
       }
       std::ostringstream oss;
-      oss << "GetUntil: " << q.mStats.FlushAsString() << std::endl;
+      oss << "SPSC Receive: " << q.mStats.FlushAsString() << std::endl;
       std::cout << oss.str();
       return received;
    }
@@ -101,10 +101,9 @@ namespace QApiTests {
          std::string value;
          bool result = false;
          std::chrono::milliseconds wait{10};
-         while (!(result = q.wait_and_pop(value, wait))) {
-            if (stopRunning.load()) {
-               break;
-            }
+         result = q.wait_and_pop(value, wait);
+         if (stopRunning.load()) {
+            break;
          }
          if (result) {
             EXPECT_EQ(data.size(), value.size());
@@ -133,9 +132,9 @@ namespace QApiTests {
       auto t1 = high_resolution_clock::now();
       size_t start = 0;
       size_t stop = howMany;
-      auto prodResult = std::async(std::launch::async, Push<decltype(producer)>,
+      auto prodResult = std::async(std::launch::async, Send<decltype(producer)>,
                                    producer, start, stop, std::ref(producerStart), std::ref(consumerStart));
-      auto consResult = std::async(std::launch::async, Get<decltype(consumer)>,
+      auto consResult = std::async(std::launch::async, Receive<decltype(consumer)>,
                                    consumer, start, stop, std::ref(producerStart), std::ref(consumerStart));
 
       auto expected = prodResult.get();
@@ -165,7 +164,6 @@ namespace QApiTests {
       auto consumer = std::get<QAPI::index::receiver>(queue);
       std::vector<std::future<size_t>> producerResult;
       producerResult.reserve(numberProducers);
-
       for (size_t i = 0; i < numberProducers; ++i) {
          producerResult.emplace_back(std::async(std::launch::async, PushUntil<decltype(producer)>,
                                                 producer, data, numberProducers, 
@@ -174,7 +172,7 @@ namespace QApiTests {
       }
       std::vector<std::future<size_t>> consumerResult;
       consumerResult.reserve(numberConsumers);
-      for (size_t i = 0; i < numberProducers; ++i) {
+      for (size_t i = 0; i < numberConsumers; ++i) {
          consumerResult.emplace_back(std::async(std::launch::async, GetUntil<decltype(consumer)>,
                                                 consumer, data, numberConsumers, 
                                                 std::ref(producerCount), std::ref(consumerCount), 
@@ -201,9 +199,6 @@ namespace QApiTests {
          amountConsumed += result.get();
       }
 
-
-      // amoundProduced >= amountConsumed
-      // amountProduced <= amountConsumed + 100
       EXPECT_TRUE(amountProduced >= amountConsumed);
       EXPECT_TRUE(amountProduced <= amountConsumed + producer.capacity());
 

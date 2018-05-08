@@ -102,7 +102,9 @@ namespace QAPI {
 
       template <typename T, typename Element>
       int wait_and_pop (T& t, Element& e, std::chrono::milliseconds ms) {
-         // SFINAE magic happens with the '0'.  For the right call it will be deducted ot bhe
+         // SFINAE magic happens with the '0'.  
+         // For the matching call the '0' will be typed to int. 
+         // For non-matching call it will be typed to long
          return match_call(t, e, ms, 0);
       }
    } // sfinae

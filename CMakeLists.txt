@@ -108,7 +108,6 @@ set(GTEST_INCLUDE_DIRECTORIES ${GTEST_DIR}/include ${GTEST_DIR} ${GTEST_DIR}/src
 MESSAGE( "Attempt to build gtest. gtest directory: " ${GTEST_DIR})
 include_directories(${GTEST_INCLUDE_DIRECTORIES})
 include_directories(${PROJECT_SOURCE_DIR}/src_3rdparty)
-message(" src_rdparty: ${PROJECT_SOURCE_DIR}/src_3rdparty")
 
 add_library(gtest_170_lib ${GTEST_DIR}/src/gtest-all.cc)
 set_target_properties(gtest_170_lib PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_RTTI=0")

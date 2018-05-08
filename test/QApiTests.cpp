@@ -37,7 +37,6 @@ TEST(Queue, ProdConsInitializationCopy) {
 TEST(Queue, BaseAPI_Flexible) {
    auto queue = QAPI::CreateQueue<spsc::flexible::circular_fifo<std::string>>(kAmount);
    auto producer = std::get<QAPI::index::sender>(queue);
-   auto consumer = std::get<QAPI::index::receiver>(queue);
    EXPECT_TRUE(producer.empty());
    EXPECT_FALSE(producer.full());
    EXPECT_EQ(kAmount, producer.capacity());
