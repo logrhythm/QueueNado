@@ -4,6 +4,21 @@
 #include "RifleVampireTests.h"
 #include "Death.h"
 #include "FileIO.h"
+#include <TimeStats.h>
+#include <TriggerTimeStats.h>
+#include <g3log/g3log.hpp>
+#include <QAPI.h>
+#include <q/spsc.hpp>
+#include <q/mpmc.hpp>
+#include <future>
+#include <QueueNadoMacros.h>
+#include <limits>
+
+namespace {
+   const int kNoWaitTimeMs = 0;
+   const int kWaitTimeMs = 500;
+   const int kLongWaitTimeMs = 1500;
+}
 std::atomic<int> RifleVampireTests::mShotsDeleted;
 
 void TestDeleteString(void*, void* data) {
@@ -17,7 +32,7 @@ void TestDeleteString(void*, void* data) {
  * @param location
  */
 class TestVampire : public Vampire {
-public:
+ public:
 
    TestVampire(std::string location) : Vampire(location) {
    }
@@ -32,7 +47,7 @@ public:
  * @param location
  */
 class TestRifle : public Rifle {
-public:
+ public:
 
    TestRifle(std::string location) : Rifle(location) {
    }
@@ -60,18 +75,22 @@ std::string RifleVampireTests::GetIpcLocation() {
    return ipcLocation;
 }
 
+
 void RifleVampireTests::RifleThread(int numberOfMessages,
-        std::string& location, std::string& exampleData, int hwm,
-        int ioThreads, bool ownSocket) {
+                                    std::string& location, std::string& exampleData, int hwm,
+                                    int ioThreads, bool ownSocket) {
    Rifle rifle(location);
    rifle.SetHighWater(hwm);
    rifle.SetIOThreads(ioThreads);
    rifle.SetOwnSocket(ownSocket);
    rifle.Aim();
    std::stringstream ss;
+   TimeStats stats;
    for (int i = 0; i < numberOfMessages; i++) {
+      TriggerTimeStats trigger(stats);
       bool result = rifle.Fire(exampleData);
       if (!result) {
+         trigger.Skip();
          std::cout << "failed to fire" << std::endl;
       }
       //      std::cout << "shot fired:" << result << std::endl;
@@ -81,12 +100,14 @@ void RifleVampireTests::RifleThread(int numberOfMessages,
    while (!zctx_interrupted) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
    }
+   std::cout << "Rifle : " << stats.FlushAsString() << std::endl;
+
 
 }
 
 void RifleVampireTests::ShootStakeThread(int numberOfMessages,
-        std::string& location, std::vector<std::pair<void*, unsigned int> >& exampleData,
-        bool ownSocket) {
+      std::string& location, std::vector<std::pair<void*, unsigned int> >& exampleData,
+      bool ownSocket) {
    Rifle rifle(location);
    rifle.SetHighWater(1);
    rifle.SetIOThreads(1);
@@ -97,24 +118,26 @@ void RifleVampireTests::ShootStakeThread(int numberOfMessages,
    }
    rifle.Aim();
    std::stringstream ss;
+   TimeStats stats;
    for (int i = 0; i < numberOfMessages; i++) {
+      TriggerTimeStats trigger(stats);
       bool result = rifle.FireStakes(exampleData);
       if (!result) {
+         trigger.Skip();
          std::cout << "failed to fire" << std::endl;
       }
       //      std::cout << "shot fired:" << result << std::endl;
       //      boost::this_thread::sleep(boost::posix_time::microseconds(sleepInterval));
    }
-   //std::cout << "Done Shooting" << std::endl;
+   std::cout << "Rifle : " << stats.FlushAsString() << std::endl;
    while (!zctx_interrupted) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
    }
-
 }
 
 void RifleVampireTests::ShootZeroCopyThread(int numberOfMessages,
-        std::string& location, std::string& exampleData, int hwm, int ioThreads,
-        bool ownSocket) {
+      std::string& location, std::string& exampleData, int hwm, int ioThreads,
+      bool ownSocket) {
    Rifle rifle(location);
    rifle.SetHighWater(hwm);
    rifle.SetIOThreads(ioThreads);
@@ -125,20 +148,22 @@ void RifleVampireTests::ShootZeroCopyThread(int numberOfMessages,
    }
    rifle.Aim();
    std::stringstream ss;
+   TimeStats stats;
    for (int i = 0; i < numberOfMessages && !zctx_interrupted; i++) {
       std::string* zero = new std::string(exampleData);
+      TriggerTimeStats trigger(stats);
       bool result = rifle.FireZeroCopy(zero, zero->size(), TestDeleteString, 10000);
       if (!result) {
+         trigger.Skip();
          std::cout << "failed to fire" << std::endl;
       }
       //      std::cout << "shot fired:" << result << std::endl;
       //      boost::this_thread::sleep(boost::posix_time::microseconds(sleepInterval));
    }
-   //std::cout << "Done Shooting" << std::endl;
+   std::cout << "Rifle : " << stats.FlushAsString() << std::endl;
    while (!zctx_interrupted) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
    }
-
 }
 
 /**
@@ -151,39 +176,44 @@ void RifleVampireTests::ShootZeroCopyThread(int numberOfMessages,
  * @param ownSocket
  */
 void RifleVampireTests::VampireThread(int numberOfMessages,
-        std::string& location, std::string& exampleData, int hwm,
-        int ioThreads, bool ownSocket) {
+                                      std::string& location, std::string& exampleData, int hwm,
+                                      int ioThreads, bool ownSocket, int waitTimeMs) {
    Vampire vampire(location);
    vampire.SetHighWater(hwm);
    vampire.SetIOThreads(ioThreads);
    vampire.SetOwnSocket(ownSocket);
    ASSERT_TRUE(vampire.PrepareToBeShot());
-   for (int i=0; i < numberOfMessages && !zctx_interrupted; i++) {
+   TimeStats stats;
+   for (int i = 0; i < numberOfMessages && !zctx_interrupted; i++) {
       std::string bullet;
-      if (vampire.GetShot(bullet, 2000)) {
+      TriggerTimeStats trigger(stats);
+      if (vampire.GetShot(bullet, waitTimeMs)) {
          EXPECT_EQ(bullet, exampleData);
       } else {
+         trigger.Skip();
          //no shot in time try again
          i--;
       }
    }
+   std::cout << "Vampire : " << stats.FlushAsString() << std::endl;
    while (!zctx_interrupted) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
    }
 }
 
 void RifleVampireTests::StakeAVampireThread(int numberOfMessages,
-        std::string& location,
-        std::vector<std::pair<void*, unsigned int> >& exampleData,
-        int hwm, int ioThreads) {
+      std::string& location,
+      std::vector<std::pair<void*, unsigned int> >& exampleData,
+      int hwm, int ioThreads, int waitTimeMs) {
    Vampire vampire(location);
    vampire.SetHighWater(hwm);
    vampire.SetIOThreads(ioThreads);
    ASSERT_TRUE(vampire.PrepareToBeShot());
-   for (int i=0; i < numberOfMessages && !zctx_interrupted; i++) {
+   TimeStats stats;
+   for (int i = 0; i < numberOfMessages && !zctx_interrupted; i++) {
       std::vector<std::pair<void*, unsigned int> > data;
-
-      if (vampire.GetStakes(data, 2000)) {
+      TriggerTimeStats trigger(stats);
+      if (vampire.GetStakes(data, waitTimeMs)) {
          auto it = data.begin();
          auto jt = exampleData.begin();
          for (; it != data.end() && !zctx_interrupted; it++, jt++) {
@@ -191,17 +221,19 @@ void RifleVampireTests::StakeAVampireThread(int numberOfMessages,
             EXPECT_EQ(it->second, jt->second);
          }
       } else {
+         trigger.Skip();
          //no shot in time try again
          i--;
       }
    }
+   std::cout << "Vampire : " << stats.FlushAsString() << std::endl;
    while (!zctx_interrupted) {
       boost::this_thread::sleep(boost::posix_time::seconds(1));
    }
 }
 
 void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads,
-        int rifleHWM, int vampireHWM, std::string& location, int dataSize, int nShotsPerVampire, int expectedSpeed) {
+      int rifleHWM, int vampireHWM, std::string& location, int dataSize, int nShotsPerVampire, int expectedSpeed, int waitTimeMs) {
    bool bRifleOwnSocket = true;
    Rifle* rifle = new Rifle(location);
    rifle->SetHighWater(rifleHWM);
@@ -211,14 +243,14 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
 #if RIFLE_VAMPIRE_PRODUCTION == 0
    delete rifle;
    return;
-#endif   
+#endif
 
    std::string exampleData(dataSize, 'a');
    std::vector<boost::thread*> theVampires;
    for (int i = 0; i < nVampires && !zctx_interrupted; i++) {
       boost::thread* aShooter = new boost::thread(
-              &RifleVampireTests::VampireThread, this, nShotsPerVampire, location,
-              exampleData, vampireHWM, nIOThreads, !bRifleOwnSocket);
+         &RifleVampireTests::VampireThread, this, nShotsPerVampire, location,
+         exampleData, vampireHWM, nIOThreads, !bRifleOwnSocket, waitTimeMs);
       theVampires.push_back(aShooter);
    }
    sleep(2);
@@ -226,14 +258,18 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
    int fullSize = (nShotsPerVampire * nVampires) + ((vampireHWM * (nVampires)) * 2) + rifleHWM;
    SetExpectedTime(fullSize, exampleData.size() * sizeof (char), expectedSpeed, 20000L);
    StartTimedSection();
+   TimeStats stats;
    for (int i = 0; i < fullSize && !zctx_interrupted; i++) {
-      if (!rifle->Fire(exampleData, 500)) {
+      TriggerTimeStats trigger(stats);
+      if (!rifle->Fire(exampleData, waitTimeMs)) {
+         trigger.Skip();
          std::cout << "Failed to fire... Vampires might all be dead..." << std::endl;
          break;
       }
    }
+   std::cout << "One Rifle --> #" << nVampires << " Vampires: " << stats.FlushAsString() << std::endl;
    for (auto it = theVampires.begin();
-           it != theVampires.end() && !zctx_interrupted; it++) {
+         it != theVampires.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
       (*it)->join();
       delete *it;
@@ -243,8 +279,191 @@ void RifleVampireTests::OneRifleNVampiresBenchmark(int nVampires, int nIOThreads
    delete rifle;
 }
 
+
+  template <typename Sender>
+   size_t Push(Sender q, int dataSize, int stop, std::atomic<bool>& stopRunning) {
+      using namespace std::chrono_literals;
+      std::vector<std::string> expected;
+      std::string exampleData(dataSize, 'a');
+      size_t pushed = 0;
+
+      using namespace std::chrono_literals;
+      for (auto i = 0; i < stop; ++i) {
+         std::string sendData = exampleData;
+         if (stopRunning.load()) {
+            return pushed;
+         }
+         while (false == q.push(sendData)) {
+            std::this_thread::sleep_for(1us); // // yield is too aggressive
+            if (stopRunning.load()) {
+               return pushed;
+            }
+         }
+         ++pushed;
+      }
+      std::cout << q.mStats.FlushAsString() << std::endl;
+      return pushed;
+   }
+
+
+  template <typename Receiver>
+   size_t Get(Receiver q, int dataSize, int stop, std::atomic<bool>& stopRunning) {
+      using namespace std::chrono_literals;
+      std::vector<std::string> expected;
+      const std::string exampleData(dataSize, 'a');
+      size_t received = 0;
+
+      using namespace std::chrono_literals;
+      for (auto i = 0; i < stop; ++i) {
+         if (stopRunning.load()) {
+            return received;
+         }
+         std::string incoming;
+         while (false == q.pop(incoming)) {
+            std::this_thread::sleep_for(1us); // // yield is too aggressive
+            if (stopRunning.load()) {
+               return received;
+            }
+         }
+         ++received;
+         if (!stopRunning.load()) {
+            EXPECT_EQ(exampleData, incoming);
+         }
+      }
+      std::cout << q.mStats.FlushAsString() << std::endl;
+      return received;
+   }
+
+
+void RifleVampireTests::QueueSPSCBenchmark(int dataSize, int nHowMany, int expectedSpeed) {
+
+   const size_t kQueueSize = 100;
+   auto queue = QAPI::CreateQueue<spsc::flexible::circular_fifo<std::string>>(kQueueSize);
+   const std::string exampleData(dataSize, 'a');
+   SetExpectedTime(nHowMany, exampleData.size() * sizeof (char), expectedSpeed, 20000L);
+
+   auto producer = std::get <QAPI::index::sender>(queue);
+   auto consumer = std::get <QAPI::index::receiver>(queue);
+
+   StartTimedSection();
+   std::atomic<bool> stopRunning{false};
+
+   auto sentResult = std::async(std::launch::async, Push<decltype(producer)>,
+                                producer, dataSize, nHowMany, std::ref(stopRunning));
+   auto receivedResult = std::async(std::launch::async, Get<decltype(consumer)>,
+                                    consumer, dataSize, nHowMany, std::ref(stopRunning));
+   auto sent = sentResult.get();
+   auto received = receivedResult.get();
+   EndTimedSection();
+   EXPECT_TRUE(TimedSectionPassed());
+   EXPECT_GE(received + kQueueSize, sent);
+}
+
+
+void RifleVampireTests::QueueMPMCBenchmark(int numSenders, int numReceivers, int dataSize, int nHowMany, int expectedSpeed) {
+   
+   const size_t kQueueSize = 100;
+   auto queue = QAPI::CreateQueue<mpmc::flexible_lock_queue<std::string>>(kQueueSize);
+   const std::string exampleData(dataSize, 'a');
+   SetExpectedTime(nHowMany, exampleData.size() * sizeof (char), expectedSpeed, 20000L);
+
+   auto producer = std::get <QAPI::index::sender>(queue);
+   auto consumer = std::get <QAPI::index::receiver>(queue);
+
+   StartTimedSection();
+   std::vector<std::future<size_t>> sentResult;
+   sentResult.reserve(numSenders);
+   std::vector<std::future<size_t>> receiveResult;
+   receiveResult.reserve(numReceivers);
+   std::atomic<bool> stopRunning{false};
+   for (int i = 0; i < numReceivers; ++i) {
+      receiveResult.emplace_back(std::async(std::launch::async, Get<decltype(consumer)>,
+                                    consumer, dataSize, nHowMany, std::ref(stopRunning)));
+   }
+
+   for (int i = 0; i < numSenders; ++i) {
+      sentResult.emplace_back(std::async(std::launch::async, Push<decltype(producer)>,
+                                    producer, dataSize, nHowMany, std::ref(stopRunning)));
+   }
+   
+   StopWatch timecheck;
+   size_t totalSent = 0;
+   for (int i = 0; i < numSenders; ++i) {
+      totalSent = sentResult[i].get();
+   }
+
+   stopRunning.store(true);
+   size_t totalReceived = 0;
+   for (int i = 0; i < numSenders; ++i) {
+      totalReceived = receiveResult[i].get();
+   }
+   EndTimedSection();
+   EXPECT_TRUE(TimedSectionPassed());
+   std::cout << "Actual throughput: " << totalReceived * dataSize << " bytes" << std::endl;
+   std::cout << "Total time elapsed: " << timecheck.ElapsedSec() << std::endl;
+   std::cout << "Transaction/second: " << totalReceived/timecheck.ElapsedSec() << std::endl;
+   std::cout << "Transaction speed: " << ((totalReceived * dataSize / 1000)/timecheck.ElapsedSec()) << " Mbps" << std::endl; 
+   EXPECT_GE(totalReceived + kQueueSize, totalSent);
+}
+
+
+void RifleVampireTests::QueueMPMCBenchmark_1Minute(int numSenders, int numReceivers, int dataSize, int nHowMany, int expectedSpeed) {
+   
+   const size_t kQueueSize = 100;
+   auto queue = QAPI::CreateQueue<mpmc::flexible_lock_queue<std::string>>(kQueueSize);
+   const std::string exampleData(dataSize, 'a');
+   SetExpectedTime(nHowMany, exampleData.size() * sizeof (char), expectedSpeed, 20000L);
+
+   auto producer = std::get <QAPI::index::sender>(queue);
+   auto consumer = std::get <QAPI::index::receiver>(queue);
+
+   StartTimedSection();
+   std::vector<std::future<size_t>> sentResult;
+   sentResult.reserve(numSenders);
+   std::vector<std::future<size_t>> receiveResult;
+   receiveResult.reserve(numReceivers);
+   std::atomic<bool> stopRunning{false};
+
+   for (int i = 0; i < numReceivers; ++i) {
+      receiveResult.emplace_back(std::async(std::launch::async, Get<decltype(consumer)>,
+                                    consumer, dataSize, nHowMany, std::ref(stopRunning)));
+   }
+
+   for (int i = 0; i < numSenders; ++i) {
+      sentResult.emplace_back(std::async(std::launch::async, Push<decltype(producer)>,
+                                    producer, dataSize, nHowMany, std::ref(stopRunning)));
+   }
+   
+
+   StopWatch timecheck;
+   using namespace std::chrono_literals;
+   while(timecheck.ElapsedSec() < 60) {
+      std::this_thread::sleep_for(10ms);
+   }
+   stopRunning.store(true);
+
+   size_t totalSent = 0;
+   for (int i = 0; i < numSenders; ++i) {
+      totalSent = sentResult[i].get();
+   }
+
+   stopRunning.store(true);
+   size_t totalReceived = 0;
+   for (int i = 0; i < numSenders; ++i) {
+      totalReceived = receiveResult[i].get();
+   }
+   EndTimedSection();
+   EXPECT_TRUE(TimedSectionPassed());
+   std::cout << "Actual throughput: " << ((totalReceived * dataSize)/(1024 * 1024)) << " MBytes" << std::endl;
+   std::cout << "Total time elapsed: " << timecheck.ElapsedSec() << std::endl;
+   std::cout << "Transaction/second: " << totalReceived/timecheck.ElapsedSec() << std::endl;
+   std::cout << "Transaction speed: " << ((totalReceived * dataSize / (1024 * 1024))/timecheck.ElapsedSec()) << " Mbyte/s" << std::endl; 
+   EXPECT_GE(totalReceived + kQueueSize, totalSent);
+}
+
+
 void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOThreads,
-        int rifleHWM, int vampireHWM, std::string& location, int dataSize, int nShotsPerVampire, int expectedSpeed) {
+      int rifleHWM, int vampireHWM, std::string& location, int dataSize, int nShotsPerVampire, int expectedSpeed, int waitTimeMs) {
    Rifle* rifle = new Rifle(location);
    rifle->SetHighWater(rifleHWM);
    rifle->SetIOThreads(nIOThreads);
@@ -253,16 +472,17 @@ void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOTh
 #if RIFLE_VAMPIRE_PRODUCTION == 0
    delete rifle;
    return;
-#endif   
+#endif
    std::string exampleString(dataSize, 'a');
    std::vector<std::pair< void*, unsigned int> > exampleData;
    for (int i = 0; i < SIZE_OF_STAKE_BUNDLE && !zctx_interrupted; i++) {
       exampleData.push_back(make_pair(&exampleString, 1234));
    }
    std::vector<boost::thread*> theVampires;
+
    for (int i = 0; i < nVampires && !zctx_interrupted; i++) {
       boost::thread* aShooter = new boost::thread(&RifleVampireTests::StakeAVampireThread,
-              this, nShotsPerVampire, location, exampleData, vampireHWM, nIOThreads);
+            this, nShotsPerVampire, location, exampleData, vampireHWM, nIOThreads, waitTimeMs);
       theVampires.push_back(aShooter);
    }
    sleep(2);
@@ -270,15 +490,19 @@ void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOTh
    int fullSize = (nShotsPerVampire * nVampires) + ((vampireHWM * (nVampires)) * 2) + rifleHWM;
    SetExpectedTime(fullSize, exampleData.size() * sizeof (char) * SIZE_OF_STAKE_BUNDLE, expectedSpeed, 20000L);
    StartTimedSection();
+   TimeStats stats;
    for (int i = 0; i < fullSize && !zctx_interrupted; i++) {
-      if (!rifle->FireStakes(exampleData, 1500)) {
+      TriggerTimeStats trigger(stats);
+      if (!rifle->FireStakes(exampleData, waitTimeMs)) {
          std::cout << "Failed to fire at shot " << i << " of fullSize " << fullSize << std::endl;
          std::cout << " ... Vampires might all be dead..." << std::endl;
+         trigger.Skip();
          break;
       }
    }
+   std::cout << "One Rifle -->  #" << nVampires << " Vampires. " << stats.FlushAsString() << std::endl;
    for (auto it = theVampires.begin();
-           it != theVampires.end() && !zctx_interrupted; it++) {
+         it != theVampires.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
       (*it)->join();
       delete *it;
@@ -289,8 +513,8 @@ void RifleVampireTests::OneRifleNVampiresStakeBenchmark(int nVampires, int nIOTh
 }
 
 void RifleVampireTests::NRiflesOneVampireBenchmarkZeroCopy(int nRifles, int nIOThreads,
-        int rifleHWM, int vampireHWM, std::string& location, int dataSize,
-        int nShotsPerRifle, int expectedSpeed) {
+      int rifleHWM, int vampireHWM, std::string& location, int dataSize,
+      int nShotsPerRifle, int expectedSpeed, int waitTimeMs) {
 
    bool bVampireOwnSocket = true;
    mShotsDeleted.store(0);
@@ -301,34 +525,37 @@ void RifleVampireTests::NRiflesOneVampireBenchmarkZeroCopy(int nRifles, int nIOT
    ASSERT_TRUE(vampire.PrepareToBeShot());
 #if RIFLE_VAMPIRE_PRODUCTION == 0
    return;
-#endif   
+#endif
 
    std::string exampleData(dataSize, 'z');
    std::vector<boost::thread*> theRifles;
 
    for (int i = 0; i < nRifles && !zctx_interrupted; i++) {
       boost::thread* aShooter = new boost::thread(
-              &RifleVampireTests::ShootZeroCopyThread, this, nShotsPerRifle, location,
-              exampleData, rifleHWM, nIOThreads, !bVampireOwnSocket);
+         &RifleVampireTests::ShootZeroCopyThread, this, nShotsPerRifle, location,
+         exampleData, rifleHWM, nIOThreads, !bVampireOwnSocket);
       theRifles.push_back(aShooter);
    }
 
    SetExpectedTime((nShotsPerRifle * nRifles), // numberOfPackets
-           (exampleData.size() * sizeof (char)), // packetSize
-           expectedSpeed, // RateInMbps
-           20000L); //transationsPerSection
+                   (exampleData.size() * sizeof (char)), // packetSize
+                   expectedSpeed, // RateInMbps
+                   20000L); //transationsPerSection
    StartTimedSection();
    std::string bullet;
+   TimeStats stats;
    for (int pktCount = 0; pktCount < (nShotsPerRifle * nRifles) && !zctx_interrupted; pktCount++) {
-      if (vampire.GetShot(bullet, 500)) {
+      TriggerTimeStats trigger(stats);
+      if (vampire.GetShot(bullet, waitTimeMs)) {
          EXPECT_EQ(bullet, exampleData);
       } else {
+         trigger.Skip();
          pktCount--; // Packet not received in time, try again.
       }
    }
-
+   std::cout << "#" << nRifles << " Rifles --> one Vampire. " << stats.FlushAsString() << std::endl;
    for (auto it = theRifles.begin();
-           it != theRifles.end() && !zctx_interrupted; it++) {
+         it != theRifles.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
       (*it)->join();
       delete *it;
@@ -339,8 +566,8 @@ void RifleVampireTests::NRiflesOneVampireBenchmarkZeroCopy(int nRifles, int nIOT
 }
 
 void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
-        int rifleHWM, int vampireHWM, std::string& location, int dataSize,
-        int nShotsPerRifle, int expectedSpeed) {
+      int rifleHWM, int vampireHWM, std::string& location, int dataSize,
+      int nShotsPerRifle, int expectedSpeed, int waitTimeMs) {
 
    bool bVampireOwnSocket = true;
    Vampire vampire(location);
@@ -350,34 +577,38 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
    ASSERT_TRUE(vampire.PrepareToBeShot());
 #if RIFLE_VAMPIRE_PRODUCTION == 0
    return;
-#endif   
+#endif
 
    std::string exampleData(dataSize, 'z');
    std::vector<boost::thread*> theRifles;
 
    for (int i = 0; i < nRifles && !zctx_interrupted; i++) {
       boost::thread* aShooter = new boost::thread(
-              &RifleVampireTests::RifleThread, this, nShotsPerRifle, location,
-              exampleData, rifleHWM, nIOThreads, !bVampireOwnSocket);
+         &RifleVampireTests::RifleThread, this, nShotsPerRifle, location,
+         exampleData, rifleHWM, nIOThreads, !bVampireOwnSocket);
       theRifles.push_back(aShooter);
    }
 
    SetExpectedTime((nShotsPerRifle * nRifles), // numberOfPackets
-           (exampleData.size() * sizeof (char)), // packetSize
-           expectedSpeed, // RateInMbps
-           20000L); //transationsPerSection
+                   (exampleData.size() * sizeof (char)), // packetSize
+                   expectedSpeed, // RateInMbps
+                   20000L); //transationsPerSection
    StartTimedSection();
    std::string bullet;
+   TimeStats stats;
    for (int pktCount = 0; pktCount < (nShotsPerRifle * nRifles) && !zctx_interrupted; pktCount++) {
-      if (vampire.GetShot(bullet, 500)) {
+      TriggerTimeStats trigger(stats);
+      if (vampire.GetShot(bullet, waitTimeMs)) {
          EXPECT_EQ(bullet, exampleData);
       } else {
          pktCount--; // Packet not received in time, try again.
+         trigger.Skip();
       }
    }
 
+   std::cout << "#" << nRifles << " Rifles --> one Vampire. " << stats.FlushAsString() << std::endl;
    for (auto it = theRifles.begin();
-           it != theRifles.end() && !zctx_interrupted; it++) {
+         it != theRifles.end() && !zctx_interrupted; it++) {
       (*it)->interrupt();
       (*it)->join();
       delete *it;
@@ -388,7 +619,7 @@ void RifleVampireTests::NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
 
 TEST_F(RifleVampireTests, ipcFilesCleanedOnNormalExitRifleOwner) {
    std::string target("ipc:///rifleVampireExit");
-   std::string addressRealPath(target,target.find("ipc://")+6);
+   std::string addressRealPath(target, target.find("ipc://") + 6);
    {
       Rifle stick{target};
       {
@@ -406,7 +637,7 @@ TEST_F(RifleVampireTests, ipcFilesCleanedOnNormalExitRifleOwner) {
 
 TEST_F(RifleVampireTests, ipcFilesCleanedOnNormalExitVampireOwner) {
    std::string target("ipc:///rifleVampireExit");
-   std::string addressRealPath(target,target.find("ipc://")+6);
+   std::string addressRealPath(target, target.find("ipc://") + 6);
    {
       Vampire vamp{target};
       vamp.SetOwnSocket(true);
@@ -428,7 +659,7 @@ TEST_F(RifleVampireTests, ipcFilesCleanedOnFatal) {
    std::string target("ipc:///rifleVampireDeath");
    Rifle stick{target};
    Vampire vamp{target};
-   std::string addressRealPath(target,target.find("ipc://")+6);
+   std::string addressRealPath(target, target.find("ipc://") + 6);
    Death::SetupExitHandler();
    ASSERT_TRUE(stick.Aim());
    ASSERT_TRUE(vamp.PrepareToBeShot());
@@ -444,13 +675,14 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCLargeSize) {
       int nIOThreads = 1;
       int rifleHWM = 1000;
       int vampireHWM = 500;
-      int dataSize = 65554;
+      int dataSize = 56554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
-
 }
+
+
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCSmallSize) {
    if (geteuid() == 0) {
       std::string location = GetIpcLocation();
@@ -461,10 +693,37 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCSmallSize) {
       int dataSize = 100;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
+
+#if 0
+/**
+*
+* The Rifle Vampire performance tests are NOT measuring correctly how much the throughput is and what the actual 
+* time it took to process them. For that reason all the performance tests are disabled with #if 0
+* 
+* For the time being they are being left in case we want to revisit similar performance tests later for the new
+* queues that we are doing.
+*
+* At that time these obsolete tests should be replaced and deleted
+*/ 
+
+TEST_F(RifleVampireTests, SPSC) {
+   int dataSize = 100;
+   int howMany = 1000000;
+   int expectedSpeed = 50;
+   QueueSPSCBenchmark(dataSize, howMany, expectedSpeed);
+}
+
+TEST_F(RifleVampireTests, SPSCWithLargeTransfer) {
+   int dataSize = 65554;
+   int howMany = 200000;
+   int expectedSpeed = 1000;
+   QueueSPSCBenchmark(dataSize, howMany, expectedSpeed);
+}
+
 
 TEST_F(RifleVampireTests, OneRifleOneVampirePointers) {
    if (geteuid() == 0) {
@@ -476,9 +735,8 @@ TEST_F(RifleVampireTests, OneRifleOneVampirePointers) {
       int dataSize = 100;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
    }
-
 }
 
 TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireIPCSmallSize) {
@@ -492,7 +750,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireIPCSmallSize) {
       int nShotsPerRifle = 100000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 
@@ -507,7 +765,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireIPCSmallSizeZeroCop
       int nShotsPerRifle = 100000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 
@@ -521,7 +779,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresIPCSmallSize) {
       int dataSize = 100;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
 
    }
 
@@ -537,7 +795,7 @@ TEST_F(RifleVampireTests, OneRifleTwoVampiresPointers) {
       int dataSize = 100;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
 
    }
 
@@ -554,7 +812,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireIPCSmallSize) {
       int nShotsPerRifle = 100000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireIPCSmallSizeZeroCopy) {
@@ -568,7 +826,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireIPCSmallSizeZeroCo
       int nShotsPerRifle = 100000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresIPCSmallSize) {
@@ -581,7 +839,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresIPCSmallSize) {
       int dataSize = 100;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
@@ -596,7 +854,7 @@ TEST_F(RifleVampireTests, OneRifleThreeVampiresPointers) {
       int dataSize = 100;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
    }
 
 }
@@ -611,7 +869,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleFourVampiresIPCSmallSize) {
       int dataSize = 100;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 }
 
@@ -625,7 +883,7 @@ TEST_F(RifleVampireTests, OneRifleFourVampiresPointers) {
       int dataSize = 100;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
    }
 }
 
@@ -640,7 +898,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireIPCSmallSize) {
       int nShotsPerRifle = 100000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireIPCSmallSizeZeroCopy) {
@@ -654,7 +912,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireIPCSmallSizeZeroC
       int nShotsPerRifle = 100000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireTCPSmallSize) {
@@ -667,7 +925,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireTCPSmallSize) {
       int dataSize = 100;
       int nShotsPerVampire = 3500000;
       int expectedSpeed = 50;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
@@ -683,7 +941,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireTCPSmallSize) {
       int nShotsPerRifle = 350000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireTCPSmallSizeZeroCopy) {
@@ -697,7 +955,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireTCPSmallSizeZeroCop
       int nShotsPerRifle = 350000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresTCPSmallSize) {
@@ -710,7 +968,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresTCPSmallSize) {
       int dataSize = 100;
       int nShotsPerVampire = 2000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
 
    }
 
@@ -727,7 +985,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireTCPSmallSize) {
       int nShotsPerRifle = 350000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireTCPSmallSizeZeroCopy) {
@@ -741,7 +999,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireTCPSmallSizeZeroCo
       int nShotsPerRifle = 350000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresTCPSmallSize) {
@@ -754,7 +1012,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresTCPSmallSize) {
       int dataSize = 100;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
@@ -769,7 +1027,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleFourVampiresTCPSmallSize) {
       int dataSize = 100;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 50;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 }
 
@@ -784,7 +1042,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPSmallSize) {
       int nShotsPerRifle = 350000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPSmallSizeZeroCopy) {
@@ -798,7 +1056,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPSmallSizeZeroC
       int nShotsPerRifle = 350000;
       int expectedSpeed = 50;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCAvgSize) {
@@ -811,7 +1069,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireIPCAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
@@ -827,7 +1085,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireIPCAvgSize) {
       int nShotsPerRifle = 100000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireIPCAvgSizeZeroCopy) {
@@ -841,7 +1099,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireIPCAvgSizeZeroCopy)
       int nShotsPerRifle = 100000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresIPCAvgSize) {
@@ -854,7 +1112,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresIPCAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
 
    }
 
@@ -871,7 +1129,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireIPCAvgSize) {
       int nShotsPerRifle = 100000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireIPCAvgSizeZeroCopy) {
@@ -885,7 +1143,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireIPCAvgSizeZeroCopy
       int nShotsPerRifle = 100000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresIPCAvgSize) {
@@ -898,7 +1156,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresIPCAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
@@ -913,9 +1171,11 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleFourVampiresIPCAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 }
+
+ // kjellkod
 
 TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireIPCAvgSize) {
    if (geteuid() == 0) {
@@ -928,7 +1188,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireIPCAvgSize) {
       int nShotsPerRifle = 100000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireIPCAvgSizeZeroCopy) {
@@ -942,7 +1202,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireIPCAvgSizeZeroCop
       int nShotsPerRifle = 100000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, OneRifleOneVampirePointerAvgSize) {
@@ -955,7 +1215,7 @@ TEST_F(RifleVampireTests, OneRifleOneVampirePointerAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
    }
 
 }
@@ -970,7 +1230,7 @@ TEST_F(RifleVampireTests, OneRifleTwoVampiresPointerAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
 
    }
 
@@ -986,7 +1246,7 @@ TEST_F(RifleVampireTests, OneRifleThreeVampiresPointerAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
    }
 
 }
@@ -1001,7 +1261,7 @@ TEST_F(RifleVampireTests, OneRifleFourVampiresPointerAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
    }
 }
 
@@ -1015,7 +1275,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireTCPAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 3500000;
       int expectedSpeed = 100;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
@@ -1031,7 +1291,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireTCPAvgSize) {
       int nShotsPerRifle = 350000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireTCPAvgSizeZeroCopy) {
@@ -1045,7 +1305,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireTCPAvgSizeZeroCopy)
       int nShotsPerRifle = 350000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresTCPAvgSize) {
@@ -1058,7 +1318,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresTCPAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 2000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
 
    }
 
@@ -1075,7 +1335,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireTCPAvgSize) {
       int nShotsPerRifle = 350000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireTCPAvgSizeZeroCopy) {
@@ -1089,7 +1349,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireTCPAvgSizeZeroCopy
       int nShotsPerRifle = 350000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresTCPAvgSize) {
@@ -1102,7 +1362,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresTCPAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
@@ -1117,7 +1377,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleFourVampiresTCPAvgSize) {
       int dataSize = 350;
       int nShotsPerVampire = 1000000;
       int expectedSpeed = 100;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 }
 
@@ -1132,7 +1392,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPAvgSize) {
       int nShotsPerRifle = 350000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPAvgSizeZeroCopy) {
@@ -1146,7 +1406,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPAvgSizeZeroCop
       int nShotsPerRifle = 350000;
       int expectedSpeed = 100;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 
@@ -1162,7 +1422,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireIPCLargeSize) {
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireIPCLargeSizeZeroCopy) {
@@ -1176,7 +1436,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireIPCLargeSizeZeroCop
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresIPCLargeSize) {
@@ -1189,7 +1449,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresIPCLargeSize) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
 
    }
 
@@ -1206,7 +1466,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireIPCLargeSize) {
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireIPCLargeSizeZeroCopy) {
@@ -1220,7 +1480,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireIPCLargeSizeZeroCo
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresIPCLargeSize) {
@@ -1233,7 +1493,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresIPCLargeSize) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
@@ -1248,7 +1508,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleFourVampiresIPCLargeSize) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 }
 
@@ -1263,7 +1523,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireIPCLargeSize) {
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireIPCLargeSizeZeroCopy) {
@@ -1277,7 +1537,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireIPCLargeSizeZeroC
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, OneRifleOneVampirePointersLarge) {
@@ -1290,7 +1550,7 @@ TEST_F(RifleVampireTests, OneRifleOneVampirePointersLarge) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
    }
 
 }
@@ -1305,7 +1565,7 @@ TEST_F(RifleVampireTests, OneRifleTwoVampiresPointersLarge) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
 
    }
 
@@ -1321,7 +1581,7 @@ TEST_F(RifleVampireTests, OneRifleThreeVampiresPointersLarge) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
    }
 
 }
@@ -1336,7 +1596,7 @@ TEST_F(RifleVampireTests, OneRifleFourVampiresPointersLarge) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresStakeBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kLongWaitTimeMs);
    }
 }
 
@@ -1350,7 +1610,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleOneVampireTCPLargeSize) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
@@ -1366,7 +1626,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireTCPLargeSize) {
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireTCPLargeSizeZeroCopy) {
@@ -1380,7 +1640,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketOneRifleOneVampireTCPLargeSizeZeroCop
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresTCPLargeSize) {
@@ -1393,7 +1653,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleTwoVampiresTCPLargeSize) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
 
    }
 
@@ -1410,7 +1670,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireTCPLargeSize) {
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireTCPLargeSizeZeroCopy) {
@@ -1424,7 +1684,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketTwoRiflesOneVampireTCPLargeSizeZeroCo
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresTCPLargeSize) {
@@ -1437,7 +1697,7 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleThreeVampiresTCPLargeSize) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 
 }
@@ -1452,9 +1712,39 @@ TEST_F(RifleVampireTests, RifleOwnsSocketOneRifleFourVampiresTCPLargeSize) {
       int dataSize = 65554;
       int nShotsPerVampire = 200000;
       int expectedSpeed = 1000;
-      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed);
+      OneRifleNVampiresBenchmark(nVampires, nIOThreads, rifleHWM, vampireHWM, location, dataSize, nShotsPerVampire, expectedSpeed, kWaitTimeMs);
    }
 }
+
+
+TEST_F(RifleVampireTests, MPMC_OneToFour) {
+   int dataSize = 65554;
+   int howMany = 200000;
+   int expectedSpeed = 1000;
+   int numSenders = 1;
+   int numReceivers = 4;
+   QueueMPMCBenchmark(numSenders, numReceivers, dataSize, howMany, expectedSpeed);
+}
+
+TEST_F(RifleVampireTests, SPMC_OneToFour_OneMinute) {
+   int dataSize = 65554;
+   int howMany = std::numeric_limits<int>::max();
+   int expectedSpeed = 1000;
+   int numSenders = 1;
+   int numReceivers = 4;
+   QueueMPMCBenchmark_1Minute(numSenders, numReceivers, dataSize, howMany, expectedSpeed);
+}
+
+
+TEST_F(RifleVampireTests, MPMC_FourToFour) {
+   int dataSize = 65554;
+   int howMany = 200000;
+   int expectedSpeed = 1000;
+   int numSenders = 4;
+   int numReceivers = 4;
+   QueueMPMCBenchmark(numSenders, numReceivers, dataSize, howMany, expectedSpeed);
+}
+
 
 TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPLargeSize) {
    if (geteuid() == 0) {
@@ -1467,7 +1757,7 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPLargeSize) {
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmark(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                 location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
 TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPLargeSizeZeroCopy) {
@@ -1481,9 +1771,12 @@ TEST_F(RifleVampireTests, VampireOwnsSocketFiveRiflesOneVampireTCPLargeSizeZeroC
       int nShotsPerRifle = 10000;
       int expectedSpeed = 1000;
       NRiflesOneVampireBenchmarkZeroCopy(nRifles, nIOThreads, rifleHWM, vampireHWM,
-              location, dataSize, nShotsPerRifle, expectedSpeed);
+                                         location, dataSize, nShotsPerRifle, expectedSpeed, kWaitTimeMs);
    }
 }
+
+#endif // 0 --- Broken performance test
+
 TEST_F(RifleVampireTests, StopPreparingAlreadyAndJustGo) {
    std::string location = GetIpcLocation();
    Vampire vampire(location);
@@ -1573,8 +1866,6 @@ TEST_F(RifleVampireTests, ShootBlank) {
    EXPECT_FALSE(rifle.Fire(msg, 100));
    std::string bullet;
    EXPECT_FALSE(vampire.GetShot(bullet, 1));
-
-
 }
 
 TEST_F(RifleVampireTests, ShootNULL) {
@@ -1710,7 +2001,7 @@ TEST_F(RifleVampireTests, CreateVampireAndRifleAndSetIOThreads) {
 
 /**
  * This should have failures because there is no one pulling messages off.
- * for some reason even with a HWM of 1 there is extra buffering going on that 
+ * for some reason even with a HWM of 1 there is extra buffering going on that
  * allows you to send more then 1 message.
  */
 TEST_F(RifleVampireTests, ShootVampireMoreThenHeCanHandle) {
@@ -1886,9 +2177,9 @@ TEST_F(RifleVampireTests, VampireBundleStakingTests) {
 
 /**
  * This should have failures because there is no one pulling messages off.
- * for some reason even with a HWM of 1 there is extra buffering going on that 
+ * for some reason even with a HWM of 1 there is extra buffering going on that
  * allows you to send more then 1 message.
- * @param 
+ * @param
  */
 TEST_F(RifleVampireTests, BringDeadVampireBackToLife) {
    std::string location = GetIpcLocation();
@@ -1924,13 +2215,11 @@ TEST_F(RifleVampireTests, BringDeadVampireBackToLife) {
    for (int i = 0; i <= shots && !zctx_interrupted; i++) {
       EXPECT_TRUE(vampire.GetShot(bullet, 1));
    }
-
-
 }
 
 /**
  * Test socket ownership. Only one things can own the socket.
- * @param 
+ * @param
  */
 TEST_F(RifleVampireTests, MultileRiflesSocketOwnerTest) {
 

@@ -28,25 +28,30 @@ public:
            std::string& binding, std::vector<std::pair<void*, unsigned int> >& exampleData, 
            bool ownSocket);
    void VampireThread(int numberOfMessages, std::string& location,
-         std::string& exampleData, int hwm, int ioThreads, bool ownSocket);
+         std::string& exampleData, int hwm, int ioThreads, bool ownSocket, int waitTimeMs);
    void StakeAVampireThread(int numberOfMessages,
            std::string& location, std::vector<std::pair<void*, unsigned int> >& exampleData, 
-           int hwm, int ioThreads);
+           int hwm, int ioThreads, int waitTimeMs);
    void ShootZeroCopyThread(int numberOfMessages,
         std::string& location, std::string& exampleData,int hwm, int ioThreads, 
         bool ownSocket);
    void OneRifleNVampiresBenchmark(int nVampires, int nIOThreads,
            int rifleHWM, int vampireHWM, std::string& location, int dataSize,
-           int nShotsPerVampire, int expectedSpeed);
+           int nShotsPerVampire, int expectedSpeed, int waitTimeMs);
+
+   void QueueSPSCBenchmark(int dataSize, int nHowMany, int expectedSpeed);
+   void QueueMPMCBenchmark(int numSenders, int numReceivers, int dataSize, int nHowMany, int expectedSpeed);
+   void QueueMPMCBenchmark_1Minute(int numSenders, int numReceivers, int dataSize, int nHowMany, int expectedSpeed);
+   
    void OneRifleNVampiresStakeBenchmark(int nVampires, int nIOThreads,
            int rifleHWM, int vampireHWM, std::string& location, int dataSize,
-           int nShotsPerVampire, int expectedSpeed);
+           int nShotsPerVampire, int expectedSpeed, int waitTimeMs);
    void NRiflesOneVampireBenchmark(int nRifles, int nIOThreads,
            int rifleHWM, int vampireHWM, std::string& location, int dataSize,
-           int nShotsPerRifle, int expectedSpeed);
+           int nShotsPerRifle, int expectedSpeed, int waitTimeMs);
    void NRiflesOneVampireBenchmarkZeroCopy(int nRifles, int nIOThreads,
            int rifleHWM, int vampireHWM, std::string& location, int dataSize,
-           int nShotsPerRifle, int expectedSpeed);
+           int nShotsPerRifle, int expectedSpeed, int waitTimeMs);
 
    class RifleAmmo {
    public:

@@ -32,7 +32,6 @@ list(APPEND LIBS ${BOOST_SYSTEM})
 find_library(FILEIO FileIO PATHS /usr/local/probe/lib )
 list(APPEND LIBS ${FILEIO})
 
-
 find_library(CQueueNado czmq PATHS /usr/local/probe/lib )
 list(APPEND LIBS ${CQueueNado})
 
@@ -91,6 +90,8 @@ file(GLOB SRC_FILES ${PROJECT_SRC}/*.h ${PROJECT_SRC}/*.hpp ${PROJECT_SRC}/*.cpp
  
 # Create the QueueNado library
 include_directories(${PROJECT_SRC})
+include_directories(${PROJECT_SOURCE_DIR}/src_3rdparty)
+
 add_library(${LIBRARY_TO_BUILD} SHARED  ${SRC_FILES})
 SET(QueueNado_VERSION_STRING ${VERSION})
 MESSAGE("VERSION: ${VERSION}")
@@ -106,6 +107,8 @@ set(GTEST_DIR ${DIR_3RDPARTY}/gtest-1.7.0)
 set(GTEST_INCLUDE_DIRECTORIES ${GTEST_DIR}/include ${GTEST_DIR} ${GTEST_DIR}/src)
 MESSAGE( "Attempt to build gtest. gtest directory: " ${GTEST_DIR})
 include_directories(${GTEST_INCLUDE_DIRECTORIES})
+include_directories(${PROJECT_SOURCE_DIR}/src_3rdparty)
+
 add_library(gtest_170_lib ${GTEST_DIR}/src/gtest-all.cc)
 set_target_properties(gtest_170_lib PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_RTTI=0")
 enable_testing(true)
@@ -130,5 +133,5 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin"
    #   usage:   make package
    #   Check the output result and install accordingly.
    # ==========================================================================
-   INCLUDE (${PROJECT_SRC}/../CPackLists.txt)
+   INCLUDE (${PROJECT_SOURCE_DIR}/CPackLists.txt)
 ENDIF()
