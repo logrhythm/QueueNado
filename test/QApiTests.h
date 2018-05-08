@@ -65,7 +65,7 @@ namespace QApiTests {
 
 
    template <typename Sender>
-   size_t PushUntil(Sender q, std::string data, const size_t numberOfConsumers,
+   size_t PushUntil(Sender q, const std::string data, const size_t numberOfConsumers,
                     std::atomic<size_t>& producerCount, std::atomic<size_t>& consumerCount,
                     std::atomic<bool>& stopRunning) {
       using namespace std::chrono_literals;
@@ -74,14 +74,20 @@ namespace QApiTests {
       StopWatch watch;
       size_t amountPushed = 0;
       while (!stopRunning.load()) {
-         std::string value = data;
-         while (false == q.push(value) && !stopRunning.load()) {
-            std::this_thread::sleep_for(100ns); // yield is too aggressive
+         std::string value = data; // copying to avoid emptying the input with std::move
+
+         // in case queue is full slow down the aggressive pushing. 
+         // otherwise push with full force until stopRunning 
+         bool result = q.push(value);
+         if (result) {
+            ++amountPushed; 
+         } else {
+            std::this_thread::sleep_for(100ns); // back off since queue is full. yield is too aggressive            
          }
-         ++amountPushed;
       }
       std::ostringstream oss;
       oss << "Push Until: " << q.mStats.FlushAsString() << std::endl;
+      oss << "Bytes pushed: " << amountPushed * data.size() << std::endl;
       std::cout << oss.str();
       return amountPushed;
    }
@@ -97,14 +103,11 @@ namespace QApiTests {
       StopWatch watch;
       size_t amountReceived = 0;
       size_t byteReceived = 0;
+      const std::chrono::milliseconds wait{10};
+
       while (!stopRunning.load()) {
          std::string value;
-         bool result = false;
-         std::chrono::milliseconds wait{10};
-         result = q.wait_and_pop(value, wait);
-         if (stopRunning.load()) {
-            break;
-         }
+         bool result = q.wait_and_pop(value, wait);
          if (result) {
             EXPECT_EQ(data.size(), value.size());
             EXPECT_FALSE(value.empty());
@@ -113,7 +116,7 @@ namespace QApiTests {
          }
       }
       std::ostringstream oss;
-      oss << "Bytes received: " << byteReceived << std::endl;
+      oss << "Bytes received: " << byteReceived << ", count: " << amountReceived << std::endl;
       std::cout << oss.str();
       return amountReceived;
    }
@@ -194,12 +197,13 @@ namespace QApiTests {
          amountProduced += result.get();
       }
       consumerStop.store(true);
-      float amountConsumed = 0;
+      size_t amountConsumed = 0;
       for (auto& result : consumerResult) {
          amountConsumed += result.get();
       }
 
-      EXPECT_TRUE(amountProduced >= amountConsumed);
+      EXPECT_TRUE(amountProduced >= amountConsumed)
+            << "produced: " << amountProduced  << ", consumed: " << amountConsumed  << ", capacity: " << producer.capacity();
       EXPECT_TRUE(amountProduced <= amountConsumed + producer.capacity());
 
       auto elapsedTimeSec = elapsedRun.ElapsedSec();
