@@ -13,7 +13,7 @@ set(CMAKE_BUILD_TYPE Release)
 project (QueueNado)
 set(PROJECT_SRC ${QueueNado_SOURCE_DIR}/src)
 set(DIR_UNIT_TEST ${QueueNado_SOURCE_DIR}/test)
-set(DIR_3RDPARTY ${QueueNado_SOURCE_DIR}/3rdparty)
+set(DIR_3RDPARTY ${QueueNado_SOURCE_DIR}/thirdparty)
 
 
 find_library(G3LOG g3logger PATHS /usr/local/probe/lib )
@@ -90,7 +90,7 @@ file(GLOB SRC_FILES ${PROJECT_SRC}/*.h ${PROJECT_SRC}/*.hpp ${PROJECT_SRC}/*.cpp
  
 # Create the QueueNado library
 include_directories(${PROJECT_SRC})
-include_directories(${PROJECT_SOURCE_DIR}/src_3rdparty)
+include_directories(${PROJECT_SOURCE_DIR}/src_thirdparty)
 
 add_library(${LIBRARY_TO_BUILD} SHARED  ${SRC_FILES})
 SET(QueueNado_VERSION_STRING ${VERSION})
@@ -107,7 +107,7 @@ set(GTEST_DIR ${DIR_3RDPARTY}/gtest-1.7.0)
 set(GTEST_INCLUDE_DIRECTORIES ${GTEST_DIR}/include ${GTEST_DIR} ${GTEST_DIR}/src)
 MESSAGE( "Attempt to build gtest. gtest directory: " ${GTEST_DIR})
 include_directories(${GTEST_INCLUDE_DIRECTORIES})
-include_directories(${PROJECT_SOURCE_DIR}/src_3rdparty)
+include_directories(${PROJECT_SOURCE_DIR}/src_thirdparty)
 
 add_library(gtest_170_lib ${GTEST_DIR}/src/gtest-all.cc)
 set_target_properties(gtest_170_lib PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_RTTI=0")
@@ -118,7 +118,7 @@ include_directories(${PROJECT_SRC})
 file(GLOB TEST_SRC_FILES "test/*.cpp")
 
 SET(CMAKE_CXX_FLAGS "-Wall -Wno-sign-compare -rdynamic -Wunused -std=c++14 -pthread -D_GLIBCXX_USE_NANOSLEEP")
-add_executable(UnitTestRunner 3rdparty/test_main.cpp ${TEST_SRC_FILES} )
+add_executable(UnitTestRunner thirdparty/test_main.cpp ${TEST_SRC_FILES} )
 MESSAGE("*****: " ${LIBRARY_TO_BUILD})
 
 target_link_libraries(UnitTestRunner gtest_170_lib ${LIBS})

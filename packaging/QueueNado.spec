@@ -25,7 +25,7 @@ fi
 cd %{name}/
 PATH=/usr/local/gcc/bin:/usr/local/probe/bin:$PATH
 rm -f  CMakeCache.txt
-cd 3rdparty
+cd thirdparty
 unzip -u gtest-1.7.0.zip
 cd ..
 sh scripts/getLibraries
@@ -52,7 +52,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/local/probe/lib
 cp -rfd lib%{name}.so* $RPM_BUILD_ROOT/usr/local/probe/lib
 mkdir -p $RPM_BUILD_ROOT/usr/local/probe/include
 cp src/*.h $RPM_BUILD_ROOT/usr/local/probe/include
-cp -r src_3rdparty/q $RPM_BUILD_ROOT/usr/local/probe/include/.
+cp -r src_thirdparty/q $RPM_BUILD_ROOT/usr/local/probe/include/.
 rm -f $RPM_BUILD_ROOT/usr/local/probe/include/QueueNadoMacros.h
 
 %post
