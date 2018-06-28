@@ -52,7 +52,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/local/probe/lib
 cp -rfd lib%{name}.so* $RPM_BUILD_ROOT/usr/local/probe/lib
 mkdir -p $RPM_BUILD_ROOT/usr/local/probe/include
 cp src/*.h $RPM_BUILD_ROOT/usr/local/probe/include
-cp -r src_thirdparty/q $RPM_BUILD_ROOT/usr/local/probe/include/.
+cp -r src_3rdparty/q $RPM_BUILD_ROOT/usr/local/probe/include/.
 rm -f $RPM_BUILD_ROOT/usr/local/probe/include/QueueNadoMacros.h
 
 %post
