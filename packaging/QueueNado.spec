@@ -47,6 +47,8 @@ make -j6
 sudo ./UnitTestRunner
 if [ "%{buildtype}" == "-DUSE_LR_DEBUG=ON"  ]; then
    /usr/local/probe/bin/CodeCoverage.py
+   username=$(whoami)
+   sudo chown -R ${username}:${username} /home/${username}/rpmbuild/BUILD/*
 fi
 mkdir -p $RPM_BUILD_ROOT/usr/local/probe/lib
 cp -rfd lib%{name}.so* $RPM_BUILD_ROOT/usr/local/probe/lib
