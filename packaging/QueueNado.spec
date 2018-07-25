@@ -25,7 +25,7 @@ fi
 cd %{name}/
 PATH=/usr/local/gcc/bin:/usr/local/probe/bin:$PATH
 rm -f  CMakeCache.txt
-cd 3rdparty
+cd thirdparty
 unzip -u gtest-1.7.0.zip
 cd ..
 sh scripts/getLibraries
@@ -36,7 +36,7 @@ if [ "%{buildtype}" == "-DUSE_LR_DEBUG=OFF"  ]; then
       -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_COMPILER=/usr/local/gcc/bin/g++
 elif [ "%{buildtype}" == "-DUSE_LR_DEBUG=ON"  ]; then
    /usr/local/probe/bin/cmake -DVERSION:STRING=%{version}.%{buildnumber} \
-      -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14 -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -Wall -g -gdwarf-2 -O0 -fPIC -m64 -isystem/usr/local/gcc/include -isystem/usr/local/probe/include -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/gcc/lib64 ' \
+      -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14 -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -Wall -g -gdwarf-2 --coverage -O0 -fPIC -m64 -isystem/usr/local/gcc/include -isystem/usr/local/probe/include -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/gcc/lib64 ' \
       -DCMAKE_CXX_COMPILER=/usr/local/gcc/bin/g++
 else
    echo "Unknown buildtype:" "%{buildtype}"
@@ -45,6 +45,12 @@ fi
 
 make -j6
 sudo ./UnitTestRunner
+if [ "%{buildtype}" == "-DUSE_LR_DEBUG=ON"  ]; then
+   /usr/local/probe/bin/CodeCoverage.py
+   username=$(whoami)
+   userhome=$HOME
+   sudo chown -R ${username}:${username} ${userhome}/rpmbuild/BUILD/*
+fi
 mkdir -p $RPM_BUILD_ROOT/usr/local/probe/lib
 cp -rfd lib%{name}.so* $RPM_BUILD_ROOT/usr/local/probe/lib
 mkdir -p $RPM_BUILD_ROOT/usr/local/probe/include

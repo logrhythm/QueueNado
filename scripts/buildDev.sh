@@ -24,7 +24,7 @@ rm -rf build
 mkdir -p  build
 PATH=/usr/local/probe/bin:$PATH
 rm -f  CMakeCache.txt
-cd 3rdparty
+cd thirdparty
 unzip -u gtest-1.7.0.zip
 cd ..
 sh scripts/getLibraries
