@@ -34,6 +34,7 @@ CWD=$PWD/$PACKAGE
 DISTDIR=$CWD/dist/$PACKAGE
 PATH=$PATH:/usr/local/probe/bin:$PATH
 
+sudo rm -rf ~/rpmbuild
 rpmdev-setuptree
 cp packaging/$PACKAGE.spec ~/rpmbuild/SPECS
 rm -f $PACKAGE-$VERSION.tar.gz
