@@ -8,6 +8,7 @@
 
 #pragma once
 #include <string>
+#include <vector>
 #include <czmq.h>
 
 /** Harpoon-Kraken is a PipeLine communication pattern used to
