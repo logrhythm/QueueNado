@@ -30,11 +30,11 @@
 namespace HarpoonBattle {
 
    enum class ReceivedType {
-      Begin = KrakenBattle::SendType::Begin, // optional
-      Data = KrakenBattle::SendType::Data,
-      Done = KrakenBattle::SendType::Done,
-      Error = KrakenBattle::SendType::Error,
-      End = KrakenBattle::SendType::End
+      Begin = static_cast<int>(KrakenBattle::SendType::Begin), // optional
+      Data = static_cast<int>(KrakenBattle::SendType::Data),
+      Done = static_cast<int>(KrakenBattle::SendType::Done),
+      Error = static_cast<int>(KrakenBattle::SendType::Error),
+      End = static_cast<int>(KrakenBattle::SendType::End)
    };
 
    std::string EnumToString(const ReceivedType& type);
