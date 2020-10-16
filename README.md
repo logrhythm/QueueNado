@@ -154,8 +154,10 @@ The `Notifier - Listener` classes are  wrappers around the `Shotgun - Alien`queu
 #### Limitations for `Notifier - Listener`
 The same as for `Shotgun - Alien`
 
-# Boomstick - Skeleton
-The `Boomstick - Skeleton` is used for connecting to ElasticSearch over a [wrapper](https://github.com/LogRhythm/transport-zeromq). At the moment part of the pattern implementation is not open sourced and still proprietary. Until further notice it is not recommended to use the `BoomStick - Skeleton` classes. 
+# Boomstick-Skeleton
+The Boomstick - Skeleton is used for connecting to ElasticSearch over a [wrapper](https://github.com/LogRhythm/transport-zeromq). At the moment part of the pattern implementation is not open sourced and still proprietary. Until further notice it is not recommended to use the `BoomStick - Skeleton` classes.
+
+
 
 
 
