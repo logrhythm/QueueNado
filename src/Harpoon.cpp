@@ -19,9 +19,9 @@ Harpoon::Harpoon():
    mOffset(0),
    mChunk(nullptr) {
    mCtx = zctx_new();
-   CHECK(mCtx);
+   CHECK(mCtx != nullptr);
    mDealer = zsocket_new(mCtx, ZMQ_DEALER);
-   CHECK(mDealer);
+   CHECK(mDealer != nullptr);
    mCredit = mQueueLength;
 }
 

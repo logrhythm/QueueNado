@@ -16,32 +16,25 @@ else
 fi
 
 
-
 GIT_VERSION=`git rev-list HEAD --count`
 VERSION="1.$GIT_VERSION"
 
 rm -rf build
 mkdir -p  build
-PATH=/usr/local/probe/bin:$PATH
 rm -f  CMakeCache.txt
-cd thirdparty
-unzip -u gtest-1.7.0.zip
-cd ..
 sh scripts/getLibraries
 cd build
 
 
-
 if [ "$BUILD_TYPE" == "-DUSE_DEBUG_COVERAGE=OFF" ]; then
    echo "buildtype: -DUSE_DEBUG_COVERAGE=OFF --> PRODUCTION for version: $VERSION"
-  /usr/local/probe/bin/cmake -DUSE_LR_DEBUG=ON -DVERSION:STRING=$VERSION \
-      -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14 -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -Wall -fPIC -Ofast -m64 -isystem/usr/local/gcc/include -isystem/usr/local/probe/include -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/gcc/lib64 ' \
-      -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_COMPILER=/usr/local/gcc/bin/g++ ..
+  /usr/bin/cmake -DUSE_LR_DEBUG=ON -DVERSION:STRING=$VERSION \
+      -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14 -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -Wall -fPIC -Ofast -m64 -isystem/usr/local/probe/include -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib ' \
+      -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHARED_LIBS:BOOL=ON ..
 elif [ "$BUILD_TYPE" == "-DUSE_DEBUG_COVERAGE=ON" ]; then
    echo "buildtype: -DUSE_DEBUG_COVERAGE=ON for version: $VERSION";
-  /usr/local/probe/bin/cmake -DVERSION:STRING=$VERSION \
-      -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14 -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -Wall -g -gdwarf-2 -O0 -fPIC -m64 -isystem/usr/local/gcc/include -isystem/usr/local/probe/include -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/gcc/lib64 ' \
-      -DCMAKE_CXX_COMPILER=/usr/local/gcc/bin/g++ ..
+  /usr/bin/cmake -DVERSION:STRING=$VERSION \
+      -DCMAKE_CXX_COMPILER_ARG1:STRING=' -std=c++14 -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -Wall -g -gdwarf-2 -O0 -fPIC -m64 -isystem/usr/local/gcc/include -isystem/usr/local/probe/include -Wl,-rpath -Wl,. -Wl,-rpath -Wl,/usr/local/probe/lib -Wl,-rpath -Wl,/usr/local/gcc/lib64 ' ..
 else
    echo "unknown buildtype $BUILD_TYPE"
    exit 1
