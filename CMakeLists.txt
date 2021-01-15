@@ -13,7 +13,6 @@ set(CMAKE_BUILD_TYPE Release)
 project (QueueNado)
 set(PROJECT_SRC ${QueueNado_SOURCE_DIR}/src)
 set(DIR_UNIT_TEST ${QueueNado_SOURCE_DIR}/test)
-set(DIR_3RDPARTY ${QueueNado_SOURCE_DIR}/thirdparty)
 
 
 find_library(G3LOG g3logger PATHS /usr/local/probe/lib )
@@ -22,11 +21,10 @@ set(LIBS ${G3LOG})
 find_library(G3FILE_ROTATE g3logrotate PATHS /usr/local/probe/lib)
 list(APPEND LIBS ${G3FILE_ROTATE})
 
-
-find_library(BOOST_THREAD boost_thread PATHS /usr/local/probe/lib )
+find_library(BOOST_THREAD boost_thread PATHS /usr/lib64 )
 list(APPEND LIBS ${BOOST_THREAD})
 
-find_library(BOOST_SYSTEM boost_system PATHS /usr/local/probe/lib )
+find_library(BOOST_SYSTEM boost_system PATHS /usr/lib64 )
 list(APPEND LIBS ${BOOST_SYSTEM})
 
 find_library(FILEIO FileIO PATHS /usr/local/probe/lib )
@@ -38,7 +36,7 @@ list(APPEND LIBS ${CQueueNado})
 find_library(ZMQ zmq PATHS /usr/local/probe/lib )
 list(APPEND LIBS ${ZMQ})
 
-find_library(ZLIB z PATHS /usr/local/probe/lib )
+find_library(ZLIB z PATHS /usr/lib64 )
 list(APPEND LIBS ${ZLIB})
 
 find_library(STOPWATCH StopWatch PATHS /usr/local/probe/lib )
@@ -103,14 +101,6 @@ TARGET_LINK_LIBRARIES(${LIBRARY_TO_BUILD} ${LIBS})
 
 # create the unit tests
 # =========================
-set(GTEST_DIR ${DIR_3RDPARTY}/gtest-1.7.0)
-set(GTEST_INCLUDE_DIRECTORIES ${GTEST_DIR}/include ${GTEST_DIR} ${GTEST_DIR}/src)
-MESSAGE( "Attempt to build gtest. gtest directory: " ${GTEST_DIR})
-include_directories(${GTEST_INCLUDE_DIRECTORIES})
-include_directories(${PROJECT_SOURCE_DIR}/src_3rdparty)
-
-add_library(gtest_170_lib ${GTEST_DIR}/src/gtest-all.cc)
-set_target_properties(gtest_170_lib PROPERTIES COMPILE_DEFINITIONS "GTEST_HAS_RTTI=0")
 enable_testing(true)
 
 include_directories(test)
@@ -118,10 +108,10 @@ include_directories(${PROJECT_SRC})
 file(GLOB TEST_SRC_FILES "test/*.cpp")
 
 SET(CMAKE_CXX_FLAGS "-Wall -Wno-sign-compare -rdynamic -Wunused -std=c++14 -pthread -D_GLIBCXX_USE_NANOSLEEP")
-add_executable(UnitTestRunner thirdparty/test_main.cpp ${TEST_SRC_FILES} )
+add_executable(UnitTestRunner ${TEST_SRC_FILES} )
 MESSAGE("*****: " ${LIBRARY_TO_BUILD})
 
-target_link_libraries(UnitTestRunner gtest_170_lib ${LIBS})
+target_link_libraries(UnitTestRunner libgtest.so.1.8.0 ${LIBS})
 target_link_libraries(UnitTestRunner ${LIBRARY_TO_BUILD})
 set_target_properties(UnitTestRunner PROPERTIES COMPILE_FLAGS "-isystem -pthread ")
 

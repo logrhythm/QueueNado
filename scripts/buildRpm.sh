@@ -10,9 +10,9 @@ if [[ $# -ne 2 ]] ; then
     exit 0
 fi
 
-if [ "$2" = "PRODUCTION"   ] ; then
+if [ "$2" = "PRODUCTION" ] ; then
    BUILD_TYPE="-DUSE_LR_DEBUG=OFF"
-elif  [ "$2" = "DEBUG"   ] ; then
+elif [ "$2" = "DEBUG" ] ; then
    BUILD_TYPE="-DUSE_LR_DEBUG=ON"
 else
    echo "<BUILD_TYPE> must be one of: PRODUCTION or DEBUG"
@@ -31,8 +31,6 @@ echo "Building $PACKAGE --> version: $VERSION"
 
 PWD=`pwd`
 CWD=$PWD/$PACKAGE
-DISTDIR=$CWD/dist/$PACKAGE
-PATH=$PATH:/usr/local/probe/bin:$PATH
 
 sudo rm -rf ~/rpmbuild
 rpmdev-setuptree
@@ -43,4 +41,4 @@ mkdir -p ~/rpmbuild/SOURCES
 mv $PACKAGE-$VERSION.tar.gz ~/rpmbuild/SOURCES
 cd ~/rpmbuild
 
-rpmbuild -v -bb  --define="version ${VERSION}" --define="buildtype {$BUILD_TYPE}"  --define="buildnumber {$BUILD}" --target=x86_64 ~/rpmbuild/SPECS/$PACKAGE.spec
+rpmbuild -v -bb --define="version ${VERSION}" --define="buildtype {$BUILD_TYPE}" --define="buildnumber {$BUILD}" --target=x86_64 ~/rpmbuild/SPECS/$PACKAGE.spec
