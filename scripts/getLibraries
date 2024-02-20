@@ -30,7 +30,9 @@ GitRepeat() {
 
 rm -rf Q
 rm -rf src_3rdparty/q
-GitRepeat KjellKod Q  master
+# Kjell made changes to master which breaks the QueueNado implementation.
+# Use the 1.1 tag for compatibility with the QueueNado repo.
+GitRepeat KjellKod Q  1.1
 mkdir -p src_3rdparty
 mv Q/src/* src_3rdparty/.
 rm -rf Q
